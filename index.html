@@ -1,0 +1,1329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ECHOES — Design & Rules Reference</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@300;400;600;700;900&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0c0f;
+    --surface: #111318;
+    --surface2: #1a1d24;
+    --border: #2a2d35;
+    --accent: #E8732A;
+    --accent2: #4A90D9;
+    --text: #c8cdd8;
+    --text-dim: #6b7080;
+    --text-bright: #eef0f5;
+    --danger: #c0392b;
+    --success: #1e7a3e;
+    --mono: 'Share Tech Mono', monospace;
+    --head: 'Barlow Condensed', sans-serif;
+    --body: 'Barlow', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--body);
+    font-size: 15px;
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  /* Scanline overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.03) 2px,
+      rgba(0,0,0,0.03) 4px
+    );
+    pointer-events: none;
+    z-index: 1000;
+  }
+
+  /* ── HEADER ── */
+  header {
+    position: relative;
+    padding: 80px 40px 60px;
+    border-bottom: 1px solid var(--border);
+    overflow: hidden;
+  }
+
+  header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 80% at 50% -20%, rgba(232,115,42,0.08) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 40% at 80% 50%, rgba(74,144,217,0.05) 0%, transparent 60%);
+  }
+
+  .header-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    position: relative;
+  }
+
+  .signal-icon {
+    display: flex;
+    gap: 4px;
+    align-items: flex-end;
+    margin-bottom: 24px;
+  }
+
+  .signal-bar {
+    width: 6px;
+    background: var(--accent);
+    border-radius: 2px;
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  .signal-bar:nth-child(1) { height: 14px; animation-delay: 0.2s; }
+  .signal-bar:nth-child(2) { height: 22px; animation-delay: 0s; }
+  .signal-bar:nth-child(3) { height: 10px; animation-delay: 0.4s; }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  h1.game-title {
+    font-family: var(--head);
+    font-size: clamp(64px, 10vw, 120px);
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    color: var(--text-bright);
+    line-height: 0.9;
+    text-transform: uppercase;
+    position: relative;
+  }
+
+  h1.game-title::after {
+    content: 'ECHOES';
+    position: absolute;
+    inset: 0;
+    color: var(--accent);
+    clip-path: inset(0 0 85% 0);
+    opacity: 0.6;
+    animation: glitch 4s infinite;
+  }
+
+  @keyframes glitch {
+    0%, 90%, 100% { transform: translateX(0); clip-path: inset(0 0 85% 0); }
+    92% { transform: translateX(-3px); clip-path: inset(30% 0 50% 0); }
+    94% { transform: translateX(3px); clip-path: inset(60% 0 20% 0); }
+    96% { transform: translateX(-2px); clip-path: inset(10% 0 75% 0); }
+  }
+
+  .header-meta {
+    margin-top: 20px;
+    display: flex;
+    gap: 32px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .meta-tag {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .meta-tag span {
+    color: var(--accent);
+    margin-right: 6px;
+  }
+
+  .status-badge {
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 4px 10px;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    animation: blink 3s ease-in-out infinite;
+  }
+
+  @keyframes blink {
+    0%, 80%, 100% { opacity: 1; }
+    90% { opacity: 0.3; }
+  }
+
+  /* ── LAYOUT ── */
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 40px;
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    gap: 0;
+    min-height: calc(100vh - 200px);
+  }
+
+  /* ── SIDEBAR NAV ── */
+  nav {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 40px 24px 40px 0;
+    border-right: 1px solid var(--border);
+    scrollbar-width: none;
+  }
+
+  nav::-webkit-scrollbar { display: none; }
+
+  .nav-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  nav a {
+    display: block;
+    font-family: var(--head);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    text-decoration: none;
+    padding: 6px 0;
+    transition: color 0.2s, padding-left 0.2s;
+    border-left: 2px solid transparent;
+    padding-left: 12px;
+    margin-left: -12px;
+  }
+
+  nav a:hover {
+    color: var(--accent);
+    border-left-color: var(--accent);
+    padding-left: 16px;
+  }
+
+  nav a.sub {
+    font-size: 11px;
+    font-weight: 400;
+    font-family: var(--body);
+    padding-left: 24px;
+    margin-left: -12px;
+    color: #444;
+  }
+
+  nav a.sub:hover {
+    color: var(--accent2);
+    border-left-color: var(--accent2);
+    padding-left: 28px;
+  }
+
+  /* ── MAIN CONTENT ── */
+  main {
+    padding: 40px 0 80px 48px;
+  }
+
+  /* ── SECTIONS ── */
+  .section {
+    margin-bottom: 80px;
+    padding-bottom: 80px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .section:last-child {
+    border-bottom: none;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  .section-num {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.15em;
+  }
+
+  h2.section-title {
+    font-family: var(--head);
+    font-size: 36px;
+    font-weight: 900;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-bright);
+    line-height: 1;
+  }
+
+  h3 {
+    font-family: var(--head);
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent2);
+    margin: 32px 0 12px;
+  }
+
+  h4 {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 24px 0 8px;
+  }
+
+  p {
+    color: var(--text);
+    margin-bottom: 12px;
+    max-width: 720px;
+  }
+
+  /* ── PROLOGUE ── */
+  .prologue {
+    border-left: 3px solid var(--accent);
+    padding: 24px 28px;
+    background: rgba(232,115,42,0.04);
+    margin-bottom: 32px;
+  }
+
+  .prologue .pull-quote {
+    font-family: var(--head);
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-bright);
+    margin-bottom: 16px;
+    letter-spacing: 0.04em;
+  }
+
+  .prologue p {
+    color: var(--text-dim);
+    font-style: italic;
+    max-width: none;
+  }
+
+  .threat-line {
+    font-family: var(--head);
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--danger);
+    letter-spacing: 0.06em;
+    margin-top: 24px;
+    padding: 16px 20px;
+    border: 1px solid rgba(192,57,43,0.3);
+    background: rgba(192,57,43,0.05);
+  }
+
+  /* ── TABLES ── */
+  .tbl-wrap {
+    overflow-x: auto;
+    margin: 16px 0 24px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  thead tr {
+    background: var(--accent);
+  }
+
+  thead th {
+    font-family: var(--head);
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--bg);
+    padding: 10px 14px;
+    text-align: left;
+  }
+
+  tbody tr:nth-child(odd) { background: var(--surface); }
+  tbody tr:nth-child(even) { background: var(--surface2); }
+
+  tbody tr:hover { background: rgba(232,115,42,0.08); }
+
+  td {
+    padding: 10px 14px;
+    color: var(--text);
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+
+  td:first-child {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--accent);
+    white-space: nowrap;
+  }
+
+  td strong {
+    color: var(--text-bright);
+  }
+
+  /* ── CALLOUT BOXES ── */
+  .callout {
+    padding: 16px 20px;
+    margin: 16px 0;
+    border-left: 3px solid;
+    font-size: 13px;
+  }
+
+  .callout.info {
+    border-color: var(--accent2);
+    background: rgba(74,144,217,0.06);
+    color: var(--text);
+  }
+
+  .callout.warning {
+    border-color: var(--accent);
+    background: rgba(232,115,42,0.06);
+    color: var(--text);
+  }
+
+  .callout.danger {
+    border-color: var(--danger);
+    background: rgba(192,57,43,0.06);
+    color: var(--text);
+  }
+
+  .callout.success {
+    border-color: var(--success);
+    background: rgba(30,122,62,0.06);
+    color: var(--text);
+  }
+
+  .callout strong {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 6px;
+  }
+
+  .callout.info strong { color: var(--accent2); }
+  .callout.warning strong { color: var(--accent); }
+  .callout.danger strong { color: var(--danger); }
+  .callout.success strong { color: var(--success); }
+
+  /* ── BULLET LISTS ── */
+  ul.rules-list {
+    list-style: none;
+    margin: 12px 0 20px;
+  }
+
+  ul.rules-list li {
+    padding: 6px 0 6px 20px;
+    position: relative;
+    color: var(--text);
+    font-size: 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+  }
+
+  ul.rules-list li::before {
+    content: '›';
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+    font-weight: 700;
+  }
+
+  ul.rules-list li strong {
+    color: var(--text-bright);
+  }
+
+  /* ── STAT BLOCKS ── */
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+    margin: 16px 0;
+  }
+
+  .stat-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    padding: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--accent);
+  }
+
+  .stat-card.blue::before { background: var(--accent2); }
+
+  .stat-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+  }
+
+  .stat-value {
+    font-family: var(--head);
+    font-size: 28px;
+    font-weight: 900;
+    color: var(--text-bright);
+    line-height: 1;
+  }
+
+  .stat-desc {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-top: 4px;
+  }
+
+  /* ── OPEN ITEMS ── */
+  .open-item {
+    display: flex;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    align-items: baseline;
+  }
+
+  .open-item .tag {
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 2px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .tag.pending { background: rgba(192,57,43,0.2); color: #e57368; }
+  .tag.confirmed { background: rgba(30,122,62,0.2); color: #4caf78; }
+  .tag.progress { background: rgba(232,115,42,0.2); color: var(--accent); }
+
+  .open-item .item-text { font-size: 13px; color: var(--text); }
+  .open-item .item-note { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 32px 40px;
+    text-align: center;
+  }
+
+  footer p {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+    margin: 0 auto;
+  }
+
+  footer span { color: var(--accent); }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    .container { grid-template-columns: 1fr; }
+    nav { display: none; }
+    main { padding: 24px 0; }
+    header { padding: 48px 24px 40px; }
+    .container { padding: 0 24px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="signal-icon">
+      <div class="signal-bar"></div>
+      <div class="signal-bar"></div>
+      <div class="signal-bar"></div>
+    </div>
+    <h1 class="game-title">ECHOES</h1>
+    <div class="header-meta">
+      <div class="meta-tag"><span>//</span> Design & Rules Reference</div>
+      <div class="meta-tag"><span>//</span> EmptyFishTank-JB</div>
+      <div class="meta-tag"><span>//</span> 1–4 Players · Cooperative · Survival Horror</div>
+      <div class="status-badge">● IN DEVELOPMENT</div>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- ── SIDEBAR NAV ── -->
+  <nav>
+    <div class="nav-label">// Contents</div>
+    <a href="#overview">01 · Overview</a>
+    <a href="#creature">02 · The Creature</a>
+    <a href="#turn">03 · Turn Structure</a>
+    <a href="#echo-deck">04 · Echo Deck</a>
+    <a href="#mini-games">05 · Mini-Games</a>
+    <a href="#dice">06 · Dice Engine</a>
+    <a href="#resources">07 · Resources</a>
+    <a href="#noise">08 · Noise</a>
+    <a href="#combat">09 · Combat</a>
+    <a href="#weapons">10 · Weapons</a>
+    <a href="#crafting">11 · Crafting</a>
+    <a href="#inventory">12 · Inventory</a>
+    <a href="#board">13 · Board & Rooms</a>
+    <a href="#hiding">14 · Hiding</a>
+    <a href="#health">15 · Health</a>
+    <a href="#escape">16 · Escape Phase</a>
+    <a href="#characters">17 · Characters</a>
+    <a href="#taskboard">18 · Task Board</a>
+    <a href="#open">19 · Open Items</a>
+  </nav>
+
+  <!-- ── MAIN ── -->
+  <main>
+
+    <!-- 01 OVERVIEW -->
+    <section class="section" id="overview">
+      <div class="section-header">
+        <span class="section-num">// 01</span>
+        <h2 class="section-title">Game Overview</h2>
+      </div>
+
+      <div class="prologue">
+        <div class="pull-quote">"We thought it was abandoned. Offline. Dead. We were wrong."</div>
+        <p>The signal was faint — an automated distress beacon pulsing from deep within the drift. A derelict vessel, long thought lost, suddenly reappeared on long-range scans. No crew manifest. No flight logs. No response.</p>
+        <p style="margin-top:10px;">Your team of scavengers was dispatched to investigate. The mission was simple: board the ship, extract valuable tech, and return before the drift swallowed it again. But the moment you stepped aboard, the silence felt wrong. The air was stale, but not dead. The systems were dormant, but not cold. Something was watching.</p>
+        <p style="margin-top:10px; font-weight:600; font-style:normal; color: var(--text-bright);">Then your own ship powered down.</p>
+      </div>
+
+      <h3>Mission Objectives</h3>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Priority</th><th>Objective</th><th>Details</th></tr></thead>
+          <tbody>
+            <tr><td>PRIMARY</td><td><strong>Recover Resources</strong></td><td>Scavenge, loot, and gather what the crew needs. Resources fuel crafting, repair, and survival.</td></tr>
+            <tr><td>SECONDARY</td><td><strong>Refuel Escape Ship</strong></td><td>Locate or craft Fuel Cells. Fill at least 16 of 20 Fuel Grid spaces.</td></tr>
+            <tr><td>TERTIARY</td><td><strong>Survive. Escape.</strong></td><td>Get every surviving crew member back to the escape ship before elimination.</td></tr>
+            <tr><td>OPTIONAL</td><td><strong>Discover Data Fragments</strong></td><td>Recover corrupted crew logs, AI messages, and environmental records via terminals.</td></tr>
+            <tr><td>OPTIONAL</td><td><strong>Deal With The Creature</strong></td><td>Eject or permanently neutralize the Creature. High risk. Endgame mechanic TBD.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-label">Win Condition</div>
+          <div class="stat-value">16/20</div>
+          <div class="stat-desc">Fuel Grid spaces filled + successful escape</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Lose Condition</div>
+          <div class="stat-value">0</div>
+          <div class="stat-desc">Crew members remaining before escape</div>
+        </div>
+        <div class="stat-card blue">
+          <div class="stat-label">Players</div>
+          <div class="stat-value">1–4</div>
+          <div class="stat-desc">Cooperative. No hidden agendas.</div>
+        </div>
+      </div>
+
+      <div class="threat-line">There is something aboard. It cannot be killed. It adapts. It hunts. You may push it back. You may hide. You may delay it. But it will return.</div>
+    </section>
+
+    <!-- 02 CREATURE -->
+    <section class="section" id="creature">
+      <div class="section-header">
+        <span class="section-num">// 02</span>
+        <h2 class="section-title">The Creature</h2>
+      </div>
+      <p>The crew does not know what they are dealing with. They call it the Creature because they have no better word. It moves wrong. It appears where it should not. Weapons damage it but do not stop it. It is drawn to activity, to noise, to signal.</p>
+
+      <h3>Creature States</h3>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>State</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td>DORMANT</td><td>Not yet on board. Failed noise checks generate Threat Tokens only. Cannot activate until introduced.</td></tr>
+            <tr><td>ACTIVE</td><td>On the board. Full noise check rules apply. Position known to crew.</td></tr>
+            <tr><td>SIGNAL LOST</td><td>On board but location unknown. Noise checks still fire. Position hidden until re-emergence.</td></tr>
+            <tr><td>VENTED</td><td>Retreated into ship infrastructure. Temporarily off board. Re-emerges via specific Echo cards.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Noise Check & Activation</h3>
+      <div class="callout warning"><strong>// Mechanic</strong>At end of each player phase, roll D12 Noise Die vs accumulated Noise Level.</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Result</th><th>Outcome</th><th>Creature Behavior</th></tr></thead>
+          <tbody>
+            <tr><td>Roll > Noise</td><td><strong>PASS</strong></td><td>Creature moves HALF speed toward last noise location. Always moving — never fully still.</td></tr>
+            <tr><td>Fail · 1–4</td><td><strong>Direct Pursuit</strong></td><td>Full speed directly toward last noise source.</td></tr>
+            <tr><td>Fail · 5–8</td><td><strong>Vent Shortcut</strong></td><td>Uses speed to reach nearest vent (relative to creature) → emerges nearest vent to noise → continues with remaining speed.</td></tr>
+            <tr><td>Fail · 9–12</td><td><strong>Immediate Vent</strong></td><td>Instant vent jump, no movement cost. Emerges at vent nearest noise source. Full speed toward noise.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Line of Sight Rush</h3>
+      <p>After any movement resolves, if the creature ends with any player in direct line of sight it rushes immediately — ignoring remaining speed. Non-discriminating: attacks any player in its path, not just the target.</p>
+
+      <h3>Introduction Sequence</h3>
+      <ul class="rules-list">
+        <li><strong>Dormant Phase:</strong> Failed noise checks produce Threat Tokens. Toggle cards inert.</li>
+        <li><strong>Bridge Objective:</strong> Crew reaches Bridge, interacts with main terminal → draws CONTACT card.</li>
+        <li><strong>CONTACT Card:</strong> Names a room family. Placed pending on Task Board. Threat Tokens stack on it.</li>
+        <li><strong>Introduction:</strong> Named room family discovered → creature placed in that room. Threat Tokens convert. Status flips to ACTIVE.</li>
+        <li><strong>Scenario B:</strong> If family already on board when CONTACT drawn → creature emerges in most recently discovered room of that family.</li>
+      </ul>
+
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-label">Creature Speed</div>
+          <div class="stat-value">~8</div>
+          <div class="stat-desc">Spaces per phase. Subject to playtesting.</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Pass Speed</div>
+          <div class="stat-value">½</div>
+          <div class="stat-desc">Half speed toward noise on successful noise check.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 03 TURN STRUCTURE -->
+    <section class="section" id="turn">
+      <div class="section-header">
+        <span class="section-num">// 03</span>
+        <h2 class="section-title">Turn Structure</h2>
+      </div>
+
+      <h3>Player Phase</h3>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Step</th><th>Action</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td><strong>Move</strong> (up to Speed)</td><td>Entering unexplored room → draw Echo Card.</td></tr>
+            <tr><td>2</td><td><strong>Action 1</strong></td><td>Any available action.</td></tr>
+            <tr><td>3</td><td><strong>Move</strong> (remaining Speed)</td><td>Entering unexplored room → draw Echo Card.</td></tr>
+            <tr><td>4</td><td><strong>Action 2</strong></td><td>Player may NOT move after second action.</td></tr>
+            <tr><td>5</td><td><strong>Character Ability</strong> (optional)</td><td>Once per turn, any time during phase. Does not replace an action.</td></tr>
+            <tr><td>6</td><td><strong>Track Noise</strong></td><td>Update Noise Meter before creature phase.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Movement Variants</h3>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Type</th><th>Speed</th><th>Noise</th><th>Cost</th></tr></thead>
+          <tbody>
+            <tr><td>Normal Move</td><td>Full speed</td><td>+1 per move action</td><td>Free</td></tr>
+            <tr><td>Encumbered (full inventory)</td><td>Full speed</td><td>+2 per move action</td><td>Free</td></tr>
+            <tr><td>Quiet Move</td><td>Speed −2 overall</td><td>0 entire turn</td><td>1 Action</td></tr>
+            <tr><td>Run (optional rule)</td><td>Speed +4 overall</td><td>+2 flat for turn</td><td>Free</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout warning"><strong>// Important</strong>Movement noise is per move ACTION, not per space. Full speed and single space generate equal noise within the same phase.</div>
+
+      <h3>Creature Phase</h3>
+      <ul class="rules-list">
+        <li>Roll D12 Noise Die vs accumulated Noise Level</li>
+        <li>Determine awareness tier and resolve creature movement</li>
+        <li>Apply Line of Sight Rush if applicable</li>
+      </ul>
+    </section>
+
+    <!-- 04 ECHO DECK -->
+    <section class="section" id="echo-deck">
+      <div class="section-header">
+        <span class="section-num">// 04</span>
+        <h2 class="section-title">The Echo Deck</h2>
+      </div>
+      <p>The unified narrative engine. ~100 cards handling room discovery, loot, events, blueprints, mini-games, and data retrieval. Every draw carries potential to change board state, generate resources, trigger objectives, or interrupt play.</p>
+
+      <h3>Deck Composition (~100 Cards)</h3>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Card Type</th><th>Count</th><th>Function</th></tr></thead>
+          <tbody>
+            <tr><td>Room Cards</td><td>~70–80</td><td>Primary discovery loop. Room type, lore, resource icons, events, tasks, terminal indicators.</td></tr>
+            <tr><td>Echo Event Mini-Games</td><td>10 (5×2)</td><td>Interrupt mechanic. Must resolve before original draw continues.</td></tr>
+            <tr><td>Blueprint Cards</td><td>~15–20%</td><td>Unlock craftable items via Stacked Task chains.</td></tr>
+            <tr><td>CONTACT Card</td><td>1</td><td>Unique. Triggers creature introduction when drawn at Bridge terminal.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Drawing Rules</h3>
+      <ul class="rules-list">
+        <li><strong>Room Discovery:</strong> Enter unexplored room → draw Echo Card to populate it.</li>
+        <li><strong>Family Cap:</strong> Max 2–3 rooms per family on board simultaneously.</li>
+        <li><strong>Cascade Draw:</strong> If drawn card's family is at cap → resolve card, draw again. Each cascade is another Echo Event risk.</li>
+        <li><strong>Terminal Draw:</strong> Interacting with terminal costs 1–2 actions and draws an Echo Card.</li>
+        <li><strong>Late Game:</strong> Once all rooms discovered, terminals are the only way to draw cards.</li>
+      </ul>
+
+      <h3>Bridge Terminals</h3>
+      <p>One dedicated terminal per room family. Available regardless of whether that room exists on board.</p>
+      <div class="callout danger"><strong>// Warning</strong>Bridge terminals generate significantly higher noise than standard terminals. Failed interaction triggers an alarm — immediate noise spike and noise check before turn ends.</div>
+    </section>
+
+    <!-- 05 MINI-GAMES -->
+    <section class="section" id="mini-games">
+      <div class="section-header">
+        <span class="section-num">// 05</span>
+        <h2 class="section-title">Echo Event Mini-Games</h2>
+      </div>
+      <p>Interrupt the current action — room discovery or terminal interaction — and must fully resolve before play continues. No additional action cost. After resolution, original action continues.</p>
+
+      <h3>Universal Wager Rules</h3>
+      <ul class="rules-list">
+        <li><strong>Mandatory:</strong> Every Echo Event requires staking one resource before any dice are rolled.</li>
+        <li><strong>No Resources:</strong> Automatic failure. +4 Noise immediately. No rolls taken. Continue to next card draw.</li>
+        <li><strong>Donation:</strong> Crewmate may cover wager if physically present in the same room when event triggers.</li>
+        <li><strong>Win:</strong> Wagered resource returned. Some mini-games award doubled payout.</li>
+        <li><strong>Fail:</strong> Resource permanently lost. Noise penalty applied per mini-game.</li>
+      </ul>
+
+      <h3>The Five Echo Events</h3>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>#</th><th>Name</th><th>Type</th><th>Rolls</th><th>Win</th><th>Fail Noise</th></tr></thead>
+          <tbody>
+            <tr><td>01</td><td><strong>Pressure Leak</strong></td><td>Risk Selection</td><td>3</td><td>Wager + Tier reward</td><td>Varies by Tier</td></tr>
+            <tr><td>02</td><td><strong>Trip the Fuse</strong></td><td>Puzzle Solving</td><td>3 Pulses</td><td>Wager doubled</td><td>+1 per open fuse</td></tr>
+            <tr><td>03</td><td><strong>Dead Reckoning</strong></td><td>Coordinate Bet</td><td>1</td><td>Wager doubled</td><td>+2/+4 + Creature +1</td></tr>
+            <tr><td>04</td><td><strong>Cascade Failure</strong></td><td>Push Your Luck</td><td>3 Pulses</td><td>Wager doubled (18–21)</td><td>+3 + 1s rolled</td></tr>
+            <tr><td>05</td><td><strong>Dead Signal</strong></td><td>Sequential Match</td><td>3 Pulses</td><td>Wager doubled + Data Token</td><td>+2/+4 + Creature +1</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout info"><strong>// Reference</strong>Full mini-game rules documented in separate Echo Event Mini-Games Rulebook.</div>
+    </section>
+
+    <!-- 06 DICE -->
+    <section class="section" id="dice">
+      <div class="section-header">
+        <span class="section-num">// 06</span>
+        <h2 class="section-title">The Dice Engine</h2>
+      </div>
+
+      <h3>D12 System Dice (5 dice)</h3>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Face</th><th>Icon</th><th>×</th><th>Function</th></tr></thead>
+          <tbody>
+            <tr><td>TECH</td><td>Computer/Monitor</td><td>2</td><td>Technology skill checks. Terminal interactions, hacking, data retrieval.</td></tr>
+            <tr><td>TOOLS</td><td>Wrench</td><td>2</td><td>Physical/mechanical skill checks. Crafting, repairs, construction.</td></tr>
+            <tr><td>BIO</td><td>DNA Strand</td><td>2</td><td>Biological/medical skill checks. Healing, biological hazards.</td></tr>
+            <tr><td>NOISE</td><td>Speaker</td><td>1</td><td>Adds noise to tracker when rolled during skill checks.</td></tr>
+            <tr><td>NOISE SPIKE</td><td>Spiked Speaker</td><td>1</td><td>Stronger noise addition during skill checks.</td></tr>
+            <tr><td>HAZARD</td><td>Triangle !</td><td>1</td><td>Combat face. Counts as defense/attack success.</td></tr>
+            <tr><td>CONTAMINATION</td><td>Biohazard Symbol</td><td>1</td><td>Second hazard face. Unique effect TBD.</td></tr>
+            <tr><td>WILD</td><td>Star Burst</td><td>1</td><td>Counts as any required face for current roll.</td></tr>
+            <tr><td>VOID</td><td>X Mark</td><td>1</td><td>Permanently removes that die from current roll sequence.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p><strong>D6 Coordinate Dice (2):</strong> Designated Blue Die and Red Die. Used exclusively for Echo Event mini-games.</p>
+      <p><strong>D12 Noise Die (1):</strong> Used exclusively for the Noise Check at end of each player phase.</p>
+    </section>
+
+    <!-- 07 RESOURCES -->
+    <section class="section" id="resources">
+      <div class="section-header">
+        <span class="section-num">// 07</span>
+        <h2 class="section-title">Resources</h2>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Resource</th><th>Found In</th><th>Acquisition</th></tr></thead>
+          <tbody>
+            <tr><td>SCRAP</td><td>Everywhere — corridors, lockers, any room</td><td>Direct pickup. Universal resource.</td></tr>
+            <tr><td>SALVAGE</td><td>Cargo, Storage, Corridors (lockers)</td><td>Direct pickup from specific room families.</td></tr>
+            <tr><td>COMPONENTS</td><td>Engineering, Garage, Maintenance</td><td>Direct pickup from specific room families.</td></tr>
+            <tr><td>DATA</td><td>Terminals and data points only</td><td>Two-step: Echo card → place Data Token → navigate → extract at terminal or data point.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Data Retrieval Loop</h3>
+      <ul class="rules-list">
+        <li>Echo card drawn at terminal indicates a data location.</li>
+        <li>Place Data Token at indicated terminal or wall-mounted data point in any already-discovered room.</li>
+        <li>Navigate to that location. Must be adjacent to the terminal or data point.</li>
+        <li>Perform data extraction action to retrieve the token.</li>
+      </ul>
+    </section>
+
+    <!-- 08 NOISE -->
+    <section class="section" id="noise">
+      <div class="section-header">
+        <span class="section-num">// 08</span>
+        <h2 class="section-title">Noise Generation</h2>
+      </div>
+      <p>Noise Tracker runs 1–12. Resets at start of each player's turn. All values below are added per instance.</p>
+
+      <h3>Movement</h3>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Action</th><th>Noise</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td>Normal Move</td><td>+1 per move action</td><td>Both phases. Max +2 from movement alone.</td></tr>
+            <tr><td>Encumbered Move</td><td>+2 per move action</td><td>When inventory is full. Max +4.</td></tr>
+            <tr><td>Quiet Move</td><td>0</td><td>Covers entire turn. Costs 1 action. Speed −2 overall.</td></tr>
+            <tr><td>Run</td><td>+2 flat</td><td>Covers entire turn. Speed +4 overall. Optional rule.</td></tr>
+            <tr><td>Vent Movement</td><td>+1 per move action +1</td><td>Extra +1 for sound amplification in metal shafts.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Actions</h3>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Action</th><th>Noise</th></tr></thead>
+          <tbody>
+            <tr><td>Search Locker / Cache / Ammo Crate</td><td>+2</td></tr>
+            <tr><td>Pick Up / Drop / Swap Item</td><td>+1</td></tr>
+            <tr><td>Craft Item</td><td>+1</td></tr>
+            <tr><td>Interact with Terminal</td><td>+1</td></tr>
+            <tr><td>Quiet Terminal Interaction</td><td>0 (requires Tech skill/item)</td></tr>
+            <tr><td>Seal Door</td><td>+1</td></tr>
+            <tr><td>Enter / Exit Locker</td><td>+1 each</td></tr>
+            <tr><td>Vent Entry / Exit</td><td>+2 each</td></tr>
+            <tr><td>Place / Throw Distraction</td><td>+2 at target location</td></tr>
+            <tr><td>Rest (+1 Health)</td><td>+1</td></tr>
+            <tr><td>Ready / Brace</td><td>0</td></tr>
+            <tr><td>Melee Attack</td><td>+2</td></tr>
+            <tr><td>Ranged Attack</td><td>+3 at weapon location</td></tr>
+            <tr><td>Bridge Terminal</td><td>+3 to +4 (TBD)</td></tr>
+            <tr><td>Bridge Terminal Alarm</td><td>+4 to +6, immediate check</td></tr>
+            <tr><td>No-Resource Auto-Fail</td><td>+4</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 09 COMBAT -->
+    <section class="section" id="combat">
+      <div class="section-header">
+        <span class="section-num">// 09</span>
+        <h2 class="section-title">Combat</h2>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-label">Creature Damage</div>
+          <div class="stat-value">5</div>
+          <div class="stat-desc">Automatic. No roll. Fixed value.</div>
+        </div>
+        <div class="stat-card blue">
+          <div class="stat-label">Max Mitigation</div>
+          <div class="stat-value">−5</div>
+          <div class="stat-desc">Per source. Sources stack.</div>
+        </div>
+      </div>
+
+      <h3>Preparation Actions</h3>
+      <h4>// Ready Action</h4>
+      <ul class="rules-list">
+        <li>Cost: 1 action. Requires weapon equipped.</li>
+        <li>Applies to ranged and melee equally.</li>
+        <li>Effect: +1 pushback beyond weapon's normal cap.</li>
+        <li>Expires at end of creature phase if unused.</li>
+      </ul>
+      <h4>// Brace Action</h4>
+      <ul class="rules-list">
+        <li>Cost: 1 action. No weapon required.</li>
+        <li>Roll all 5 D12 system dice once.</li>
+        <li>Each Hazard or Wild face = −1 damage. Maximum −5.</li>
+        <li>Stacks with Armor and Defense Roll.</li>
+      </ul>
+
+      <h3>Defense Roll</h3>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Weapon</th><th>Dice Pool</th><th>Max Pushback</th></tr></thead>
+          <tbody>
+            <tr><td>Unarmed</td><td>1 die</td><td>0 (no pushback)</td></tr>
+            <tr><td>1×1 (Pistol, Knife, etc.)</td><td>2 dice</td><td>2 spaces</td></tr>
+            <tr><td>1×2 (Rifle, Axe, etc.)</td><td>3 dice</td><td>3 spaces</td></tr>
+            <tr><td>1×3 (Shotgun)</td><td>4 dice</td><td>4 spaces</td></tr>
+            <tr><td>4-slot (Flamethrower)</td><td>5 dice (max)</td><td>5 spaces</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <ul class="rules-list">
+        <li>Up to 3 rolls. Keep Hazard and Wild faces between rolls.</li>
+        <li>Void face permanently removes that die for the sequence.</li>
+        <li>Noise and Noise Spike faces ignored during combat.</li>
+        <li>Each Hazard or Wild face = −1 damage AND 1 pushback space.</li>
+        <li>No pass/fail — sliding scale only. Every face contributes.</li>
+        <li>Ready action adds +1 pushback on top of weapon cap.</li>
+      </ul>
+
+      <h3>Makeshift Armor</h3>
+      <ul class="rules-list">
+        <li>Passive and automatic. No action or roll required.</li>
+        <li>Mitigation = armor's inventory slot size.</li>
+        <li>Multiple pieces stack. Each destroyed after absorbing one hit.</li>
+        <li>Applied after all rolls resolved.</li>
+      </ul>
+
+      <h3>Full Encounter Sequence</h3>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Step</th><th>Action</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>Apply Brace faces (if Brace taken). Note Ready bonus.</td></tr>
+            <tr><td>2</td><td>Defense Roll: weapon dice pool, up to 3 rolls, keep Hazard/Wild, Void removes die.</td></tr>
+            <tr><td>3</td><td>Damage: 5 base − Brace faces − Defense faces − Armor. Floors at 0.</td></tr>
+            <tr><td>4</td><td>Pushback: 1 space per face, capped at pool size + Ready bonus.</td></tr>
+            <tr><td>5</td><td>Melee check: flip token (or destroy). Grant +1 bonus Action.</td></tr>
+            <tr><td>6</td><td>Player Flee: all players, all encounter types. Full speed, 0 noise, creature does not pursue.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout success"><strong>// Melee Bonus</strong>Melee weapon users receive +1 Action on top of the standard flee — rewarding players who choose to fight back.</div>
+    </section>
+
+    <!-- 10 WEAPONS -->
+    <section class="section" id="weapons">
+      <div class="section-header">
+        <span class="section-num">// 10</span>
+        <h2 class="section-title">Weapons</h2>
+      </div>
+
+      <h3>Melee Weapons</h3>
+      <p>2 uses tracked by flip token. Both sides perform identically. Destroyed after second use. Successful encounters grant out-of-turn Flee + 1 bonus Action.</p>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Weapon</th><th>Size</th><th>Dice</th><th>Special</th></tr></thead>
+          <tbody>
+            <tr><td>Army Knife</td><td>1×1</td><td>2</td><td>Light melee. Emergency backup.</td></tr>
+            <tr><td>Stun Baton</td><td>1×1</td><td>2</td><td>Successful face stuns creature — skips next creature phase. No damage mitigation or pushback.</td></tr>
+            <tr><td>Axe</td><td>1×2</td><td>3</td><td>Heavier melee. Stronger defense.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Ranged Weapons</h3>
+      <p>Requires 1 Universal Ammo token per shot (except Flare Gun). No range limit except Flamethrower.</p>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Weapon</th><th>Size</th><th>Dice</th><th>Special</th></tr></thead>
+          <tbody>
+            <tr><td>Flare Gun</td><td>1×1</td><td>2</td><td>Single use. No ammo cost. Primary: fire at any LoS space — creature immediately treats it as noise source. Secondary: self defense.</td></tr>
+            <tr><td>Pistol</td><td>1×1</td><td>2</td><td>Reliable sidearm. Low inventory cost.</td></tr>
+            <tr><td>Rifle</td><td>1×2</td><td>3</td><td>Balanced primary weapon.</td></tr>
+            <tr><td>Shotgun</td><td>1×3</td><td>4</td><td>Heavy defense. Strong pushback.</td></tr>
+            <tr><td>Flamethrower</td><td>4-slot</td><td>5 (max)</td><td>Maximum threat. Range limited to 5 spaces. Dominates inventory.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 11 CRAFTING -->
+    <section class="section" id="crafting">
+      <div class="section-header">
+        <span class="section-num">// 11</span>
+        <h2 class="section-title">Crafting</h2>
+      </div>
+      <p>Blueprints are Echo Cards (~15–20% of deck). When drawn, placed on Task Board as a mini quest chain. Once completed, blueprint unlocked for all players.</p>
+
+      <h3>Crafting Tiers</h3>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Tier</th><th>Resources</th><th>Item Types</th></tr></thead>
+          <tbody>
+            <tr><td>CRUDE</td><td>Salvage + Scrap</td><td>Improvised tools, melee weapons, basic armor.</td></tr>
+            <tr><td>STANDARD</td><td>Salvage + Components</td><td>Functional tools, gadgets, basic firearms.</td></tr>
+            <tr><td>ADVANCED</td><td>Components + Data</td><td>Sophisticated equipment, advanced firearms, scanners.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Crafting Recipes</h3>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Item</th><th>Tier</th><th>Recipe</th></tr></thead>
+          <tbody>
+            <tr><td>Army Knife</td><td>Crude</td><td>1 Salvage + 1 Scrap</td></tr>
+            <tr><td>Stun Baton</td><td>Crude</td><td>1 Salvage + 2 Scrap</td></tr>
+            <tr><td>Axe</td><td>Crude</td><td>2 Salvage + 1 Scrap</td></tr>
+            <tr><td>Scrap Bracer (1×2 Armor)</td><td>Crude</td><td>1 Salvage + 2 Scrap</td></tr>
+            <tr><td>Flare Gun</td><td>Standard</td><td>1 Salvage + 2 Components</td></tr>
+            <tr><td>Pistol</td><td>Standard</td><td>2 Salvage + 2 Components</td></tr>
+            <tr><td>Rifle</td><td>Standard</td><td>2 Salvage + 3 Components</td></tr>
+            <tr><td>Medpack</td><td>Standard</td><td>2 Salvage + 2 Components</td></tr>
+            <tr><td>Shotgun</td><td>Advanced</td><td>3 Components + 2 Data</td></tr>
+            <tr><td>Flamethrower</td><td>Advanced</td><td>4 Components + 3 Data</td></tr>
+            <tr><td>Jury-Rigged Fuel Cell</td><td>Advanced</td><td>3 Salvage + 2 Components + 1 Data</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 12 INVENTORY -->
+    <section class="section" id="inventory">
+      <div class="section-header">
+        <span class="section-num">// 12</span>
+        <h2 class="section-title">Inventory & Equipment</h2>
+      </div>
+
+      <h3>Player Board Layout</h3>
+      <ul class="rules-list">
+        <li><strong>Top:</strong> Character name, art, vital stats (Speed, Health tracker).</li>
+        <li><strong>Left column:</strong> Equipment Grid (2×4 = 8 slots) — weapons and armor only.</li>
+        <li><strong>Right column:</strong> Backpack Inventory Grid (~22 slots with compartments).</li>
+        <li><strong>Bottom:</strong> Noise Tracker (1–12) and Quick Reference section.</li>
+      </ul>
+
+      <h3>Equipment Grid</h3>
+      <ul class="rules-list">
+        <li>2×4 grid (8 slots). Melee weapons and Makeshift Armor only.</li>
+        <li>Ranged weapons stored in backpack, competing with resources.</li>
+        <li>Starting 1×1 weapon placed here at setup.</li>
+      </ul>
+
+      <h3>Backpack Inventory</h3>
+      <ul class="rules-list">
+        <li>~22 slots in compartments. Compartments are cosmetic — items go anywhere they fit.</li>
+        <li>Certain compartments have designated item types (e.g., Fuel Cell slot).</li>
+        <li><strong>Reserved Slots:</strong> Can hold any item when empty. Designated item takes priority when needed — other items must relocate or be dropped.</li>
+        <li>Backpack boards are interchangeable between playthroughs.</li>
+      </ul>
+
+      <h3>Fuel Cells</h3>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Type</th><th>Size</th><th>Grid Spaces</th><th>Source</th></tr></thead>
+          <tbody>
+            <tr><td>Official Fuel Cell</td><td>2×2</td><td>4 spaces</td><td>Deep in Echo Deck via Stacked Task chains.</td></tr>
+            <tr><td>Jury-Rigged Fuel Cell</td><td>1×2</td><td>2 spaces</td><td>Craftable. Requires twice as many trips.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout danger"><strong>// Critical</strong>Carrying a 2×2 Official Fuel Cell dominates the backpack. Carrier must drop heavy weapons or armor. If carrier dies, Fuel Cell drops at death location and must be recovered.</div>
+    </section>
+
+    <!-- 13 BOARD -->
+    <section class="section" id="board">
+      <div class="section-header">
+        <span class="section-num">// 13</span>
+        <h2 class="section-title">Board & Rooms</h2>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat-card"><div class="stat-label">Board Size</div><div class="stat-value">30×36"</div><div class="stat-desc">1×1 space grid</div></div>
+        <div class="stat-card blue"><div class="stat-label">Room Tile</div><div class="stat-value">5×6</div><div class="stat-desc">Asymmetrical, double-sided</div></div>
+        <div class="stat-card"><div class="stat-label">Fog of War</div><div class="stat-value">~15–20</div><div class="stat-desc">Undiscovered rooms at start</div></div>
+      </div>
+
+      <h3>Fixed Board Elements</h3>
+      <ul class="rules-list">
+        <li><strong>The Bridge:</strong> ~60 spaces. Fixed position every game. Multiple terminals, Captain's section, one family terminal per room type. Higher noise, alarm risk.</li>
+        <li><strong>The Dock:</strong> Fixed on board edge. Escape ship berth. Houses 2×10 Fuel Grid.</li>
+        <li><strong>Corridors:</strong> Fixed, various shapes. No Echo cards. Vent access points printed here. Board designed so no sections can be sealed off by tile placement.</li>
+        <li><strong>Vent Network:</strong> Printed on board in space between room/corridor boundaries. Traversable. 1–2 spaces wide. Creature-native but player-accessible.</li>
+      </ul>
+
+      <h3>Room Tiles</h3>
+      <ul class="rules-list">
+        <li>5×6 footprint with asymmetrical notched corners.</li>
+        <li>Double-sided. Only one face physically fits a given board slot.</li>
+        <li>Player chooses one of two orientations — 4 total configurations per tile.</li>
+        <li>Door routing determines which fixed corridors connect to the room.</li>
+      </ul>
+
+      <h3>Room Families & Caps</h3>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Family</th><th>Cap</th><th>Primary Resource</th></tr></thead>
+          <tbody>
+            <tr><td>Medical / Lab</td><td>2</td><td>Data</td></tr>
+            <tr><td>Engineering / Maintenance</td><td>2–3</td><td>Components</td></tr>
+            <tr><td>Cargo / Storage</td><td>2–3</td><td>Salvage</td></tr>
+            <tr><td>Bridge / Command</td><td>1 (fixed)</td><td>Data</td></tr>
+            <tr><td>Crew Quarters</td><td>2</td><td>Mixed</td></tr>
+            <tr><td>Airlock / Hull</td><td>1–2</td><td>Scrap</td></tr>
+            <tr><td>Garage / Workshop</td><td>1–2</td><td>Components</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 14 HIDING -->
+    <section class="section" id="hiding">
+      <div class="section-header">
+        <span class="section-num">// 14</span>
+        <h2 class="section-title">Hiding</h2>
+      </div>
+
+      <h3>Locker Hiding</h3>
+      <ul class="rules-list">
+        <li><strong>Enter:</strong> 1 action. Must be adjacent to locker. +1 noise.</li>
+        <li><strong>Exit:</strong> FREE at start of turn, before movement. +1 noise.</li>
+        <li><strong>Creature Adjacent:</strong> Low-Risk roll to avoid detection. Roll mechanic TBD.</li>
+      </ul>
+
+      <h3>Vent Hiding</h3>
+      <p>Players may hide within the vent network. Noise marker position determines viability — if last noise location points toward player's vent section, creature may already be heading there. Full rules TBD.</p>
+
+      <h3>Additional Locations</h3>
+      <p>Two additional hiding location types planned: debris piles (medium risk), maintenance crawlspaces, and bulkhead alcoves (high risk). Risk tiers and detection rolls TBD.</p>
+    </section>
+
+    <!-- 15 HEALTH -->
+    <section class="section" id="health">
+      <div class="section-header">
+        <span class="section-num">// 15</span>
+        <h2 class="section-title">Health & Recovery</h2>
+      </div>
+      <div class="stat-grid">
+        <div class="stat-card"><div class="stat-label">Max Health</div><div class="stat-value">12</div><div class="stat-desc">Per player. Green cube tracker.</div></div>
+        <div class="stat-card"><div class="stat-label">Creature Hit</div><div class="stat-value">−5</div><div class="stat-desc">Before mitigation.</div></div>
+      </div>
+
+      <h3>Recovery</h3>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Method</th><th>Cost</th><th>Requirement</th><th>Restored</th></tr></thead>
+          <tbody>
+            <tr><td>Resting</td><td>1 action</td><td>None</td><td>+1 Health. +1 noise.</td></tr>
+            <tr><td>Medpack</td><td>1 action</td><td>Crafted Medpack</td><td>Larger restore. TBD.</td></tr>
+            <tr><td>Medical Room</td><td>1 action</td><td>In Medical/Lab room</td><td>Larger restore. TBD.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>At zero health: player eliminated. Inventory drops at death location. Surviving crew may attempt recovery.</p>
+    </section>
+
+    <!-- 16 ESCAPE -->
+    <section class="section" id="escape">
+      <div class="section-header">
+        <span class="section-num">// 16</span>
+        <h2 class="section-title">The Escape Phase</h2>
+      </div>
+      <ul class="rules-list">
+        <li><strong>Fuel Grid:</strong> 2×10 grid at the Dock. 20 total spaces. Need 16 filled.</li>
+        <li><strong>Official Cell:</strong> 2×2 (4 spaces). Found via Task Board chains.</li>
+        <li><strong>Jury-Rigged Cell:</strong> 1×2 (2 spaces). Craftable. Twice the trips.</li>
+        <li><strong>Carrier Rule:</strong> Fuel Cell carrier must drop heavy weapons or armor. Crew acts as bodyguards.</li>
+        <li><strong>Death Drop:</strong> Carrier death drops cell at exact location. Recovery mission required.</li>
+        <li><strong>Final Encounter:</strong> Endgame creature resolution mechanic. TBD.</li>
+      </ul>
+    </section>
+
+    <!-- 17 CHARACTERS -->
+    <section class="section" id="characters">
+      <div class="section-header">
+        <span class="section-num">// 17</span>
+        <h2 class="section-title">Characters</h2>
+      </div>
+      <p>5–6 playable characters. Each with distinct specialization and 1–2 passive abilities. Simple, situational, balanced — no character is strictly better than another. Design philosophy: Fate of the Nostromo approach.</p>
+
+      <h3>Specialization Roles</h3>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Role</th><th>Primary System</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td>Combat Specialist</td><td>Weapons, Defense Roll, Creature Encounters</td><td>Abilities confirmed</td></tr>
+            <tr><td>Medic / Support</td><td>Healing, Crew Recovery</td><td>Pending</td></tr>
+            <tr><td>Engineer / Technician</td><td>Crafting, Terminals, Resources</td><td>Pending</td></tr>
+            <tr><td>Scout / Infiltrator</td><td>Movement, Stealth, Noise</td><td>Pending</td></tr>
+            <tr><td>Data Specialist / Hacker</td><td>Terminals, Data Retrieval, Echo Cards</td><td>Pending</td></tr>
+            <tr><td>Survivor / Scavenger</td><td>Resources, Inventory, Adaptability</td><td>Pending</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Combat Specialist Abilities</h3>
+      <h4>// Hardened (Passive)</h4>
+      <p>After all 3 Defense Roll attempts are exhausted, may reroll 1 die one additional time. Defense rolls only. Once per creature encounter.</p>
+      <h4>// Force (Passive)</h4>
+      <p>Pushback is not capped at weapon's dice pool size. Automatically gains +1 pushback beyond normal cap on every Defense Roll. Applies to all weapons.</p>
+    </section>
+
+    <!-- 18 TASK BOARD -->
+    <section class="section" id="taskboard">
+      <div class="section-header">
+        <span class="section-num">// 18</span>
+        <h2 class="section-title">Task Board</h2>
+      </div>
+      <p>Official term. Previously referred to as Objective Board — retired. Echo cards that cannot be immediately resolved are placed here as pending tasks.</p>
+
+      <h3>Task Types</h3>
+      <ul class="rules-list">
+        <li><strong>Singular Tasks:</strong> Single Echo card. Resolved when crew completes the indicated objective. Removed when fulfilled.</li>
+        <li><strong>Stacked / Chained / Nested Tasks:</strong> One card requires 2+ prerequisite cards completed first. Cards placed alongside parent card. Resolved bottom-up.</li>
+        <li><strong>Blueprint Tasks:</strong> Blueprint Echo cards use Stacked Task system as mini quest chains to unlock craftable items for the whole crew.</li>
+      </ul>
+      <div class="callout info"><strong>// Pending</strong>Maximum simultaneous pending tasks, consequences for unresolved tasks, and exact nested chain population rules still to be determined.</div>
+    </section>
+
+    <!-- 19 OPEN ITEMS -->
+    <section class="section" id="open">
+      <div class="section-header">
+        <span class="section-num">// 19</span>
+        <h2 class="section-title">Open Items</h2>
+      </div>
+      <p>Outstanding design questions tracked for future sessions.</p>
+
+      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Creature Introduction — final trigger details</div><div class="item-note">Bridge + CONTACT card system established. Exact mechanics TBD.</div></div></div>
+      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Threat Token conversion</div><div class="item-note">How tokens affect creature aggression on introduction.</div></div></div>
+      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Contamination D12 face</div><div class="item-note">Unique effect vs. identical to Hazard in combat.</div></div></div>
+      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Skill check pass conditions</div><div class="item-note">How many Tech/Bio/Tools faces needed per check type.</div></div></div>
+      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Bridge terminal noise — exact value</div><div class="item-note">Confirmed higher than standard. +3 to +4 estimated.</div></div></div>
+      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Hiding detection roll mechanic</div><div class="item-note">Low/Medium/High risk roll system and dice used.</div></div></div>
+      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Vent hiding rules</div><div class="item-note">Noise marker position effect on vent hiding viability.</div></div></div>
+      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Two additional hiding locations</div><div class="item-note">Debris piles, crawlspaces, alcoves — rules TBD.</div></div></div>
+      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Escape Phase final creature encounter</div><div class="item-note">Endgame creature resolution mechanic.</div></div></div>
+      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Character abilities ×5</div><div class="item-note">Medic, Engineer, Scout, Data Specialist, Scavenger.</div></div></div>
+      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Medpack heal value</div><div class="item-note">Exact health restored by Medpack and Medical room.</div></div></div>
+      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Board layout draft</div><div class="item-note">30×36 design. Bridge, Dock, corridor network, vent placement.</div></div></div>
+      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Post-encounter sequence adjustments</div><div class="item-note">Player flagged adjustments needed — to be revisited.</div></div></div>
+      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Task Board population rules</div><div class="item-note">Max simultaneous tasks, unresolved consequences, nested chain triggers.</div></div></div>
+      <div class="open-item"><span class="tag progress">IN PROGRESS</span><div><div class="item-text">Creature introduction trigger</div><div class="item-note">Bridge + CONTACT card framework established. Finalizing.</div></div></div>
+      <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Half-speed on noise check pass</div><div class="item-note">Creature always moves half speed toward noise on successful check.</div></div></div>
+      <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Noise resets each turn</div><div class="item-note">Tracker resets at start of each player's turn.</div></div></div>
+      <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Task Board — official term locked</div><div class="item-note">Replaces "Objective Board" everywhere.</div></div></div>
+    </section>
+
+  </main>
+</div>
+
+<footer>
+  <p>ECHOES · <span>EmptyFishTank-JB</span> · In Development · All content subject to change</p>
+</footer>
+
+</body>
+</html>
