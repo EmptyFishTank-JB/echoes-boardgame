@@ -3,11 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ECHOES — Design & Rules Reference</title>
+<title>ECHOES — Design &amp; Rules Reference · v006</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@300;400;600;700;900&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
   :root {
+    --flicker-min: 0.9;
+    --flicker-max: 0.99;
+    --flicker-rate: 1s;
+    --rgb-red: #ff003c;
+    --rgb-cyan: #00eaff;
+    --rgb-green: #00ff00;
+    --rgb-duration: 0.25s;
     --bg: #0a0c0f;
     --surface: #111318;
     --surface2: #1a1d24;
@@ -22,13 +29,6 @@
     --mono: 'Share Tech Mono', monospace;
     --head: 'Barlow Condensed', sans-serif;
     --body: 'Barlow', sans-serif;
-    --flicker-min: 0.9;
-    --flicker-max: 0.99;
-    --flicker-rate: 1s;
-    --rgb-red: #ff003c;
-    --rgb-cyan: #00eaff;
-    --rgb-green: #00ff00;
-    --rgb-duration: 0.25s;
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -113,62 +113,8 @@
     50% { opacity: 0.4; }
   }
 
-  /* ── GLITCH TITLE CSS ── */
-  .title { position: relative; display: inline-block; margin: 0; }
-  .title .base {
-    font-family: var(--head);
-    font-size: clamp(64px, 10vw, 120px);
-    font-weight: 900;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--text-bright);
-    line-height: 0.9;
-    position: relative;
-    z-index: 5;
-  }
-  .title .base.flicker-on { animation: flicker var(--flicker-rate) infinite; }
-  @keyframes flicker {
-    0%,48%,54%,100% { opacity: 1; }
-    50% { opacity: var(--flicker-min); }
-    52% { opacity: var(--flicker-max); }
-  }
-  .title .base::before, .title .base::after {
-    content: attr(data-text);
-    position: absolute;
-    inset: 0;
-    opacity: 0;
-    pointer-events: none;
-    z-index: -1;
-  }
-  .title .base.glitching::before { color: var(--rgb-red); animation: glitchRed var(--rgb-duration) steps(2, end); }
-  .title .base.glitching::after  { color: var(--rgb-cyan); animation: glitchCyan var(--rgb-duration) steps(2, end); }
-  .title .base.rgb-green { position: absolute; inset: 0; color: var(--rgb-green); opacity: 0; pointer-events: none; z-index: -2; }
-  .title .base.rgb-green.glitching { animation: glitchGreen var(--rgb-duration) steps(2, end); }
-  @keyframes glitchRed {
-    0%  { opacity:1; transform:translate(-6px,-2px); } 25% { opacity:1; transform:translate(6px,3px); }
-    50% { opacity:1; transform:translate(-5px,2px); } 75% { opacity:1; transform:translate(7px,-2px); }
-    100%{ opacity:0; transform:translate(0,0); }
-  }
-  @keyframes glitchCyan {
-    0%  { opacity:1; transform:translate(6px,2px); }  25% { opacity:1; transform:translate(-6px,-3px); }
-    50% { opacity:1; transform:translate(5px,-2px); } 75% { opacity:1; transform:translate(-7px,2px); }
-    100%{ opacity:0; transform:translate(0,0); }
-  }
-  @keyframes glitchGreen {
-    0%  { opacity:1; transform:translate(-4px,3px); } 25% { opacity:1; transform:translate(5px,-2px); }
-    50% { opacity:1; transform:translate(-3px,-3px); }75% { opacity:1; transform:translate(4px,2px); }
-    100%{ opacity:0; transform:translate(0,0); }
-  }
-  .slice {
-    position: absolute; top: 0; left: 0;
-    font-family: var(--head);
-    font-size: clamp(64px, 10vw, 120px);
-    font-weight: 900; letter-spacing: 0.08em;
-    line-height: 0.9;
-    text-transform: uppercase; white-space: nowrap;
-    color: var(--text-bright); opacity: 0;
-    mix-blend-mode: screen; pointer-events: none;
-  }
+
+
 
   .header-meta {
     margin-top: 20px;
@@ -192,6 +138,8 @@
   }
 
   .status-badge {
+    display: inline-block;
+    width: fit-content;
     font-family: var(--mono);
     font-size: 10px;
     padding: 4px 10px;
@@ -603,6 +551,71 @@
     header { padding: 48px 24px 40px; }
     .container { padding: 0 24px; }
   }
+
+  /* ── LOGO ENGINE ── */
+  .title { position: relative; display: inline-block; line-height: 0.9; }
+  .title .base {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: clamp(64px, 10vw, 140px);
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-bright);
+    position: relative;
+    z-index: 5;
+    display: block;
+  }
+  .title .base.flicker-on { animation: logoFlicker var(--flicker-rate) infinite; }
+  @keyframes logoFlicker {
+    0%,48%,54%,100% { opacity: 1; }
+    50% { opacity: var(--flicker-min); }
+    52% { opacity: var(--flicker-max); }
+  }
+  .title .base::before, .title .base::after {
+    content: attr(data-text);
+    position: absolute; inset: 0;
+    opacity: 0; pointer-events: none; z-index: -1;
+  }
+  .title .base.glitching::before { color: var(--rgb-red); animation: glitchRed var(--rgb-duration) steps(2,end); }
+  .title .base.glitching::after  { color: var(--rgb-cyan); animation: glitchCyan var(--rgb-duration) steps(2,end); }
+  .title .base.rgb-green {
+    position: absolute; inset: 0;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: clamp(64px, 10vw, 140px);
+    font-weight: 900; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--rgb-green); opacity: 0; pointer-events: none; z-index: -2;
+  }
+  .title .base.rgb-green.glitching { animation: glitchGreen var(--rgb-duration) steps(2,end); }
+  @keyframes glitchRed {
+    0%   { opacity:1; transform:translate(-6px,-2px); }
+    25%  { opacity:1; transform:translate(6px,3px); }
+    50%  { opacity:1; transform:translate(-5px,2px); }
+    75%  { opacity:1; transform:translate(7px,-2px); }
+    100% { opacity:0; transform:translate(0,0); }
+  }
+  @keyframes glitchCyan {
+    0%   { opacity:1; transform:translate(6px,2px); }
+    25%  { opacity:1; transform:translate(-6px,-3px); }
+    50%  { opacity:1; transform:translate(5px,-2px); }
+    75%  { opacity:1; transform:translate(-7px,2px); }
+    100% { opacity:0; transform:translate(0,0); }
+  }
+  @keyframes glitchGreen {
+    0%   { opacity:1; transform:translate(-4px,3px); }
+    25%  { opacity:1; transform:translate(5px,-2px); }
+    50%  { opacity:1; transform:translate(-3px,-3px); }
+    75%  { opacity:1; transform:translate(4px,2px); }
+    100% { opacity:0; transform:translate(0,0); }
+  }
+  .slice {
+    position: absolute; top: 0; left: 0;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: clamp(64px, 10vw, 140px);
+    font-weight: 900; letter-spacing: 0.08em;
+    text-transform: uppercase; white-space: nowrap;
+    color: var(--text-bright); opacity: 0;
+    mix-blend-mode: screen; pointer-events: none;
+  }
 </style>
 </head>
 <body>
@@ -614,34 +627,34 @@
       <div class="signal-bar"></div>
       <div class="signal-bar"></div>
     </div>
-    <h1 class="title">
-      <span class="base flicker-on" id="title" data-text="ECHOES">ECHOES</span>
-      <span class="base rgb-green" id="titleGreen" data-text="ECHOES" style="display:block">ECHOES</span>
-      <span class="slice" style="clip-path:inset(0% 0px 86.1645%)">ECHOES</span>
-      <span class="slice" style="clip-path:inset(13.8355% 0px 66.8849%)">ECHOES</span>
-      <span class="slice" style="clip-path:inset(33.1151% 0px 54.5699%)">ECHOES</span>
-      <span class="slice" style="clip-path:inset(45.4301% 0px 49.4385%)">ECHOES</span>
-      <span class="slice" style="clip-path:inset(50.5615% 0px 38.1559%)">ECHOES</span>
-      <span class="slice" style="clip-path:inset(61.8441% 0px 33.9591%)">ECHOES</span>
-      <span class="slice" style="clip-path:inset(66.0409% 0px 30.0274%)">ECHOES</span>
-      <span class="slice" style="clip-path:inset(69.9726% 0px 26.7103%)">ECHOES</span>
-      <span class="slice" style="clip-path:inset(73.2897% 0px 20.6346%)">ECHOES</span>
-      <span class="slice" style="clip-path:inset(79.3654% 0px 15.7379%)">ECHOES</span>
-      <span class="slice" style="clip-path:inset(84.2621% 0px 13.838%)">ECHOES</span>
-      <span class="slice" style="clip-path:inset(86.162% 0px 12.0554%)">ECHOES</span>
-      <span class="slice" style="clip-path:inset(87.9446% 0px 10.8264%)">ECHOES</span>
-      <span class="slice" style="clip-path:inset(89.1736% 0px 8.59373%)">ECHOES</span>
-      <span class="slice" style="clip-path:inset(91.4063% 0px 7.40451%)">ECHOES</span>
-      <span class="slice" style="clip-path:inset(92.5955% 0px 6.59513%)">ECHOES</span>
-      <span class="slice" style="clip-path:inset(93.4049% 0px 6.19623%)">ECHOES</span>
-      <span class="slice" style="clip-path:inset(93.8038% 0px 4.81237%)">ECHOES</span>
-      <span class="slice" style="clip-path:inset(95.1876% 0px 4.15647%)">ECHOES</span>
-      <span class="slice" style="clip-path:inset(95.8435% 0px 0%)">ECHOES</span>
-    </h1>
+    <div class="title">
+    <span class="base flicker-on" id="echoTitle" data-text="ECHOES">ECHOES</span>
+    <span class="base rgb-green" id="echoTitleGreen" data-text="ECHOES">ECHOES</span>
+    <span class="slice" style="clip-path:inset(0% 0px 86.1645%)">ECHOES</span>
+    <span class="slice" style="clip-path:inset(13.8355% 0px 66.8849%)">ECHOES</span>
+    <span class="slice" style="clip-path:inset(33.1151% 0px 54.5699%)">ECHOES</span>
+    <span class="slice" style="clip-path:inset(45.4301% 0px 49.4385%)">ECHOES</span>
+    <span class="slice" style="clip-path:inset(50.5615% 0px 38.1559%)">ECHOES</span>
+    <span class="slice" style="clip-path:inset(61.8441% 0px 33.9591%)">ECHOES</span>
+    <span class="slice" style="clip-path:inset(66.0409% 0px 30.0274%)">ECHOES</span>
+    <span class="slice" style="clip-path:inset(69.9726% 0px 26.7103%)">ECHOES</span>
+    <span class="slice" style="clip-path:inset(73.2897% 0px 20.6346%)">ECHOES</span>
+    <span class="slice" style="clip-path:inset(79.3654% 0px 15.7379%)">ECHOES</span>
+    <span class="slice" style="clip-path:inset(84.2621% 0px 13.838%)">ECHOES</span>
+    <span class="slice" style="clip-path:inset(86.162% 0px 12.0554%)">ECHOES</span>
+    <span class="slice" style="clip-path:inset(87.9446% 0px 10.8264%)">ECHOES</span>
+    <span class="slice" style="clip-path:inset(89.1736% 0px 8.59373%)">ECHOES</span>
+    <span class="slice" style="clip-path:inset(91.4063% 0px 7.40451%)">ECHOES</span>
+    <span class="slice" style="clip-path:inset(92.5955% 0px 6.59513%)">ECHOES</span>
+    <span class="slice" style="clip-path:inset(93.4049% 0px 6.19623%)">ECHOES</span>
+    <span class="slice" style="clip-path:inset(93.8038% 0px 4.81237%)">ECHOES</span>
+    <span class="slice" style="clip-path:inset(95.1876% 0px 4.15647%)">ECHOES</span>
+    <span class="slice" style="clip-path:inset(95.8435% 0px 0%)">ECHOES</span>
+  </div>
     <div class="header-meta">
       <div class="meta-tag"><span>//</span> Design & Rules Reference</div>
       <div class="meta-tag"><span>//</span> EmptyFishTank-JB</div>
-      <div class="meta-tag"><span>//</span> 1–4 Players · Cooperative · Survival Horror</div>
+      <div class="meta-tag"><span>//</span> 1–5 Players · Cooperative · Survival Horror</div>
       <div class="status-badge">● IN DEVELOPMENT</div>
     </div>
   </div>
@@ -684,10 +697,9 @@
       </div>
 
       <div class="prologue">
-        <div class="pull-quote">"We thought it was abandoned. Offline. Dead. We were wrong."</div>
-        <p>The signal was faint — an automated distress beacon pulsing from deep within the drift. A derelict vessel, long thought lost, suddenly reappeared on long-range scans. No crew manifest. No flight logs. No response.</p>
-        <p style="margin-top:10px;">Your team of scavengers was dispatched to investigate. The mission was simple: board the ship, extract valuable tech, and return before the drift swallowed it again. But the moment you stepped aboard, the silence felt wrong. The air was stale, but not dead. The systems were dormant, but not cold. Something was watching.</p>
-        <p style="margin-top:10px; font-weight:600; font-style:normal; color: var(--text-bright);">Then your own ship powered down.</p>
+        <div class="pull-quote">// Prologue — PENDING</div>
+        <p>Ship log narration. Written from the perspective of one of the crew. Movie cold-open style — the player experiences the events leading up to the narration, then everything after it. Rewrite in progress.</p>
+        <p style="margin-top:10px; color: var(--text-bright); font-style:normal;">Note: the creature powers down the crew's ship remotely upon their arrival at the Operations Center — the crew does not discover this until they attempt to leave.</p>
       </div>
 
       <h3>Mission Objectives</h3>
@@ -717,7 +729,7 @@
         </div>
         <div class="stat-card blue">
           <div class="stat-label">Players</div>
-          <div class="stat-value">1–4</div>
+          <div class="stat-value">1–5</div>
           <div class="stat-desc">Cooperative. No hidden agendas.</div>
         </div>
       </div>
@@ -764,7 +776,7 @@
       <p>The activation tier (1–4, 5–8, 9–12) is determined by the number rolled on the D12 Noise Die — not by the noise level itself. High noise increases the probability of failure and expands dangerous possible outcomes, but does not guarantee any specific tier. The dice determine the outcome. The noise level determines the odds.</p>
 
       <h3>Line of Sight Rush</h3>
-      <p>After any movement resolves, if the creature ends with any player in direct line of sight it rushes immediately — ignoring remaining speed. Non-discriminating: attacks any player in its path, not just the target.</p>
+      <p>During creature movement, if the creature enters line of sight of any player at any point along its path, it rushes that player immediately — expending remaining movement. Non-discriminating: attacks any player in its path. Triggers on the first LoS contact during movement, not only at the end of the move.</p>
 
       <h3>Introduction Sequence</h3>
       <ul class="rules-list">
@@ -817,7 +829,7 @@
           <thead><tr><th>Type</th><th>Speed</th><th>Noise</th><th>Cost</th></tr></thead>
           <tbody>
             <tr><td>Normal Move</td><td>Full speed</td><td>+1 per move action</td><td>Free</td></tr>
-            <tr><td>Encumbered (full inventory)</td><td>Full speed</td><td>+2 per move action</td><td>Free</td></tr>
+            <tr><td>Encumbered (backpack threshold — TBD, ~80%)</td><td>Full speed</td><td>+2 per move action</td><td>Free</td></tr>
             <tr><td>Quiet Move</td><td>Speed −2 overall</td><td>0 entire turn</td><td>1 Action</td></tr>
             <tr><td>Run (optional rule)</td><td>Speed +4 overall</td><td>+2 flat for turn</td><td>Free</td></tr>
           </tbody>
@@ -919,7 +931,7 @@
             <tr><td>NOISE</td><td>Speaker</td><td>1</td><td>Adds noise to tracker when rolled during skill checks.</td></tr>
             <tr><td>NOISE SPIKE</td><td>Spiked Speaker</td><td>1</td><td>Stronger noise addition during skill checks.</td></tr>
             <tr><td>HAZARD</td><td>Triangle !</td><td>1</td><td>Combat face. Counts as defense/attack success.</td></tr>
-            <tr><td>CONTAMINATION</td><td>Biohazard Symbol</td><td>1</td><td>Second hazard face. Unique effect TBD.</td></tr>
+            <tr><td>CONTAMINATION</td><td>Biohazard Symbol</td><td>1</td><td>Distinct function from Hazard. Some rolls accept either face. Full effects TBD.</td></tr>
             <tr><td>WILD</td><td>Star Burst</td><td>1</td><td>Counts as any required face for current roll.</td></tr>
             <tr><td>VOID</td><td>X Mark</td><td>1</td><td>Permanently removes that die from current roll sequence.</td></tr>
           </tbody>
@@ -984,18 +996,22 @@
           <thead><tr><th>Action</th><th>Noise</th></tr></thead>
           <tbody>
             <tr><td>Search Locker / Cache / Ammo Crate</td><td>+2</td></tr>
-            <tr><td>Pick Up / Drop / Swap Item</td><td>+1</td></tr>
+            <tr><td>Pick Up / Drop / Swap Item (any combination, one action)</td><td>+1</td></tr>
             <tr><td>Craft Item</td><td>+1</td></tr>
             <tr><td>Interact with Terminal</td><td>+1</td></tr>
             <tr><td>Quiet Terminal Interaction</td><td>0 (requires Tech skill/item)</td></tr>
-            <tr><td>Seal Door</td><td>+1</td></tr>
+            <tr><td>Seal Door</td><td>+1 — blocks creature until end of next player's creature phase, then opens. Requires crew coordination to lure creature away.</td></tr>
             <tr><td>Enter / Exit Locker</td><td>+1 each</td></tr>
             <tr><td>Vent Entry / Exit</td><td>+2 each</td></tr>
-            <tr><td>Place / Throw Distraction</td><td>+2 at target location</td></tr>
-            <tr><td>Rest (+1 Health)</td><td>+1</td></tr>
+            <tr><td>Rest (+1 Health)</td><td>+0</td></tr>
             <tr><td>Ready / Brace</td><td>0</td></tr>
-            <tr><td>Melee Attack</td><td>+2</td></tr>
-            <tr><td>Ranged Attack</td><td>+3 at weapon location</td></tr>
+            <tr><td>Distraction Action</td><td>+2 at target location</td></tr>
+            <tr><td style="padding-left:28px; color:var(--text-dim);">↳ Melee weapon (bang environment, weapon not consumed)</td><td>+2</td></tr>
+            <tr><td style="padding-left:28px; color:var(--text-dim);">↳ Distraction item (crafted consumable — place or throw, distance TBD)</td><td>+2</td></tr>
+            <tr><td style="padding-left:28px; color:var(--text-dim);">↳ Ranged weapon (1 ammo consumed, noise at impact location)</td><td>+2</td></tr>
+            <tr><td style="padding-left:28px; color:var(--text-dim);">↳ Flare (consumable, throwable, distance TBD — visual priority override, 1 creature phase)</td><td>+1</td></tr>
+            <tr><td>Melee Attack</td><td>+0 — encounter action, noise irrelevant</td></tr>
+            <tr><td>Ranged Attack</td><td>+0 — encounter action, noise irrelevant</td></tr>
             <tr><td>Bridge Terminal</td><td>+3 to +4 (TBD)</td></tr>
             <tr><td>Bridge Terminal Alarm</td><td>+4 to +6, immediate check</td></tr>
             <tr><td>No-Resource Auto-Fail</td><td>+4</td></tr>
@@ -1108,12 +1124,11 @@
       </div>
 
       <h3>Ranged Weapons</h3>
-      <p>Requires 1 Universal Ammo token per shot (except Flare Gun). No range limit except Flamethrower.</p>
+      <p>Requires 1 Universal Ammo token per shot. No range limit except Flamethrower.</p>
       <div class="tbl-wrap">
         <table>
           <thead><tr><th>Weapon</th><th>Size</th><th>Dice</th><th>Special</th></tr></thead>
           <tbody>
-            <tr><td>Flare Gun</td><td>1×1</td><td>2</td><td>Single use. No ammo cost. Primary: fire at any LoS space — creature immediately treats it as noise source. Secondary: self defense.</td></tr>
             <tr><td>Pistol</td><td>1×1</td><td>2</td><td>Reliable sidearm. Low inventory cost.</td></tr>
             <tr><td>Rifle</td><td>1×2</td><td>3</td><td>Balanced primary weapon.</td></tr>
             <tr><td>Shotgun</td><td>1×3</td><td>4</td><td>Heavy defense. Strong pushback.</td></tr>
@@ -1159,6 +1174,8 @@
             <tr><td>Shotgun</td><td>Advanced</td><td>3 Components + 2 Data</td></tr>
             <tr><td>Flamethrower</td><td>Advanced</td><td>4 Components + 3 Data</td></tr>
             <tr><td>Jury-Rigged Fuel Cell</td><td>Advanced</td><td>3 Salvage + 2 Components + 1 Data</td></tr>
+            <tr><td>Distraction Item</td><td>TBD</td><td>TBD</td></tr>
+            <tr><td>Flare</td><td>TBD</td><td>TBD — throwable consumable. +1 noise. Visual priority override for 1 creature phase. Throwing distance TBD.</td></tr>
           </tbody>
         </table>
       </div>
@@ -1181,14 +1198,16 @@
 
       <h3>Equipment Grid</h3>
       <ul class="rules-list">
-        <li>2×4 grid (8 slots). Melee weapons and Makeshift Armor only.</li>
-        <li>Ranged weapons stored in backpack, competing with resources.</li>
+        <li>2×4 grid (8 slots). Ranged weapons, melee weapons, and armor — all housed here.</li>
+        <li>Weapons and armor do NOT compete with backpack inventory space.</li>
         <li>Starting 1×1 weapon placed here at setup.</li>
       </ul>
 
       <h3>Backpack Inventory</h3>
       <ul class="rules-list">
         <li>~22 slots in compartments. Compartments are cosmetic — items go anywhere they fit.</li>
+        <li><strong>Ammo</strong> is stored in the backpack and competes for inventory space.</li>
+        <li><strong>Encumbered threshold:</strong> when backpack fill reaches ~80% capacity (exact value TBD), movement noise increases to +2 per move action.</li>
         <li>Certain compartments have designated item types (e.g., Fuel Cell slot).</li>
         <li><strong>Reserved Slots:</strong> Can hold any item when empty. Designated item takes priority when needed — other items must relocate or be dropped.</li>
         <li>Backpack boards are interchangeable between playthroughs.</li>
@@ -1284,7 +1303,7 @@
       <ul class="rules-list">
         <li><strong>Enter:</strong> 1 action. Must be adjacent to locker. +1 noise.</li>
         <li><strong>Exit:</strong> FREE at start of turn, before movement. +1 noise.</li>
-        <li><strong>Creature Adjacent:</strong> Low-Risk roll to avoid detection. Roll mechanic TBD.</li>
+        <li><strong>Creature Reaches Locker:</strong> Detection roll performed to determine if the creature finds the player. Mechanic TBD.</li>
       </ul>
 
       <h3>Vent Hiding</h3>
@@ -1390,6 +1409,17 @@
       </div>
       <p>Outstanding design questions tracked for future sessions.</p>
 
+      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Prologue / lore text rewrite</div><div class="item-note">Ship log style, movie cold-open narration. Written from crew member POV. In progress.</div></div></div>
+      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Encumbered threshold — exact value</div><div class="item-note">~80% of backpack capacity. Applies to backpack only. Equipment grid is separate.</div></div></div>
+      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Flare throwing distance</div><div class="item-note">Standalone consumable. +1 noise. Visual priority override 1 creature phase.</div></div></div>
+      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Distraction item — recipe and tier</div><div class="item-note">Crafted consumable. Place or throw. Distance TBD.</div></div></div>
+      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Locker detection roll mechanic</div><div class="item-note">Triggers when creature physically reaches player's locker. Roll system TBD.</div></div></div>
+      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Seal Door — full mechanic documentation</div><div class="item-note">Blocks creature until end of next player's creature phase. Crew coordination required.</div></div></div>
+      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Contamination face — full effect</div><div class="item-note">Distinct from Hazard. Some rolls accept either. Details TBD.</div></div></div>
+      <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Creature powers down crew ship at Operations Center</div><div class="item-note">Triggered when crew reaches Operations Center. Crew unaware until escape attempt.</div></div></div>
+      <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">LoS Rush triggers mid-move</div><div class="item-note">Any LoS contact during creature movement triggers rush — not only at end of move.</div></div></div>
+      <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Flare gun removed</div><div class="item-note">Flare is a standalone throwable consumable. No weapon required.</div></div></div>
+      <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Equipment grid holds all weapons and armor</div><div class="item-note">Ranged, melee, armor — all in equipment grid. Ammo in backpack.</div></div></div>
       <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Creature Introduction — final trigger details</div><div class="item-note">Bridge + CONTACT card system established. Exact mechanics TBD.</div></div></div>
       <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Threat Token conversion</div><div class="item-note">How tokens affect creature aggression on introduction.</div></div></div>
       <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Contamination D12 face</div><div class="item-note">Unique effect vs. identical to Hazard in combat.</div></div></div>
@@ -1419,53 +1449,51 @@
 
 
 <script>
-const config = {
-  glitchType:"E", sliceCount:20, maxOffset:50,
-  rgbDuration:0.25, rgbMinDelay:1, rgbMaxDelay:6,
-  sliceDuration:0.25, sliceMinDelay:1, sliceMaxDelay:6,
-  scanAlpha:0.11, flickerMin:0.9, flickerMax:0.99,
-  flickerEnabled:true, flickerColor:"#000000",
-  flickerRate:1, flickerRandom:false,
-  flickerRateMin:0.1, flickerRateMax:1,
-  rgbEnabled:true, rgbMode:"3",
-  rgbRed:"#ff003c", rgbCyan:"#00eaff", rgbGreen:"#00ff00",
-  glitchEnabled:true
-};
-const titleEl = document.getElementById("title");
-const titleGreenEl = document.getElementById("titleGreen");
-function rand(min,max){ return Math.random()*(max-min)+min; }
-let flickerTimer = null;
-function runRandomFlicker(){
-  if(!config.flickerRandom||!config.flickerEnabled) return;
-  const rate = rand(config.flickerRateMin, config.flickerRateMax);
-  document.documentElement.style.setProperty("--flicker-rate", rate.toFixed(3)+"s");
-  flickerTimer = setTimeout(runRandomFlicker, rate*1000);
-}
-function startFlickerLoop(){
-  clearTimeout(flickerTimer);
-  if(config.flickerRandom && config.flickerEnabled){ runRandomFlicker(); }
-  else { document.documentElement.style.setProperty("--flicker-rate", config.flickerRate+"s"); }
-}
-function applyMovement(slice, index){
-  if(!config.glitchEnabled) return;
-  if(config.glitchType==="D"){ slice.style.transform=`translateX(${Math.sin(Date.now()/80+index)*config.maxOffset}px)`; return; }
-  slice.style.transform=`translateX(${rand(-config.maxOffset,config.maxOffset)}px)`;
-}
-function startRGBGlitch(){
-  if(config.rgbEnabled){ titleEl.classList.add("glitching"); if(config.rgbMode==="3") titleGreenEl.classList.add("glitching"); }
-  setTimeout(()=>{ titleEl.classList.remove("glitching"); titleGreenEl.classList.remove("glitching"); }, config.rgbDuration*1000);
-  setTimeout(startRGBGlitch, rand(config.rgbMinDelay,config.rgbMaxDelay)*1000);
-}
-function startSliceGlitch(){
-  if(!config.glitchEnabled){ setTimeout(startSliceGlitch,1000); return; }
-  const slices = document.querySelectorAll(".slice");
-  slices.forEach((s,i)=>{ s.style.opacity=1; s.style.transition=`transform ${config.sliceDuration}s steps(2,end), opacity ${config.sliceDuration}s`; applyMovement(s,i); });
-  setTimeout(()=>{ slices.forEach(s=>{ s.style.opacity=0; s.style.transform="translateX(0)"; }); }, config.sliceDuration*1000);
-  setTimeout(startSliceGlitch, rand(config.sliceMinDelay,config.sliceMaxDelay)*1000);
-}
-startFlickerLoop();
-startRGBGlitch();
-startSliceGlitch();
+(function(){
+  const config = {
+    glitchType:"E", sliceCount:20, maxOffset:50,
+    rgbDuration:0.25, rgbMinDelay:1, rgbMaxDelay:6,
+    sliceDuration:0.25, sliceMinDelay:1, sliceMaxDelay:6,
+    flickerMin:0.9, flickerMax:0.99,
+    flickerEnabled:true, flickerRate:1, flickerRandom:false,
+    flickerRateMin:0.1, flickerRateMax:1,
+    rgbEnabled:true, rgbMode:"3", glitchEnabled:true
+  };
+  const titleEl = document.getElementById("echoTitle");
+  const titleGreenEl = document.getElementById("echoTitleGreen");
+  if(!titleEl||!titleGreenEl) return;
+  function rand(min,max){ return Math.random()*(max-min)+min; }
+  let flickerTimer=null;
+  function runRandomFlicker(){
+    if(!config.flickerRandom||!config.flickerEnabled) return;
+    const rate=rand(config.flickerRateMin,config.flickerRateMax);
+    document.documentElement.style.setProperty("--flicker-rate",rate.toFixed(3)+"s");
+    flickerTimer=setTimeout(runRandomFlicker,rate*1000);
+  }
+  function startFlickerLoop(){
+    clearTimeout(flickerTimer);
+    if(config.flickerRandom&&config.flickerEnabled){ runRandomFlicker(); }
+    else { document.documentElement.style.setProperty("--flicker-rate",config.flickerRate+"s"); }
+  }
+  function applyMovement(slice,index){
+    if(!config.glitchEnabled) return;
+    if(config.glitchType==="D"){ slice.style.transform=`translateX(${Math.sin(Date.now()/80+index)*config.maxOffset}px)`; return; }
+    slice.style.transform=`translateX(${rand(-config.maxOffset,config.maxOffset)}px)`;
+  }
+  function startRGBGlitch(){
+    if(config.rgbEnabled){ titleEl.classList.add("glitching"); if(config.rgbMode==="3") titleGreenEl.classList.add("glitching"); }
+    setTimeout(()=>{ titleEl.classList.remove("glitching"); titleGreenEl.classList.remove("glitching"); },config.rgbDuration*1000);
+    setTimeout(startRGBGlitch,rand(config.rgbMinDelay,config.rgbMaxDelay)*1000);
+  }
+  function startSliceGlitch(){
+    if(!config.glitchEnabled){ setTimeout(startSliceGlitch,1000); return; }
+    const slices=document.querySelectorAll(".title .slice");
+    slices.forEach((s,i)=>{ s.style.opacity=1; s.style.transition=`transform ${config.sliceDuration}s steps(2,end), opacity ${config.sliceDuration}s`; applyMovement(s,i); });
+    setTimeout(()=>{ slices.forEach(s=>{ s.style.opacity=0; s.style.transform="translateX(0)"; }); },config.sliceDuration*1000);
+    setTimeout(startSliceGlitch,rand(config.sliceMinDelay,config.sliceMaxDelay)*1000);
+  }
+  startFlickerLoop(); startRGBGlitch(); startSliceGlitch();
+})();
 </script>
 </body>
 </html>
