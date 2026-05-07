@@ -164,6 +164,7 @@
     grid-template-columns: 240px 1fr;
     gap: 0;
     min-height: calc(100vh - 200px);
+    padding-bottom: 56px;
   }
 
   /* ── SIDEBAR NAV ── */
@@ -527,10 +528,16 @@
 
   /* ── FOOTER ── */
   footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 50;
     border-top: 1px solid var(--border);
-    padding: 32px 40px;
+    padding: 14px 40px;
     text-align: center;
-    background: rgba(10,12,15,0.92);
+    background: rgba(10,12,15,0.96);
+    backdrop-filter: blur(6px);
   }
 
   footer p {
@@ -545,7 +552,8 @@
 
   /* ── RESPONSIVE ── */
   @media (max-width: 768px) {
-    .container { grid-template-columns: 1fr; }
+    footer { position: static; padding: 24px; }
+    .container { grid-template-columns: 1fr; padding-bottom: 0; }
     nav { display: none; }
     main { padding: 24px 0; }
     header { padding: 48px 24px 40px; }
@@ -875,6 +883,10 @@
         <li><strong>Late Game:</strong> Once all rooms discovered, terminals are the only way to draw cards.</li>
       </ul>
 
+      <h3>Card Events &amp; Hazards</h3>
+      <p>Some Echo Cards trigger events or hazards requiring a D12 dice roll to resolve. Each card specifies the required face(s) and quantity needed. All resolutions follow the standard <strong>Roll Resolution</strong> rules — see <a href="#dice">// 06 The Dice Engine</a>.</p>
+      <div class="callout info"><strong>// Note</strong>Card events and hazards use the D12 System Dice pool. Echo Event Mini-Games use the D6 Coordinate Dice. These are separate systems — do not mix them.</div>
+
       <h3>Bridge Terminals</h3>
       <p>One dedicated terminal per room family. Available regardless of whether that room exists on board.</p>
       <div class="callout danger"><strong>// Warning</strong>Operations Center terminals generate significantly higher noise than standard terminals. Failed interaction triggers an alarm — immediate noise spike and noise check before turn ends.</div>
@@ -939,6 +951,37 @@
       </div>
       <p><strong>D6 Coordinate Dice (2):</strong> Designated Blue Die and Red Die. Used exclusively for Echo Event mini-games.</p>
       <p><strong>D12 Noise Die (1):</strong> Used exclusively for the Noise Check at end of each player phase.</p>
+
+      <h3>Roll Resolution</h3>
+      <p>All D12 System Dice checks — card events, hazards, and skill checks — follow this structure. Modeled after Ship, Captain, Crew.</p>
+      <ul class="rules-list">
+        <li><strong>Start:</strong> Roll all 5 D12 System Dice. The card or check specifies which face(s) are required and how many.</li>
+        <li><strong>Keep:</strong> Set aside any faces that count toward resolution. These are locked and cannot be re-rolled.</li>
+        <li><strong>Re-roll:</strong> Roll remaining dice. Up to <strong>3 rolls maximum</strong> per check.</li>
+        <li><strong>VOID:</strong> A VOID face permanently removes that die from the pool for this roll sequence. It cannot be re-rolled and does not count toward any requirement.</li>
+        <li><strong>WILD:</strong> Counts as any required face for the current roll's purpose.</li>
+        <li><strong>Resolution:</strong> Requirements met when the specified faces and quantities are showing among kept dice. The roll is resolved at that point.</li>
+      </ul>
+
+      <h3>Noise on the Final Roll</h3>
+      <ul class="rules-list">
+        <li>Noise and Noise Spike faces count toward the noise meter <strong>only from the player's final roll</strong> — whichever roll they end on, whether that is roll 1, 2, or 3.</li>
+        <li>Noise faces from earlier rolls that are subsequently re-rolled do <strong>not</strong> carry over.</li>
+      </ul>
+      <div class="callout warning"><strong>// Optional Clear Roll</strong>If requirements are satisfied before roll 3 and Noise or Noise Spike faces are showing among the remaining (non-kept) dice, the player may use any remaining rolls to attempt to clear them — re-rolling only the noise-face dice. This is a genuine risk: a clear attempt may land another Noise or Noise Spike. If requirements are met with no noise showing, no further rolls are available or needed. The optional clear roll only applies when noise faces are present after resolution.</div>
+
+      <h3>Roll Resolution — Example</h3>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Roll</th><th>Result</th><th>Action</th></tr></thead>
+          <tbody>
+            <tr><td>Roll 1</td><td>1 of 3 required faces + 1 Noise + 3 others</td><td>Keep the 1 required face. Re-roll remaining 4 dice.</td></tr>
+            <tr><td>Roll 2</td><td>2 more required faces + 2 Noise</td><td>Requirements met (3/3). 2 Noise faces showing. Player may take Roll 3 to attempt clearing them.</td></tr>
+            <tr><td>Roll 3 (optional)</td><td>1 Noise Spike + 1 non-noise face</td><td>Final roll. 1 Noise Spike counts toward noise meter. Non-noise face ignored.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="font-size:12px; color:var(--text-dim); margin-top:6px;">If the player had stopped at Roll 2, both Noise faces would have counted. By taking Roll 3, they cleared one but converted the other to a Noise Spike — a genuine gamble.</p>
     </section>
 
     <!-- 07 RESOURCES -->
