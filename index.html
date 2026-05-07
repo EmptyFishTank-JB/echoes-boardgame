@@ -22,6 +22,13 @@
     --mono: 'Share Tech Mono', monospace;
     --head: 'Barlow Condensed', sans-serif;
     --body: 'Barlow', sans-serif;
+    --flicker-min: 0.9;
+    --flicker-max: 0.99;
+    --flicker-rate: 1s;
+    --rgb-red: #ff003c;
+    --rgb-cyan: #00eaff;
+    --rgb-green: #00ff00;
+    --rgb-duration: 0.25s;
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -106,32 +113,61 @@
     50% { opacity: 0.4; }
   }
 
-  h1.game-title {
+  /* ── GLITCH TITLE CSS ── */
+  .title { position: relative; display: inline-block; margin: 0; }
+  .title .base {
     font-family: var(--head);
     font-size: clamp(64px, 10vw, 120px);
     font-weight: 900;
     letter-spacing: 0.08em;
+    text-transform: uppercase;
     color: var(--text-bright);
     line-height: 0.9;
-    text-transform: uppercase;
     position: relative;
+    z-index: 5;
   }
-
-  h1.game-title::after {
-    content: 'ECHOES';
+  .title .base.flicker-on { animation: flicker var(--flicker-rate) infinite; }
+  @keyframes flicker {
+    0%,48%,54%,100% { opacity: 1; }
+    50% { opacity: var(--flicker-min); }
+    52% { opacity: var(--flicker-max); }
+  }
+  .title .base::before, .title .base::after {
+    content: attr(data-text);
     position: absolute;
     inset: 0;
-    color: var(--accent);
-    clip-path: inset(0 0 85% 0);
-    opacity: 0.6;
-    animation: glitch 4s infinite;
+    opacity: 0;
+    pointer-events: none;
+    z-index: -1;
   }
-
-  @keyframes glitch {
-    0%, 90%, 100% { transform: translateX(0); clip-path: inset(0 0 85% 0); }
-    92% { transform: translateX(-3px); clip-path: inset(30% 0 50% 0); }
-    94% { transform: translateX(3px); clip-path: inset(60% 0 20% 0); }
-    96% { transform: translateX(-2px); clip-path: inset(10% 0 75% 0); }
+  .title .base.glitching::before { color: var(--rgb-red); animation: glitchRed var(--rgb-duration) steps(2, end); }
+  .title .base.glitching::after  { color: var(--rgb-cyan); animation: glitchCyan var(--rgb-duration) steps(2, end); }
+  .title .base.rgb-green { position: absolute; inset: 0; color: var(--rgb-green); opacity: 0; pointer-events: none; z-index: -2; }
+  .title .base.rgb-green.glitching { animation: glitchGreen var(--rgb-duration) steps(2, end); }
+  @keyframes glitchRed {
+    0%  { opacity:1; transform:translate(-6px,-2px); } 25% { opacity:1; transform:translate(6px,3px); }
+    50% { opacity:1; transform:translate(-5px,2px); } 75% { opacity:1; transform:translate(7px,-2px); }
+    100%{ opacity:0; transform:translate(0,0); }
+  }
+  @keyframes glitchCyan {
+    0%  { opacity:1; transform:translate(6px,2px); }  25% { opacity:1; transform:translate(-6px,-3px); }
+    50% { opacity:1; transform:translate(5px,-2px); } 75% { opacity:1; transform:translate(-7px,2px); }
+    100%{ opacity:0; transform:translate(0,0); }
+  }
+  @keyframes glitchGreen {
+    0%  { opacity:1; transform:translate(-4px,3px); } 25% { opacity:1; transform:translate(5px,-2px); }
+    50% { opacity:1; transform:translate(-3px,-3px); }75% { opacity:1; transform:translate(4px,2px); }
+    100%{ opacity:0; transform:translate(0,0); }
+  }
+  .slice {
+    position: absolute; top: 0; left: 0;
+    font-family: var(--head);
+    font-size: clamp(64px, 10vw, 120px);
+    font-weight: 900; letter-spacing: 0.08em;
+    line-height: 0.9;
+    text-transform: uppercase; white-space: nowrap;
+    color: var(--text-bright); opacity: 0;
+    mix-blend-mode: screen; pointer-events: none;
   }
 
   .header-meta {
@@ -578,7 +614,30 @@
       <div class="signal-bar"></div>
       <div class="signal-bar"></div>
     </div>
-    <h1 class="game-title">ECHOES</h1>
+    <h1 class="title">
+      <span class="base flicker-on" id="title" data-text="ECHOES">ECHOES</span>
+      <span class="base rgb-green" id="titleGreen" data-text="ECHOES" style="display:block">ECHOES</span>
+      <span class="slice" style="clip-path:inset(0% 0px 86.1645%)">ECHOES</span>
+      <span class="slice" style="clip-path:inset(13.8355% 0px 66.8849%)">ECHOES</span>
+      <span class="slice" style="clip-path:inset(33.1151% 0px 54.5699%)">ECHOES</span>
+      <span class="slice" style="clip-path:inset(45.4301% 0px 49.4385%)">ECHOES</span>
+      <span class="slice" style="clip-path:inset(50.5615% 0px 38.1559%)">ECHOES</span>
+      <span class="slice" style="clip-path:inset(61.8441% 0px 33.9591%)">ECHOES</span>
+      <span class="slice" style="clip-path:inset(66.0409% 0px 30.0274%)">ECHOES</span>
+      <span class="slice" style="clip-path:inset(69.9726% 0px 26.7103%)">ECHOES</span>
+      <span class="slice" style="clip-path:inset(73.2897% 0px 20.6346%)">ECHOES</span>
+      <span class="slice" style="clip-path:inset(79.3654% 0px 15.7379%)">ECHOES</span>
+      <span class="slice" style="clip-path:inset(84.2621% 0px 13.838%)">ECHOES</span>
+      <span class="slice" style="clip-path:inset(86.162% 0px 12.0554%)">ECHOES</span>
+      <span class="slice" style="clip-path:inset(87.9446% 0px 10.8264%)">ECHOES</span>
+      <span class="slice" style="clip-path:inset(89.1736% 0px 8.59373%)">ECHOES</span>
+      <span class="slice" style="clip-path:inset(91.4063% 0px 7.40451%)">ECHOES</span>
+      <span class="slice" style="clip-path:inset(92.5955% 0px 6.59513%)">ECHOES</span>
+      <span class="slice" style="clip-path:inset(93.4049% 0px 6.19623%)">ECHOES</span>
+      <span class="slice" style="clip-path:inset(93.8038% 0px 4.81237%)">ECHOES</span>
+      <span class="slice" style="clip-path:inset(95.1876% 0px 4.15647%)">ECHOES</span>
+      <span class="slice" style="clip-path:inset(95.8435% 0px 0%)">ECHOES</span>
+    </h1>
     <div class="header-meta">
       <div class="meta-tag"><span>//</span> Design & Rules Reference</div>
       <div class="meta-tag"><span>//</span> EmptyFishTank-JB</div>
@@ -1358,5 +1417,55 @@
   <p>ECHOES · <span>EmptyFishTank-JB</span> · In Development · All content subject to change</p>
 </footer>
 
+
+<script>
+const config = {
+  glitchType:"E", sliceCount:20, maxOffset:50,
+  rgbDuration:0.25, rgbMinDelay:1, rgbMaxDelay:6,
+  sliceDuration:0.25, sliceMinDelay:1, sliceMaxDelay:6,
+  scanAlpha:0.11, flickerMin:0.9, flickerMax:0.99,
+  flickerEnabled:true, flickerColor:"#000000",
+  flickerRate:1, flickerRandom:false,
+  flickerRateMin:0.1, flickerRateMax:1,
+  rgbEnabled:true, rgbMode:"3",
+  rgbRed:"#ff003c", rgbCyan:"#00eaff", rgbGreen:"#00ff00",
+  glitchEnabled:true
+};
+const titleEl = document.getElementById("title");
+const titleGreenEl = document.getElementById("titleGreen");
+function rand(min,max){ return Math.random()*(max-min)+min; }
+let flickerTimer = null;
+function runRandomFlicker(){
+  if(!config.flickerRandom||!config.flickerEnabled) return;
+  const rate = rand(config.flickerRateMin, config.flickerRateMax);
+  document.documentElement.style.setProperty("--flicker-rate", rate.toFixed(3)+"s");
+  flickerTimer = setTimeout(runRandomFlicker, rate*1000);
+}
+function startFlickerLoop(){
+  clearTimeout(flickerTimer);
+  if(config.flickerRandom && config.flickerEnabled){ runRandomFlicker(); }
+  else { document.documentElement.style.setProperty("--flicker-rate", config.flickerRate+"s"); }
+}
+function applyMovement(slice, index){
+  if(!config.glitchEnabled) return;
+  if(config.glitchType==="D"){ slice.style.transform=`translateX(${Math.sin(Date.now()/80+index)*config.maxOffset}px)`; return; }
+  slice.style.transform=`translateX(${rand(-config.maxOffset,config.maxOffset)}px)`;
+}
+function startRGBGlitch(){
+  if(config.rgbEnabled){ titleEl.classList.add("glitching"); if(config.rgbMode==="3") titleGreenEl.classList.add("glitching"); }
+  setTimeout(()=>{ titleEl.classList.remove("glitching"); titleGreenEl.classList.remove("glitching"); }, config.rgbDuration*1000);
+  setTimeout(startRGBGlitch, rand(config.rgbMinDelay,config.rgbMaxDelay)*1000);
+}
+function startSliceGlitch(){
+  if(!config.glitchEnabled){ setTimeout(startSliceGlitch,1000); return; }
+  const slices = document.querySelectorAll(".slice");
+  slices.forEach((s,i)=>{ s.style.opacity=1; s.style.transition=`transform ${config.sliceDuration}s steps(2,end), opacity ${config.sliceDuration}s`; applyMovement(s,i); });
+  setTimeout(()=>{ slices.forEach(s=>{ s.style.opacity=0; s.style.transform="translateX(0)"; }); }, config.sliceDuration*1000);
+  setTimeout(startSliceGlitch, rand(config.sliceMinDelay,config.sliceMaxDelay)*1000);
+}
+startFlickerLoop();
+startRGBGlitch();
+startSliceGlitch();
+</script>
 </body>
 </html>
