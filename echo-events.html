@@ -533,7 +533,22 @@
 
   .open-item .item-text { font-size: 13px; color: var(--text); }
   .open-item .item-note { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
-/* ── IRIDESCENT OVERLAY ── */
+
+
+  /* ── BACKGROUND LAYER (parallax) ── */
+  #bg-layer {
+    position: fixed;
+    inset: -6%;
+    width: 112%;
+    height: 112%;
+    background: url('bg.jpg') center/cover no-repeat;
+    z-index: 0;
+    will-change: transform;
+    filter: brightness(0.82);
+    pointer-events: none;
+  }
+
+  /* ── IRIDESCENT OVERLAY ── */
   #iridescent {
     position: fixed;
     inset: 0;
@@ -695,6 +710,7 @@
 </head>
 <body>
 
+<div id="bg-layer"></div>
 <div id="iridescent"></div>
 
 <header>
@@ -815,7 +831,45 @@
   startFlickerLoop(); startRGBGlitch(); startSliceGlitch();
 })();
 
+/* ── PARALLAX + IRIDESCENT ───────────────────────────────────────────── */
+(function () {
+  const bgLayer    = document.getElementById('bg-layer');
+  const iridescent = document.getElementById('iridescent');
+  if (!bgLayer || !iridescent) return;
 
+  let tx = 0, ty = 0, cx = 0, cy = 0;
+
+  document.addEventListener('mousemove', (e) => {
+    const nx = (e.clientX / window.innerWidth  - 0.5) * 2; // -1 to 1
+    const ny = (e.clientY / window.innerHeight - 0.5) * 2;
+    tx = nx; ty = ny;
+
+    // Iridescent: rotate hue + shift focal point with mouse
+    const hue  = Math.round((nx + 1) * 180);
+    const fcx  = Math.round(50 + nx * 22);
+    const fcy  = Math.round(50 + ny * 22);
+    const mag  = (Math.abs(nx) + Math.abs(ny)) * 0.5;
+    const opac = (0.04 + mag * 0.07).toFixed(3);
+
+    iridescent.style.background = `conic-gradient(
+      from ${hue}deg at ${fcx}% ${fcy}%,
+      rgba(255,0,60,0.75),
+      rgba(232,115,42,0.65),
+      rgba(0,255,0,0.55),
+      rgba(0,234,255,0.65),
+      rgba(255,0,60,0.75)
+    )`;
+    iridescent.style.opacity = opac;
+  });
+
+  // Smooth parallax loop
+  (function tick() {
+    cx += (tx - cx) * 0.07;
+    cy += (ty - cy) * 0.07;
+    bgLayer.style.transform =
+      `translate(${(-cx * 16).toFixed(2)}px, ${(-cy * 12).toFixed(2)}px)`;
+    requestAnimationFrame(tick);
+  })();
 
   // Touch: no parallax, keep overlay static
   window.addEventListener('touchstart', () => {
