@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+CiAgPHN0eWxlPgogICAgQGtleWZyYW1lcyBmewogICAgICAwJXtvcGFjaXR5OjF9CiAgICAgIDQwJXtvcGFjaXR5OjF9CiAgICAgIDUwJXtvcGFjaXR5OjAuNH0KICAgICAgNjAle29wYWNpdHk6MX0KICAgICAgMTAwJXtvcGFjaXR5OjF9CiAgICB9CiAgPC9zdHlsZT4KICAgICAgPGcgc3R5bGU9ImFuaW1hdGlvbjpmIDVzIDAuMDAwcyBpbmZpbml0ZSI+CiAgICAgICAgPHJlY3QgeD0iMC4wIiB5PSI1LjAiCiAgICAgICAgICAgICAgd2lkdGg9IjguMCIgaGVpZ2h0PSIyMi4wIgogICAgICAgICAgICAgIHJ4PSIyLjAiCiAgICAgICAgICAgICAgZmlsbD0iI2U4NzMyYSIgb3BhY2l0eT0iMC42Ii8+CiAgICAgICAgPHJlY3QgeD0iMS4wIiB5PSI2LjAiCiAgICAgICAgICAgICAgd2lkdGg9IjYiIGhlaWdodD0iMjAuMCIKICAgICAgICAgICAgICByeD0iMSIgZmlsbD0iI2U4NzMyYSIvPgogICAgICA8L2c+CiAgICAgIDxnIHN0eWxlPSJhbmltYXRpb246ZiA1cyAxLjAwMHMgaW5maW5pdGUiPgogICAgICAgIDxyZWN0IHg9IjEyLjAiIHk9IjAuMCIKICAgICAgICAgICAgICB3aWR0aD0iOC4wIiBoZWlnaHQ9IjMyLjAiCiAgICAgICAgICAgICAgcng9IjIuMCIKICAgICAgICAgICAgICBmaWxsPSIjZTg3MzJhIiBvcGFjaXR5PSIwLjYiLz4KICAgICAgICA8cmVjdCB4PSIxMy4wIiB5PSIxLjAiCiAgICAgICAgICAgICAgd2lkdGg9IjYiIGhlaWdodD0iMzAuMCIKICAgICAgICAgICAgICByeD0iMSIgZmlsbD0iI2U4NzMyYSIvPgogICAgICA8L2c+CiAgICAgIDxnIHN0eWxlPSJhbmltYXRpb246ZiA1cyAyLjAwMHMgaW5maW5pdGUiPgogICAgICAgIDxyZWN0IHg9IjI0LjAiIHk9IjYuMCIKICAgICAgICAgICAgICB3aWR0aD0iOC4wIiBoZWlnaHQ9IjIwLjAiCiAgICAgICAgICAgICAgcng9IjIuMCIKICAgICAgICAgICAgICBmaWxsPSIjZTg3MzJhIiBvcGFjaXR5PSIwLjYiLz4KICAgICAgICA8cmVjdCB4PSIyNS4wIiB5PSI3LjAiCiAgICAgICAgICAgICAgd2lkdGg9IjYiIGhlaWdodD0iMTguMCIKICAgICAgICAgICAgICByeD0iMSIgZmlsbD0iI2U4NzMyYSIvPgogICAgICA8L2c+Cjwvc3ZnPg==">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ECHOES — Design &amp; Rules Reference · v011</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -173,7 +174,7 @@
     top: 0;
     height: 100vh;
     overflow-y: auto;
-    padding: 40px 24px 40px 0;
+    padding: 40px 24px 40px 16px;
     border-right: 1px solid var(--border);
     scrollbar-width: none;
     background: rgba(10,12,15,0.92);
@@ -205,7 +206,7 @@
     transition: color 0.2s, padding-left 0.2s;
     border-left: 2px solid transparent;
     padding-left: 12px;
-    margin-left: -12px;
+    margin-left: -16px;
   }
 
   nav a:hover {
@@ -219,7 +220,7 @@
     font-weight: 400;
     font-family: var(--body);
     padding-left: 24px;
-    margin-left: -12px;
+    margin-left: -16px;
     color: #444;
   }
 
@@ -599,9 +600,9 @@
   /* ── RESPONSIVE ── */
   @media (max-width: 768px) {
     footer { position: static; padding: 24px; }
-    .container { grid-template-columns: 1fr; padding-bottom: 0; }
+    .container { grid-template-columns: 1fr; padding-bottom: 0; min-height: 100vh; }
     nav { display: none; }
-    main { padding: 24px 0; }
+    main { padding: 24px 0; min-height: 100vh; }
     header { padding: 48px 24px 40px; }
     .container { padding: 0 24px; }
   }
@@ -721,8 +722,12 @@
 
   <!-- ── SIDEBAR NAV ── -->
   <nav>
-    <div class="nav-label">// Contents</div>
+    <div class="nav-label">// Pages</div>
     <a href="index.html">← Home</a>
+    <a href="rules.html" style="color:var(--accent);">Rules &amp; Design</a>
+    <a href="echo-events.html">Echo Events</a>
+    <a href="assets.html">Assets</a>
+
     <div class="nav-label" style="margin-top:8px;">// Sections</div>
     <a href="#overview">01 · Overview</a>
     <a href="#creature">02 · The Creature</a>
@@ -1482,17 +1487,17 @@
       <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Distraction item — recipe and tier</div><div class="item-note">Crafted consumable. Place or throw. Distance TBD.</div></div></div>
       <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Locker detection roll mechanic</div><div class="item-note">Triggers when creature physically reaches player's locker. Roll system TBD.</div></div></div>
       <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Seal Door — full mechanic documentation</div><div class="item-note">Blocks creature until end of next player's creature phase. Crew coordination required.</div></div></div>
-      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Contamination face — full effect</div><div class="item-note">Distinct from Hazard. Some rolls accept either. Details TBD.</div></div></div>
+      
       <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Creature powers down crew ship at Operations Center</div><div class="item-note">Triggered when crew reaches Operations Center. Crew unaware until escape attempt.</div></div></div>
       <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">LoS Rush triggers mid-move</div><div class="item-note">Any LoS contact during creature movement triggers rush — not only at end of move.</div></div></div>
       <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Flare gun removed</div><div class="item-note">Flare is a standalone throwable consumable. No weapon required.</div></div></div>
       <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Equipment grid holds all weapons and armor</div><div class="item-note">Ranged, melee, armor — all in equipment grid. Ammo in backpack.</div></div></div>
-      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Creature Introduction — final trigger details</div><div class="item-note">Bridge + CONTACT card system established. Exact mechanics TBD.</div></div></div>
+      
       <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Threat Token conversion</div><div class="item-note">How tokens affect creature aggression on introduction.</div></div></div>
-      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Contamination D12 face</div><div class="item-note">Unique effect vs. identical to Hazard in combat.</div></div></div>
-      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Skill check pass conditions</div><div class="item-note">How many Tech/Bio/Tools faces needed per check type.</div></div></div>
+      <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Contamination face</div><div class="item-note">Valid D12 requirement face alongside Tech, Bio, and Tools. Appears on specific cards as defined by card design. No global effect — all requirements are card-specific.</div></div></div>
+      <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Skill check pass conditions</div><div class="item-note">Pass conditions are card-specific. Each Echo Card defines its own face requirements and quantities. Roll Resolution in Section 07 governs all checks. Card design and notation is part of the ~100 card design phase.</div></div></div>
       <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Operations Center terminal noise — exact value</div><div class="item-note">Confirmed higher than standard. +3 to +4 estimated.</div></div></div>
-      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Hiding detection roll mechanic</div><div class="item-note">Low/Medium/High risk roll system and dice used.</div></div></div>
+      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Hiding detection roll mechanic</div><div class="item-note">General detection roll system for all hiding types. Locker-specific trigger documented separately. Full mechanic TBD.</div></div></div>
       <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Vent hiding rules</div><div class="item-note">Noise marker position effect on vent hiding viability.</div></div></div>
       <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Two additional hiding locations</div><div class="item-note">Debris piles, crawlspaces, alcoves — rules TBD.</div></div></div>
       <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Escape Phase final creature encounter</div><div class="item-note">Endgame creature resolution mechanic.</div></div></div>
@@ -1501,7 +1506,7 @@
       <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Board layout draft</div><div class="item-note">30×36 design. Bridge, Dock, corridor network, vent placement.</div></div></div>
       <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Post-encounter sequence adjustments</div><div class="item-note">Player flagged adjustments needed — to be revisited.</div></div></div>
       <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Task Board population rules</div><div class="item-note">Max simultaneous tasks, unresolved consequences, nested chain triggers.</div></div></div>
-      <div class="open-item"><span class="tag progress">IN PROGRESS</span><div><div class="item-text">Creature introduction trigger</div><div class="item-note">Bridge + CONTACT card framework established. Finalizing.</div></div></div>
+      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Creature introduction — final trigger details</div><div class="item-note">Bridge + CONTACT card system established. Exact mechanics TBD.</div></div></div>
       <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Half-speed on noise check pass</div><div class="item-note">Creature always moves half speed toward noise on successful check.</div></div></div>
       <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Noise resets each turn</div><div class="item-note">Tracker resets at start of each player's turn.</div></div></div>
       <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Task Board — official term locked</div><div class="item-note">Replaces "Objective Board" everywhere.</div></div></div>
@@ -1606,6 +1611,42 @@
   window.addEventListener('touchstart', () => {
     bgLayer.style.transform = 'translate(0,0)';
   }, { once: true });
+})();
+
+/* ── FAVICON ANIMATION (Chrome-compatible) ───────────────────────────────── */
+(function () {
+  const favicon = document.querySelector('link[rel="icon"]');
+  if (!favicon) return;
+
+  const DUR    = 5000;   // ms per cycle
+  const STAG   = 1000;   // ms stagger between bars
+
+  function ease(t) {
+    // 0-40% full, 40-50% fade out, 50-60% fade in, 60-100% full
+    if (t < 0.40) return 1.0;
+    if (t < 0.50) return 1.0 - (1.0 - 0.4) * ((t - 0.40) / 0.10);
+    if (t < 0.60) return 0.4 + (1.0 - 0.4) * ((t - 0.50) / 0.10);
+    return 1.0;
+  }
+
+  function op(offset) {
+    return ease(((Date.now() - offset) % DUR) / DUR);
+  }
+
+  function buildSVG() {
+    const o = [op(0), op(STAG), op(STAG * 2)];
+    return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">'
+      + '<g opacity="' + o[0].toFixed(3) + '"><rect x="-1" y="4" width="8" height="22" rx="2" fill="#E8732A" opacity="0.6"/><rect x="0" y="5" width="6" height="20" rx="1" fill="#E8732A"/></g>'
+      + '<g opacity="' + o[1].toFixed(3) + '"><rect x="11" y="-1" width="8" height="32" rx="2" fill="#E8732A" opacity="0.6"/><rect x="12" y="0" width="6" height="30" rx="1" fill="#E8732A"/></g>'
+      + '<g opacity="' + o[2].toFixed(3) + '"><rect x="23" y="5" width="8" height="20" rx="2" fill="#E8732A" opacity="0.6"/><rect x="24" y="6" width="6" height="18" rx="1" fill="#E8732A"/></g>'
+      + '</svg>';
+  }
+
+  setInterval(function () {
+    try {
+      favicon.href = 'data:image/svg+xml;base64,' + btoa(buildSVG());
+    } catch(e) {}
+  }, 50);
 })();
 </script>
 </body>
