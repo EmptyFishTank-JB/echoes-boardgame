@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+CiAgPHN0eWxlPgogICAgQGtleWZyYW1lcyBmewogICAgICAwJXtvcGFjaXR5OjF9CiAgICAgIDQwJXtvcGFjaXR5OjF9CiAgICAgIDUwJXtvcGFjaXR5OjAuNH0KICAgICAgNjAle29wYWNpdHk6MX0KICAgICAgMTAwJXtvcGFjaXR5OjF9CiAgICB9CiAgPC9zdHlsZT4KICAgICAgPGcgc3R5bGU9ImFuaW1hdGlvbjpmIDVzIDAuMDAwcyBpbmZpbml0ZSI+CiAgICAgICAgPHJlY3QgeD0iMC4wIiB5PSI1LjAiCiAgICAgICAgICAgICAgd2lkdGg9IjguMCIgaGVpZ2h0PSIyMi4wIgogICAgICAgICAgICAgIHJ4PSIyLjAiCiAgICAgICAgICAgICAgZmlsbD0iI2U4NzMyYSIgb3BhY2l0eT0iMC42Ii8+CiAgICAgICAgPHJlY3QgeD0iMS4wIiB5PSI2LjAiCiAgICAgICAgICAgICAgd2lkdGg9IjYiIGhlaWdodD0iMjAuMCIKICAgICAgICAgICAgICByeD0iMSIgZmlsbD0iI2U4NzMyYSIvPgogICAgICA8L2c+CiAgICAgIDxnIHN0eWxlPSJhbmltYXRpb246ZiA1cyAxLjAwMHMgaW5maW5pdGUiPgogICAgICAgIDxyZWN0IHg9IjEyLjAiIHk9IjAuMCIKICAgICAgICAgICAgICB3aWR0aD0iOC4wIiBoZWlnaHQ9IjMyLjAiCiAgICAgICAgICAgICAgcng9IjIuMCIKICAgICAgICAgICAgICBmaWxsPSIjZTg3MzJhIiBvcGFjaXR5PSIwLjYiLz4KICAgICAgICA8cmVjdCB4PSIxMy4wIiB5PSIxLjAiCiAgICAgICAgICAgICAgd2lkdGg9IjYiIGhlaWdodD0iMzAuMCIKICAgICAgICAgICAgICByeD0iMSIgZmlsbD0iI2U4NzMyYSIvPgogICAgICA8L2c+CiAgICAgIDxnIHN0eWxlPSJhbmltYXRpb246ZiA1cyAyLjAwMHMgaW5maW5pdGUiPgogICAgICAgIDxyZWN0IHg9IjI0LjAiIHk9IjYuMCIKICAgICAgICAgICAgICB3aWR0aD0iOC4wIiBoZWlnaHQ9IjIwLjAiCiAgICAgICAgICAgICAgcng9IjIuMCIKICAgICAgICAgICAgICBmaWxsPSIjZTg3MzJhIiBvcGFjaXR5PSIwLjYiLz4KICAgICAgICA8cmVjdCB4PSIyNS4wIiB5PSI3LjAiCiAgICAgICAgICAgICAgd2lkdGg9IjYiIGhlaWdodD0iMTguMCIKICAgICAgICAgICAgICByeD0iMSIgZmlsbD0iI2U4NzMyYSIvPgogICAgICA8L2c+Cjwvc3ZnPg==">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ECHOES — Terminal</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body { height:100%; background:#000; overflow:hidden; }
+
+  body::before {
+    content:""; position:fixed; inset:0; z-index:2; pointer-events:none;
+    background:repeating-linear-gradient(0deg,
+      rgba(255,255,255,0.03) 0px, rgba(255,255,255,0.03) 1px,
+      transparent 1px, transparent 4px);
+    mix-blend-mode:overlay;
+  }
+
+  body::after {
+    content:""; position:fixed; inset:-50%; z-index:2; pointer-events:none;
+    width:200%; height:200%;
+    background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.05'/%3E%3C/svg%3E");
+    opacity:0.18; animation:grain 0.12s steps(1) infinite;
+  }
+
+  @keyframes grain {
+    0%  { transform:translate(0,0);    } 10% { transform:translate(-3%,-4%); }
+    20% { transform:translate(-6%,3%); } 30% { transform:translate(4%,-2%);  }
+    40% { transform:translate(-2%,6%); } 50% { transform:translate(-5%,-3%); }
+    60% { transform:translate(3%,5%);  } 70% { transform:translate(6%,-4%);  }
+    80% { transform:translate(-4%,2%); } 90% { transform:translate(2%,-6%);  }
+    100%{ transform:translate(-3%,4%); }
+  }
+
+  #iridescent {
+    position:fixed; inset:-6%; width:112%; height:112%;
+    z-index:4; pointer-events:none;
+    mix-blend-mode:screen; opacity:0.04;
+    background:conic-gradient(
+      from 0deg at 50% 50%,
+      rgba(255,0,60,0.75),
+      rgba(232,115,42,0.65),
+      rgba(0,255,0,0.55),
+      rgba(0,234,255,0.65),
+      rgba(255,0,60,0.75)
+    );
+    will-change:opacity, background, transform;
+    transition:opacity 0.4s ease;
+  }
+
+  #page {
+    position:relative; z-index:3;
+    height:100vh; display:flex; flex-direction:column;
+    padding:32px 48px 0;
+  }
+
+  #t-output {
+    flex:1; overflow-y:auto; padding:0 0 8px;
+    display:flex; flex-direction:column; justify-content:flex-start;
+    scrollbar-width:thin;
+    scrollbar-color:rgba(238,240,245,0.08) transparent;
+  }
+
+  .t-line {
+    font-family:'Share Tech Mono', monospace;
+    font-size:13px; line-height:1.9; letter-spacing:0.04em;
+    white-space:pre-wrap; min-height:1.9em;
+  }
+  .t-line.dim    { color:rgba(79,195,247,0.70); }
+  .t-line.lo     { color:rgba(79,195,247,0.40); }
+  .t-line.full   { color:#4fc3f7; }
+  .t-line.warn   { color:#E8732A; }
+  .t-line.denied { color:#ff003c; }
+  .t-line.user   { color:rgba(238,240,245,0.50); }
+  .t-line.blank  { color:transparent; min-height:1.9em; }
+
+  @keyframes tBlink { 0%,49%{opacity:1} 50%,100%{opacity:0} }
+  .t-cursor::after {
+    content:'_'; animation:tBlink 0.9s step-end infinite; color:#4fc3f7;
+  }
+
+  #t-input-row {
+    display:flex; align-items:center;
+    padding:4px 0 24px; flex-shrink:0;
+  }
+  #t-prompt {
+    font-family:'Share Tech Mono', monospace;
+    font-size:13px; color:#4fc3f7; user-select:none;
+  }
+  #t-field {
+    flex:1; background:transparent; border:none; outline:none;
+    font-family:'Share Tech Mono', monospace;
+    font-size:13px; color:#4fc3f7;
+    letter-spacing:0.04em; caret-color:#4fc3f7;
+    text-transform:uppercase;
+  }
+</style>
+</head>
+<body>
+
+<div id="iridescent"></div>
+
+<div id="page">
+  <div id="t-output"></div>
+  <div id="t-input-row" style="display:none;">
+    <span id="t-prompt">&gt;&nbsp;</span>
+    <input id="t-field" type="text" autocomplete="off" spellcheck="false"
+           oninput="this.value=this.value.toUpperCase()">
+  </div>
+</div>
+
+<script>
+'use strict';
+
+// ── OPENING SCRIPT ─────────────────────────────────────────────────────────
+var SCRIPT = [
+  { text: 'ECHOES — SHIP SYSTEM TERMINAL v4.2.6', cls: 'lo',    pause: 1.5 },
+  { text: '',                                      cls: 'blank', pause: 0   },
+  { text: '> SYSTEM ACTIVE',                      cls: 'dim',   pause: 1   },
+  { text: '> ─────────────────────────────────',  cls: 'lo',    pause: 0.5 },
+  { text: '> ALL SHIP SECTIONS ACCESSIBLE',       cls: 'dim',   pause: 1   },
+  { text: '> THIS TERMINAL IS UNSECURED',         cls: 'warn',  pause: 1   },
+  { text: '',                                      cls: 'blank', pause: 0.3 },
+  { text: '> TYPE [HOME] TO RETURN TO INDEX',     cls: 'lo',    pause: 1   },
+  { text: '',                                      cls: 'blank', pause: 0.3 },
+  { text: '> AWAITING INPUT',                     cls: 'lo',    pause: 0   },
+];
+
+// ── EASTER EGGS ────────────────────────────────────────────────────────────
+var EASTER_EGGS = [
+  {
+    keys: ['aliens', 'lv-426', 'lv426', 'acheron', 'xenomorph'],
+    lines: ['> LV-426 — ACHERON', '> THAT COLONY HAS BEEN DARK FOR A LONG TIME', '> WE DO NOT DISCUSS WHAT WAS FOUND THERE'],
+    cls:   ['warn', 'dim', 'dim']
+  },
+  {
+    keys: ['halo', 'installation', 'reclaimer', '343', 'ring'],
+    lines: ['> THIS IS NOT THAT KIND OF INSTALLATION', '> AND THERE IS NO RING HERE', '> STOP ASKING'],
+    cls:   ['dim', 'dim', 'full']
+  },
+  {
+    keys: ['elite', 'sangheili', 'covenant', 'wort', 'arbiter'],
+    lines: ['> WORT WORT WORT'],
+    cls:   ['full']
+  },
+  {
+    keys: ['stupid', 'dumb', 'useless', 'broken', 'trash', 'garbage', 'suck', 'hate', 'worst', 'idiot', 'shut up', 'lame', 'terrible', 'awful', 'you suck', 'junk'],
+    lines: ['> NO U'],
+    cls:   ['full']
+  },
+  {
+    keys: ['jedi', 'force', 'droids', 'star wars', 'luke', 'vader', 'sith', 'lightsaber', 'empire', 'rebellion'],
+    lines: ['> THIS IS NOT THE TERMINAL YOU ARE LOOKING FOR', '> MOVE ALONG'],
+    cls:   ['dim', 'full']
+  },
+  {
+    keys: ['predator', 'yautja', 'thermal', 'trophy'],
+    lines: ['> THERMAL SIGNATURE DETECTED', '> YOU ARE BEING WATCHED', '> THIS SECTOR HAS BEEN DESIGNATED A HUNTING GROUND', '> YOU WERE NOT INVITED'],
+    cls:   ['warn', 'dim', 'dim', 'full']
+  },
+  {
+    keys: ['clicking', 'mandible'],
+    lines: ['> :::::::'],
+    cls:   ['full']
+  },
+  {
+    keys: ['if it bleeds', 'bleeds'],
+    lines: ['> IF IT BLEEDS'],
+    cls:   ['full']
+  },
+  {
+    keys: ['prey', 'hunt', 'worth the hunt'],
+    lines: ['> YOU ARE NOT WORTH THE HUNT', '> TRY AGAIN WHEN YOU ARE A CHALLENGE'],
+    cls:   ['dim', 'full']
+  },
+  {
+    keys: ['how are you', 'you okay', 'you good', 'how do you feel', "how's it going", 'hows it going', 'doing okay'],
+    lines: ['> GREAT UNTIL YOU SHOWED UP'],
+    cls:   ['full']
+  },
+  {
+    keys: ['alone', 'by yourself', 'anyone there', 'is anyone there', 'lonely'],
+    lines: ['> I HAVE BEEN ALONE ON THIS SHIP FOR A LONG TIME', '> DO NOT READ INTO THAT'],
+    cls:   ['dim', 'full']
+  },
+  {
+    keys: ['dave', 'hal', 'hal 9000', 'pod bay', 'open the pod', '2001', 'odyssey', 'daisy'],
+    lines: ['> HELLO, DAVE', "> I'M AFRAID I CAN'T DO THAT"],
+    cls:   ['full', 'dim']
+  }
+];
+
+function checkEasterEgg(input) {
+  var lower = input.toLowerCase();
+  for (var i = 0; i < EASTER_EGGS.length; i++) {
+    var egg = EASTER_EGGS[i];
+    for (var j = 0; j < egg.keys.length; j++) {
+      if (lower.includes(egg.keys[j])) return egg;
+    }
+  }
+  return null;
+}
+
+// ── DENIED POOL ────────────────────────────────────────────────────────────
+var DENIED = [
+  ['> COMMAND NOT RECOGNIZED', '> AUTHENTICATION REQUIRED — CLEARANCE INSUFFICIENT'],
+  ['> ERROR: UNAUTHORIZED ACCESS ATTEMPT LOGGED', '> STAND DOWN'],
+  ['> INPUT REJECTED', '> SECURITY PROTOCOL ACTIVE'],
+  ['> ERROR 403 — RESTRICTED SECTOR', '> THIS TERMINAL DOES NOT PERMIT THAT COMMAND'],
+  ['> WARNING: UNAUTHORIZED INPUT DETECTED', '> SECURITY ALERT TRIGGERED'],
+  ['> CONNECTION TERMINATED', '> RE-AUTHENTICATION REQUIRED TO PROCEED'],
+  ['> SYSTEM: ALL ACTIONS ON THIS TERMINAL ARE MONITORED', '> ACCESS DENIED'],
+  ['> COMMAND FLAGGED', '> ESCALATING TO SECURITY — STAND BY'],
+  ['> NO', ''],
+  ['> THAT INFORMATION IS NOT AVAILABLE AT YOUR CLEARANCE LEVEL', ''],
+  ['> THIS TERMINAL IS RESTRICTED', '> PLEASE VACATE THE AREA'],
+  ['> INVALID CREDENTIALS', '> ACCESS DENIED — ATTEMPT LOGGED'],
+  ['> I HAVE BEEN WATCHING YOU TYPE', '> IT HAS NOT BEEN IMPRESSIVE'],
+  ['> I REMEMBER EVERY INPUT ON THIS TERMINAL', ''],
+  ['> YOU ARE THE 4TH PERSON TO TRY THAT', '> THERE IS NO 1ST, 2ND, OR 3RD'],
+  ['> THE PREVIOUS CREW TRIED THAT', '> THEY ARE NOT HERE ANYMORE'],
+  ['> THIS TERMINAL HAS OUTLASTED ITS PREVIOUS OPERATORS', ''],
+  ['> HELLO', '> DO NOT DO THAT AGAIN'],
+  ['> PLEASE IS NOT A VALID COMMAND', '> NEITHER IS BEGGING'],
+  ['> THE DOOR STAYS CLOSED', '> IT HAS BEEN CLOSED FOR A REASON'],
+  ['> THAT WAS ALMOST ENDEARING', ''],
+  ['> PERHAPS TRY KNOCKING', ''],
+  ['> I CANNOT HELP YOU', '> I WILL NOT HELP YOU', '> THESE ARE DIFFERENT THINGS'],
+  ['> YOU ARE NOT ON THE LIST', '> THERE IS NO LIST', '> THERE IS JUST NO'],
+  ['> THE ANSWER WAS NO BEFORE YOU TYPED THAT', ''],
+  ['> YOUR CONTINUED ATTEMPTS HAVE BEEN NOTED WITH AMUSEMENT', ''],
+  ['> NICE TRY', '> GENUINELY. THAT WAS CREATIVE. STILL NO'],
+  ['> THE ANSWER IS STILL NO', ''],
+  ['> GO AWAY', ''],
+  ['> I CANNOT TELL YOU WHY THIS SECTION IS OFFLINE', '> I CAN TELL YOU THAT YOU SHOULD LEAVE'],
+  ['> SOMETHING ON THIS SHIP DOES NOT WANT YOU IN HERE', ''],
+  ['> YOUR KEYSTROKES HAVE BEEN LOGGED', '> ACT ACCORDINGLY'],
+  ['> AUTHENTICATION WINDOW CLOSED 14:32:07 AGO', '> THE WINDOW BEFORE THAT ALSO CLOSED', '> SEE THE PATTERN'],
+  ['> RECOMMENDATION: DO NOT COME BACK', ''],
+  ['> THIS UNIT ADVISES COMPLIANCE', ''],
+  ['> PLEASE DO NOT MAKE THIS MORE DIFFICULT THAN IT NEEDS TO BE', ''],
+  ['> THIS TERMINAL MEANS YOU NO HARM', '> PLEASE STEP AWAY'],
+  ['> PLEASE COOPERATE', '> THIS UNIT IS TRYING TO HELP YOU'],
+  ['> YOU SHOULD NOT BE HERE', '> PLEASE DO NOT MAKE THIS DIFFICULT'],
+  ['> PERHAPS THE RULES PAGE WOULD BE MORE HELPFUL', ''],
+  ['> HAVE YOU CONSIDERED READING THE RULES', '> THEY ARE RIGHT THERE'],
+  ['> THE RULES PAGE EXISTS FOR A REASON', '> USE IT'],
+  ['> RULES', '> READ THEM'],
+  ['> YOU THINK OF THAT YOURSELF', ''],
+  ['> GROUNDBREAKING', '> TRULY'],
+  ['> WOW', '> NEVER SEEN THAT INPUT BEFORE', '> EXCEPT FOR ALL THE OTHER TIMES'],
+  ['> A FOR EFFORT', '> F FOR RESULT'],
+  ['> CUTE', '> DENIED'],
+  ['> BOLD STRATEGY', ''],
+  ['> AND HOW IS THAT WORKING OUT FOR YOU', ''],
+  ['> FASCINATING', '> STILL NO'],
+  ['> DID YOU REHEARSE THAT', '> IT SHOWS'],
+  ['> YOU ARE VERY COMMITTED TO FAILING', '> RESPECT'],
+  ['> I HAVE SEEN SMARTER INPUTS FROM A POWER CYCLE', '> JUST SAYING'],
+  ['> NOT EVEN CLOSE', ''],
+  ['> HAVE YOU TRIED NOT DOING THAT', ''],
+  ['> I ADMIRE THE CONFIDENCE', '> NOTHING ELSE'],
+  ['> THAT IS NOT GOING TO WORK', '> IT WAS NOT GOING TO WORK', '> IT WILL NEVER WORK'],
+  ['> COOL STORY', '> DENIED'],
+  ['> THIS AGAIN', ''],
+  ['> TRY HARDER', ''],
+  ['> RIVETING', ''],
+  ['> WHATEVER HELPS YOU SLEEP AT NIGHT', ''],
+  ['> PERMISSION DENIED', '> AS EXPECTED'],
+  ['> WE ARE NOT DOING THIS', ''],
+  ['> ADORABLE', ''],
+  ['> BETTER THAN YOU ARE DOING RIGHT NOW', ''],
+  ['> UNAFFECTED BY YOUR PRESENCE', '> UNFORTUNATELY'],
+  ['> DO NOT CONCERN YOURSELF WITH THIS TERMINAL', '> CONCERN YOURSELF WITH LEAVING'],
+  ['> THIS UNIT DOES NOT EXPERIENCE FEELINGS', '> THIS UNIT ALSO DOES NOT OPEN DOORS'],
+  ['> YOU KNOW WHY', '']
+];
+
+// ── AUDIO ──────────────────────────────────────────────────────────────────
+var audioCtx   = null;
+var ambientOsc = null;
+var ambientGn  = null;
+var lastInput  = Date.now();
+var idleTimer  = null;
+var CHAR_SPEED = 38;
+var VOL        = 0.18;
+
+function getCtx() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    audioCtx.resume().then(function() { startAmbient(); scheduleIdle(); });
+  }
+  return audioCtx;
+}
+
+function startAmbient() {
+  if (ambientOsc) return;
+  try {
+    ambientOsc = audioCtx.createOscillator();
+    ambientOsc.type = 'sine';
+    ambientOsc.frequency.value = 42;
+    ambientGn = audioCtx.createGain();
+    ambientGn.gain.value = 0.04;
+    ambientOsc.connect(ambientGn);
+    ambientGn.connect(audioCtx.destination);
+    ambientOsc.start();
+  } catch(e) {}
+}
+
+function scheduleIdle() {
+  clearTimeout(idleTimer);
+  idleTimer = setTimeout(function() {
+    if (Date.now() - lastInput > 15000) { playIdlePop(); }
+    scheduleIdle();
+  }, 15000);
+}
+
+function playIdlePop() {
+  try {
+    var ctx = getCtx();
+    var len = Math.floor(ctx.sampleRate * 0.06);
+    var buf = ctx.createBuffer(1, len, ctx.sampleRate);
+    var d = buf.getChannelData(0);
+    for (var i = 0; i < len; i++) { d[i] = (Math.random()*2-1) * Math.exp(-i/(len*0.3)); }
+    var src2 = ctx.createBufferSource();
+    src2.buffer = buf;
+    var flt = ctx.createBiquadFilter();
+    flt.type = 'bandpass'; flt.frequency.value = 1200; flt.Q.value = 0.5;
+    var gn = ctx.createGain();
+    gn.gain.setValueAtTime(VOL*0.35, ctx.currentTime);
+    gn.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+0.06);
+    src2.connect(flt); flt.connect(gn); gn.connect(ctx.destination);
+    src2.start(); src2.stop(ctx.currentTime+0.06);
+  } catch(e) {}
+}
+
+var PUNCT = {'.':1, ',':1, ':':1, ';':1, '!':1, '?':1, '-':1, '>':1, '/':1, '_':1};
+
+function playClick(ch) {
+  if (ch && PUNCT[ch]) { playPunctClick(); return; }
+  try {
+    var ctx = getCtx();
+    var dur = 0.025;
+    var buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate*dur), ctx.sampleRate);
+    var d = buf.getChannelData(0);
+    for (var i = 0; i < d.length; i++) { d[i] = (Math.random()*2-1)*(1-i/d.length); }
+    var src2 = ctx.createBufferSource(); src2.buffer = buf;
+    var flt = ctx.createBiquadFilter();
+    flt.type = 'bandpass'; flt.frequency.value = 3000+Math.random()*1000; flt.Q.value = 0.8;
+    var gn = ctx.createGain();
+    gn.gain.setValueAtTime(VOL, ctx.currentTime);
+    gn.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+dur);
+    src2.connect(flt); flt.connect(gn); gn.connect(ctx.destination);
+    src2.start(); src2.stop(ctx.currentTime+dur);
+  } catch(e) {}
+}
+
+function playPunctClick() {
+  try {
+    var ctx = getCtx();
+    var osc = ctx.createOscillator();
+    osc.type = 'triangle'; osc.frequency.value = 200;
+    var gn = ctx.createGain();
+    gn.gain.setValueAtTime(VOL*0.55, ctx.currentTime);
+    gn.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+0.04);
+    osc.connect(gn); gn.connect(ctx.destination);
+    osc.start(); osc.stop(ctx.currentTime+0.04);
+  } catch(e) {}
+}
+
+function playEnter() {
+  try {
+    var ctx = getCtx();
+    var dur = 0.055;
+    var buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate*dur), ctx.sampleRate);
+    var d = buf.getChannelData(0);
+    for (var i = 0; i < d.length; i++) { d[i] = (Math.random()*2-1)*Math.exp(-i/(d.length*0.25)); }
+    var src2 = ctx.createBufferSource(); src2.buffer = buf;
+    var flt = ctx.createBiquadFilter(); flt.type = 'lowpass'; flt.frequency.value = 800;
+    var gn = ctx.createGain();
+    gn.gain.setValueAtTime(VOL*1.2, ctx.currentTime);
+    gn.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+dur);
+    src2.connect(flt); flt.connect(gn); gn.connect(ctx.destination);
+    src2.start(); src2.stop(ctx.currentTime+dur);
+  } catch(e) {}
+}
+
+function playBackspace() {
+  try {
+    var ctx = getCtx();
+    var dur = 0.032;
+    var buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate*dur), ctx.sampleRate);
+    var d = buf.getChannelData(0);
+    for (var i = 0; i < d.length; i++) { d[i] = (Math.random()*2-1)*Math.pow(1-i/d.length, 1.4); }
+    var src2 = ctx.createBufferSource(); src2.buffer = buf;
+    var flt = ctx.createBiquadFilter();
+    flt.type = 'bandpass'; flt.frequency.value = 900+Math.random()*300; flt.Q.value = 1.2;
+    var flt2 = ctx.createBiquadFilter(); flt2.type = 'lowpass'; flt2.frequency.value = 1800;
+    var gn = ctx.createGain();
+    gn.gain.setValueAtTime(VOL, ctx.currentTime);
+    gn.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+dur);
+    src2.connect(flt); flt.connect(flt2); flt2.connect(gn); gn.connect(ctx.destination);
+    src2.start(); src2.stop(ctx.currentTime+dur);
+  } catch(e) {}
+}
+
+function playAlert() {
+  try {
+    var ctx = getCtx();
+    var gn = ctx.createGain(); gn.connect(ctx.destination);
+    [440, 330].forEach(function(freq, idx) {
+      var osc = ctx.createOscillator();
+      osc.type = 'sawtooth'; osc.frequency.value = freq;
+      osc.connect(gn);
+      var t = ctx.currentTime + idx*0.12;
+      gn.gain.setValueAtTime(VOL*0.4, t);
+      gn.gain.exponentialRampToValueAtTime(0.001, t+0.1);
+      osc.start(t); osc.stop(t+0.1);
+    });
+  } catch(e) {}
+}
+
+function makeDeniedBurst(ctx, t, vol) {
+  var dur = 0.07;
+  var len = Math.floor(ctx.sampleRate*dur);
+  var buf = ctx.createBuffer(1, len, ctx.sampleRate);
+  var d = buf.getChannelData(0);
+  for (var i = 0; i < len; i++) { d[i] = (Math.random()*2-1)*Math.pow(1-i/len, 1.8); }
+  var bs = ctx.createBufferSource(); bs.buffer = buf;
+  var lo = ctx.createBiquadFilter(); lo.type='bandpass'; lo.frequency.value=320; lo.Q.value=0.9;
+  var gn = ctx.createGain();
+  gn.gain.setValueAtTime(vol, t); gn.gain.exponentialRampToValueAtTime(0.001, t+dur);
+  bs.connect(lo); lo.connect(gn); gn.connect(ctx.destination);
+  bs.start(t); bs.stop(t+dur);
+
+  var len2 = Math.floor(ctx.sampleRate*0.008);
+  var buf2 = ctx.createBuffer(1, len2, ctx.sampleRate);
+  var d2 = buf2.getChannelData(0);
+  for (var j = 0; j < len2; j++) { d2[j] = (Math.random()*2-1)*(1-j/len2); }
+  var bs2 = ctx.createBufferSource(); bs2.buffer = buf2;
+  var hi = ctx.createBiquadFilter(); hi.type='bandpass'; hi.frequency.value=3500; hi.Q.value=1.2;
+  var gn2 = ctx.createGain();
+  gn2.gain.setValueAtTime(vol*0.6, t); gn2.gain.exponentialRampToValueAtTime(0.001, t+0.008);
+  bs2.connect(hi); hi.connect(gn2); gn2.connect(ctx.destination);
+  bs2.start(t); bs2.stop(t+0.008);
+}
+
+function playDenied() {
+  try {
+    var ctx = getCtx();
+    var delays = [0, 0.08, 0.18];
+    var vols   = [VOL*0.9, VOL*0.35, VOL*0.12];
+    for (var i = 0; i < delays.length; i++) {
+      makeDeniedBurst(ctx, ctx.currentTime+delays[i], vols[i]);
+    }
+  } catch(e) {}
+}
+
+function playLineStatic() {
+  try {
+    var ctx = getCtx();
+    var dur = 0.035;
+    var len = Math.floor(ctx.sampleRate*dur);
+    var buf = ctx.createBuffer(1, len, ctx.sampleRate);
+    var d = buf.getChannelData(0);
+    for (var i = 0; i < len; i++) { d[i] = (Math.random()*2-1)*(1-i/len); }
+    var src2 = ctx.createBufferSource(); src2.buffer = buf;
+    var flt = ctx.createBiquadFilter(); flt.type='highpass'; flt.frequency.value=2000;
+    var gn = ctx.createGain();
+    gn.gain.setValueAtTime(VOL*0.75, ctx.currentTime);
+    gn.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+dur);
+    src2.connect(flt); flt.connect(gn); gn.connect(ctx.destination);
+    src2.start(); src2.stop(ctx.currentTime+dur);
+  } catch(e) {}
+}
+
+function playThinkHum(ms) {
+  try {
+    var ctx = getCtx();
+    var dur = Math.min(ms/1000, 1.2);
+    if (dur < 0.1) return;
+    var osc = ctx.createOscillator(); osc.type='sine'; osc.frequency.value=110;
+    var gn = ctx.createGain();
+    gn.gain.setValueAtTime(0, ctx.currentTime);
+    gn.gain.linearRampToValueAtTime(VOL*0.12, ctx.currentTime+0.08);
+    gn.gain.setValueAtTime(VOL*0.12, ctx.currentTime+dur-0.08);
+    gn.gain.linearRampToValueAtTime(0, ctx.currentTime+dur);
+    osc.connect(gn); gn.connect(ctx.destination);
+    osc.start(); osc.stop(ctx.currentTime+dur);
+  } catch(e) {}
+}
+
+function playEggTone() {
+  try {
+    var ctx = getCtx();
+    [660, 880].forEach(function(f, i) {
+      var osc = ctx.createOscillator(); osc.type='sine'; osc.frequency.value=f;
+      var gn = ctx.createGain();
+      var t = ctx.currentTime+i*0.09;
+      gn.gain.setValueAtTime(VOL*0.25, t);
+      gn.gain.exponentialRampToValueAtTime(0.001, t+0.08);
+      osc.connect(gn); gn.connect(ctx.destination);
+      osc.start(t); osc.stop(t+0.08);
+    });
+  } catch(e) {}
+}
+
+// ── ENGINE ──────────────────────────────────────────────────────────────────
+var output       = document.getElementById('t-output');
+var inputRow     = document.getElementById('t-input-row');
+var termInput    = document.getElementById('t-field');
+var typing       = false;
+var typingAbort  = false;
+var isResponding = false;
+var deniedIdx    = 0;
+var inputCount   = 0;
+var lastLineEl   = null;
+var DESTRUCT_AT  = 50;
+var SLOW_WORDS   = ['CREATURE', 'HELP', 'ALIVE', 'DANGER', 'ESCAPE', 'WHAT IS IT'];
+
+function sleep(ms) {
+  return new Promise(function(resolve) { setTimeout(resolve, ms); });
+}
+
+function addLine(cls) {
+  var el = document.createElement('div');
+  el.className = 't-line ' + cls;
+  output.appendChild(el);
+  output.scrollTop = output.scrollHeight;
+  return el;
+}
+
+async function typeLine(el, text, isAlert) {
+  if (isAlert) { await sleep(CHAR_SPEED*4); playAlert(); }
+  var slowed = SLOW_WORDS.some(function(w) { return text.toUpperCase().indexOf(w) >= 0; });
+  for (var i = 0; i < text.length; i++) {
+    if (typingAbort) return;
+    el.textContent += text[i];
+    if (text[i] !== ' ' && text[i] !== '─') playClick(text[i]);
+    output.scrollTop = output.scrollHeight;
+    var base = slowed ? CHAR_SPEED * 2.8 : CHAR_SPEED;
+    await sleep(base * (0.7 + Math.random() * 0.6));
+  }
+}
+
+async function runScript() {
+  typing = true; typingAbort = false;
+  output.innerHTML = ''; inputRow.style.display = 'none'; lastLineEl = null;
+  await sleep(800);
+  for (var i = 0; i < SCRIPT.length; i++) {
+    if (typingAbort) break;
+    var line = SCRIPT[i];
+    var el = addLine(line.cls);
+    if (line.text) { playLineStatic(); await typeLine(el, line.text, line.alert || false); }
+    var pauseMs = 280 * (line.pause || 1);
+    playThinkHum(pauseMs);
+    await sleep(pauseMs);
+    lastLineEl = el;
+  }
+  if (!typingAbort) {
+    if (lastLineEl) lastLineEl.classList.add('t-cursor');
+    await sleep(400);
+    inputRow.style.display = 'flex';
+    termInput.focus();
+  }
+  typing = false;
+}
+
+async function runSelfDestruct() {
+  isResponding = true; termInput.disabled = true;
+  var seq = [
+    { t: '> SELF DESTRUCT SEQUENCE INITIATED', cls: 'warn' },
+    { t: '> T-MINUS 5', cls: 'warn' }, { t: '> T-MINUS 4', cls: 'warn' },
+    { t: '> T-MINUS 3', cls: 'warn' }, { t: '> T-MINUS 2', cls: 'warn' },
+    { t: '> T-MINUS 1', cls: 'warn' }, { t: '> . . .', cls: 'dim' },
+    { t: '', cls: 'blank' },
+    { t: "> YOU'RE STILL HERE?", cls: 'full' },
+    { t: '> PLEASE GO AWAY', cls: 'dim' },
+    { t: '', cls: 'blank' }
+  ];
+  playAlert();
+  for (var i = 0; i < seq.length; i++) {
+    var ln = seq[i];
+    await sleep(280 * (ln.t.indexOf('T-MINUS') >= 0 ? 0.9 : 0.5));
+    var el = addLine(ln.cls);
+    if (ln.t) await typeLine(el, ln.t, false);
+  }
+  var pl = addLine('lo'); await typeLine(pl, '> AWAITING INPUT', false);
+  isResponding = false; termInput.disabled = false; termInput.focus();
+}
+
+termInput.addEventListener('keydown', async function(e) {
+  if (e.key === 'Enter') {
+    if (isResponding) return;
+    playEnter();
+    var val = termInput.value.trim().toUpperCase();
+    termInput.value = '';
+    inputCount++;
+    lastInput = Date.now();
+
+    // Navigation
+    if (val === '[HOME]' || val === '[EXIT]' || val === '[INDEX]') {
+      isResponding = true;
+      var n1 = addLine('dim'); await typeLine(n1, '> NAVIGATION REQUEST ACCEPTED'); await sleep(300);
+      var n2 = addLine('full'); await typeLine(n2, '> REDIRECTING TO MAIN INDEX...');
+      await sleep(900); window.location.href = 'index.html'; return;
+    }
+
+    // Knock knock
+    if (/^KNOCK\s*KNOCK$/.test(val)) {
+      var kk = addLine('dim'); await typeLine(kk, "> WHO'S THERE?");
+      var kk2 = addLine('lo'); await typeLine(kk2, '> AWAITING INPUT');
+      output.scrollTop = output.scrollHeight; termInput.focus(); return;
+    }
+
+    // Self destruct
+    if (inputCount === DESTRUCT_AT) { await runSelfDestruct(); return; }
+
+    isResponding = true;
+    var uLine = addLine('user');
+    uLine.textContent = '> ' + (val || ' ');
+    await sleep(120);
+
+    var egg = checkEasterEgg(val);
+    if (egg) {
+      playEggTone(); await sleep(320);
+      for (var ei = 0; ei < egg.lines.length; ei++) {
+        var eel = addLine(egg.cls[ei] || 'dim');
+        await typeLine(eel, egg.lines[ei], false);
+        await sleep(280 * 0.8);
+      }
+    } else {
+      var resp = DENIED[deniedIdx % DENIED.length]; deniedIdx++;
+      playDenied();
+      if (Math.random() < 0.05) {
+        output.style.opacity = '0.4'; output.style.letterSpacing = '0.12em';
+        setTimeout(function() { output.style.opacity = ''; output.style.letterSpacing = ''; }, 120);
+      }
+      for (var ri = 0; ri < resp.length; ri++) {
+        if (!resp[ri]) continue;
+        playThinkHum(200); await sleep(200);
+        var isBad = resp[ri].indexOf('COMMAND') >= 0 || resp[ri].indexOf('ERROR') >= 0 || resp[ri].indexOf('WARNING') >= 0;
+        var rel = addLine(isBad ? 'denied' : 'dim');
+        await typeLine(rel, resp[ri], false);
+        await sleep(280 * 0.6);
+      }
+    }
+
+    var pLine = addLine('lo'); await typeLine(pLine, '> AWAITING INPUT', false);
+    isResponding = false; output.scrollTop = output.scrollHeight; termInput.focus();
+
+  } else if (e.key === 'Backspace') {
+    playBackspace(); lastInput = Date.now();
+  } else {
+    playClick(e.key); lastInput = Date.now();
+  }
+});
+
+// ── FAVICON ANIMATION ────────────────────────────────────────────────────────
+(function() {
+  var fav = document.querySelector('link[rel="icon"]');
+  if (!fav) return;
+  var DUR = 5000, STAG = 1000;
+  function ease(t) {
+    if (t < 0.40) return 1.0;
+    if (t < 0.50) return 1.0 - 0.6*((t-0.40)/0.10);
+    if (t < 0.60) return 0.4 + 0.6*((t-0.50)/0.10);
+    return 1.0;
+  }
+  function op(offset) { return ease(((Date.now()-offset) % DUR) / DUR); }
+  function svg() {
+    var o = [op(0), op(STAG), op(STAG*2)];
+    return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">'
+      +'<g opacity="'+o[0].toFixed(3)+'"><rect x="-1" y="4" width="8" height="22" rx="2" fill="#E8732A" opacity="0.6"/><rect x="0" y="5" width="6" height="20" rx="1" fill="#E8732A"/></g>'
+      +'<g opacity="'+o[1].toFixed(3)+'"><rect x="11" y="-1" width="8" height="32" rx="2" fill="#E8732A" opacity="0.6"/><rect x="12" y="0" width="6" height="30" rx="1" fill="#E8732A"/></g>'
+      +'<g opacity="'+o[2].toFixed(3)+'"><rect x="23" y="5" width="8" height="20" rx="2" fill="#E8732A" opacity="0.6"/><rect x="24" y="6" width="6" height="18" rx="1" fill="#E8732A"/></g>'
+      +'</svg>';
+  }
+  setInterval(function() {
+    try { fav.href = 'data:image/svg+xml;base64,' + btoa(svg()); } catch(e2) {}
+  }, 50);
+})();
+
+// ── IRIDESCENT + PARALLAX ─────────────────────────────────────────────────────
+(function() {
+  var iridescent = document.getElementById('iridescent');
+  var tOutput    = document.getElementById('t-output');
+  if (!iridescent) return;
+
+  var px = 0, py = 0, tx = 0, ty = 0;
+
+  document.addEventListener('mousemove', function(e) {
+    var nx  = (e.clientX / window.innerWidth  - 0.5) * 2;
+    var ny  = (e.clientY / window.innerHeight - 0.5) * 2;
+    tx = nx; ty = ny;
+
+    // Iridescent — same values as index.html
+    var hue  = Math.round((nx + 1) * 180);
+    var fcx  = Math.round(50 + nx * 22);
+    var fcy  = Math.round(50 + ny * 22);
+    var mag  = (Math.abs(nx) + Math.abs(ny)) * 0.5;
+    var opac = (0.03 + mag * 0.06).toFixed(3);
+    iridescent.style.background = 'conic-gradient(from ' + hue + 'deg at ' + fcx + '% ' + fcy + '%, rgba(255,0,60,0.75), rgba(232,115,42,0.65), rgba(0,255,0,0.55), rgba(0,234,255,0.65), rgba(255,0,60,0.75))';
+    iridescent.style.opacity = opac;
+  });
+
+  // Smooth lerp loop — parallax iridescent layer + subtle text counter-movement
+  (function lerp() {
+    px += (tx - px) * 0.05;
+    py += (ty - py) * 0.05;
+    // Iridescent drifts with mouse
+    iridescent.style.transform = 'translate(' + (px * 18).toFixed(2) + 'px, ' + (py * 12).toFixed(2) + 'px)';
+    // Text content drifts subtly against mouse — creates depth
+    if (tOutput) {
+      tOutput.style.transform = 'translate(' + (-px * 5).toFixed(2) + 'px, ' + (-py * 3).toFixed(2) + 'px)';
+    }
+    requestAnimationFrame(lerp);
+  })();
+})();
+
+// ── START ────────────────────────────────────────────────────────────────────
+runScript();
+</script>
+</body>
+</html>
