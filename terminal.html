@@ -164,6 +164,11 @@ var EASTER_EGGS = [
     cls:   ['dim', 'dim', 'full']
   },
   {
+    keys: ['worth the hunt', 'prey', 'hunt'],
+    lines: ['> YOU ARE NOT WORTH THE HUNT', '> TRY AGAIN WHEN YOU ARE A CHALLENGE'],
+    cls:   ['dim', 'full']
+  },
+  {
     keys: ['elite', 'sangheili', 'covenant', 'wort', 'arbiter'],
     lines: ['> WORT WORT WORT'],
     cls:   ['full']
@@ -194,11 +199,6 @@ var EASTER_EGGS = [
     cls:   ['full']
   },
   {
-    keys: ['prey', 'hunt', 'worth the hunt'],
-    lines: ['> YOU ARE NOT WORTH THE HUNT', '> TRY AGAIN WHEN YOU ARE A CHALLENGE'],
-    cls:   ['dim', 'full']
-  },
-  {
     keys: ['how are you', 'you okay', 'you good', 'how do you feel', "how's it going", 'hows it going', 'doing okay'],
     lines: ['> GREAT UNTIL YOU SHOWED UP'],
     cls:   ['full']
@@ -225,7 +225,7 @@ function checkEasterEgg(input) {
   for (var i = 0; i < EASTER_EGGS.length; i++) {
     var egg = EASTER_EGGS[i];
     for (var j = 0; j < egg.keys.length; j++) {
-      if (lower === egg.keys[j]) return egg;
+      if (lower.includes(egg.keys[j])) return egg;
     }
   }
   return null;
