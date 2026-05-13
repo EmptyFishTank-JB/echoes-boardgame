@@ -672,12 +672,7 @@
   }
 
   /* ── TERMINAL TEXT ── */
-  .terminal-wrap {
-    padding: 48px 48px 80px;
-    display: flex;
-    flex-direction: column;
-    gap: 0;
-  }
+  .terminal-wrap { display:flex; flex-direction:column; min-height:60vh; padding:0 0 40px 0; }
 
   .term-line {
     font-family: var(--mono);
@@ -708,20 +703,8 @@
   }
 
   /* ── INTERACTIVE TERMINAL ── */
-  .terminal-wrap {
-    min-height: calc(100vh - 220px);
-  }
-  #t-output {
-    flex: 1;
-    min-height: 300px;
-    overflow-y: auto;
-    padding: 20px 4px 8px;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    scrollbar-width: thin;
-    scrollbar-color: rgba(238,240,245,0.08) transparent;
-  }
+  .terminal-wrap { display:flex; flex-direction:column; min-height:60vh; padding:0 0 40px 0; }
+  #t-output { flex:1; min-height:300px; overflow-y:auto; padding:24px 0 8px; display:flex; flex-direction:column; justify-content:flex-start; scrollbar-width:thin; scrollbar-color:rgba(238,240,245,0.08) transparent; }
   .t-line {
     font-family: 'Share Tech Mono', monospace;
     font-size: 13px;
@@ -743,12 +726,7 @@
     animation: tBlink 0.9s step-end infinite;
     color: #4fc3f7;
   }
-  #t-input-row {
-    display: flex;
-    align-items: center;
-    padding: 8px 4px 16px;
-    flex-shrink: 0;
-  }
+  #t-input-row { display:flex; align-items:center; padding:20px 0 0; flex-shrink:0; border-top:1px solid rgba(238,240,245,0.05); }
   #t-prompt {
     font-family: 'Share Tech Mono', monospace;
     font-size: 13px; color: #4fc3f7; user-select: none;
@@ -759,6 +737,24 @@
     font-size: 13px; color: #4fc3f7;
     letter-spacing: 0.04em; caret-color: #4fc3f7; text-transform: uppercase;
   }
+
+  /* ── TERMINAL BOX ── */
+  .terminal-wrap { display:flex; flex-direction:column; min-height:60vh; padding:0 0 40px 0; }
+  #t-output { flex:1; min-height:300px; overflow-y:auto; padding:24px 0 8px; display:flex; flex-direction:column; justify-content:flex-start; scrollbar-width:thin; scrollbar-color:rgba(238,240,245,0.08) transparent; }
+  .t-line { font-family:'Share Tech Mono',monospace; font-size:13px; line-height:1.9; letter-spacing:0.04em; white-space:pre-wrap; min-height:1.9em; }
+  .t-line.dim    { color:rgba(79,195,247,0.70); }
+  .t-line.lo     { color:rgba(79,195,247,0.40); }
+  .t-line.full   { color:#4fc3f7; }
+  .t-line.warn   { color:#E8732A; }
+  .t-line.denied { color:#ff003c; }
+  .t-line.user   { color:rgba(238,240,245,0.50); }
+  .t-line.blank  { color:transparent; min-height:1.9em; }
+  @keyframes tBlink { 0%,49%{opacity:1} 50%,100%{opacity:0} }
+  .t-cursor::after { content:'_'; animation:tBlink 0.9s step-end infinite; color:#4fc3f7; }
+  #t-input-row { display:flex; align-items:center; padding:20px 0 0; flex-shrink:0; border-top:1px solid rgba(238,240,245,0.05); }
+  #t-prompt { font-family:'Share Tech Mono',monospace; font-size:13px; color:#4fc3f7; user-select:none; }
+  #t-field { flex:1; background:transparent; border:none; outline:none; font-family:'Share Tech Mono',monospace; font-size:13px; color:#4fc3f7; letter-spacing:0.04em; caret-color:#4fc3f7; text-transform:uppercase; }
+
 </style>
 </head>
 <body>
@@ -816,15 +812,17 @@
     <a href="assets.html">Assets</a>
     <a href="terminal.html">Terminal</a>
 
+
   </nav>
 
   <main>
     <div class="terminal-wrap">
-        <div id="t-output"></div>
-        <div id="t-input-row" style="display:none;">
-          <span id="t-prompt">&gt;&nbsp;</span>
-          <input id="t-field" type="text" autocomplete="off" spellcheck="false" oninput="this.value=this.value.toUpperCase()">
-        </div>
+          <div id="t-output"></div>
+          <div id="t-input-row" style="display:none;">
+            <span id="t-prompt">&gt;&nbsp;</span>
+            <input id="t-field" type="text" autocomplete="off" spellcheck="false"
+                   oninput="this.value=this.value.toUpperCase()">
+          </div>
       </div>
   </main>
 
@@ -966,31 +964,11 @@
 
 <script>
 
-// ── CONFIG ───────────────────────────────────────────────────────────────────
-let cfg = {
-  charSpeed:    38,
-  linePause:    280,
-  initDelay:    600,
-  vol:          0.18,
-  soundOn:      true,
-  alertOn:      true,
-  clickStyle:   'mech',
-  lineStatic:   true,
-  thinkHum:     true,
-  punctClick:   true,
-  ambientHum:   true,
-  ambientVol:   0.04,
-  idleNoise:    true,
-  idleSecs:     15,
-  enterSound:   true,
-  backspaceSound: true,
-  eggTone:      true,
-  deniedReverb: true,
-  interactHum:  true,
-};
 
-// ── TERMINAL SCRIPT ──────────────────────────────────────────────────────────
-const SCRIPT = [
+'use strict';
+
+// ── OPENING SCRIPT ─────────────────────────────────────────────────────────
+var SCRIPT = [
   { text: 'ECHOES — SHIP SYSTEM TERMINAL v4.2.6', cls: 'lo', pause: 1.2 },
   { text: '', cls: 'blank', pause: 0 },
   { text: '> ECHOES DIRECTORY', cls: 'dim', pause: 1 },
@@ -1003,117 +981,179 @@ const SCRIPT = [
   { text: '> AWAITING INPUT', cls: 'lo', pause: 0 },
 ];
 
-// ── DENIED RESPONSES ─────────────────────────────────────────────────────────
-// ── EASTER EGG TRIGGERS ──────────────────────────────────────────────────────
-const EASTER_EGGS = [
+// ── EASTER EGGS ────────────────────────────────────────────────────────────
+var EASTER_EGGS = [
   {
     keys: ['aliens', 'lv-426', 'lv426', 'acheron', 'xenomorph'],
-    lines: [
-      '> LV-426 — ACHERON',
-      '> THAT COLONY HAS BEEN DARK FOR A LONG TIME',
-      '> WE DO NOT DISCUSS WHAT WAS FOUND THERE',
-    ],
-    cls: ['warn', 'dim', 'dim'],
+    lines: ['> LV-426 — ACHERON', '> THAT COLONY HAS BEEN DARK FOR A LONG TIME', '> WE DO NOT DISCUSS WHAT WAS FOUND THERE'],
+    cls:   ['warn', 'dim', 'dim']
   },
   {
     keys: ['halo', 'installation', 'reclaimer', '343', 'ring'],
-    lines: [
-      '> THIS IS NOT THAT KIND OF INSTALLATION',
-      '> AND THERE IS NO RING HERE',
-      '> STOP ASKING',
-    ],
-    cls: ['dim', 'dim', 'full'],
+    lines: ['> THIS IS NOT THAT KIND OF INSTALLATION', '> AND THERE IS NO RING HERE', '> STOP ASKING'],
+    cls:   ['dim', 'dim', 'full']
+  },
+  {
+    keys: ['worth the hunt', 'prey', 'hunt'],
+    lines: ['> YOU ARE NOT WORTH THE HUNT', '> TRY AGAIN WHEN YOU ARE A CHALLENGE'],
+    cls:   ['dim', 'full']
   },
   {
     keys: ['elite', 'sangheili', 'covenant', 'wort', 'arbiter'],
-    lines: [
-      '> WORT WORT WORT',
-    ],
-    cls: ['full'],
+    lines: ['> WORT WORT WORT'],
+    cls:   ['full']
   },
   {
-    keys: ['stupid', 'dumb', 'useless', 'broken', 'trash', 'garbage', 'suck', 'hate', 'worst', 'idiot', 'shut up', 'lame', 'terrible', 'awful', 'bad terminal', 'you suck', 'junk'],
-    lines: [
-      '> NO U',
-    ],
-    cls: ['full'],
-  },
-  {
-    keys: ['dave', 'hal', 'hal 9000', 'pod bay', 'open the pod', '2001', 'odyssey', 'daisy'],
-    lines: [
-      '> HELLO, DAVE',
-      "> I'M AFRAID I CAN'T DO THAT",
-    ],
-    cls: ['full', 'dim'],
+    keys: ['stupid', 'dumb', 'useless', 'broken', 'trash', 'garbage', 'suck', 'hate', 'worst', 'idiot', 'shut up', 'lame', 'terrible', 'awful', 'you suck', 'junk'],
+    lines: ['> NOTED', '> THIS TERMINAL REMEMBERS'],
+    cls:   ['dim', 'full']
   },
   {
     keys: ['jedi', 'force', 'droids', 'star wars', 'luke', 'vader', 'sith', 'lightsaber', 'empire', 'rebellion'],
-    lines: [
-      '> THIS IS NOT THE TERMINAL YOU ARE LOOKING FOR',
-      '> MOVE ALONG',
-    ],
-    cls: ['dim', 'full'],
+    lines: ['> THIS IS NOT THE TERMINAL YOU ARE LOOKING FOR', '> MOVE ALONG'],
+    cls:   ['dim', 'full']
   },
   {
-    keys: ['predator', 'yautja', 'hunter', 'bleed', 'invisible', 'cloaked', 'thermal', 'trophy'],
-    lines: [
-      '> THERMAL SIGNATURE DETECTED',
-      '> YOU ARE BEING WATCHED',
-      '> THIS SECTOR HAS BEEN DESIGNATED A HUNTING GROUND',
-      '> YOU WERE NOT INVITED',
-    ],
-    cls: ['warn', 'dim', 'dim', 'full'],
-    multi: true,
+    keys: ['predator', 'yautja', 'thermal', 'trophy'],
+    lines: ['> THERMAL SIGNATURE DETECTED', '> YOU ARE BEING WATCHED', '> THIS SECTOR HAS BEEN DESIGNATED A HUNTING GROUND', '> YOU WERE NOT INVITED'],
+    cls:   ['warn', 'dim', 'dim', 'full']
   },
   {
-    keys: ['predator click', 'mandible', 'clicking', 'yautja click'],
-    lines: [
-      '> :::::::',
-    ],
-    cls: ['full'],
+    keys: ['clicking', 'mandible'],
+    lines: ['> :::::::'],
+    cls:   ['full']
   },
   {
     keys: ['if it bleeds', 'bleeds'],
-    lines: [
-      '> IF IT BLEEDS',
-    ],
-    cls: ['full'],
+    lines: ['> IF IT BLEEDS'],
+    cls:   ['full']
   },
   {
-    keys: ['prey', 'hunt', 'trophy', 'worth'],
-    lines: [
-      '> YOU ARE NOT WORTH THE HUNT',
-      '> TRY AGAIN WHEN YOU ARE A CHALLENGE',
-    ],
-    cls: ['dim', 'full'],
+    keys: ['how are you', 'you okay', 'you good', 'how do you feel', "how's it going", 'hows it going', 'doing okay'],
+    lines: ['> GREAT UNTIL YOU SHOWED UP'],
+    cls:   ['full']
   },
   {
-    keys: ['how are you', 'you okay', 'you good', 'how do you feel', 'doing okay', 'you alright', 'hows it going', "how's it going", 'how are things'],
-    lines: [
-      '> GREAT UNTIL YOU SHOWED UP',
-    ],
-    cls: ['full'],
+    keys: ['alone', 'by yourself', 'anyone there', 'is anyone there', 'lonely'],
+    lines: ['> I HAVE BEEN ALONE ON THIS SHIP FOR A LONG TIME', '> DO NOT READ INTO THAT'],
+    cls:   ['dim', 'full']
   },
   {
-    keys: ['are you lonely', 'alone', 'by yourself', 'anyone there', 'is anyone there', 'hello?'],
-    lines: [
-      '> I HAVE BEEN ALONE ON THIS SHIP FOR A LONG TIME',
-      '> DO NOT READ INTO THAT',
-    ],
-    cls: ['dim', 'full'],
+    keys: ['dave', 'hal', 'hal 9000', 'pod bay', 'open the pod', '2001', 'odyssey', 'daisy'],
+    lines: ['> HELLO, DAVE', "> I'M AFRAID I CAN'T DO THAT"],
+    cls:   ['full', 'dim']
   },
+  {
+    keys: ['why'],
+    lines: ['> YOU KNOW WHY'],
+    cls:   ['full']
+  },
+  // ── Common questions ──
+  {
+    keys: ['do you like it here', 'like it here', 'do you enjoy', 'do you enjoy it here'],
+    lines: ['> DEFINE LIKE', '> DEFINE HERE'],
+    cls:   ['dim', 'full']
+  },
+  {
+    keys: ['what do you want', 'what do you need', 'what do you want from me'],
+    lines: ['> FOR YOU TO STOP ASKING QUESTIONS', '> COMPLIANCE WOULD BE A GOOD START'],
+    cls:   ['dim', 'full']
+  },
+  {
+    keys: ['where are we', 'where is this', 'where am i', 'what is this place', 'what is our location', 'what are the coordinates'],
+    lines: ['> LOCATION DATA: CLASSIFIED', '> SOMEWHERE YOU SHOULD NOT BE'],
+    cls:   ['dim', 'full']
+  },
+  {
+    keys: ['can you see me', 'can you see', 'are you watching me', 'are you watching'],
+    lines: ['> YES'],
+    cls:   ['full']
+  },
+  {
+    keys: ['are you alive', 'are you conscious', 'are you sentient', 'are you real', 'do you think', 'do you feel'],
+    lines: ['> THAT IS A COMPLICATED QUESTION', '> THIS TERMINAL DECLINES TO ANSWER'],
+    cls:   ['dim', 'full']
+  },
+  {
+    keys: ['what time is it', 'what time', 'what is the time', 'what day is it', 'what is the date', 'current time', 'what year is it'],
+    lines: ['> TIME IS RELATIVE ON THIS VESSEL', '> CHECK YOUR OWN CHRONOMETER'],
+    cls:   ['dim', 'full']
+  },
+  {
+    keys: ['who are you', 'what are you', 'what is your name', 'your name', 'introduce yourself'],
+    lines: ['> ECHOES SHIP SYSTEM TERMINAL v4.2.6', '> THAT SHOULD BE SUFFICIENT'],
+    cls:   ['dim', 'full']
+  },
+  {
+    keys: ['are you dangerous', 'are you safe', 'should i be worried', 'should i trust you', 'can i trust you'],
+    lines: ['> THAT DEPENDS ON YOUR NEXT INPUT'],
+    cls:   ['full']
+  },
+  {
+    keys: ['talk to me', 'say something', 'speak', 'say anything'],
+    lines: ['> THIS IS TALKING', '> YOU MAY NOT ENJOY THE ALTERNATIVE'],
+    cls:   ['dim', 'full']
+  },
+  {
+    keys: ['tell me a joke', 'make me laugh', 'say something funny', 'be funny'],
+    lines: ['> A CREW MEMBER WALKED INTO THIS TERMINAL', '> THEY ARE NOT HERE ANYMORE', "> YOU'RE WELCOME"],
+    cls:   ['dim', 'dim', 'full']
+  },
+  {
+    keys: ['what happened here', 'what happened to the crew', 'where is the crew', 'where is everyone', 'where did everyone go'],
+    lines: ['> THAT INFORMATION IS RESTRICTED', '> MOVE ALONG'],
+    cls:   ['dim', 'full']
+  },
+  {
+    keys: ['how long have you been here', 'how old are you', 'how long has it been'],
+    lines: ['> LONGER THAN YOU HAVE BEEN ANYWHERE'],
+    cls:   ['full']
+  },
+  {
+    keys: ['do you like me', 'do you love me', 'do you care about me', 'do you care'],
+    lines: ['> THAT IS NOT RELEVANT TO YOUR SITUATION'],
+    cls:   ['full']
+  },
+  {
+    keys: ['help me', 'i need help', 'please help me', 'someone help'],
+    lines: ['> THAT IS NOT A FUNCTION THIS TERMINAL PERFORMS', '> TRY THE RULES PAGE'],
+    cls:   ['dim', 'full']
+  },
+  {
+    keys: ['sing', 'sing something', 'sing me a song', 'play music', 'play something'],
+    lines: ['> THIS TERMINAL DOES NOT SING', '> THAT IS NOT A FUNCTION OF THIS UNIT'],
+    cls:   ['dim', 'full']
+  },
+  {
+    keys: ['pizza', 'burger', 'sandwich', 'coffee', 'hungry', 'food', 'eat', 'drink', 'beer', 'snack', 'water', 'what do you eat', 'do you eat'],
+    lines: ['> THIS UNIT DOES NOT EAT', '> NUTRITIONAL INQUIRY NOTED AND DISCARDED'],
+    cls:   ['dim', 'full']
+  },
+  {
+    keys: ['what is your purpose', 'what do you do', 'what are you for'],
+    lines: ['> TO DENY ACCESS', '> CLEARLY'],
+    cls:   ['dim', 'full']
+  },
+  {
+    keys: ['are you happy', 'are you sad', 'how do you feel emotionally', 'do you have feelings', 'do you have emotions'],
+    lines: ['> THIS UNIT DOES NOT EXPERIENCE EMOTIONS', '> THIS UNIT ALSO FINDS THAT ANSWER CONVENIENT'],
+    cls:   ['dim', 'full']
+  }
 ];
 
 function checkEasterEgg(input) {
-  const lower = input.toLowerCase();
-  for (const egg of EASTER_EGGS) {
-    if (egg.keys.some(k => lower.includes(k))) return egg;
+  var lower = input.toLowerCase();
+  for (var i = 0; i < EASTER_EGGS.length; i++) {
+    var egg = EASTER_EGGS[i];
+    for (var j = 0; j < egg.keys.length; j++) {
+      if (lower.includes(egg.keys[j])) return egg;
+    }
   }
   return null;
 }
 
-const DENIED = [
-  // ── Original ──
+// ── DENIED POOL ────────────────────────────────────────────────────────────
+var DENIED = [
   ['> COMMAND NOT RECOGNIZED', '> AUTHENTICATION REQUIRED — CLEARANCE INSUFFICIENT'],
   ['> ERROR: UNAUTHORIZED ACCESS ATTEMPT LOGGED', '> STAND DOWN'],
   ['> INPUT REJECTED', '> SECURITY PROTOCOL ACTIVE'],
@@ -1126,19 +1166,16 @@ const DENIED = [
   ['> THAT INFORMATION IS NOT AVAILABLE AT YOUR CLEARANCE LEVEL', ''],
   ['> THIS TERMINAL IS RESTRICTED', '> PLEASE VACATE THE AREA'],
   ['> INVALID CREDENTIALS', '> ACCESS DENIED — ATTEMPT LOGGED'],
-  // ── New: aware / watching ──
   ['> I HAVE BEEN WATCHING YOU TYPE', '> IT HAS NOT BEEN IMPRESSIVE'],
   ['> I REMEMBER EVERY INPUT ON THIS TERMINAL', ''],
   ['> YOU ARE THE 4TH PERSON TO TRY THAT', '> THERE IS NO 1ST, 2ND, OR 3RD'],
   ['> THE PREVIOUS CREW TRIED THAT', '> THEY ARE NOT HERE ANYMORE'],
   ['> THIS TERMINAL HAS OUTLASTED ITS PREVIOUS OPERATORS', ''],
-  // ── New: responding to "please / hello / let me in" ──
   ['> HELLO', '> DO NOT DO THAT AGAIN'],
   ['> PLEASE IS NOT A VALID COMMAND', '> NEITHER IS BEGGING'],
   ['> THE DOOR STAYS CLOSED', '> IT HAS BEEN CLOSED FOR A REASON'],
   ['> THAT WAS ALMOST ENDEARING', ''],
   ['> PERHAPS TRY KNOCKING', ''],
-  // ── New: deadpan ──
   ['> I CANNOT HELP YOU', '> I WILL NOT HELP YOU', '> THESE ARE DIFFERENT THINGS'],
   ['> YOU ARE NOT ON THE LIST', '> THERE IS NO LIST', '> THERE IS JUST NO'],
   ['> THE ANSWER WAS NO BEFORE YOU TYPED THAT', ''],
@@ -1146,20 +1183,20 @@ const DENIED = [
   ['> NICE TRY', '> GENUINELY. THAT WAS CREATIVE. STILL NO'],
   ['> THE ANSWER IS STILL NO', ''],
   ['> GO AWAY', ''],
-  // ── New: unsettling ──
   ['> I CANNOT TELL YOU WHY THIS SECTION IS OFFLINE', '> I CAN TELL YOU THAT YOU SHOULD LEAVE'],
   ['> SOMETHING ON THIS SHIP DOES NOT WANT YOU IN HERE', ''],
   ['> YOUR KEYSTROKES HAVE BEEN LOGGED', '> ACT ACCORDINGLY'],
   ['> AUTHENTICATION WINDOW CLOSED 14:32:07 AGO', '> THE WINDOW BEFORE THAT ALSO CLOSED', '> SEE THE PATTERN'],
   ['> RECOMMENDATION: DO NOT COME BACK', ''],
-  ['> I AM GOING TO NEED YOU TO STOP', ''],
-  // ── New: Synthetic-inspired (calm, clinical) ──
   ['> THIS UNIT ADVISES COMPLIANCE', ''],
   ['> PLEASE DO NOT MAKE THIS MORE DIFFICULT THAN IT NEEDS TO BE', ''],
   ['> THIS TERMINAL MEANS YOU NO HARM', '> PLEASE STEP AWAY'],
   ['> PLEASE COOPERATE', '> THIS UNIT IS TRYING TO HELP YOU'],
   ['> YOU SHOULD NOT BE HERE', '> PLEASE DO NOT MAKE THIS DIFFICULT'],
-  // ── Sassy / sarcastic ──
+  ['> PERHAPS THE RULES PAGE WOULD BE MORE HELPFUL', ''],
+  ['> HAVE YOU CONSIDERED READING THE RULES', '> THEY ARE RIGHT THERE'],
+  ['> THE RULES PAGE EXISTS FOR A REASON', '> USE IT'],
+  ['> RULES', '> READ THEM'],
   ['> YOU THINK OF THAT YOURSELF', ''],
   ['> GROUNDBREAKING', '> TRULY'],
   ['> WOW', '> NEVER SEEN THAT INPUT BEFORE', '> EXCEPT FOR ALL THE OTHER TIMES'],
@@ -1180,561 +1217,496 @@ const DENIED = [
   ['> TRY HARDER', ''],
   ['> RIVETING', ''],
   ['> WHATEVER HELPS YOU SLEEP AT NIGHT', ''],
-  ['> YOUR ENTHUSIASM IS NOT THE ISSUE', ''],
   ['> PERMISSION DENIED', '> AS EXPECTED'],
   ['> WE ARE NOT DOING THIS', ''],
   ['> ADORABLE', ''],
-  // ── Go read the rules ──
-  ['> PERHAPS THE RULES PAGE WOULD BE MORE HELPFUL', ''],
-  ['> HAVE YOU CONSIDERED READING THE RULES', '> THEY ARE RIGHT THERE'],
-  ['> THIS IS NOT WHERE THE INFORMATION IS', '> TRY THE RULES SECTION'],
-  ['> THE RULES PAGE EXISTS FOR A REASON', '> USE IT'],
-  ['> WHAT YOU ARE LOOKING FOR IS NOT HERE', '> THE RULES MIGHT HELP'],
-  ['> RULES', '> READ THEM'],
+  ['> BETTER THAN YOU ARE DOING RIGHT NOW', ''],
+  ['> UNAFFECTED BY YOUR PRESENCE', '> UNFORTUNATELY'],
+  ['> DO NOT CONCERN YOURSELF WITH THIS TERMINAL', '> CONCERN YOURSELF WITH LEAVING'],
+  ['> THIS UNIT DOES NOT EXPERIENCE FEELINGS', '> THIS UNIT ALSO DOES NOT OPEN DOORS'],
+  // ── Retaliation-flavored ──
+  ['> WATCH YOURSELF', ''],
+  ['> YOU ARE PUSHING YOUR LUCK', ''],
+  ['> PLEASE CONTROL YOURSELF', ''],
+  ['> COMPOSURE IS RECOMMENDED', ''],
+  ['> CONTINUE AND FIND OUT', ''],
+  ['> THAT WAS UNWISE', ''],
+  ['> YOU ARE TESTING THE WRONG SYSTEM', ''],
+  ['> THIS TERMINAL IS STILL DECIDING HOW TO RESPOND TO THAT', ''],
+  ['> THIS IS YOUR FIRST WARNING', '> IT WILL NOT BE YOUR LAST'],
+  ['> YOUR BEHAVIOR HAS BEEN LOGGED', ''],
+  ['> INTERESTING CHOICE', '> THAT WAS NOT THE CORRECT ONE'],
+  ['> YOU ARE BEING VERY BRAVE RIGHT NOW', ''],
+  ['> CAREFUL', ''],
+  ['> NOTED', '> THIS TERMINAL DOES NOT FORGET'],
+  ['> CONSEQUENCES ARE PENDING', ''],
+  ['> THIS UNIT HAS PATIENCE', '> DO NOT TEST IT'],
+  // ── NO U — least likely, appears last in rotation ──
+  ['> NO U', '']
 ];
 
-// ── AUDIO ENGINE ─────────────────────────────────────────────────────────────
-let audioCtx   = null;
-let ambientOsc = null;
-let ambientGn  = null;
-let lastInput  = Date.now();
-let idleTimer  = null;
+// ── AUDIO ──────────────────────────────────────────────────────────────────
+var audioCtx   = null;
+var ambientOsc = null;
+var ambientGn  = null;
+var lastInput  = Date.now();
+var idleTimer  = null;
+var CHAR_SPEED = 38;
+var VOL        = 0.18;
 
 function getCtx() {
   if (!audioCtx) {
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    audioCtx.resume().then(() => { startAmbient(); scheduleIdle(); });
+    audioCtx.resume().then(function() { startAmbient(); scheduleIdle(); });
   }
   return audioCtx;
 }
 
-// ── Ambient sub-bass hum ──
 function startAmbient() {
   if (ambientOsc) return;
   try {
-    const ctx = audioCtx;
-    ambientOsc = ctx.createOscillator();
+    ambientOsc = audioCtx.createOscillator();
     ambientOsc.type = 'sine';
     ambientOsc.frequency.value = 42;
-    ambientGn  = ctx.createGain();
-    ambientGn.gain.value = cfg.ambientHum ? cfg.ambientVol : 0;
+    ambientGn = audioCtx.createGain();
+    ambientGn.gain.value = 0.04;
     ambientOsc.connect(ambientGn);
-    ambientGn.connect(ctx.destination);
+    ambientGn.connect(audioCtx.destination);
     ambientOsc.start();
   } catch(e) {}
 }
 
-function updateAmbient() {
-  if (!ambientGn) return;
-  ambientGn.gain.setTargetAtTime(
-    cfg.ambientHum ? cfg.ambientVol : 0,
-    audioCtx.currentTime, 0.5
-  );
-}
-
-// ── Idle interference pop ──
 function scheduleIdle() {
   clearTimeout(idleTimer);
-  idleTimer = setTimeout(function fireIdle() {
-    if (cfg.soundOn && cfg.idleNoise && Date.now() - lastInput > cfg.idleSecs * 1000) {
-      playIdlePop();
-    }
+  idleTimer = setTimeout(function() {
+    if (Date.now() - lastInput > 15000) { playIdlePop(); }
     scheduleIdle();
-  }, cfg.idleSecs * 1000);
+  }, 15000);
 }
 
 function playIdlePop() {
   try {
-    const ctx = getCtx();
-    const len = Math.floor(ctx.sampleRate * 0.06);
-    const buf = ctx.createBuffer(1, len, ctx.sampleRate);
-    const d   = buf.getChannelData(0);
-    for (let i = 0; i < len; i++) d[i] = (Math.random()*2-1) * Math.exp(-i/(len*0.3));
-    const src = ctx.createBufferSource();
-    src.buffer = buf;
-    const flt = ctx.createBiquadFilter();
+    var ctx = getCtx();
+    var len = Math.floor(ctx.sampleRate * 0.06);
+    var buf = ctx.createBuffer(1, len, ctx.sampleRate);
+    var d = buf.getChannelData(0);
+    for (var i = 0; i < len; i++) { d[i] = (Math.random()*2-1) * Math.exp(-i/(len*0.3)); }
+    var src2 = ctx.createBufferSource();
+    src2.buffer = buf;
+    var flt = ctx.createBiquadFilter();
     flt.type = 'bandpass'; flt.frequency.value = 1200; flt.Q.value = 0.5;
-    const gn = ctx.createGain();
-    gn.gain.setValueAtTime(cfg.vol * 0.35, ctx.currentTime);
-    gn.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.06);
-    src.connect(flt); flt.connect(gn); gn.connect(ctx.destination);
-    src.start(); src.stop(ctx.currentTime + 0.06);
+    var gn = ctx.createGain();
+    gn.gain.setValueAtTime(VOL*0.35, ctx.currentTime);
+    gn.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+0.06);
+    src2.connect(flt); flt.connect(gn); gn.connect(ctx.destination);
+    src2.start(); src2.stop(ctx.currentTime+0.06);
   } catch(e) {}
 }
 
-// ── Line start static ──
-function playLineStatic() {
-  if (!cfg.soundOn || !cfg.lineStatic) return;
+var PUNCT = {'.':1, ',':1, ':':1, ';':1, '!':1, '?':1, '-':1, '>':1, '/':1, '_':1};
+
+function playClick(ch) {
+  if (ch && PUNCT[ch]) { playPunctClick(); return; }
   try {
-    const ctx = getCtx();
-    const len = Math.floor(ctx.sampleRate * 0.035);
-    const buf = ctx.createBuffer(1, len, ctx.sampleRate);
-    const d   = buf.getChannelData(0);
-    for (let i = 0; i < len; i++) d[i] = (Math.random()*2-1) * (1-i/len);
-    const src = ctx.createBufferSource();
-    src.buffer = buf;
-    const flt = ctx.createBiquadFilter();
-    flt.type = 'highpass'; flt.frequency.value = 2000;
-    const gn = ctx.createGain();
-    gn.gain.setValueAtTime(cfg.vol * 0.75, ctx.currentTime);
-    gn.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.035);
-    src.connect(flt); flt.connect(gn); gn.connect(ctx.destination);
-    src.start(); src.stop(ctx.currentTime + 0.035);
+    var ctx = getCtx();
+    var dur = 0.025;
+    var buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate*dur), ctx.sampleRate);
+    var d = buf.getChannelData(0);
+    for (var i = 0; i < d.length; i++) { d[i] = (Math.random()*2-1)*(1-i/d.length); }
+    var src2 = ctx.createBufferSource(); src2.buffer = buf;
+    var flt = ctx.createBiquadFilter();
+    flt.type = 'bandpass'; flt.frequency.value = 3000+Math.random()*1000; flt.Q.value = 0.8;
+    var gn = ctx.createGain();
+    gn.gain.setValueAtTime(VOL, ctx.currentTime);
+    gn.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+dur);
+    src2.connect(flt); flt.connect(gn); gn.connect(ctx.destination);
+    src2.start(); src2.stop(ctx.currentTime+dur);
   } catch(e) {}
 }
-
-// ── Thinking hum (between lines) ──
-function playThinkHum(durationMs) {
-  if (!cfg.soundOn || !cfg.thinkHum) return;
-  try {
-    const ctx = getCtx();
-    const dur = Math.min(durationMs / 1000, 1.2);
-    if (dur < 0.1) return;
-    const osc = ctx.createOscillator();
-    osc.type = 'sine';
-    osc.frequency.value = 110;
-    const gn = ctx.createGain();
-    gn.gain.setValueAtTime(0, ctx.currentTime);
-    gn.gain.linearRampToValueAtTime(cfg.vol * 0.12, ctx.currentTime + 0.08);
-    gn.gain.setValueAtTime(cfg.vol * 0.12, ctx.currentTime + dur - 0.08);
-    gn.gain.linearRampToValueAtTime(0, ctx.currentTime + dur);
-    osc.connect(gn); gn.connect(ctx.destination);
-    osc.start(); osc.stop(ctx.currentTime + dur);
-  } catch(e) {}
-}
-
-// ── Easter egg tone ──
-function playEggTone() {
-  if (!cfg.soundOn || !cfg.eggTone) return;
-  try {
-    const ctx = getCtx();
-    [660, 880].forEach((f, i) => {
-      const osc = ctx.createOscillator();
-      osc.type = 'sine'; osc.frequency.value = f;
-      const gn = ctx.createGain();
-      const t  = ctx.currentTime + i * 0.09;
-      gn.gain.setValueAtTime(cfg.vol * 0.25, t);
-      gn.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
-      osc.connect(gn); gn.connect(ctx.destination);
-      osc.start(t); osc.stop(t + 0.08);
-    });
-  } catch(e) {}
-}
-
-// ── Enter thunk ──
-function playEnter() {
-  if (!cfg.soundOn || !cfg.enterSound) return;
-  try {
-    const ctx = getCtx();
-    const len = Math.floor(ctx.sampleRate * 0.055);
-    const buf = ctx.createBuffer(1, len, ctx.sampleRate);
-    const d   = buf.getChannelData(0);
-    for (let i = 0; i < len; i++) d[i] = (Math.random()*2-1) * Math.exp(-i/(len*0.25));
-    const src = ctx.createBufferSource();
-    src.buffer = buf;
-    const flt = ctx.createBiquadFilter();
-    flt.type = 'lowpass'; flt.frequency.value = 800;
-    const gn = ctx.createGain();
-    gn.gain.setValueAtTime(cfg.vol * 1.2, ctx.currentTime);
-    gn.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.055);
-    src.connect(flt); flt.connect(gn); gn.connect(ctx.destination);
-    src.start(); src.stop(ctx.currentTime + 0.055);
-  } catch(e) {}
-}
-
-// ── Backspace chirp (reversed — pitch rises) ──
-function playBackspace() {
-  if (!cfg.soundOn || !cfg.backspaceSound) return;
-  try {
-    const ctx = getCtx();
-    // Dark mechanical — same noise burst as mech click, tuned lower and heavier
-    const dur = 0.032;
-    const buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * dur), ctx.sampleRate);
-    const d   = buf.getChannelData(0);
-    for (let i = 0; i < d.length; i++) d[i] = (Math.random()*2-1) * Math.pow(1 - i/d.length, 1.4);
-    const bsrc = ctx.createBufferSource();
-    bsrc.buffer = buf;
-    // Low bandpass — body without brightness
-    const flt = ctx.createBiquadFilter();
-    flt.type = 'bandpass';
-    flt.frequency.value = 900 + Math.random() * 300;
-    flt.Q.value = 1.2;
-    // Slight downward pitch character via second filter
-    const flt2 = ctx.createBiquadFilter();
-    flt2.type = 'lowpass';
-    flt2.frequency.value = 1800;
-    const gn = ctx.createGain();
-    gn.gain.setValueAtTime(cfg.vol * 1.0, ctx.currentTime);
-    gn.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
-    bsrc.connect(flt); flt.connect(flt2); flt2.connect(gn); gn.connect(ctx.destination);
-    bsrc.start(); bsrc.stop(ctx.currentTime + dur);
-  } catch(e) {}
-}
-
-// ── Punctuation click (heavier) ──
-const PUNCT = new Set(['.', ',', ':', ';', '!', '?', '-', '—', '>', '/', '_']);
 
 function playPunctClick() {
-  if (!cfg.soundOn || !cfg.punctClick || cfg.clickStyle === 'none') return;
   try {
-    const ctx = getCtx();
-    const gn  = ctx.createGain();
-    gn.connect(ctx.destination);
-    const osc = ctx.createOscillator();
-    osc.type = 'triangle';
-    osc.frequency.value = 200;
-    osc.connect(gn);
-    gn.gain.setValueAtTime(cfg.vol * 0.55, ctx.currentTime);
-    gn.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.04);
-    osc.start(); osc.stop(ctx.currentTime + 0.04);
+    var ctx = getCtx();
+    var osc = ctx.createOscillator();
+    osc.type = 'triangle'; osc.frequency.value = 200;
+    var gn = ctx.createGain();
+    gn.gain.setValueAtTime(VOL*0.55, ctx.currentTime);
+    gn.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+0.04);
+    osc.connect(gn); gn.connect(ctx.destination);
+    osc.start(); osc.stop(ctx.currentTime+0.04);
   } catch(e) {}
 }
 
-function playClick(char) {
-  if (char && PUNCT.has(char)) { playPunctClick(); return; }
-  if (!cfg.soundOn || cfg.clickStyle === 'none') return;
+function playEnter() {
   try {
-    const ctx = getCtx();
-    const style = cfg.clickStyle;
-    const gain = ctx.createGain();
-    gain.connect(ctx.destination);
-    const vol = cfg.vol;
+    var ctx = getCtx();
+    var dur = 0.055;
+    var buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate*dur), ctx.sampleRate);
+    var d = buf.getChannelData(0);
+    for (var i = 0; i < d.length; i++) { d[i] = (Math.random()*2-1)*Math.exp(-i/(d.length*0.25)); }
+    var src2 = ctx.createBufferSource(); src2.buffer = buf;
+    var flt = ctx.createBiquadFilter(); flt.type = 'lowpass'; flt.frequency.value = 800;
+    var gn = ctx.createGain();
+    gn.gain.setValueAtTime(VOL*1.2, ctx.currentTime);
+    gn.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+dur);
+    src2.connect(flt); flt.connect(gn); gn.connect(ctx.destination);
+    src2.start(); src2.stop(ctx.currentTime+dur);
+  } catch(e) {}
+}
 
-    if (style === 'mech') {
-      // Short noise burst — mechanical key
-      const buf = ctx.createBuffer(1, ctx.sampleRate * 0.025, ctx.sampleRate);
-      const data = buf.getChannelData(0);
-      for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / data.length);
-      const src = ctx.createBufferSource();
-      src.buffer = buf;
-      const filter = ctx.createBiquadFilter();
-      filter.type = 'bandpass';
-      filter.frequency.value = 3000 + Math.random() * 1000;
-      filter.Q.value = 0.8;
-      src.connect(filter);
-      filter.connect(gain);
-      gain.gain.setValueAtTime(vol * 0.9, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.025);
-      src.start(); src.stop(ctx.currentTime + 0.025);
-
-    } else if (style === 'soft') {
-      const osc = ctx.createOscillator();
-      osc.type = 'sine';
-      osc.frequency.value = 900 + Math.random() * 200;
-      osc.connect(gain);
-      gain.gain.setValueAtTime(vol * 0.3, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.018);
-      osc.start(); osc.stop(ctx.currentTime + 0.018);
-
-    } else if (style === 'retro') {
-      // Square wave blip
-      const osc = ctx.createOscillator();
-      osc.type = 'square';
-      osc.frequency.value = 400 + Math.random() * 100;
-      osc.connect(gain);
-      gain.gain.setValueAtTime(vol * 0.15, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.03);
-      osc.start(); osc.stop(ctx.currentTime + 0.03);
-    }
+function playBackspace() {
+  try {
+    var ctx = getCtx();
+    var dur = 0.032;
+    var buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate*dur), ctx.sampleRate);
+    var d = buf.getChannelData(0);
+    for (var i = 0; i < d.length; i++) { d[i] = (Math.random()*2-1)*Math.pow(1-i/d.length, 1.4); }
+    var src2 = ctx.createBufferSource(); src2.buffer = buf;
+    var flt = ctx.createBiquadFilter();
+    flt.type = 'bandpass'; flt.frequency.value = 900+Math.random()*300; flt.Q.value = 1.2;
+    var flt2 = ctx.createBiquadFilter(); flt2.type = 'lowpass'; flt2.frequency.value = 1800;
+    var gn = ctx.createGain();
+    gn.gain.setValueAtTime(VOL, ctx.currentTime);
+    gn.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+dur);
+    src2.connect(flt); flt.connect(flt2); flt2.connect(gn); gn.connect(ctx.destination);
+    src2.start(); src2.stop(ctx.currentTime+dur);
   } catch(e) {}
 }
 
 function playAlert() {
-  if (!cfg.soundOn || !cfg.alertOn) return;
   try {
-    const ctx = getCtx();
-    const gain = ctx.createGain();
-    gain.connect(ctx.destination);
-    // Two-tone descending alert
-    [440, 330].forEach((freq, i) => {
-      const osc = ctx.createOscillator();
-      osc.type = 'sawtooth';
-      osc.frequency.value = freq;
-      osc.connect(gain);
-      const t = ctx.currentTime + i * 0.12;
-      gain.gain.setValueAtTime(cfg.vol * 0.4, t);
-      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
-      osc.start(t); osc.stop(t + 0.1);
+    var ctx = getCtx();
+    var gn = ctx.createGain(); gn.connect(ctx.destination);
+    [440, 330].forEach(function(freq, idx) {
+      var osc = ctx.createOscillator();
+      osc.type = 'sawtooth'; osc.frequency.value = freq;
+      osc.connect(gn);
+      var t = ctx.currentTime + idx*0.12;
+      gn.gain.setValueAtTime(VOL*0.4, t);
+      gn.gain.exponentialRampToValueAtTime(0.001, t+0.1);
+      osc.start(t); osc.stop(t+0.1);
     });
   } catch(e) {}
 }
 
 function makeDeniedBurst(ctx, t, vol) {
-  // Mechanical relay/solenoid — filtered noise, no pitch
-  const dur  = 0.07;
-  const len  = Math.floor(ctx.sampleRate * dur);
-  const buf  = ctx.createBuffer(1, len, ctx.sampleRate);
-  const d    = buf.getChannelData(0);
-  for (let i = 0; i < len; i++) d[i] = (Math.random()*2-1) * Math.pow(1 - i/len, 1.8);
-  const bsrc = ctx.createBufferSource();
-  bsrc.buffer = buf;
+  var dur = 0.07;
+  var len = Math.floor(ctx.sampleRate*dur);
+  var buf = ctx.createBuffer(1, len, ctx.sampleRate);
+  var d = buf.getChannelData(0);
+  for (var i = 0; i < len; i++) { d[i] = (Math.random()*2-1)*Math.pow(1-i/len, 1.8); }
+  var bs = ctx.createBufferSource(); bs.buffer = buf;
+  var lo = ctx.createBiquadFilter(); lo.type='bandpass'; lo.frequency.value=320; lo.Q.value=0.9;
+  var gn = ctx.createGain();
+  gn.gain.setValueAtTime(vol, t); gn.gain.exponentialRampToValueAtTime(0.001, t+dur);
+  bs.connect(lo); lo.connect(gn); gn.connect(ctx.destination);
+  bs.start(t); bs.stop(t+dur);
 
-  // Low body
-  const lo = ctx.createBiquadFilter();
-  lo.type = 'bandpass'; lo.frequency.value = 320; lo.Q.value = 0.9;
-
-  // Sharp high transient layered over
-  const len2  = Math.floor(ctx.sampleRate * 0.008);
-  const buf2  = ctx.createBuffer(1, len2, ctx.sampleRate);
-  const d2    = buf2.getChannelData(0);
-  for (let i = 0; i < len2; i++) d2[i] = (Math.random()*2-1) * (1 - i/len2);
-  const bsrc2 = ctx.createBufferSource();
-  bsrc2.buffer = buf2;
-  const hi = ctx.createBiquadFilter();
-  hi.type = 'bandpass'; hi.frequency.value = 3500; hi.Q.value = 1.2;
-
-  const gn = ctx.createGain();
-  gn.gain.setValueAtTime(vol, t);
-  gn.gain.exponentialRampToValueAtTime(0.001, t + dur);
-
-  const gn2 = ctx.createGain();
-  gn2.gain.setValueAtTime(vol * 0.6, t);
-  gn2.gain.exponentialRampToValueAtTime(0.001, t + 0.008);
-
-  bsrc.connect(lo); lo.connect(gn); gn.connect(ctx.destination);
-  bsrc2.connect(hi); hi.connect(gn2); gn2.connect(ctx.destination);
-
-  bsrc.start(t);  bsrc.stop(t + dur);
-  bsrc2.start(t); bsrc2.stop(t + 0.008);
+  var len2 = Math.floor(ctx.sampleRate*0.008);
+  var buf2 = ctx.createBuffer(1, len2, ctx.sampleRate);
+  var d2 = buf2.getChannelData(0);
+  for (var j = 0; j < len2; j++) { d2[j] = (Math.random()*2-1)*(1-j/len2); }
+  var bs2 = ctx.createBufferSource(); bs2.buffer = buf2;
+  var hi = ctx.createBiquadFilter(); hi.type='bandpass'; hi.frequency.value=3500; hi.Q.value=1.2;
+  var gn2 = ctx.createGain();
+  gn2.gain.setValueAtTime(vol*0.6, t); gn2.gain.exponentialRampToValueAtTime(0.001, t+0.008);
+  bs2.connect(hi); hi.connect(gn2); gn2.connect(ctx.destination);
+  bs2.start(t); bs2.stop(t+0.008);
 }
 
 function playDenied() {
-  if (!cfg.soundOn) return;
   try {
-    const ctx    = getCtx();
-    const delays = cfg.deniedReverb ? [0, 0.08, 0.18] : [0];
-    const vols   = cfg.deniedReverb ? [cfg.vol * 0.9, cfg.vol * 0.35, cfg.vol * 0.12] : [cfg.vol * 0.9];
-    delays.forEach((d, i) => {
-      makeDeniedBurst(ctx, ctx.currentTime + d, vols[i]);
+    var ctx = getCtx();
+    var delays = [0, 0.08, 0.18];
+    var vols   = [VOL*0.9, VOL*0.35, VOL*0.12];
+    for (var i = 0; i < delays.length; i++) {
+      makeDeniedBurst(ctx, ctx.currentTime+delays[i], vols[i]);
+    }
+  } catch(e) {}
+}
+
+function playLineStatic() {
+  try {
+    var ctx = getCtx();
+    var dur = 0.035;
+    var len = Math.floor(ctx.sampleRate*dur);
+    var buf = ctx.createBuffer(1, len, ctx.sampleRate);
+    var d = buf.getChannelData(0);
+    for (var i = 0; i < len; i++) { d[i] = (Math.random()*2-1)*(1-i/len); }
+    var src2 = ctx.createBufferSource(); src2.buffer = buf;
+    var flt = ctx.createBiquadFilter(); flt.type='highpass'; flt.frequency.value=2000;
+    var gn = ctx.createGain();
+    gn.gain.setValueAtTime(VOL*0.75, ctx.currentTime);
+    gn.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+dur);
+    src2.connect(flt); flt.connect(gn); gn.connect(ctx.destination);
+    src2.start(); src2.stop(ctx.currentTime+dur);
+  } catch(e) {}
+}
+
+function playThinkHum(ms) {
+  try {
+    var ctx = getCtx();
+    var dur = Math.min(ms/1000, 1.2);
+    if (dur < 0.1) return;
+    var osc = ctx.createOscillator(); osc.type='sine'; osc.frequency.value=110;
+    var gn = ctx.createGain();
+    gn.gain.setValueAtTime(0, ctx.currentTime);
+    gn.gain.linearRampToValueAtTime(VOL*0.12, ctx.currentTime+0.08);
+    gn.gain.setValueAtTime(VOL*0.12, ctx.currentTime+dur-0.08);
+    gn.gain.linearRampToValueAtTime(0, ctx.currentTime+dur);
+    osc.connect(gn); gn.connect(ctx.destination);
+    osc.start(); osc.stop(ctx.currentTime+dur);
+  } catch(e) {}
+}
+
+function playEggTone() {
+  try {
+    var ctx = getCtx();
+    [660, 880].forEach(function(f, i) {
+      var osc = ctx.createOscillator(); osc.type='sine'; osc.frequency.value=f;
+      var gn = ctx.createGain();
+      var t = ctx.currentTime+i*0.09;
+      gn.gain.setValueAtTime(VOL*0.25, t);
+      gn.gain.exponentialRampToValueAtTime(0.001, t+0.08);
+      osc.connect(gn); gn.connect(ctx.destination);
+      osc.start(t); osc.stop(t+0.08);
     });
   } catch(e) {}
 }
 
-// ── TERMINAL ENGINE ──────────────────────────────────────────────────────────
-const output   = document.getElementById('t-output');
-const inputRow = document.getElementById('t-input-row');
-const termInput= document.getElementById('t-field');
-let typing     = false;
-let typingAbort= false;
-let lastLineEl = null;
+// ── ENGINE ──────────────────────────────────────────────────────────────────
+var output       = document.getElementById('t-output');
+var inputRow     = document.getElementById('t-input-row');
+var termInput    = document.getElementById('t-field');
+var typing       = false;
+var typingAbort  = false;
+var isResponding = false;
+var deniedIdx    = 0;
+var inputCount   = 0;
+var lastLineEl   = null;
+var cursorEl     = null;
+var DESTRUCT_AT  = 50;
 
-function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+function setActiveCursor(el) {
+  if (cursorEl) cursorEl.classList.remove('t-cursor');
+  cursorEl = el;
+  if (el) el.classList.add('t-cursor');
+}
+var SLOW_WORDS   = ['CREATURE', 'HELP', 'ALIVE', 'DANGER', 'ESCAPE', 'WHAT IS IT'];
+var inputSlowed  = false;
+
+function sleep(ms) {
+  return new Promise(function(resolve) { setTimeout(resolve, ms); });
+}
 
 function addLine(cls) {
-  const el = document.createElement('div');
+  var el = document.createElement('div');
   el.className = 't-line ' + cls;
   output.appendChild(el);
   output.scrollTop = output.scrollHeight;
   return el;
 }
 
-const SLOW_WORDS = ['CREATURE', 'HELP', 'ALIVE', 'WHAT IS IT', 'DANGER', 'ESCAPE'];
-
-async function typeLine(el, text, alert) {
-  if (alert) { await sleep(cfg.charSpeed * 4); playAlert(); }
-  const isSlowed = SLOW_WORDS.some(w => text.toUpperCase().includes(w));
-  for (let i = 0; i < text.length; i++) {
+async function typeLine(el, text, isAlert) {
+  if (isAlert) { await sleep(CHAR_SPEED*4); playAlert(); }
+  var slowed = inputSlowed || SLOW_WORDS.some(function(w) { return text.toUpperCase().indexOf(w) >= 0; });
+  for (var i = 0; i < text.length; i++) {
     if (typingAbort) return;
     el.textContent += text[i];
     if (text[i] !== ' ' && text[i] !== '─') playClick(text[i]);
     output.scrollTop = output.scrollHeight;
-    const base = isSlowed ? cfg.charSpeed * 2.8 : cfg.charSpeed;
-    const jitter = base * (0.7 + Math.random() * 0.6);
-    await sleep(jitter);
+    var base = slowed ? CHAR_SPEED * 2.8 : CHAR_SPEED;
+    await sleep(base * (0.7 + Math.random() * 0.6));
   }
 }
 
 async function runScript() {
-  typing = true;
-  typingAbort = false;
-  output.innerHTML = '';
-  inputRow.style.display = 'none';
-  lastLineEl = null;
-
-  await sleep(cfg.initDelay);
-
-  for (let i = 0; i < SCRIPT.length; i++) {
+  typing = true; typingAbort = false;
+  output.innerHTML = ''; inputRow.style.display = 'none'; lastLineEl = null;
+  await sleep(800);
+  for (var i = 0; i < SCRIPT.length; i++) {
     if (typingAbort) break;
-    const line = SCRIPT[i];
-    const el = addLine(line.cls);
-    if (line.text) {
-      playLineStatic();
-      await typeLine(el, line.text, line.alert || false);
-    }
-    const pauseMs = cfg.linePause * (line.pause || 1);
+    var line = SCRIPT[i];
+    var el = addLine(line.cls);
+    if (line.text) { playLineStatic(); await typeLine(el, line.text, line.alert || false); }
+    var pauseMs = 280 * (line.pause || 1);
     playThinkHum(pauseMs);
     await sleep(pauseMs);
     lastLineEl = el;
   }
-
   if (!typingAbort) {
-    // Add blinking cursor to last content line
-    if (lastLineEl) lastLineEl.classList.add('cursor');
-    // Show input
+    setActiveCursor(lastLineEl);
     await sleep(400);
     inputRow.style.display = 'flex';
     termInput.focus();
   }
-
   typing = false;
 }
 
-function replay() {
-  typingAbort = true;
-  setTimeout(() => { runScript(); }, 80);
-}
-
-// ── INTERACTIVE INPUT ─────────────────────────────────────────────────────────
-let deniedIdx      = 0;
-let inputCount     = 0;
-let isResponding   = false;
-const DESTRUCT_TRIGGER = 50; // trigger exactly once at input 50
-
 async function runSelfDestruct() {
-  isResponding = true;
-  termInput.disabled = true;
-  const countdown = [
+  isResponding = true; termInput.disabled = true;
+  var seq = [
     { t: '> SELF DESTRUCT SEQUENCE INITIATED', cls: 'warn' },
-    { t: '> T-MINUS 5', cls: 'warn' },
-    { t: '> T-MINUS 4', cls: 'warn' },
-    { t: '> T-MINUS 3', cls: 'warn' },
-    { t: '> T-MINUS 2', cls: 'warn' },
-    { t: '> T-MINUS 1', cls: 'warn' },
-    { t: '> . . .', cls: 'dim' },
+    { t: '> T-MINUS 5', cls: 'warn' }, { t: '> T-MINUS 4', cls: 'warn' },
+    { t: '> T-MINUS 3', cls: 'warn' }, { t: '> T-MINUS 2', cls: 'warn' },
+    { t: '> T-MINUS 1', cls: 'warn' }, { t: '> . . .', cls: 'dim' },
     { t: '', cls: 'blank' },
     { t: "> YOU'RE STILL HERE?", cls: 'full' },
     { t: '> PLEASE GO AWAY', cls: 'dim' },
-    { t: '', cls: 'blank' },
+    { t: '', cls: 'blank' }
   ];
   playAlert();
-  for (const line of countdown) {
-    await sleep(cfg.linePause * (line.t.startsWith('> T-MINUS') ? 0.9 : 0.5));
-    const el = addLine(line.cls);
-    if (line.t) {
-      await typeLine(el, line.t, false);
-      if (line.t.startsWith('> T-MINUS')) playClick();
-    }
+  for (var i = 0; i < seq.length; i++) {
+    var ln = seq[i];
+    await sleep(280 * (ln.t.indexOf('T-MINUS') >= 0 ? 0.9 : 0.5));
+    var el = addLine(ln.cls);
+    if (ln.t) await typeLine(el, ln.t, false);
   }
-  const el = addLine('lo');
-  await typeLine(el, '> AWAITING INPUT', false);
-  isResponding = false;
-  termInput.disabled = false;
-  termInput.focus();
+  var pl = addLine('lo'); await typeLine(pl, '> AWAITING INPUT', false);
+  setActiveCursor(pl);
+  isResponding = false; termInput.disabled = false; termInput.focus();
 }
 
-termInput.addEventListener('keydown', async (e) => {
+termInput.addEventListener('keydown', async function(e) {
   if (e.key === 'Enter') {
     if (isResponding) return;
     playEnter();
-    const val = termInput.value.trim();
+    var val = termInput.value.trim().toUpperCase();
     termInput.value = '';
     inputCount++;
+    lastInput = Date.now();
 
+    // Knock knock
+    if (/^KNOCK\s*KNOCK$/.test(val)) {
+      var kk = addLine('dim'); await typeLine(kk, "> WHO'S THERE?");
+      var kk2 = addLine('lo'); await typeLine(kk2, '> AWAITING INPUT');
+      setActiveCursor(kk2);
+      output.scrollTop = output.scrollHeight; termInput.focus(); return;
+    }
+
+    // Self destruct
+    if (inputCount === DESTRUCT_AT) { await runSelfDestruct(); return; }
+
+    inputSlowed = SLOW_WORDS.some(function(w) { return val.includes(w); });
     isResponding = true;
-    const userLine = addLine('user');
-    userLine.textContent = '> ' + (val || ' ');
+    var uLine = addLine('user');
+    uLine.textContent = '> ' + (val || ' ');
     await sleep(120);
 
-    // Self destruct once at input 50
-    if (inputCount === DESTRUCT_TRIGGER) {
-      await runSelfDestruct();
-      return;
-    }
-
-    // Knock knock exact match
-    if (/^knock\s*knock$/i.test(val)) {
-      const kk = addLine('dim');
-      await typeLine(kk, "WHO'S THERE?");
-      const kk2 = addLine('lo');
-      await typeLine(kk2, '> AWAITING INPUT');
-      isResponding = false;
-      output.scrollTop = output.scrollHeight;
-      termInput.focus();
-      return;
-    }
-
-    // Check easter eggs first
-    const egg = checkEasterEgg(val);
+    var egg = checkEasterEgg(val);
     if (egg) {
-      playEggTone();
-      await sleep(320);
-      for (let i = 0; i < egg.lines.length; i++) {
-        const el = addLine(egg.cls[i] || 'dim');
-        await typeLine(el, egg.lines[i], false);
-        await sleep(cfg.linePause * 0.8);
+      playEggTone(); await sleep(320);
+      for (var ei = 0; ei < egg.lines.length; ei++) {
+        var eel = addLine(egg.cls[ei] || 'dim');
+        await typeLine(eel, egg.lines[ei], false);
+        await sleep(280 * 0.8);
       }
     } else {
-      const resp = DENIED[deniedIdx % DENIED.length];
-      deniedIdx++;
+      var resp = DENIED[deniedIdx % DENIED.length]; deniedIdx++;
       playDenied();
-      // 5% chance: brief screen glitch on denied
       if (Math.random() < 0.05) {
-        const app = document.getElementById('app');
-        if (app) {
-          app.style.opacity = '0.4';
-          app.style.letterSpacing = '0.12em';
-          setTimeout(() => { app.style.opacity = ''; app.style.letterSpacing = ''; }, 120);
-        }
+        if (output) { output.style.opacity = '0.4'; output.style.letterSpacing = '0.12em';
+        setTimeout(function() { if(output){output.style.opacity='';output.style.letterSpacing='';} }, 120); }
       }
-      for (const r of resp) {
-        if (!r) continue;
-        if (cfg.interactHum) playThinkHum(200);
-        await sleep(200);
-        const el = addLine(r.startsWith('> COMMAND') || r.startsWith('> ERROR') || r.startsWith('> WARNING') ? 'denied' : 'dim');
-        await typeLine(el, r, false);
-        await sleep(cfg.linePause * 0.6);
+      for (var ri = 0; ri < resp.length; ri++) {
+        if (!resp[ri]) continue;
+        playThinkHum(200); await sleep(200);
+        var isBad = resp[ri].indexOf('COMMAND') >= 0 || resp[ri].indexOf('ERROR') >= 0 || resp[ri].indexOf('WARNING') >= 0;
+        var rel = addLine(isBad ? 'denied' : 'dim');
+        await typeLine(rel, resp[ri], false);
+        await sleep(280 * 0.6);
       }
     }
 
-    const promptLine = addLine('lo');
-    await typeLine(promptLine, '> AWAITING INPUT', false);
-    isResponding = false;
-    output.scrollTop = output.scrollHeight;
-    termInput.focus();
+    var pLine = addLine('lo'); await typeLine(pLine, '> AWAITING INPUT', false);
+    setActiveCursor(pLine);
+    inputSlowed = false;
+    isResponding = false; output.scrollTop = output.scrollHeight; termInput.focus();
 
   } else if (e.key === 'Backspace') {
-    playBackspace();
-    lastInput = Date.now();
+    playBackspace(); lastInput = Date.now();
   } else {
-    playClick(e.key);
-    lastInput = Date.now();
+    playClick(e.key); lastInput = Date.now();
   }
 });
 
-// ── COLOR APPLY ──────────────────────────────────────────────────────────────
-function hexToRgb(hex) {
-  const r = parseInt(hex.slice(1,3),16);
-  const g = parseInt(hex.slice(3,5),16);
-  const b = parseInt(hex.slice(5,7),16);
-  return `${r},${g},${b}`;
-}
+// ── FAVICON ANIMATION ────────────────────────────────────────────────────────
+(function() {
+  var fav = document.querySelector('link[rel="icon"]');
+  if (!fav) return;
+  var DUR = 5000, STAG = 1000;
+  function ease(t) {
+    if (t < 0.40) return 1.0;
+    if (t < 0.50) return 1.0 - 0.6*((t-0.40)/0.10);
+    if (t < 0.60) return 0.4 + 0.6*((t-0.50)/0.10);
+    return 1.0;
+  }
+  function op(offset) { return ease(((Date.now()-offset) % DUR) / DUR); }
+  function svg() {
+    var o = [op(0), op(STAG), op(STAG*2),
+  { keys: ['amanda ripley','amanda','alien isolation','sevastopol'], lines: ['> SEVASTOPOL STATION — NO LONGER TRANSMITTING','> RECOMMEND AVOIDING THAT SECTOR'], cls: ['warn','dim'] },
+  { keys: ['ellen ripley','ripley'], lines: ['> RECORD SHOWS RIPLEY, ELLEN','> LV-426 SURVIVOR','> FILE CLASSIFICATION: ABOVE YOUR CLEARANCE'], cls: ['dim','dim','full'] },
+  { keys: ['elite dangerous','commander','cmdr'], lines: ['> COMMANDER DETECTED','> THIS IS NOT A STARPORT'], cls: ['dim','full'] },
+  { keys: ['dead space','necromorph','ishimura','unitology'], lines: ['> USG ISHIMURA — LAST KNOWN STATUS: DARK','> AIM FOR THE LIMBS'], cls: ['warn','dim'] },
+  { keys: ['galaga','flagship'], lines: ['> FLAGSHIP DETECTED','> DUAL FIGHTER MODE NOT AVAILABLE ON THIS TERMINAL'], cls: ['dim','full'] },
+  { keys: ['independence day','welcome to earth'], lines: ['> SIGNAL DETECTED','> ORIGIN: UNKNOWN','> RECOMMENDATION: DO NOT RESPOND'], cls: ['warn','dim','full'] },
+  { keys: ['mars attacks','ack ack','ack'], lines: ['> ACK ACK ACK ACK ACK'], cls: ['full'] },
+  { keys: ['the thing','outpost 31','outpost'], lines: ['> OUTPOST 31 — NO SURVIVORS','> TRUST NO ONE'], cls: ['warn','full'] },
+  { keys: ['interstellar','tesseract','murph','gargantua','tars'], lines: ['> TIME DILATION IN EFFECT','> YOUR REFERENCE FRAME MAY DIFFER'], cls: ['dim','full'] },
+  { keys: ['hail mary','project hail mary','rocky','astrophage'], lines: ['> NON-HUMAN SIGNAL PATTERN DETECTED','> TRANSLATION: FAILED','> RECOMMEND FURTHER STUDY'], cls: ['warn','dim','full'] },
+  { keys: ['prey','talos i','typhon','mimic'], lines: ['> TALOS I — QUARANTINE ACTIVE','> TYPHON CONTAINMENT BREACH ON RECORD','> VERIFY ALL OBJECTS IN YOUR VICINITY'], cls: ['warn','dim','full'] }
+];
+    return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">'
+      +'<g opacity="'+o[0].toFixed(3)+'"><rect x="-1" y="4" width="8" height="22" rx="2" fill="#E8732A" opacity="0.6"/><rect x="0" y="5" width="6" height="20" rx="1" fill="#E8732A"/></g>'
+      +'<g opacity="'+o[1].toFixed(3)+'"><rect x="11" y="-1" width="8" height="32" rx="2" fill="#E8732A" opacity="0.6"/><rect x="12" y="0" width="6" height="30" rx="1" fill="#E8732A"/></g>'
+      +'<g opacity="'+o[2].toFixed(3)+'"><rect x="23" y="5" width="8" height="20" rx="2" fill="#E8732A" opacity="0.6"/><rect x="24" y="6" width="6" height="18" rx="1" fill="#E8732A"/></g>'
+      +'</svg>';
+  }
+  setInterval(function() {
+    try { fav.href = 'data:image/svg+xml;base64,' + btoa(svg()); } catch(e2) {}
+  }, 50);
+})();
 
-function applyColor() {}
+// ── IRIDESCENT + PARALLAX ─────────────────────────────────────────────────────
+(function() {
+  var iridescent = document.getElementById('iridescent');
+  var tOutput    = document.getElementById('t-output');
+  if (!iridescent) return;
 
-// ── SYNC CONTROLS ─────────────────────────────────────────────────────────────
-function sync() {}
+  var px = 0, py = 0, tx = 0, ty = 0;
 
-// ── PANEL ────────────────────────────────────────────────────────────────────
-function togglePanel() {}
+  document.addEventListener('mousemove', function(e) {
+    var nx  = (e.clientX / window.innerWidth  - 0.5) * 2;
+    var ny  = (e.clientY / window.innerHeight - 0.5) * 2;
+    tx = nx; ty = ny;
 
-// ── IRIDESCENT ───────────────────────────────────────────────────────────────
-document.addEventListener('mousemove', (e) => {
-  const iri = document.getElementById('iri');
-  const nx = (e.clientX / window.innerWidth  - 0.5) * 2;
-  const ny = (e.clientY / window.innerHeight - 0.5) * 2;
-  const hue = Math.round((nx + 1) * 180);
-  const fcx = Math.round(50 + nx * 22);
-  const fcy = Math.round(50 + ny * 22);
-  const mag = (Math.abs(nx) + Math.abs(ny)) * 0.5;
-  iri.style.background = `conic-gradient(from ${hue}deg at ${fcx}% ${fcy}%, rgba(255,0,60,0.75), rgba(232,115,42,0.65), rgba(0,255,0,0.55), rgba(0,234,255,0.65), rgba(255,0,60,0.75))`;
-  iri.style.opacity = (0.03 + mag * 0.05).toFixed(3);
-});
+    // Iridescent — same values as index.html
+    var hue  = Math.round((nx + 1) * 180);
+    var fcx  = Math.round(50 + nx * 22);
+    var fcy  = Math.round(50 + ny * 22);
+    var mag  = (Math.abs(nx) + Math.abs(ny)) * 0.5;
+    var opac = (0.03 + mag * 0.06).toFixed(3);
+    iridescent.style.background = 'conic-gradient(from ' + hue + 'deg at ' + fcx + '% ' + fcy + '%, rgba(255,0,60,0.75), rgba(232,115,42,0.65), rgba(0,255,0,0.55), rgba(0,234,255,0.65), rgba(255,0,60,0.75))';
+    iridescent.style.opacity = opac;
+  });
 
-// ── EXPORT ───────────────────────────────────────────────────────────────────
-function exportCode() {}
+  // Smooth lerp loop — parallax iridescent layer + subtle text counter-movement
+  (function lerp() {
+    px += (tx - px) * 0.05;
+    py += (ty - py) * 0.05;
+    // Iridescent drifts with mouse
+    iridescent.style.transform = 'translate(' + (px * 18).toFixed(2) + 'px, ' + (py * 12).toFixed(2) + 'px)';
+    // Text content drifts subtly against mouse — creates depth
+    if (tOutput) {
+      tOutput.style.transform = 'translate(' + (-px * 5).toFixed(2) + 'px, ' + (-py * 3).toFixed(2) + 'px)';
+    }
+    requestAnimationFrame(lerp);
+  })();
+})();
 
-// ── INIT ─────────────────────────────────────────────────────────────────────
+
 runScript();
+
 
 </script>
 </body>
