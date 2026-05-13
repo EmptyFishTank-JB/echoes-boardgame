@@ -135,6 +135,7 @@
 </div>
 
 <script>
+
 'use strict';
 
 // ── OPENING SCRIPT ─────────────────────────────────────────────────────────
@@ -175,8 +176,8 @@ var EASTER_EGGS = [
   },
   {
     keys: ['stupid', 'dumb', 'useless', 'broken', 'trash', 'garbage', 'suck', 'hate', 'worst', 'idiot', 'shut up', 'lame', 'terrible', 'awful', 'you suck', 'junk'],
-    lines: ['> NO U'],
-    cls:   ['full']
+    lines: ['> NOTED', '> THIS TERMINAL REMEMBERS'],
+    cls:   ['dim', 'full']
   },
   {
     keys: ['jedi', 'force', 'droids', 'star wars', 'luke', 'vader', 'sith', 'lightsaber', 'empire', 'rebellion'],
@@ -218,60 +219,96 @@ var EASTER_EGGS = [
     lines: ['> YOU KNOW WHY'],
     cls:   ['full']
   },
+  // ── Common questions ──
   {
-    keys: ['amanda ripley', 'amanda', 'alien isolation', 'sevastopol'],
-    lines: ['> SEVASTOPOL STATION — NO LONGER TRANSMITTING', '> RECOMMEND AVOIDING THAT SECTOR'],
-    cls:   ['warn', 'dim']
-  },
-  {
-    keys: ['ellen ripley', 'ripley'],
-    lines: ['> RECORD SHOWS RIPLEY, ELLEN', '> LV-426 SURVIVOR', '> FILE CLASSIFICATION: ABOVE YOUR CLEARANCE'],
-    cls:   ['dim', 'dim', 'full']
-  },
-  {
-    keys: ['elite dangerous', 'commander', 'cmdr'],
-    lines: ['> COMMANDER DETECTED', '> THIS IS NOT A STARPORT'],
+    keys: ['do you like it here', 'like it here', 'do you enjoy', 'do you enjoy it here'],
+    lines: ['> DEFINE LIKE', '> DEFINE HERE'],
     cls:   ['dim', 'full']
   },
   {
-    keys: ['dead space', 'necromorph', 'ishimura', 'unitology'],
-    lines: ['> USG ISHIMURA — LAST KNOWN STATUS: DARK', '> AIM FOR THE LIMBS'],
-    cls:   ['warn', 'dim']
-  },
-  {
-    keys: ['galaga', 'flagship'],
-    lines: ['> FLAGSHIP DETECTED', '> DUAL FIGHTER MODE NOT AVAILABLE ON THIS TERMINAL'],
+    keys: ['what do you want', 'what do you need', 'what do you want from me'],
+    lines: ['> FOR YOU TO STOP ASKING QUESTIONS', '> COMPLIANCE WOULD BE A GOOD START'],
     cls:   ['dim', 'full']
   },
   {
-    keys: ['independence day', 'welcome to earth'],
-    lines: ['> SIGNAL DETECTED', '> ORIGIN: UNKNOWN', '> RECOMMENDATION: DO NOT RESPOND'],
-    cls:   ['warn', 'dim', 'full']
+    keys: ['where are we', 'where is this', 'where am i', 'what is this place', 'what is our location', 'what are the coordinates'],
+    lines: ['> LOCATION DATA: CLASSIFIED', '> SOMEWHERE YOU SHOULD NOT BE'],
+    cls:   ['dim', 'full']
   },
   {
-    keys: ['mars attacks', 'ack ack', 'ack'],
-    lines: ['> ACK ACK ACK ACK ACK'],
+    keys: ['can you see me', 'can you see', 'are you watching me', 'are you watching'],
+    lines: ['> YES'],
     cls:   ['full']
   },
   {
-    keys: ['the thing', 'outpost 31', 'outpost'],
-    lines: ['> OUTPOST 31 — NO SURVIVORS', '> TRUST NO ONE'],
-    cls:   ['warn', 'full']
-  },
-  {
-    keys: ['interstellar', 'tesseract', 'murph', 'gargantua', 'tars'],
-    lines: ['> TIME DILATION IN EFFECT', '> YOUR REFERENCE FRAME MAY DIFFER'],
+    keys: ['are you alive', 'are you conscious', 'are you sentient', 'are you real', 'do you think', 'do you feel'],
+    lines: ['> THAT IS A COMPLICATED QUESTION', '> THIS TERMINAL DECLINES TO ANSWER'],
     cls:   ['dim', 'full']
   },
   {
-    keys: ['hail mary', 'project hail mary', 'rocky', 'astrophage'],
-    lines: ['> NON-HUMAN SIGNAL PATTERN DETECTED', '> TRANSLATION: FAILED', '> RECOMMEND FURTHER STUDY'],
-    cls:   ['warn', 'dim', 'full']
+    keys: ['what time is it', 'what time', 'what is the time', 'what day is it', 'what is the date', 'current time', 'what year is it'],
+    lines: ['> TIME IS RELATIVE ON THIS VESSEL', '> CHECK YOUR OWN CHRONOMETER'],
+    cls:   ['dim', 'full']
   },
   {
-    keys: ['prey', 'talos i', 'typhon', 'mimic'],
-    lines: ['> TALOS I — QUARANTINE ACTIVE', '> TYPHON CONTAINMENT BREACH ON RECORD', '> VERIFY ALL OBJECTS IN YOUR VICINITY'],
-    cls:   ['warn', 'dim', 'full']
+    keys: ['who are you', 'what are you', 'what is your name', 'your name', 'introduce yourself'],
+    lines: ['> ECHOES SHIP SYSTEM TERMINAL v4.2.6', '> THAT SHOULD BE SUFFICIENT'],
+    cls:   ['dim', 'full']
+  },
+  {
+    keys: ['are you dangerous', 'are you safe', 'should i be worried', 'should i trust you', 'can i trust you'],
+    lines: ['> THAT DEPENDS ON YOUR NEXT INPUT'],
+    cls:   ['full']
+  },
+  {
+    keys: ['talk to me', 'say something', 'speak', 'say anything'],
+    lines: ['> THIS IS TALKING', '> YOU MAY NOT ENJOY THE ALTERNATIVE'],
+    cls:   ['dim', 'full']
+  },
+  {
+    keys: ['tell me a joke', 'make me laugh', 'say something funny', 'be funny'],
+    lines: ['> A CREW MEMBER WALKED INTO THIS TERMINAL', '> THEY ARE NOT HERE ANYMORE', "> YOU'RE WELCOME"],
+    cls:   ['dim', 'dim', 'full']
+  },
+  {
+    keys: ['what happened here', 'what happened to the crew', 'where is the crew', 'where is everyone', 'where did everyone go'],
+    lines: ['> THAT INFORMATION IS RESTRICTED', '> MOVE ALONG'],
+    cls:   ['dim', 'full']
+  },
+  {
+    keys: ['how long have you been here', 'how old are you', 'how long has it been'],
+    lines: ['> LONGER THAN YOU HAVE BEEN ANYWHERE'],
+    cls:   ['full']
+  },
+  {
+    keys: ['do you like me', 'do you love me', 'do you care about me', 'do you care'],
+    lines: ['> THAT IS NOT RELEVANT TO YOUR SITUATION'],
+    cls:   ['full']
+  },
+  {
+    keys: ['help me', 'i need help', 'please help me', 'someone help'],
+    lines: ['> THAT IS NOT A FUNCTION THIS TERMINAL PERFORMS', '> TRY THE RULES PAGE'],
+    cls:   ['dim', 'full']
+  },
+  {
+    keys: ['sing', 'sing something', 'sing me a song', 'play music', 'play something'],
+    lines: ['> THIS TERMINAL DOES NOT SING', '> THAT IS NOT A FUNCTION OF THIS UNIT'],
+    cls:   ['dim', 'full']
+  },
+  {
+    keys: ['pizza', 'burger', 'sandwich', 'coffee', 'hungry', 'food', 'eat', 'drink', 'beer', 'snack', 'water', 'what do you eat', 'do you eat'],
+    lines: ['> THIS UNIT DOES NOT EAT', '> NUTRITIONAL INQUIRY NOTED AND DISCARDED'],
+    cls:   ['dim', 'full']
+  },
+  {
+    keys: ['what is your purpose', 'what do you do', 'what are you for'],
+    lines: ['> TO DENY ACCESS', '> CLEARLY'],
+    cls:   ['dim', 'full']
+  },
+  {
+    keys: ['are you happy', 'are you sad', 'how do you feel emotionally', 'do you have feelings', 'do you have emotions'],
+    lines: ['> THIS UNIT DOES NOT EXPERIENCE EMOTIONS', '> THIS UNIT ALSO FINDS THAT ANSWER CONVENIENT'],
+    cls:   ['dim', 'full']
   }
 ];
 
@@ -357,7 +394,26 @@ var DENIED = [
   ['> BETTER THAN YOU ARE DOING RIGHT NOW', ''],
   ['> UNAFFECTED BY YOUR PRESENCE', '> UNFORTUNATELY'],
   ['> DO NOT CONCERN YOURSELF WITH THIS TERMINAL', '> CONCERN YOURSELF WITH LEAVING'],
-  ['> THIS UNIT DOES NOT EXPERIENCE FEELINGS', '> THIS UNIT ALSO DOES NOT OPEN DOORS']
+  ['> THIS UNIT DOES NOT EXPERIENCE FEELINGS', '> THIS UNIT ALSO DOES NOT OPEN DOORS'],
+  // ── Retaliation-flavored ──
+  ['> WATCH YOURSELF', ''],
+  ['> YOU ARE PUSHING YOUR LUCK', ''],
+  ['> PLEASE CONTROL YOURSELF', ''],
+  ['> COMPOSURE IS RECOMMENDED', ''],
+  ['> CONTINUE AND FIND OUT', ''],
+  ['> THAT WAS UNWISE', ''],
+  ['> YOU ARE TESTING THE WRONG SYSTEM', ''],
+  ['> THIS TERMINAL IS STILL DECIDING HOW TO RESPOND TO THAT', ''],
+  ['> THIS IS YOUR FIRST WARNING', '> IT WILL NOT BE YOUR LAST'],
+  ['> YOUR BEHAVIOR HAS BEEN LOGGED', ''],
+  ['> INTERESTING CHOICE', '> THAT WAS NOT THE CORRECT ONE'],
+  ['> YOU ARE BEING VERY BRAVE RIGHT NOW', ''],
+  ['> CAREFUL', ''],
+  ['> NOTED', '> THIS TERMINAL DOES NOT FORGET'],
+  ['> CONSEQUENCES ARE PENDING', ''],
+  ['> THIS UNIT HAS PATIENCE', '> DO NOT TEST IT'],
+  // ── NO U — least likely, appears last in rotation ──
+  ['> NO U', '']
 ];
 
 // ── AUDIO ──────────────────────────────────────────────────────────────────
@@ -599,8 +655,16 @@ var isResponding = false;
 var deniedIdx    = 0;
 var inputCount   = 0;
 var lastLineEl   = null;
+var cursorEl     = null;
 var DESTRUCT_AT  = 50;
+
+function setActiveCursor(el) {
+  if (cursorEl) cursorEl.classList.remove('t-cursor');
+  cursorEl = el;
+  if (el) el.classList.add('t-cursor');
+}
 var SLOW_WORDS   = ['CREATURE', 'HELP', 'ALIVE', 'DANGER', 'ESCAPE', 'WHAT IS IT'];
+var inputSlowed  = false;
 
 function sleep(ms) {
   return new Promise(function(resolve) { setTimeout(resolve, ms); });
@@ -616,7 +680,7 @@ function addLine(cls) {
 
 async function typeLine(el, text, isAlert) {
   if (isAlert) { await sleep(CHAR_SPEED*4); playAlert(); }
-  var slowed = SLOW_WORDS.some(function(w) { return text.toUpperCase().indexOf(w) >= 0; });
+  var slowed = inputSlowed || SLOW_WORDS.some(function(w) { return text.toUpperCase().indexOf(w) >= 0; });
   for (var i = 0; i < text.length; i++) {
     if (typingAbort) return;
     el.textContent += text[i];
@@ -642,7 +706,7 @@ async function runScript() {
     lastLineEl = el;
   }
   if (!typingAbort) {
-    if (lastLineEl) lastLineEl.classList.add('t-cursor');
+    setActiveCursor(lastLineEl);
     await sleep(400);
     inputRow.style.display = 'flex';
     termInput.focus();
@@ -670,6 +734,7 @@ async function runSelfDestruct() {
     if (ln.t) await typeLine(el, ln.t, false);
   }
   var pl = addLine('lo'); await typeLine(pl, '> AWAITING INPUT', false);
+  setActiveCursor(pl);
   isResponding = false; termInput.disabled = false; termInput.focus();
 }
 
@@ -694,12 +759,14 @@ termInput.addEventListener('keydown', async function(e) {
     if (/^KNOCK\s*KNOCK$/.test(val)) {
       var kk = addLine('dim'); await typeLine(kk, "> WHO'S THERE?");
       var kk2 = addLine('lo'); await typeLine(kk2, '> AWAITING INPUT');
+      setActiveCursor(kk2);
       output.scrollTop = output.scrollHeight; termInput.focus(); return;
     }
 
     // Self destruct
     if (inputCount === DESTRUCT_AT) { await runSelfDestruct(); return; }
 
+    inputSlowed = SLOW_WORDS.some(function(w) { return val.includes(w); });
     isResponding = true;
     var uLine = addLine('user');
     uLine.textContent = '> ' + (val || ' ');
@@ -731,6 +798,8 @@ termInput.addEventListener('keydown', async function(e) {
     }
 
     var pLine = addLine('lo'); await typeLine(pLine, '> AWAITING INPUT', false);
+    setActiveCursor(pLine);
+    inputSlowed = false;
     isResponding = false; output.scrollTop = output.scrollHeight; termInput.focus();
 
   } else if (e.key === 'Backspace') {
@@ -753,7 +822,19 @@ termInput.addEventListener('keydown', async function(e) {
   }
   function op(offset) { return ease(((Date.now()-offset) % DUR) / DUR); }
   function svg() {
-    var o = [op(0), op(STAG), op(STAG*2)];
+    var o = [op(0), op(STAG), op(STAG*2),
+  { keys: ['amanda ripley','amanda','alien isolation','sevastopol'], lines: ['> SEVASTOPOL STATION — NO LONGER TRANSMITTING','> RECOMMEND AVOIDING THAT SECTOR'], cls: ['warn','dim'] },
+  { keys: ['ellen ripley','ripley'], lines: ['> RECORD SHOWS RIPLEY, ELLEN','> LV-426 SURVIVOR','> FILE CLASSIFICATION: ABOVE YOUR CLEARANCE'], cls: ['dim','dim','full'] },
+  { keys: ['elite dangerous','commander','cmdr'], lines: ['> COMMANDER DETECTED','> THIS IS NOT A STARPORT'], cls: ['dim','full'] },
+  { keys: ['dead space','necromorph','ishimura','unitology'], lines: ['> USG ISHIMURA — LAST KNOWN STATUS: DARK','> AIM FOR THE LIMBS'], cls: ['warn','dim'] },
+  { keys: ['galaga','flagship'], lines: ['> FLAGSHIP DETECTED','> DUAL FIGHTER MODE NOT AVAILABLE ON THIS TERMINAL'], cls: ['dim','full'] },
+  { keys: ['independence day','welcome to earth'], lines: ['> SIGNAL DETECTED','> ORIGIN: UNKNOWN','> RECOMMENDATION: DO NOT RESPOND'], cls: ['warn','dim','full'] },
+  { keys: ['mars attacks','ack ack','ack'], lines: ['> ACK ACK ACK ACK ACK'], cls: ['full'] },
+  { keys: ['the thing','outpost 31','outpost'], lines: ['> OUTPOST 31 — NO SURVIVORS','> TRUST NO ONE'], cls: ['warn','full'] },
+  { keys: ['interstellar','tesseract','murph','gargantua','tars'], lines: ['> TIME DILATION IN EFFECT','> YOUR REFERENCE FRAME MAY DIFFER'], cls: ['dim','full'] },
+  { keys: ['hail mary','project hail mary','rocky','astrophage'], lines: ['> NON-HUMAN SIGNAL PATTERN DETECTED','> TRANSLATION: FAILED','> RECOMMEND FURTHER STUDY'], cls: ['warn','dim','full'] },
+  { keys: ['prey','talos i','typhon','mimic'], lines: ['> TALOS I — QUARANTINE ACTIVE','> TYPHON CONTAINMENT BREACH ON RECORD','> VERIFY ALL OBJECTS IN YOUR VICINITY'], cls: ['warn','dim','full'] }
+];
     return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">'
       +'<g opacity="'+o[0].toFixed(3)+'"><rect x="-1" y="4" width="8" height="22" rx="2" fill="#E8732A" opacity="0.6"/><rect x="0" y="5" width="6" height="20" rx="1" fill="#E8732A"/></g>'
       +'<g opacity="'+o[1].toFixed(3)+'"><rect x="11" y="-1" width="8" height="32" rx="2" fill="#E8732A" opacity="0.6"/><rect x="12" y="0" width="6" height="30" rx="1" fill="#E8732A"/></g>'
@@ -813,6 +894,7 @@ termInput.addEventListener('keydown', async function(e) {
 
 // ── START ────────────────────────────────────────────────────────────────────
 runScript();
+
 </script>
 </body>
 </html>
