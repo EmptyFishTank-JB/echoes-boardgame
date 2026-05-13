@@ -163,8 +163,9 @@
     display: grid;
     grid-template-columns: 240px 1fr;
     gap: 0;
-    min-height: calc(100vh - 200px);
-    padding-bottom: 56px;
+    height: calc(100vh - 56px);
+    padding-bottom: 0;
+    overflow: hidden;
   }
 
   /* ── SIDEBAR NAV ── */
@@ -239,8 +240,11 @@
 
   /* ── MAIN CONTENT ── */
   main {
-    padding: 40px 0 80px 48px;
+    padding: 24px 0 24px 48px;
     background: rgba(10,12,15,0.88);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
   }
 
   /* ── SECTIONS ── */
@@ -672,7 +676,12 @@
   }
 
   /* ── TERMINAL TEXT ── */
-  .terminal-wrap { display:flex; flex-direction:column; min-height:60vh; padding:0 0 40px 0; }
+  .terminal-wrap {
+    padding: 48px 48px 80px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
 
   .term-line {
     font-family: var(--mono);
@@ -702,58 +711,62 @@
     color: var(--accent);
   }
 
-  /* ── INTERACTIVE TERMINAL ── */
-  .terminal-wrap { display:flex; flex-direction:column; min-height:60vh; padding:0 0 40px 0; }
-  #t-output { flex:1; min-height:300px; overflow-y:auto; padding:24px 0 8px; display:flex; flex-direction:column; justify-content:flex-start; scrollbar-width:thin; scrollbar-color:rgba(238,240,245,0.08) transparent; }
+  /* terminal styles consolidated below */
+
+  /* ── TERMINAL ── */
+  .terminal-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 0;
+  }
+  #t-output {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px 28px 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(238,240,245,0.08) transparent;
+    min-height: 0;
+  }
   .t-line {
     font-family: 'Share Tech Mono', monospace;
-    font-size: 13px;
-    line-height: 1.9;
-    letter-spacing: 0.04em;
-    white-space: pre-wrap;
-    min-height: 1.9em;
+    font-size: 13px; line-height: 1.9; letter-spacing: 0.04em;
+    white-space: pre-wrap; min-height: 1.9em;
   }
-  .t-line.dim    { color: rgba(79,195,247,0.55); }
-  .t-line.lo     { color: rgba(79,195,247,0.25); }
+  .t-line.dim    { color: rgba(79,195,247,0.70); }
+  .t-line.lo     { color: rgba(79,195,247,0.40); }
   .t-line.full   { color: #4fc3f7; }
   .t-line.warn   { color: #E8732A; }
   .t-line.denied { color: #ff003c; }
-  .t-line.user   { color: rgba(238,240,245,0.5); }
+  .t-line.user   { color: rgba(238,240,245,0.50); }
   .t-line.blank  { color: transparent; min-height: 1.9em; }
   @keyframes tBlink { 0%,49%{opacity:1} 50%,100%{opacity:0} }
-  .t-cursor::after {
-    content: '_';
-    animation: tBlink 0.9s step-end infinite;
-    color: #4fc3f7;
+  .t-cursor::after { content:'_'; animation:tBlink 0.9s step-end infinite; color:#4fc3f7; }
+  #t-input-row {
+    display: flex;
+    align-items: center;
+    padding: 20px 28px 20px;
+    flex-shrink: 0;
+    border-top: 1px solid rgba(238,240,245,0.05);
   }
-  #t-input-row { display:flex; align-items:center; padding:20px 0 0; flex-shrink:0; border-top:1px solid rgba(238,240,245,0.05); }
-  #t-prompt {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 13px; color: #4fc3f7; user-select: none;
-  }
+  #t-prompt { font-family:'Share Tech Mono',monospace; font-size:13px; color:#4fc3f7; user-select:none; }
   #t-field {
     flex: 1; background: transparent; border: none; outline: none;
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 13px; color: #4fc3f7;
+    font-family: 'Share Tech Mono', monospace; font-size: 13px; color: #4fc3f7;
     letter-spacing: 0.04em; caret-color: #4fc3f7; text-transform: uppercase;
   }
-
-  /* ── TERMINAL BOX ── */
-  .terminal-wrap { display:flex; flex-direction:column; min-height:60vh; padding:0 0 40px 0; }
-  #t-output { flex:1; min-height:300px; overflow-y:auto; padding:24px 0 8px; display:flex; flex-direction:column; justify-content:flex-start; scrollbar-width:thin; scrollbar-color:rgba(238,240,245,0.08) transparent; }
-  .t-line { font-family:'Share Tech Mono',monospace; font-size:13px; line-height:1.9; letter-spacing:0.04em; white-space:pre-wrap; min-height:1.9em; }
-  .t-line.dim    { color:rgba(79,195,247,0.70); }
-  .t-line.lo     { color:rgba(79,195,247,0.40); }
-  .t-line.full   { color:#4fc3f7; }
-  .t-line.warn   { color:#E8732A; }
-  .t-line.denied { color:#ff003c; }
-  .t-line.user   { color:rgba(238,240,245,0.50); }
-  .t-line.blank  { color:transparent; min-height:1.9em; }
-  @keyframes tBlink { 0%,49%{opacity:1} 50%,100%{opacity:0} }
-  .t-cursor::after { content:'_'; animation:tBlink 0.9s step-end infinite; color:#4fc3f7; }
-  #t-input-row { display:flex; align-items:center; padding:20px 0 0; flex-shrink:0; border-top:1px solid rgba(238,240,245,0.05); }
-  #t-prompt { font-family:'Share Tech Mono',monospace; font-size:13px; color:#4fc3f7; user-select:none; }
-  #t-field { flex:1; background:transparent; border:none; outline:none; font-family:'Share Tech Mono',monospace; font-size:13px; color:#4fc3f7; letter-spacing:0.04em; caret-color:#4fc3f7; text-transform:uppercase; }
+  /* Mobile */
+  @media (max-width: 768px) {
+    .container { height: auto; overflow: visible; }
+    main { overflow: visible; }
+    .terminal-wrap { min-height: 60vh; height: auto; flex: none; }
+    #t-output { min-height: 300px; max-height: 55vh; }
+    #t-input-row { padding: 16px 16px 24px; }
+  }
 
 </style>
 </head>
@@ -817,12 +830,14 @@
 
   <main>
     <div class="terminal-wrap">
+        <div id="terminal-box">
           <div id="t-output"></div>
           <div id="t-input-row" style="display:none;">
             <span id="t-prompt">&gt;&nbsp;</span>
             <input id="t-field" type="text" autocomplete="off" spellcheck="false"
                    oninput="this.value=this.value.toUpperCase()">
           </div>
+        </div>
       </div>
   </main>
 
@@ -963,7 +978,6 @@
 </script>
 
 <script>
-
 
 'use strict';
 
@@ -1605,8 +1619,8 @@ termInput.addEventListener('keydown', async function(e) {
       var resp = DENIED[deniedIdx % DENIED.length]; deniedIdx++;
       playDenied();
       if (Math.random() < 0.05) {
-        if (output) { output.style.opacity = '0.4'; output.style.letterSpacing = '0.12em';
-        setTimeout(function() { if(output){output.style.opacity='';output.style.letterSpacing='';} }, 120); }
+        output.style.opacity = '0.4'; output.style.letterSpacing = '0.12em';
+        setTimeout(function() { output.style.opacity = ''; output.style.letterSpacing = ''; }, 120);
       }
       for (var ri = 0; ri < resp.length; ri++) {
         if (!resp[ri]) continue;
@@ -1670,7 +1684,6 @@ termInput.addEventListener('keydown', async function(e) {
 // ── IRIDESCENT + PARALLAX ─────────────────────────────────────────────────────
 (function() {
   var iridescent = document.getElementById('iridescent');
-  var tOutput    = document.getElementById('t-output');
   if (!iridescent) return;
 
   var px = 0, py = 0, tx = 0, ty = 0;
@@ -1694,19 +1707,14 @@ termInput.addEventListener('keydown', async function(e) {
   (function lerp() {
     px += (tx - px) * 0.05;
     py += (ty - py) * 0.05;
-    // Iridescent drifts with mouse
     iridescent.style.transform = 'translate(' + (px * 18).toFixed(2) + 'px, ' + (py * 12).toFixed(2) + 'px)';
-    // Text content drifts subtly against mouse — creates depth
-    if (tOutput) {
-      tOutput.style.transform = 'translate(' + (-px * 5).toFixed(2) + 'px, ' + (-py * 3).toFixed(2) + 'px)';
-    }
     requestAnimationFrame(lerp);
   })();
 })();
 
 
+// ── START ────────────────────────────────────────────────────────────────────
 runScript();
-
 
 </script>
 </body>
