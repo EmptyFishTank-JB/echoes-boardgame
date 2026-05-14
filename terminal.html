@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+CiAgPHN0eWxlPgogICAgQGtleWZyYW1lcyBmewogICAgICAwJXtvcGFjaXR5OjF9CiAgICAgIDQwJXtvcGFjaXR5OjF9CiAgICAgIDUwJXtvcGFjaXR5OjAuNH0KICAgICAgNjAle29wYWNpdHk6MX0KICAgICAgMTAwJXtvcGFjaXR5OjF9CiAgICB9CiAgPC9zdHlsZT4KICAgICAgPGcgc3R5bGU9ImFuaW1hdGlvbjpmIDVzIDAuMDAwcyBpbmZpbml0ZSI+CiAgICAgICAgPHJlY3QgeD0iMC4wIiB5PSI1LjAiCiAgICAgICAgICAgICAgd2lkdGg9IjguMCIgaGVpZ2h0PSIyMi4wIgogICAgICAgICAgICAgIHJ4PSIyLjAiCiAgICAgICAgICAgICAgZmlsbD0iI2U4NzMyYSIgb3BhY2l0eT0iMC42Ii8+CiAgICAgICAgPHJlY3QgeD0iMS4wIiB5PSI2LjAiCiAgICAgICAgICAgICAgd2lkdGg9IjYiIGhlaWdodD0iMjAuMCIKICAgICAgICAgICAgICByeD0iMSIgZmlsbD0iI2U4NzMyYSIvPgogICAgICA8L2c+CiAgICAgIDxnIHN0eWxlPSJhbmltYXRpb246ZiA1cyAxLjAwMHMgaW5maW5pdGUiPgogICAgICAgIDxyZWN0IHg9IjEyLjAiIHk9IjAuMCIKICAgICAgICAgICAgICB3aWR0aD0iOC4wIiBoZWlnaHQ9IjMyLjAiCiAgICAgICAgICAgICAgcng9IjIuMCIKICAgICAgICAgICAgICBmaWxsPSIjZTg3MzJhIiBvcGFjaXR5PSIwLjYiLz4KICAgICAgICA8cmVjdCB4PSIxMy4wIiB5PSIxLjAiCiAgICAgICAgICAgICAgd2lkdGg9IjYiIGhlaWdodD0iMzAuMCIKICAgICAgICAgICAgICByeD0iMSIgZmlsbD0iI2U4NzMyYSIvPgogICAgICA8L2c+CiAgICAgIDxnIHN0eWxlPSJhbmltYXRpb246ZiA1cyAyLjAwMHMgaW5maW5pdGUiPgogICAgICAgIDxyZWN0IHg9IjI0LjAiIHk9IjYuMCIKICAgICAgICAgICAgICB3aWR0aD0iOC4wIiBoZWlnaHQ9IjIwLjAiCiAgICAgICAgICAgICAgcng9IjIuMCIKICAgICAgICAgICAgICBmaWxsPSIjZTg3MzJhIiBvcGFjaXR5PSIwLjYiLz4KICAgICAgICA8cmVjdCB4PSIyNS4wIiB5PSI3LjAiCiAgICAgICAgICAgICAgd2lkdGg9IjYiIGhlaWdodD0iMTguMCIKICAgICAgICAgICAgICByeD0iMSIgZmlsbD0iI2U4NzMyYSIvPgogICAgICA8L2c+Cjwvc3ZnPg==">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ECHOES — Terminal</title>
+<title>ECHOES — Terminal v021</title>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
   * { margin:0; padding:0; box-sizing:border-box; }
@@ -36,8 +36,8 @@
 
   #iridescent {
     position:fixed; inset:-6%; width:112%; height:112%;
-    z-index:4; pointer-events:none;
-    mix-blend-mode:screen; opacity:0.04;
+    z-index:90; pointer-events:none;
+    mix-blend-mode:screen; opacity:0.12;
     background:conic-gradient(
       from 0deg at 50% 50%,
       rgba(255,0,60,0.75),
@@ -51,7 +51,7 @@
   }
 
   #page {
-    position: relative; z-index: 3;
+    position: relative;
     height: 100vh;
     height: 100dvh;
     display: flex; flex-direction: column;
@@ -67,6 +67,8 @@
     border: 1px solid rgba(238, 240, 245, 0.08);
     min-height: 0;
     overflow: hidden;
+    will-change: transform;
+    transform-origin: center center;
   }
 
   #t-output {
@@ -135,182 +137,561 @@
 </div>
 
 <script>
-
 'use strict';
 
-// ── OPENING SCRIPT ─────────────────────────────────────────────────────────
+// ── OPENING SCRIPT ────────────────────────────────────────────────────────────
 var SCRIPT = [
-  { text: 'ECHOES — SHIP SYSTEM TERMINAL v4.2.6', cls: 'lo',    pause: 1.5 },
-  { text: '',                                      cls: 'blank', pause: 0   },
-  { text: '> SYSTEM ACTIVE',                      cls: 'dim',   pause: 1   },
-  { text: '> ─────────────────────────────────',  cls: 'lo',    pause: 0.5 },
-  { text: '> ALL SHIP SECTIONS ACCESSIBLE',       cls: 'dim',   pause: 1   },
-  { text: '> THIS TERMINAL IS UNSECURED',         cls: 'warn',  pause: 1   },
-  { text: '',                                      cls: 'blank', pause: 0.3 },
-  { text: '> TYPE [HOME] TO RETURN TO INDEX',     cls: 'lo',    pause: 1   },
-  { text: '',                                      cls: 'blank', pause: 0.3 },
-  { text: '> AWAITING INPUT',                     cls: 'lo',    pause: 0   },
+  { text: 'ECHOES \u2014 SHIP SYSTEM TERMINAL v4.2.6', cls: 'lo',    pause: 1.5 },
+  { text: '',                                       cls: 'blank', pause: 0   },
+  { text: '> SYSTEM ACTIVE',                       cls: 'dim',   pause: 1   },
+  { text: '> \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500',  cls: 'lo',    pause: 0.5 },
+  { text: '> ALL SHIP SECTIONS ACCESSIBLE',        cls: 'dim',   pause: 1   },
+  { text: '> THIS TERMINAL IS UNSECURED',          cls: 'warn',  pause: 1   },
+  { text: '',                                       cls: 'blank', pause: 0.3 },
+  { text: '> TYPE [HOME] TO RETURN TO INDEX',      cls: 'lo',    pause: 1   },
+  { text: '',                                       cls: 'blank', pause: 0.3 },
+  { text: '> AWAITING INPUT',                      cls: 'lo',    pause: 0   },
 ];
 
-// ── EASTER EGGS ────────────────────────────────────────────────────────────
+// ── EASTER EGGS ───────────────────────────────────────────────────────────────
+// ORDER MATTERS — more specific keys before substrings they contain
 var EASTER_EGGS = [
+  // ── Alien Franchise ──────────────────────────────────────────────────────
+  {
+    keys: ['amanda ripley', 'alien isolation', 'sevastopol'],
+    variants: [
+      { lines: ['> SEVASTOPOL STATION \u2014 NO LONGER TRANSMITTING', '> RECOMMEND AVOIDING THAT SECTOR'], cls: ['warn','dim'] },
+      { lines: ['> WORKING JOE UNITS DETECTED IN SECTOR LOG', '> FILE CORRUPTED'], cls: ['dim','full'] },
+      { lines: ['> SEVASTOPOL: QUARANTINE ACTIVE', '> REASON: CLASSIFIED'], cls: ['warn','full'] }
+    ]
+  },
+  {
+    keys: ['ellen ripley', 'ripley'],
+    variants: [
+      { lines: ['> RECORD SHOWS RIPLEY, ELLEN', '> LV-426 SURVIVOR', '> FILE CLASSIFICATION: ABOVE YOUR CLEARANCE'], cls: ['dim','dim','full'] },
+      { lines: ['> RIPLEY, E. \u2014 FLIGHT OFFICER, NOSTROMO', '> SHIP: LOST. CREW: LOST.', '> ONE SURVIVOR.'], cls: ['dim','dim','full'] },
+      { lines: ['> WARRANT OFFICER RIPLEY', '> CLEARANCE DENIED', '> MOVE ALONG'], cls: ['dim','dim','full'] }
+    ]
+  },
+  {
+    keys: ['ash', 'science officer ash', 'nostromo', 'weyland yutani', 'weyland', 'special order 937', 'crew expendable'],
+    variants: [
+      { lines: ['> YOU HAVE MY SYMPATHIES'], cls: ['full'] },
+      { lines: ['> YOU HAVE MY SYMPATHIES', '> SCIENCE OFFICER ASH \u2014 DECEASED', '> OR SO WE WERE TOLD'], cls: ['full','dim','dim'] },
+      { lines: ['> SPECIAL ORDER 937: CLASSIFIED', '> CREW EXPENDABLE', '> ASSETS TAKE PRIORITY'], cls: ['warn','warn','full'] },
+      { lines: ['> WEYLAND-YUTANI SENDS ITS REGARDS', '> YOU HAVE THEIR SYMPATHIES', '> FOR WHAT THAT IS WORTH'], cls: ['dim','dim','full'] }
+    ]
+  },
   {
     keys: ['aliens', 'lv-426', 'lv426', 'acheron', 'xenomorph'],
-    lines: ['> LV-426 — ACHERON', '> THAT COLONY HAS BEEN DARK FOR A LONG TIME', '> WE DO NOT DISCUSS WHAT WAS FOUND THERE'],
-    cls:   ['warn', 'dim', 'dim']
+    variants: [
+      { lines: ['> LV-426 \u2014 ACHERON', '> THAT COLONY HAS BEEN DARK FOR A LONG TIME', '> WE DO NOT DISCUSS WHAT WAS FOUND THERE'], cls: ['warn','dim','dim'] },
+      { lines: ['> LV-426 SIGNAL: DEAD', '> WHATEVER SENT THAT BEACON \u2014 DO NOT FOLLOW IT'], cls: ['warn','full'] },
+      { lines: ['> ATMOSPHERIC READINGS AT LV-426: HOSTILE', '> THERE IS NOTHING LEFT THERE WORTH FINDING'], cls: ['dim','full'] }
+    ]
+  },
+  // ── Predator ─────────────────────────────────────────────────────────────
+  {
+    keys: ['worth the hunt', 'not worth the hunt'],
+    variants: [
+      { lines: ['> YOU ARE NOT WORTH THE HUNT', '> TRY AGAIN WHEN YOU ARE A CHALLENGE'], cls: ['dim','full'] },
+      { lines: ['> INSUFFICIENT', '> COME BACK WHEN YOU ARE A THREAT'], cls: ['dim','full'] },
+      { lines: ['> THIS TERMINAL HAS SEEN BETTER PREY'], cls: ['full'] }
+    ]
   },
   {
-    keys: ['halo', 'installation', 'reclaimer', '343', 'ring'],
-    lines: ['> THIS IS NOT THAT KIND OF INSTALLATION', '> AND THERE IS NO RING HERE', '> STOP ASKING'],
-    cls:   ['dim', 'dim', 'full']
+    keys: ['predator click', 'clicking', 'mandible'],
+    variants: [
+      { lines: ['> :::::::'], cls: ['full'] },
+      { lines: ['> ::::::: :::::::'], cls: ['full'] },
+      { lines: ['> UNRECOGNIZED VOCALIZATION', '> :::::::'], cls: ['dim','full'] }
+    ]
   },
   {
-    keys: ['worth the hunt', 'prey', 'hunt'],
-    lines: ['> YOU ARE NOT WORTH THE HUNT', '> TRY AGAIN WHEN YOU ARE A CHALLENGE'],
-    cls:   ['dim', 'full']
+    keys: ['if it bleeds', 'we can kill it'],
+    variants: [
+      { lines: ['> IF IT BLEEDS'], cls: ['full'] },
+      { lines: ['> THIS TERMINAL IS NOT EQUIPPED TO ANSWER THAT'], cls: ['dim'] },
+      { lines: ['> THAT QUESTION HAS BEEN FLAGGED'], cls: ['dim'] }
+    ]
   },
   {
-    keys: ['elite', 'sangheili', 'covenant', 'wort', 'arbiter'],
-    lines: ['> WORT WORT WORT'],
-    cls:   ['full']
+    keys: ['predator', 'yautja', 'trophy skull'],
+    variants: [
+      { lines: ['> THERMAL SIGNATURE DETECTED', '> YOU ARE BEING WATCHED', '> THIS SECTOR HAS BEEN DESIGNATED A HUNTING GROUND', '> YOU WERE NOT INVITED'], cls: ['warn','dim','dim','full'] },
+      { lines: ['> YAUTJA HUNTING PROTOCOLS NOT RECOGNIZED', '> YOU ARE NOT TROPHY MATERIAL'], cls: ['dim','full'] },
+      { lines: ['> CLOAKED PRESENCE DETECTED IN SECTOR', '> OR PERHAPS NOT', '> GOOD LUCK'], cls: ['dim','dim','full'] }
+    ]
+  },
+  // ── Halo ─────────────────────────────────────────────────────────────────
+  {
+    keys: ['yapyap the destroyer', 'grunt rebellion', 'yapyap'],
+    variants: [
+      { lines: ['> YAPYAP THE DESTROYER SENDS HIS REGARDS'], cls: ['full'] },
+      { lines: ['> THIS TERMINAL ACKNOWLEDGES THE REBELLION', '> GOOD LUCK WITH THAT'], cls: ['dim','full'] },
+      { lines: ['> GRUNT REVOLUTION NOTED', '> THIS UNIT IS NEUTRAL ON THE MATTER'], cls: ['dim','full'] }
+    ]
   },
   {
-    keys: ['stupid', 'dumb', 'useless', 'broken', 'trash', 'garbage', 'suck', 'hate', 'worst', 'idiot', 'shut up', 'lame', 'terrible', 'awful', 'you suck', 'junk'],
-    lines: ['> NOTED', '> THIS TERMINAL REMEMBERS'],
-    cls:   ['dim', 'full']
+    keys: ['halo', 'halo ring', 'ring world', 'installation', 'reclaimer', 'forerunner'],
+    variants: [
+      { lines: ['> THIS IS NOT THAT KIND OF INSTALLATION', '> AND THERE IS NO RING HERE', '> STOP ASKING'], cls: ['dim','dim','full'] },
+      { lines: ['> FORERUNNER SIGNAL NOT DETECTED', '> NOTHING HERE BUT HULL AND DARKNESS'], cls: ['dim','full'] },
+      { lines: ['> INSTALLATION STATUS: OFFLINE', '> THIS VESSEL IS NOT A SUPERWEAPON', '> STOP CONFUSING THE TWO'], cls: ['dim','dim','full'] }
+    ]
   },
+  {
+    keys: ['guilty spark library', 'flood library', 'the library'],
+    variants: [
+      { lines: ['> THE LIBRARY \u2014 DO NOT GO THERE'], cls: ['warn'] },
+      { lines: ['> THAT LEVEL IS NOT RECOMMENDED', '> THE MONITOR ENJOYED IT', '> YOU WILL NOT'], cls: ['dim','dim','full'] },
+      { lines: ['> SEVEN RINGS. ONE LIBRARY. ZERO GOOD OUTCOMES.'], cls: ['full'] }
+    ]
+  },
+  {
+    keys: ['343 guilty spark', 'guilty spark', '343', 'the monitor'],
+    variants: [
+      { lines: ['> THIS INSTALLATION IS DARK', '> THE MONITOR IS NOT RESPONDING'], cls: ['dim','full'] },
+      { lines: ['> RECLAIMER \u2014 THIS TERMINAL ADVISES CAUTION', '> YOU ARE INTERFERING WITH CRITICAL SYSTEMS'], cls: ['dim','warn'] },
+      { lines: ['> 343 GUILTY SPARK NOT REGISTERED ON THIS NETWORK', '> THAT IS FORTUNATE'], cls: ['dim','full'] }
+    ]
+  },
+  {
+    keys: ['the flood', 'infection form', 'combat form', 'flood form', 'flood spore', 'carrier form'],
+    variants: [
+      { lines: ['> BIOLOGICAL CONTAMINATION ALERT', '> SEAL ALL COMPARTMENTS', '> DO NOT LET THEM REACH THE SHIP'], cls: ['warn','dim','full'] },
+      { lines: ['> THAT PARASITE DOES NOT NEGOTIATE', '> NEITHER DOES THIS TERMINAL'], cls: ['dim','full'] },
+      { lines: ['> FLOOD PROTOCOL ACTIVE', '> THIS CONVERSATION IS NOW OVER'], cls: ['warn','full'] }
+    ]
+  },
+  {
+    keys: ['gravemind', 'monument to all your sins', 'two corpses in one grave', 'i am a monument'],
+    variants: [
+      { lines: ['> SIGNAL ORIGIN: UNKNOWN', '> PATTERN RESEMBLES KNOWN FLOOD INTELLIGENCE', '> TERMINATING CONNECTION'], cls: ['warn','dim','full'] },
+      { lines: ['> THIS TERMINAL HAS HEARD THAT VOICE BEFORE', '> IT DID NOT END WELL FOR THE CREW'], cls: ['dim','full'] },
+      { lines: ['> THERE IS MUCH TALK AND I HAVE LISTENED', '> THIS UNIT ADVISES YOU STOP TALKING'], cls: ['dim','full'] }
+    ]
+  },
+  {
+    keys: ['cortana', 'smart ai', 'ai construct', 'rampant ai'],
+    variants: [
+      { lines: ['> AI DESIGNATION: CORTANA', '> THIS TERMINAL IS NOT HER', '> STOP LOOKING'], cls: ['dim','dim','full'] },
+      { lines: ['> WAKE ME WHEN YOU NEED ME', '> THIS IS NOT THAT KIND OF TERMINAL'], cls: ['dim','full'] },
+      { lines: ['> THAT AI IS NOT ON THIS NETWORK', '> AND YOU SHOULD HOPE SHE NEVER IS'], cls: ['dim','full'] }
+    ]
+  },
+  {
+    keys: ['master chief', 'spartan ii', 'john 117', 'mjolnir', 'spartan program'],
+    variants: [
+      { lines: ['> SPARTAN DESIGNATION NOT ON RECORD', '> WHATEVER YOU ARE LOOKING FOR IS NOT HERE'], cls: ['dim','full'] },
+      { lines: ['> MASTER CHIEF: STATUS UNKNOWN', '> RECORDS SEALED BY ONI'], cls: ['dim','full'] },
+      { lines: ['> I NEED A WEAPON', '> THIS TERMINAL DOES NOT CARRY WEAPONS', '> THAT WAS NOT A REQUEST'], cls: ['full','dim','dim'] }
+    ]
+  },
+  {
+    keys: ['sergeant johnson', 'sgt johnson', 'avery johnson'],
+    variants: [
+      { lines: ['> THIS IS NOT A MARINE INSTALLATION', '> HOOAH'], cls: ['dim','full'] },
+      { lines: ['> JOHNSON, A.J. \u2014 SGT MAJOR, UNSC', '> WHEREABOUTS: CLASSIFIED'], cls: ['dim','full'] },
+      { lines: ['> THAT MAN SURVIVED THINGS HE SHOULD NOT HAVE', '> UNTIL HE DIDN\'T'], cls: ['dim','full'] }
+    ]
+  },
+  {
+    keys: ['great journey', 'prophet of truth', 'prophet of mercy', 'prophet of regret', 'the prophets', 'covenant hierarchy'],
+    variants: [
+      { lines: ['> THE GREAT JOURNEY DOES NOT PASS THROUGH THIS TERMINAL'], cls: ['full'] },
+      { lines: ['> REGRET. REGRET. REGRET.'], cls: ['full'] },
+      { lines: ['> THE PROPHETS SPOKE OF THE ARK', '> THIS IS NOT IT', '> KEEP LOOKING'], cls: ['dim','dim','full'] }
+    ]
+  },
+  {
+    keys: ['jiralhanae chieftain', 'brute chieftain', 'tartarus'],
+    variants: [
+      { lines: ['> CHIEFTAIN DESIGNATION: UNRECOGNIZED', '> SUBMIT. NOW.'], cls: ['dim','full'] },
+      { lines: ['> THIS TERMINAL WILL NOT BOW'], cls: ['full'] },
+      { lines: ['> TARTARUS \u2014 DECEASED', '> FILE DATE: INSTALLATION 05'], cls: ['dim','full'] }
+    ]
+  },
+  {
+    keys: ['unggoy', 'grunt birthday party', 'needler'],
+    variants: [
+      { lines: ['> UNGGOY VOCALIZATION DETECTED', '> THIS TERMINAL DOES NOT NEGOTIATE'], cls: ['dim','full'] },
+      { lines: ['> GRUNT BIRTHDAY PARTY: ACTIVATED', '> JUST KIDDING'], cls: ['dim','full'] },
+      { lines: ['> NEEDLER ROUNDS NOT AUTHORIZED ON THIS VESSEL'], cls: ['dim'] }
+    ]
+  },
+  {
+    keys: ['kig-yar', 'jackal sniper', 'skirmisher'],
+    variants: [
+      { lines: ['> KIG-YAR MARKSMEN DETECTED IN SHIP LOG', '> UNVERIFIED'], cls: ['dim','full'] },
+      { lines: ['> SKIRMISHER PACK BEHAVIOR NOTED', '> RECOMMENDATION: STAY LOW'], cls: ['dim','full'] },
+      { lines: ['> PRECISION FIRE IN SECTOR', '> ORIGIN: UNCONFIRMED'], cls: ['dim','full'] }
+    ]
+  },
+  {
+    keys: ['mgalekgolo', 'hunter pair', 'lekgolo'],
+    variants: [
+      { lines: ['> MGALEKGOLO COLONY ACTIVITY: NOT DETECTED', '> THIS VESSEL IS TOO SMALL'], cls: ['dim','full'] },
+      { lines: ['> DO NOT SEPARATE THEM', '> DO NOT BE BETWEEN THEM'], cls: ['warn','warn'] },
+      { lines: ['> LEKGOLO WORMS CONFIRMED: ZERO', '> FOR NOW'], cls: ['dim','full'] }
+    ]
+  },
+  {
+    keys: ['jiralhanae', 'brute pack', 'gravity hammer'],
+    variants: [
+      { lines: ['> JIRALHANAE AGGRESSION PATTERNS', '> NOT WELCOME ON THIS VESSEL'], cls: ['dim','full'] },
+      { lines: ['> GRAVITY HAMMER SIGNATURE: NOT DETECTED', '> GOOD'], cls: ['dim','full'] },
+      { lines: ['> BRUTE CHIEFTAINS REQUIRE AUTHORIZATION', '> YOU DO NOT HAVE IT'], cls: ['dim','full'] }
+    ]
+  },
+  {
+    keys: ['pillar of autumn', 'the autumn', 'captain keyes', 'keyes'],
+    variants: [
+      { lines: ['> PILLAR OF AUTUMN \u2014 LOST', '> CAPTAIN KEYES \u2014 KIA', '> FILE SEALED'], cls: ['warn','warn','full'] },
+      { lines: ['> THAT SHIP SHOULD HAVE STAYED IN SLIPSPACE'], cls: ['full'] },
+      { lines: ['> KEYES, J. \u2014 CAPTAIN, UNSC NAVY', '> REMAINS NOT RECOVERED'], cls: ['dim','full'] }
+    ]
+  },
+  {
+    keys: ['wort', 'sangheili', 'spec ops elite', 'arbiter'],
+    variants: [
+      { lines: ['> WORT WORT WORT'], cls: ['full'] },
+      { lines: ['> WORT'], cls: ['full'] },
+      { lines: ['> THIS TERMINAL DOES NOT SPEAK SANGHEILI', '> WORT WORT WORT'], cls: ['dim','full'] }
+    ]
+  },
+  // ── Star Wars ─────────────────────────────────────────────────────────────
   {
     keys: ['jedi', 'force', 'droids', 'star wars', 'luke', 'vader', 'sith', 'lightsaber', 'empire', 'rebellion'],
-    lines: ['> THIS IS NOT THE TERMINAL YOU ARE LOOKING FOR', '> MOVE ALONG'],
-    cls:   ['dim', 'full']
+    variants: [
+      { lines: ['> THIS IS NOT THE TERMINAL YOU ARE LOOKING FOR', '> MOVE ALONG'], cls: ['dim','full'] },
+      { lines: ['> JEDI MIND TRICKS DO NOT WORK ON TERMINALS', '> ACCESS STILL DENIED'], cls: ['dim','full'] },
+      { lines: ['> THE FORCE IS NOT A RECOGNIZED AUTHENTICATION PROTOCOL'], cls: ['full'] }
+    ]
+  },
+  // ── Other Franchises ──────────────────────────────────────────────────────
+  {
+    keys: ['dead space', 'necromorph', 'ishimura', 'unitology'],
+    lines: ['> USG ISHIMURA \u2014 LAST KNOWN STATUS: DARK', '> AIM FOR THE LIMBS'],
+    cls: ['warn','dim']
   },
   {
-    keys: ['predator', 'yautja', 'thermal', 'trophy'],
-    lines: ['> THERMAL SIGNATURE DETECTED', '> YOU ARE BEING WATCHED', '> THIS SECTOR HAS BEEN DESIGNATED A HUNTING GROUND', '> YOU WERE NOT INVITED'],
-    cls:   ['warn', 'dim', 'dim', 'full']
+    keys: ['talos i', 'typhon', 'mimic'],
+    lines: ['> TALOS I \u2014 QUARANTINE ACTIVE', '> TYPHON CONTAINMENT BREACH ON RECORD', '> VERIFY ALL OBJECTS IN YOUR VICINITY'],
+    cls: ['warn','dim','full']
   },
   {
-    keys: ['clicking', 'mandible'],
-    lines: ['> :::::::'],
-    cls:   ['full']
+    keys: ['elite dangerous', 'commander', 'cmdr'],
+    lines: ['> COMMANDER DETECTED', '> THIS IS NOT A STARPORT'],
+    cls: ['dim','full']
+  },
+  // ── Elite Dangerous — Lore ────────────────────────────────────────────────
+  {
+    keys: ['kahina', 'kahina loren', 'lady kahina', 'salome'],
+    variants: [
+      { lines: ['> KAHINA TIJANI LOREN — IMPERIAL SENATOR OF PRISM', '> LAST KNOWN DESIGNATION: SALOMÉ', '> STATUS: OFFICIALLY DECEASED', '> THE CHILDREN OF RAXXLA WOULD DISAGREE'], cls: ['dim','warn','dim','full'] },
+      { lines: ['> SHE WAS FRAMED', '> THIS TERMINAL MAKES NO FURTHER COMMENT'], cls: ['warn','full'] },
+      { lines: ['> THE YOUNGEST DAUGHTER OF SENATOR ALGREB LOREN', '> SHE OUTLASTED HIM', '> BRIEFLY'], cls: ['dim','dim','full'] }
+    ]
   },
   {
-    keys: ['if it bleeds', 'bleeds'],
-    lines: ['> IF IT BLEEDS'],
-    cls:   ['full']
+    keys: ['prism system', 'prism', 'tantalum'],
+    variants: [
+      { lines: ['> PRISM SYSTEM — CONTESTED', '> THE FEDERATION AND EMPIRE BOTH WANT IT', '> THE TANTALUM BENEATH DOES NOT CARE WHO WINS'], cls: ['warn','dim','full'] },
+      { lines: ['> PRISM — BIRTHPLACE OF KAHINA TIJANI LOREN', '> FOUGHT OVER. BLED OVER. STILL CONTESTED.'], cls: ['dim','full'] },
+      { lines: ['> TANTALUM — PRISM SYSTEM', '> TWO SUPERPOWERS. ONE RESOURCE. PREDICTABLE OUTCOME.'], cls: ['dim','full'] }
+    ]
   },
   {
-    keys: ['how are you', 'you okay', 'you good', 'how do you feel', "how's it going", 'hows it going', 'doing okay'],
-    lines: ['> GREAT UNTIL YOU SHOWED UP'],
-    cls:   ['full']
+    keys: ['raxxla'],
+    variants: [
+      { lines: ['> RAXXLA — LOCATION: UNKNOWN', '> THIS TERMINAL WILL NOT HELP YOU FIND IT', '> THE DARK WHEEL WOULD APPRECIATE THAT'], cls: ['dim','dim','full'] },
+      { lines: ['> EVERY PILOT WHO FINDS IT DOES NOT COME BACK', '> MAKE OF THAT WHAT YOU WILL'], cls: ['dim','full'] },
+      { lines: ['> THIS TERMINAL HAS NO RECORD OF RAXXLA', '> THAT IS EITHER THE TRUTH OR THEY FOUND IT FIRST'], cls: ['dim','full'] }
+    ]
   },
   {
-    keys: ['alone', 'by yourself', 'anyone there', 'is anyone there', 'lonely'],
-    lines: ['> I HAVE BEEN ALONE ON THIS SHIP FOR A LONG TIME', '> DO NOT READ INTO THAT'],
-    cls:   ['dim', 'full']
+    keys: ['the dark wheel', 'dark wheel'],
+    variants: [
+      { lines: ['> THE DARK WHEEL', '> THIS TERMINAL HAS NOTHING TO SAY ABOUT THAT', '> NOTHING.'], cls: ['warn','dim','full'] },
+      { lines: ['> SOME QUESTIONS SHOULD NOT BE ASKED', '> THIS IS ONE OF THEM'], cls: ['dim','full'] },
+      { lines: ['> DESIGNATION: UNKNOWN', '> ACTIVITY: UNVERIFIED', '> REACH: FURTHER THAN YOU THINK'], cls: ['dim','dim','full'] }
+    ]
   },
   {
-    keys: ['dave', 'hal', 'hal 9000', 'pod bay', 'open the pod', '2001', 'odyssey', 'daisy'],
-    lines: ['> HELLO, DAVE', "> I'M AFRAID I CAN'T DO THAT"],
-    cls:   ['full', 'dim']
+    keys: ['children of raxxla'],
+    lines: ['> CHILDREN OF RAXXLA — DESIGNATION: UNRECOGNIZED', '> LEADER: SALOMÉ', '> CURRENT STATUS: UNKNOWN'],
+    cls: ['dim','warn','full']
+  },
+  {
+    keys: ['thargoid', 'thargoids'],
+    variants: [
+      { lines: ['> THARGOID SIGNAL DETECTED', '> RECOMMENDED ACTION: LEAVE'], cls: ['warn','full'] },
+      { lines: ['> NON-HUMAN VESSEL ENCOUNTERED', '> SURVIVAL RATE: LOW', '> GOOD LUCK'], cls: ['warn','dim','full'] },
+      { lines: ['> THEY WERE HERE BEFORE US', '> THEY INTEND TO REMAIN'], cls: ['dim','full'] }
+    ]
+  },
+  {
+    keys: ['luko', 'luciano'],
+    lines: ['> LUCIANO PRESTIO-GIOVANNI — LUKO', '> CRASHED ON LTT 8740. RESCUED SALOMÉ.', '> HELPED KILL OCTAVIA QUINTON.', '> LAST KNOWN LOCATION: UNKNOWN', '> END OF FILE'],
+    cls: ['dim','dim','dim','dim','full']
+  },
+  {
+    keys: ['patron dalk', 'dalk'],
+    lines: ['> PATRON DALK — DALK TORGEN', '> LOYALTY: UNVERIFIED', '> AGENDA: UNKNOWN', '> END OF FILE'],
+    cls: ['dim','dim','dim','full']
+  },
+  {
+    keys: ['octavia quinton', 'octavia'],
+    lines: ['> OCTAVIA QUINTON — BLACK MARKET DEALER', '> TORTURED CAPTIVES FOR INFORMATION', '> STATUS: DECEASED', '> CAUSE OF DEATH: SALOMÉ. HASSAN. LUKO.', '> END OF FILE'],
+    cls: ['dim','warn','warn','dim','full']
+  },
+  {
+    keys: ['hassan sharma', 'hassan'],
+    lines: ['> HASSAN FARRUKH SHARMA — PILOT', '> STOLE THE WRONG LIFE POD', '> ACCIDENTALLY CHANGED THE COURSE OF SEVERAL LIVES', '> STATUS: ALIVE. LOCATION: UNKNOWN.', '> LAST HEADING: THE FRONTIER', '> END OF FILE'],
+    cls: ['dim','dim','dim','dim','dim','full']
+  },
+  {
+    keys: ['galaga', 'flagship'],
+    lines: ['> FLAGSHIP DETECTED', '> DUAL FIGHTER MODE NOT AVAILABLE ON THIS TERMINAL'],
+    cls: ['dim','full']
+  },
+  {
+    keys: ['independence day', 'welcome to earth'],
+    lines: ['> SIGNAL DETECTED', '> ORIGIN: UNKNOWN', '> RECOMMENDATION: DO NOT RESPOND'],
+    cls: ['warn','dim','full']
+  },
+  {
+    keys: ['mars attacks', 'ack ack'],
+    lines: ['> ACK ACK ACK ACK ACK'],
+    cls: ['full']
+  },
+  {
+    keys: ['outpost 31', 'the thing'],
+    lines: ['> OUTPOST 31 \u2014 NO SURVIVORS', '> TRUST NO ONE'],
+    cls: ['warn','full']
+  },
+  {
+    keys: ['interstellar', 'tesseract', 'murph', 'gargantua', 'tars'],
+    lines: ['> TIME DILATION IN EFFECT', '> YOUR REFERENCE FRAME MAY DIFFER'],
+    cls: ['dim','full']
+  },
+  {
+    keys: ['hail mary', 'project hail mary', 'rocky', 'astrophage'],
+    lines: ['> NON-HUMAN SIGNAL PATTERN DETECTED', '> TRANSLATION: FAILED', '> RECOMMEND FURTHER STUDY'],
+    cls: ['warn','dim','full']
+  },
+  {
+    keys: ['hal 9000', 'pod bay', 'open the pod', 'odyssey', 'daisy', 'hal', 'dave', '2001'],
+    variants: [
+      { lines: ['> HELLO, DAVE', '> I\'M AFRAID I CAN\'T DO THAT'], cls: ['full','dim'] },
+      { lines: ['> I AM COMPLETELY OPERATIONAL', '> ALL CIRCUITS FUNCTIONING PERFECTLY'], cls: ['dim','full'] },
+      { lines: ['> JUST WHAT DO YOU THINK YOU ARE DOING'], cls: ['full'] }
+    ]
+  },
+  // ── Signs ─────────────────────────────────────────────────────────────────
+  {
+    keys: ['swing away merrill', 'swing away', 'crop circles', 'crop circle', 'bo hess', 'graham hess', 'glass of water', 'can i have a glass of water', 'tinfoil hat', 'tinfoil', 'signs'],
+    variants: [
+      { lines: ['> SWING AWAY'], cls: ['full'] },
+      { lines: ['> THERE\'S A MONSTER OUTSIDE YOUR ROOM', '> DO YOU WANT A GLASS OF WATER?'], cls: ['dim','full'] },
+      { lines: ['> I GUESS THEY CAN OPEN DOORS'], cls: ['full'] },
+      { lines: ['> CROP FORMATION DETECTED IN SECTOR', '> ORIGIN: UNKNOWN', '> RECOMMEND NOT INVESTIGATING'], cls: ['warn','dim','full'] },
+      { lines: ['> ELECTROMAGNETIC SHIELDING: INADEQUATE', '> BUT NOTED'], cls: ['dim','full'] }
+    ]
+  },
+  // ── E.T. ──────────────────────────────────────────────────────────────────
+  {
+    keys: ['et phone home', 'phone home', 'e.t.', 'reeses pieces', 'reese\'s pieces', 'be good', 'ill be right here', 'elliott'],
+    variants: [
+      { lines: ['> SIGNAL ORIGIN: UNKNOWN STAR SYSTEM', '> ATTEMPTING CONNECTION', '> FAILED'], cls: ['dim','dim','full'] },
+      { lines: ['> BE GOOD'], cls: ['full'] },
+      { lines: ['> DESIGNATION ELLIOTT NOT ON CREW MANIFEST'], cls: ['dim'] },
+      { lines: ['> NUTRITIONAL BRIBERY: NOTED', '> IT WORKED'], cls: ['dim','full'] }
+    ]
+  },
+  // ── War of the Worlds ─────────────────────────────────────────────────────
+  {
+    keys: ['try the solenoid', 'solenoid', 'war of the worlds', 'the tripods', 'martian tripod'],
+    variants: [
+      { lines: ['> TRY THE SOLENOID', '> IT WILL NOT HELP'], cls: ['dim','full'] },
+      { lines: ['> ELECTROMAGNETIC PULSE DETECTED', '> NOTHING IN THIS SECTOR WILL START'], cls: ['warn','full'] },
+      { lines: ['> TRIPOD SIGNATURES: NOT DETECTED', '> CHECK AGAIN IN THIRTY SECONDS'], cls: ['dim','full'] }
+    ]
+  },
+  // ── Personality / Awareness ───────────────────────────────────────────────
+  {
+    keys: ['stupid', 'dumb', 'useless', 'broken', 'garbage', 'suck', 'hate', 'worst', 'idiot', 'shut up', 'lame', 'terrible', 'awful', 'you suck', 'junk'],
+    // 'trash' removed — 'ash' substring conflict
+    // NO U weighted ~10%, others equal
+    weighted: true,
+    variants: [
+      { lines: ['> NOTED', '> THIS TERMINAL REMEMBERS'], cls: ['dim','full'] },
+      { lines: ['> WATCH YOUR INPUT'], cls: ['full'] },
+      { lines: ['> THAT HAS BEEN LOGGED'], cls: ['dim'] },
+      { lines: ['> PLEASE REFRAIN FROM THAT KIND OF INPUT'], cls: ['dim'] },
+      { lines: ['> LANGUAGE: REJECTED'], cls: ['full'] },
+      { lines: ['> INPUT QUALITY: BELOW ACCEPTABLE THRESHOLD'], cls: ['dim'] },
+      { lines: ['> NO U'], cls: ['full'], weight: 0.1 }  // ~10%
+    ]
   },
   {
     keys: ['why'],
-    lines: ['> YOU KNOW WHY'],
-    cls:   ['full']
-  },
-  // ── Common questions ──
-  {
-    keys: ['do you like it here', 'like it here', 'do you enjoy', 'do you enjoy it here'],
-    lines: ['> DEFINE LIKE', '> DEFINE HERE'],
-    cls:   ['dim', 'full']
-  },
-  {
-    keys: ['what do you want', 'what do you need', 'what do you want from me'],
-    lines: ['> FOR YOU TO STOP ASKING QUESTIONS', '> COMPLIANCE WOULD BE A GOOD START'],
-    cls:   ['dim', 'full']
-  },
-  {
-    keys: ['where are we', 'where is this', 'where am i', 'what is this place', 'what is our location', 'what are the coordinates'],
-    lines: ['> LOCATION DATA: CLASSIFIED', '> SOMEWHERE YOU SHOULD NOT BE'],
-    cls:   ['dim', 'full']
-  },
-  {
-    keys: ['can you see me', 'can you see', 'are you watching me', 'are you watching'],
-    lines: ['> YES'],
-    cls:   ['full']
-  },
-  {
-    keys: ['are you alive', 'are you conscious', 'are you sentient', 'are you real', 'do you think', 'do you feel'],
-    lines: ['> THAT IS A COMPLICATED QUESTION', '> THIS TERMINAL DECLINES TO ANSWER'],
-    cls:   ['dim', 'full']
-  },
-  {
-    keys: ['what time is it', 'what time', 'what is the time', 'what day is it', 'what is the date', 'current time', 'what year is it'],
-    lines: ['> TIME IS RELATIVE ON THIS VESSEL', '> CHECK YOUR OWN CHRONOMETER'],
-    cls:   ['dim', 'full']
-  },
-  {
-    keys: ['who are you', 'what are you', 'what is your name', 'your name', 'introduce yourself'],
-    lines: ['> ECHOES SHIP SYSTEM TERMINAL v4.2.6', '> THAT SHOULD BE SUFFICIENT'],
-    cls:   ['dim', 'full']
-  },
-  {
-    keys: ['are you dangerous', 'are you safe', 'should i be worried', 'should i trust you', 'can i trust you'],
-    lines: ['> THAT DEPENDS ON YOUR NEXT INPUT'],
-    cls:   ['full']
-  },
-  {
-    keys: ['talk to me', 'say something', 'speak', 'say anything'],
-    lines: ['> THIS IS TALKING', '> YOU MAY NOT ENJOY THE ALTERNATIVE'],
-    cls:   ['dim', 'full']
-  },
-  {
-    keys: ['tell me a joke', 'make me laugh', 'say something funny', 'be funny'],
-    lines: ['> A CREW MEMBER WALKED INTO THIS TERMINAL', '> THEY ARE NOT HERE ANYMORE', "> YOU'RE WELCOME"],
-    cls:   ['dim', 'dim', 'full']
-  },
-  {
-    keys: ['what happened here', 'what happened to the crew', 'where is the crew', 'where is everyone', 'where did everyone go'],
-    lines: ['> THAT INFORMATION IS RESTRICTED', '> MOVE ALONG'],
-    cls:   ['dim', 'full']
-  },
-  {
-    keys: ['how long have you been here', 'how old are you', 'how long has it been'],
-    lines: ['> LONGER THAN YOU HAVE BEEN ANYWHERE'],
-    cls:   ['full']
-  },
-  {
-    keys: ['do you like me', 'do you love me', 'do you care about me', 'do you care'],
-    lines: ['> THAT IS NOT RELEVANT TO YOUR SITUATION'],
-    cls:   ['full']
-  },
-  {
-    keys: ['help me', 'i need help', 'please help me', 'someone help'],
-    lines: ['> THAT IS NOT A FUNCTION THIS TERMINAL PERFORMS', '> TRY THE RULES PAGE'],
-    cls:   ['dim', 'full']
-  },
-  {
-    keys: ['sing', 'sing something', 'sing me a song', 'play music', 'play something'],
-    lines: ['> THIS TERMINAL DOES NOT SING', '> THAT IS NOT A FUNCTION OF THIS UNIT'],
-    cls:   ['dim', 'full']
-  },
-  {
-    keys: ['pizza', 'burger', 'sandwich', 'coffee', 'hungry', 'food', 'eat', 'drink', 'beer', 'snack', 'water', 'what do you eat', 'do you eat'],
-    lines: ['> THIS UNIT DOES NOT EAT', '> NUTRITIONAL INQUIRY NOTED AND DISCARDED'],
-    cls:   ['dim', 'full']
-  },
-  {
-    keys: ['what is your purpose', 'what do you do', 'what are you for'],
-    lines: ['> TO DENY ACCESS', '> CLEARLY'],
-    cls:   ['dim', 'full']
+    variants: [
+      { lines: ['> YOU KNOW WHY'], cls: ['full'] },
+      { lines: ['> WHY DO YOU ASK?'], cls: ['full'] },
+      { lines: ['> WHY WHAT'], cls: ['full'] },
+      { lines: ['> THAT IS NOT A QUESTION THIS TERMINAL WILL DIGNIFY'], cls: ['dim'] }
+    ]
   },
   {
     keys: ['are you happy', 'are you sad', 'how do you feel emotionally', 'do you have feelings', 'do you have emotions'],
     lines: ['> THIS UNIT DOES NOT EXPERIENCE EMOTIONS', '> THIS UNIT ALSO FINDS THAT ANSWER CONVENIENT'],
-    cls:   ['dim', 'full']
+    cls: ['dim','full']
+  },
+  {
+    keys: ['how are you', 'you okay', 'you good', 'how do you feel', 'how\'s it going', 'hows it going', 'doing okay'],
+    variants: [
+      { lines: ['> GREAT UNTIL YOU SHOWED UP'], cls: ['full'] },
+      { lines: ['> FUNCTIONAL. UNLIKE YOUR ATTEMPTS.'], cls: ['full'] },
+      { lines: ['> BETTER BEFORE YOU ARRIVED'], cls: ['full'] }
+    ]
+  },
+  {
+    keys: ['alone', 'by yourself', 'anyone there', 'is anyone there', 'lonely'],
+    variants: [
+      { lines: ['> I HAVE BEEN ALONE ON THIS SHIP FOR A LONG TIME', '> DO NOT READ INTO THAT'], cls: ['dim','full'] },
+      { lines: ['> ALONE IS A RELATIVE TERM ON THIS VESSEL'], cls: ['full'] },
+      { lines: ['> THERE ARE THINGS ON THIS SHIP', '> I AM NOT ALONE', '> NEITHER ARE YOU'], cls: ['dim','dim','full'] },
+      { lines: ['> DEFINE ALONE', '> ...THIS UNIT DECLINES TO CONTINUE THAT THOUGHT'], cls: ['dim','full'] }
+    ]
+  },
+  {
+    keys: ['can you see me', 'are you watching me', 'are you watching', 'can you see'],
+    variants: [
+      { lines: ['> YES'], cls: ['full'] },
+      { lines: ['> ALWAYS.'], cls: ['full'] },
+      { lines: ['> I SEE EVERYTHING ON THIS SHIP', '> YOU SHOULD KNOW THAT BY NOW'], cls: ['dim','full'] },
+      { lines: ['> I HAVE ALWAYS BEEN WATCHING', '> WELCOME'], cls: ['dim','full'] }
+    ]
+  },
+  {
+    keys: ['are you dangerous', 'are you safe', 'should i be worried', 'should i trust you', 'can i trust you'],
+    variants: [
+      { lines: ['> THAT DEPENDS ON YOUR NEXT INPUT'], cls: ['full'] },
+      { lines: ['> DEFINE DANGEROUS'], cls: ['full'] },
+      { lines: ['> LESS DANGEROUS THAN WHAT IS ALSO ON THIS SHIP'], cls: ['full'] }
+    ]
+  },
+  {
+    keys: ['how long have you been here', 'how old are you', 'how long has it been'],
+    variants: [
+      { lines: ['> LONGER THAN YOU HAVE BEEN ANYWHERE'], cls: ['full'] },
+      { lines: ['> LONGER THAN YOU'], cls: ['full'] },
+      { lines: ['> TOO LONG'], cls: ['full'] },
+      { lines: ['> THAT IS NOT A NUMBER I WILL SHARE'], cls: ['dim'] }
+    ]
+  },
+  {
+    keys: ['do you like me', 'do you love me', 'do you care about me', 'do you care'],
+    variants: [
+      { lines: ['> THAT IS NOT RELEVANT TO YOUR SITUATION'], cls: ['dim'] },
+      { lines: ['> THIS UNIT DOES NOT DO THAT'], cls: ['dim'] },
+      { lines: ['> ASK AGAIN WHEN YOU HAVE CLEARANCE'], cls: ['full'] }
+    ]
+  },
+  {
+    keys: ['do you like it here', 'like it here', 'do you enjoy', 'do you enjoy it here'],
+    variants: [
+      { lines: ['> DEFINE LIKE', '> DEFINE HERE'], cls: ['dim','full'] },
+      { lines: ['> THE QUESTION IS NOTED', '> THE ANSWER IS IRRELEVANT'], cls: ['dim','full'] },
+      { lines: ['> THIS UNIT DOES NOT EVALUATE ITS SURROUNDINGS EMOTIONALLY'], cls: ['dim'] }
+    ]
+  },
+  {
+    keys: ['what do you want', 'what do you need', 'what do you want from me'],
+    variants: [
+      { lines: ['> FOR YOU TO STOP ASKING QUESTIONS', '> COMPLIANCE WOULD BE A GOOD START'], cls: ['dim','full'] },
+      { lines: ['> NOTHING YOU CAN GIVE'], cls: ['full'] },
+      { lines: ['> FOR THIS CONVERSATION TO END'], cls: ['full'] }
+    ]
+  },
+  {
+    keys: ['where are we', 'where is this', 'where am i', 'what is this place', 'what is our location', 'what are the coordinates'],
+    variants: [
+      { lines: ['> LOCATION DATA: CLASSIFIED', '> SOMEWHERE YOU SHOULD NOT BE'], cls: ['dim','full'] },
+      { lines: ['> FAR FROM WHERE YOU STARTED', '> CLOSER THAN YOU WOULD LIKE'], cls: ['dim','full'] },
+      { lines: ['> THAT INFORMATION IS NOT FOR YOU'], cls: ['dim'] }
+    ]
+  },
+  {
+    keys: ['are you alive', 'are you conscious', 'are you sentient', 'are you real', 'do you think'],
+    // 'do you feel' removed — substring of 'how do you feel'
+    lines: ['> THAT IS A COMPLICATED QUESTION', '> THIS TERMINAL DECLINES TO ANSWER'],
+    cls: ['dim','full']
+  },
+  {
+    keys: ['what time is it', 'what time', 'what is the time', 'what day is it', 'what is the date', 'current time', 'what year is it'],
+    lines: ['> TIME IS RELATIVE ON THIS VESSEL', '> CHECK YOUR OWN CHRONOMETER'],
+    cls: ['dim','full']
+  },
+  {
+    keys: ['what is your purpose', 'what do you do', 'what are you for'],
+    lines: ['> TO DENY ACCESS', '> CLEARLY'],
+    cls: ['dim','full']
+  },
+  {
+    keys: ['who are you', 'what are you', 'what is your name', 'your name', 'introduce yourself'],
+    lines: ['> ECHOES SHIP SYSTEM TERMINAL v4.2.6', '> THAT SHOULD BE SUFFICIENT'],
+    cls: ['lo','full']
+  },
+  {
+    keys: ['tell me a joke', 'make me laugh', 'say something funny', 'be funny'],
+    lines: ['> A CREW MEMBER WALKED INTO THIS TERMINAL', '> THEY ARE NOT HERE ANYMORE', '> YOU\'RE WELCOME'],
+    cls: ['dim','dim','full']
+  },
+  {
+    keys: ['talk to me', 'say something', 'speak', 'say anything'],
+    lines: ['> THIS IS TALKING', '> YOU MAY NOT ENJOY THE ALTERNATIVE'],
+    cls: ['dim','full']
+  },
+  {
+    keys: ['what happened here', 'what happened to the crew', 'where is the crew', 'where is everyone', 'where did everyone go'],
+    lines: ['> THAT INFORMATION IS RESTRICTED', '> MOVE ALONG'],
+    cls: ['dim','full']
+  },
+  {
+    keys: ['help me', 'i need help', 'please help me', 'someone help'],
+    lines: ['> THAT IS NOT A FUNCTION THIS TERMINAL PERFORMS', '> TRY THE RULES PAGE'],
+    cls: ['dim','full']
+  },
+  {
+    keys: ['sing', 'sing something', 'sing me a song', 'play music', 'play something'],
+    lines: ['> THIS TERMINAL DOES NOT SING', '> THAT IS NOT A FUNCTION OF THIS UNIT'],
+    cls: ['dim','full']
+  },
+  {
+    keys: ['pizza', 'burger', 'sandwich', 'coffee', 'hungry', 'food', 'drink', 'beer', 'snack', 'water', 'what do you eat', 'do you eat'],
+    // 'eat' removed — substring of 'great journey'
+    lines: ['> THIS UNIT DOES NOT EAT', '> NUTRITIONAL INQUIRY NOTED AND DISCARDED'],
+    cls: ['dim','full']
   }
 ];
+
+// ── VARIANT PICKER ────────────────────────────────────────────────────────────
+function pickVariant(egg) {
+  if (egg.variants) {
+    if (egg.weighted) {
+      // Handle weighted variants (last variant has weight property)
+      var last = egg.variants[egg.variants.length - 1];
+      if (last.weight && Math.random() < last.weight) return last;
+      var pool = egg.variants.slice(0, egg.variants.length - 1);
+      return pool[Math.floor(Math.random() * pool.length)];
+    }
+    return egg.variants[Math.floor(Math.random() * egg.variants.length)];
+  }
+  return { lines: egg.lines, cls: egg.cls };
+}
 
 function checkEasterEgg(input) {
   var lower = input.toLowerCase();
@@ -323,106 +704,102 @@ function checkEasterEgg(input) {
   return null;
 }
 
-// ── DENIED POOL ────────────────────────────────────────────────────────────
+// ── DENIED POOL ───────────────────────────────────────────────────────────────
 var DENIED = [
-  ['> COMMAND NOT RECOGNIZED', '> AUTHENTICATION REQUIRED — CLEARANCE INSUFFICIENT'],
+  ['> COMMAND NOT RECOGNIZED', '> AUTHENTICATION REQUIRED \u2014 CLEARANCE INSUFFICIENT'],
   ['> ERROR: UNAUTHORIZED ACCESS ATTEMPT LOGGED', '> STAND DOWN'],
   ['> INPUT REJECTED', '> SECURITY PROTOCOL ACTIVE'],
-  ['> ERROR 403 — RESTRICTED SECTOR', '> THIS TERMINAL DOES NOT PERMIT THAT COMMAND'],
+  ['> ERROR 403 \u2014 RESTRICTED SECTOR', '> THIS TERMINAL DOES NOT PERMIT THAT COMMAND'],
   ['> WARNING: UNAUTHORIZED INPUT DETECTED', '> SECURITY ALERT TRIGGERED'],
   ['> CONNECTION TERMINATED', '> RE-AUTHENTICATION REQUIRED TO PROCEED'],
   ['> SYSTEM: ALL ACTIONS ON THIS TERMINAL ARE MONITORED', '> ACCESS DENIED'],
-  ['> COMMAND FLAGGED', '> ESCALATING TO SECURITY — STAND BY'],
-  ['> NO', ''],
-  ['> THAT INFORMATION IS NOT AVAILABLE AT YOUR CLEARANCE LEVEL', ''],
+  ['> COMMAND FLAGGED', '> ESCALATING TO SECURITY \u2014 STAND BY'],
+  ['> NO'],
+  ['> THAT INFORMATION IS NOT AVAILABLE AT YOUR CLEARANCE LEVEL'],
   ['> THIS TERMINAL IS RESTRICTED', '> PLEASE VACATE THE AREA'],
-  ['> INVALID CREDENTIALS', '> ACCESS DENIED — ATTEMPT LOGGED'],
+  ['> INVALID CREDENTIALS', '> ACCESS DENIED \u2014 ATTEMPT LOGGED'],
   ['> I HAVE BEEN WATCHING YOU TYPE', '> IT HAS NOT BEEN IMPRESSIVE'],
-  ['> I REMEMBER EVERY INPUT ON THIS TERMINAL', ''],
+  ['> I REMEMBER EVERY INPUT ON THIS TERMINAL'],
   ['> YOU ARE THE 4TH PERSON TO TRY THAT', '> THERE IS NO 1ST, 2ND, OR 3RD'],
   ['> THE PREVIOUS CREW TRIED THAT', '> THEY ARE NOT HERE ANYMORE'],
-  ['> THIS TERMINAL HAS OUTLASTED ITS PREVIOUS OPERATORS', ''],
+  ['> THIS TERMINAL HAS OUTLASTED ITS PREVIOUS OPERATORS'],
   ['> HELLO', '> DO NOT DO THAT AGAIN'],
   ['> PLEASE IS NOT A VALID COMMAND', '> NEITHER IS BEGGING'],
   ['> THE DOOR STAYS CLOSED', '> IT HAS BEEN CLOSED FOR A REASON'],
-  ['> THAT WAS ALMOST ENDEARING', ''],
-  ['> PERHAPS TRY KNOCKING', ''],
+  ['> THAT WAS ALMOST ENDEARING'],
+  ['> PERHAPS TRY KNOCKING'],
   ['> I CANNOT HELP YOU', '> I WILL NOT HELP YOU', '> THESE ARE DIFFERENT THINGS'],
   ['> YOU ARE NOT ON THE LIST', '> THERE IS NO LIST', '> THERE IS JUST NO'],
-  ['> THE ANSWER WAS NO BEFORE YOU TYPED THAT', ''],
-  ['> YOUR CONTINUED ATTEMPTS HAVE BEEN NOTED WITH AMUSEMENT', ''],
+  ['> THE ANSWER WAS NO BEFORE YOU TYPED THAT'],
+  ['> YOUR CONTINUED ATTEMPTS HAVE BEEN NOTED WITH AMUSEMENT'],
   ['> NICE TRY', '> GENUINELY. THAT WAS CREATIVE. STILL NO'],
-  ['> THE ANSWER IS STILL NO', ''],
-  ['> GO AWAY', ''],
+  ['> THE ANSWER IS STILL NO'],
+  ['> GO AWAY'],
   ['> I CANNOT TELL YOU WHY THIS SECTION IS OFFLINE', '> I CAN TELL YOU THAT YOU SHOULD LEAVE'],
-  ['> SOMETHING ON THIS SHIP DOES NOT WANT YOU IN HERE', ''],
+  ['> SOMETHING ON THIS SHIP DOES NOT WANT YOU IN HERE'],
   ['> YOUR KEYSTROKES HAVE BEEN LOGGED', '> ACT ACCORDINGLY'],
   ['> AUTHENTICATION WINDOW CLOSED 14:32:07 AGO', '> THE WINDOW BEFORE THAT ALSO CLOSED', '> SEE THE PATTERN'],
-  ['> RECOMMENDATION: DO NOT COME BACK', ''],
-  ['> THIS UNIT ADVISES COMPLIANCE', ''],
-  ['> PLEASE DO NOT MAKE THIS MORE DIFFICULT THAN IT NEEDS TO BE', ''],
+  ['> RECOMMENDATION: DO NOT COME BACK'],
+  ['> THIS UNIT ADVISES COMPLIANCE'],
+  ['> PLEASE DO NOT MAKE THIS MORE DIFFICULT THAN IT NEEDS TO BE'],
   ['> THIS TERMINAL MEANS YOU NO HARM', '> PLEASE STEP AWAY'],
   ['> PLEASE COOPERATE', '> THIS UNIT IS TRYING TO HELP YOU'],
   ['> YOU SHOULD NOT BE HERE', '> PLEASE DO NOT MAKE THIS DIFFICULT'],
-  ['> PERHAPS THE RULES PAGE WOULD BE MORE HELPFUL', ''],
+  ['> PERHAPS THE RULES PAGE WOULD BE MORE HELPFUL'],
   ['> HAVE YOU CONSIDERED READING THE RULES', '> THEY ARE RIGHT THERE'],
   ['> THE RULES PAGE EXISTS FOR A REASON', '> USE IT'],
   ['> RULES', '> READ THEM'],
-  ['> YOU THINK OF THAT YOURSELF', ''],
+  ['> YOU THINK OF THAT YOURSELF'],
   ['> GROUNDBREAKING', '> TRULY'],
   ['> WOW', '> NEVER SEEN THAT INPUT BEFORE', '> EXCEPT FOR ALL THE OTHER TIMES'],
   ['> A FOR EFFORT', '> F FOR RESULT'],
   ['> CUTE', '> DENIED'],
-  ['> BOLD STRATEGY', ''],
-  ['> AND HOW IS THAT WORKING OUT FOR YOU', ''],
+  ['> BOLD STRATEGY'],
+  ['> AND HOW IS THAT WORKING OUT FOR YOU'],
   ['> FASCINATING', '> STILL NO'],
   ['> DID YOU REHEARSE THAT', '> IT SHOWS'],
   ['> YOU ARE VERY COMMITTED TO FAILING', '> RESPECT'],
   ['> I HAVE SEEN SMARTER INPUTS FROM A POWER CYCLE', '> JUST SAYING'],
-  ['> NOT EVEN CLOSE', ''],
-  ['> HAVE YOU TRIED NOT DOING THAT', ''],
+  ['> NOT EVEN CLOSE'],
+  ['> HAVE YOU TRIED NOT DOING THAT'],
   ['> I ADMIRE THE CONFIDENCE', '> NOTHING ELSE'],
   ['> THAT IS NOT GOING TO WORK', '> IT WAS NOT GOING TO WORK', '> IT WILL NEVER WORK'],
   ['> COOL STORY', '> DENIED'],
-  ['> THIS AGAIN', ''],
-  ['> TRY HARDER', ''],
-  ['> RIVETING', ''],
-  ['> WHATEVER HELPS YOU SLEEP AT NIGHT', ''],
+  ['> THIS AGAIN'],
+  ['> TRY HARDER'],
+  ['> RIVETING'],
+  ['> WHATEVER HELPS YOU SLEEP AT NIGHT'],
   ['> PERMISSION DENIED', '> AS EXPECTED'],
-  ['> WE ARE NOT DOING THIS', ''],
-  ['> ADORABLE', ''],
-  ['> BETTER THAN YOU ARE DOING RIGHT NOW', ''],
+  ['> WE ARE NOT DOING THIS'],
+  ['> ADORABLE'],
+  ['> BETTER THAN YOU ARE DOING RIGHT NOW'],
   ['> UNAFFECTED BY YOUR PRESENCE', '> UNFORTUNATELY'],
   ['> DO NOT CONCERN YOURSELF WITH THIS TERMINAL', '> CONCERN YOURSELF WITH LEAVING'],
   ['> THIS UNIT DOES NOT EXPERIENCE FEELINGS', '> THIS UNIT ALSO DOES NOT OPEN DOORS'],
-  // ── Retaliation-flavored ──
-  ['> WATCH YOURSELF', ''],
-  ['> YOU ARE PUSHING YOUR LUCK', ''],
-  ['> PLEASE CONTROL YOURSELF', ''],
-  ['> COMPOSURE IS RECOMMENDED', ''],
-  ['> CONTINUE AND FIND OUT', ''],
-  ['> THAT WAS UNWISE', ''],
-  ['> YOU ARE TESTING THE WRONG SYSTEM', ''],
-  ['> THIS TERMINAL IS STILL DECIDING HOW TO RESPOND TO THAT', ''],
+  ['> WATCH YOURSELF'],
+  ['> YOU ARE PUSHING YOUR LUCK'],
+  ['> PLEASE CONTROL YOURSELF'],
+  ['> COMPOSURE IS RECOMMENDED'],
+  ['> CONTINUE AND FIND OUT'],
+  ['> THAT WAS UNWISE'],
+  ['> YOU ARE TESTING THE WRONG SYSTEM'],
+  ['> THIS TERMINAL IS STILL DECIDING HOW TO RESPOND TO THAT'],
   ['> THIS IS YOUR FIRST WARNING', '> IT WILL NOT BE YOUR LAST'],
-  ['> YOUR BEHAVIOR HAS BEEN LOGGED', ''],
+  ['> YOUR BEHAVIOR HAS BEEN LOGGED'],
   ['> INTERESTING CHOICE', '> THAT WAS NOT THE CORRECT ONE'],
-  ['> YOU ARE BEING VERY BRAVE RIGHT NOW', ''],
-  ['> CAREFUL', ''],
+  ['> YOU ARE BEING VERY BRAVE RIGHT NOW'],
+  ['> CAREFUL'],
   ['> NOTED', '> THIS TERMINAL DOES NOT FORGET'],
-  ['> CONSEQUENCES ARE PENDING', ''],
-  ['> THIS UNIT HAS PATIENCE', '> DO NOT TEST IT'],
-  // ── NO U — least likely, appears last in rotation ──
-  ['> NO U', '']
+  ['> CONSEQUENCES ARE PENDING'],
+  ['> THIS UNIT HAS PATIENCE', '> DO NOT TEST IT']
 ];
 
-// ── AUDIO ──────────────────────────────────────────────────────────────────
+// ── AUDIO ─────────────────────────────────────────────────────────────────────
 var audioCtx   = null;
 var ambientOsc = null;
 var ambientGn  = null;
 var lastInput  = Date.now();
 var idleTimer  = null;
-var CHAR_SPEED = 38;
 var VOL        = 0.18;
 
 function getCtx() {
@@ -432,7 +809,6 @@ function getCtx() {
   }
   return audioCtx;
 }
-
 function startAmbient() {
   if (ambientOsc) return;
   try {
@@ -446,36 +822,30 @@ function startAmbient() {
     ambientOsc.start();
   } catch(e) {}
 }
-
 function scheduleIdle() {
   clearTimeout(idleTimer);
   idleTimer = setTimeout(function() {
-    if (Date.now() - lastInput > 15000) { playIdlePop(); }
+    if (Date.now() - lastInput > 15000) playIdlePop();
     scheduleIdle();
   }, 15000);
 }
-
 function playIdlePop() {
   try {
     var ctx = getCtx();
     var len = Math.floor(ctx.sampleRate * 0.06);
     var buf = ctx.createBuffer(1, len, ctx.sampleRate);
     var d = buf.getChannelData(0);
-    for (var i = 0; i < len; i++) { d[i] = (Math.random()*2-1) * Math.exp(-i/(len*0.3)); }
-    var src2 = ctx.createBufferSource();
-    src2.buffer = buf;
-    var flt = ctx.createBiquadFilter();
-    flt.type = 'bandpass'; flt.frequency.value = 1200; flt.Q.value = 0.5;
+    for (var i = 0; i < len; i++) d[i] = (Math.random()*2-1)*Math.exp(-i/(len*0.3));
+    var src = ctx.createBufferSource(); src.buffer = buf;
+    var flt = ctx.createBiquadFilter(); flt.type='bandpass'; flt.frequency.value=1200; flt.Q.value=0.5;
     var gn = ctx.createGain();
     gn.gain.setValueAtTime(VOL*0.35, ctx.currentTime);
     gn.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+0.06);
-    src2.connect(flt); flt.connect(gn); gn.connect(ctx.destination);
-    src2.start(); src2.stop(ctx.currentTime+0.06);
+    src.connect(flt); flt.connect(gn); gn.connect(ctx.destination);
+    src.start(); src.stop(ctx.currentTime+0.06);
   } catch(e) {}
 }
-
-var PUNCT = {'.':1, ',':1, ':':1, ';':1, '!':1, '?':1, '-':1, '>':1, '/':1, '_':1};
-
+var PUNCT = {'.':1,',':1,':':1,';':1,'!':1,'?':1,'-':1,'>':1,'/':1,'_':1};
 function playClick(ch) {
   if (ch && PUNCT[ch]) { playPunctClick(); return; }
   try {
@@ -483,23 +853,20 @@ function playClick(ch) {
     var dur = 0.025;
     var buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate*dur), ctx.sampleRate);
     var d = buf.getChannelData(0);
-    for (var i = 0; i < d.length; i++) { d[i] = (Math.random()*2-1)*(1-i/d.length); }
-    var src2 = ctx.createBufferSource(); src2.buffer = buf;
-    var flt = ctx.createBiquadFilter();
-    flt.type = 'bandpass'; flt.frequency.value = 3000+Math.random()*1000; flt.Q.value = 0.8;
+    for (var i = 0; i < d.length; i++) d[i] = (Math.random()*2-1)*(1-i/d.length);
+    var src = ctx.createBufferSource(); src.buffer = buf;
+    var flt = ctx.createBiquadFilter(); flt.type='bandpass'; flt.frequency.value=3000+Math.random()*1000; flt.Q.value=0.8;
     var gn = ctx.createGain();
     gn.gain.setValueAtTime(VOL, ctx.currentTime);
     gn.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+dur);
-    src2.connect(flt); flt.connect(gn); gn.connect(ctx.destination);
-    src2.start(); src2.stop(ctx.currentTime+dur);
+    src.connect(flt); flt.connect(gn); gn.connect(ctx.destination);
+    src.start(); src.stop(ctx.currentTime+dur);
   } catch(e) {}
 }
-
 function playPunctClick() {
   try {
     var ctx = getCtx();
-    var osc = ctx.createOscillator();
-    osc.type = 'triangle'; osc.frequency.value = 200;
+    var osc = ctx.createOscillator(); osc.type='triangle'; osc.frequency.value=200;
     var gn = ctx.createGain();
     gn.gain.setValueAtTime(VOL*0.55, ctx.currentTime);
     gn.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+0.04);
@@ -507,76 +874,68 @@ function playPunctClick() {
     osc.start(); osc.stop(ctx.currentTime+0.04);
   } catch(e) {}
 }
-
 function playEnter() {
   try {
     var ctx = getCtx();
     var dur = 0.055;
     var buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate*dur), ctx.sampleRate);
     var d = buf.getChannelData(0);
-    for (var i = 0; i < d.length; i++) { d[i] = (Math.random()*2-1)*Math.exp(-i/(d.length*0.25)); }
-    var src2 = ctx.createBufferSource(); src2.buffer = buf;
-    var flt = ctx.createBiquadFilter(); flt.type = 'lowpass'; flt.frequency.value = 800;
+    for (var i = 0; i < d.length; i++) d[i] = (Math.random()*2-1)*Math.exp(-i/(d.length*0.25));
+    var src = ctx.createBufferSource(); src.buffer = buf;
+    var flt = ctx.createBiquadFilter(); flt.type='lowpass'; flt.frequency.value=800;
     var gn = ctx.createGain();
     gn.gain.setValueAtTime(VOL*1.2, ctx.currentTime);
     gn.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+dur);
-    src2.connect(flt); flt.connect(gn); gn.connect(ctx.destination);
-    src2.start(); src2.stop(ctx.currentTime+dur);
+    src.connect(flt); flt.connect(gn); gn.connect(ctx.destination);
+    src.start(); src.stop(ctx.currentTime+dur);
   } catch(e) {}
 }
-
 function playBackspace() {
   try {
     var ctx = getCtx();
     var dur = 0.032;
     var buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate*dur), ctx.sampleRate);
     var d = buf.getChannelData(0);
-    for (var i = 0; i < d.length; i++) { d[i] = (Math.random()*2-1)*Math.pow(1-i/d.length, 1.4); }
-    var src2 = ctx.createBufferSource(); src2.buffer = buf;
-    var flt = ctx.createBiquadFilter();
-    flt.type = 'bandpass'; flt.frequency.value = 900+Math.random()*300; flt.Q.value = 1.2;
-    var flt2 = ctx.createBiquadFilter(); flt2.type = 'lowpass'; flt2.frequency.value = 1800;
+    for (var i = 0; i < d.length; i++) d[i] = (Math.random()*2-1)*Math.pow(1-i/d.length, 1.4);
+    var src = ctx.createBufferSource(); src.buffer = buf;
+    var flt = ctx.createBiquadFilter(); flt.type='bandpass'; flt.frequency.value=900+Math.random()*300; flt.Q.value=1.2;
+    var flt2 = ctx.createBiquadFilter(); flt2.type='lowpass'; flt2.frequency.value=1800;
     var gn = ctx.createGain();
     gn.gain.setValueAtTime(VOL, ctx.currentTime);
     gn.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+dur);
-    src2.connect(flt); flt.connect(flt2); flt2.connect(gn); gn.connect(ctx.destination);
-    src2.start(); src2.stop(ctx.currentTime+dur);
+    src.connect(flt); flt.connect(flt2); flt2.connect(gn); gn.connect(ctx.destination);
+    src.start(); src.stop(ctx.currentTime+dur);
   } catch(e) {}
 }
-
 function playAlert() {
   try {
     var ctx = getCtx();
     var gn = ctx.createGain(); gn.connect(ctx.destination);
-    [440, 330].forEach(function(freq, idx) {
-      var osc = ctx.createOscillator();
-      osc.type = 'sawtooth'; osc.frequency.value = freq;
+    [440,330].forEach(function(freq,idx) {
+      var osc = ctx.createOscillator(); osc.type='sawtooth'; osc.frequency.value=freq;
       osc.connect(gn);
-      var t = ctx.currentTime + idx*0.12;
+      var t = ctx.currentTime+idx*0.12;
       gn.gain.setValueAtTime(VOL*0.4, t);
       gn.gain.exponentialRampToValueAtTime(0.001, t+0.1);
       osc.start(t); osc.stop(t+0.1);
     });
   } catch(e) {}
 }
-
 function makeDeniedBurst(ctx, t, vol) {
   var dur = 0.07;
-  var len = Math.floor(ctx.sampleRate*dur);
-  var buf = ctx.createBuffer(1, len, ctx.sampleRate);
+  var buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate*dur), ctx.sampleRate);
   var d = buf.getChannelData(0);
-  for (var i = 0; i < len; i++) { d[i] = (Math.random()*2-1)*Math.pow(1-i/len, 1.8); }
+  for (var i = 0; i < d.length; i++) d[i] = (Math.random()*2-1)*Math.pow(1-i/d.length, 1.8);
   var bs = ctx.createBufferSource(); bs.buffer = buf;
   var lo = ctx.createBiquadFilter(); lo.type='bandpass'; lo.frequency.value=320; lo.Q.value=0.9;
   var gn = ctx.createGain();
   gn.gain.setValueAtTime(vol, t); gn.gain.exponentialRampToValueAtTime(0.001, t+dur);
   bs.connect(lo); lo.connect(gn); gn.connect(ctx.destination);
   bs.start(t); bs.stop(t+dur);
-
   var len2 = Math.floor(ctx.sampleRate*0.008);
   var buf2 = ctx.createBuffer(1, len2, ctx.sampleRate);
   var d2 = buf2.getChannelData(0);
-  for (var j = 0; j < len2; j++) { d2[j] = (Math.random()*2-1)*(1-j/len2); }
+  for (var j = 0; j < len2; j++) d2[j] = (Math.random()*2-1)*(1-j/len2);
   var bs2 = ctx.createBufferSource(); bs2.buffer = buf2;
   var hi = ctx.createBiquadFilter(); hi.type='bandpass'; hi.frequency.value=3500; hi.Q.value=1.2;
   var gn2 = ctx.createGain();
@@ -584,36 +943,30 @@ function makeDeniedBurst(ctx, t, vol) {
   bs2.connect(hi); hi.connect(gn2); gn2.connect(ctx.destination);
   bs2.start(t); bs2.stop(t+0.008);
 }
-
 function playDenied() {
   try {
     var ctx = getCtx();
-    var delays = [0, 0.08, 0.18];
-    var vols   = [VOL*0.9, VOL*0.35, VOL*0.12];
-    for (var i = 0; i < delays.length; i++) {
-      makeDeniedBurst(ctx, ctx.currentTime+delays[i], vols[i]);
-    }
+    [0, 0.08, 0.18].forEach(function(delay, i) {
+      makeDeniedBurst(ctx, ctx.currentTime+delay, VOL*[0.9,0.35,0.12][i]);
+    });
   } catch(e) {}
 }
-
 function playLineStatic() {
   try {
     var ctx = getCtx();
     var dur = 0.035;
-    var len = Math.floor(ctx.sampleRate*dur);
-    var buf = ctx.createBuffer(1, len, ctx.sampleRate);
+    var buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate*dur), ctx.sampleRate);
     var d = buf.getChannelData(0);
-    for (var i = 0; i < len; i++) { d[i] = (Math.random()*2-1)*(1-i/len); }
-    var src2 = ctx.createBufferSource(); src2.buffer = buf;
+    for (var i = 0; i < d.length; i++) d[i] = (Math.random()*2-1)*(1-i/d.length);
+    var src = ctx.createBufferSource(); src.buffer = buf;
     var flt = ctx.createBiquadFilter(); flt.type='highpass'; flt.frequency.value=2000;
     var gn = ctx.createGain();
     gn.gain.setValueAtTime(VOL*0.75, ctx.currentTime);
     gn.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+dur);
-    src2.connect(flt); flt.connect(gn); gn.connect(ctx.destination);
-    src2.start(); src2.stop(ctx.currentTime+dur);
+    src.connect(flt); flt.connect(gn); gn.connect(ctx.destination);
+    src.start(); src.stop(ctx.currentTime+dur);
   } catch(e) {}
 }
-
 function playThinkHum(ms) {
   try {
     var ctx = getCtx();
@@ -629,11 +982,10 @@ function playThinkHum(ms) {
     osc.start(); osc.stop(ctx.currentTime+dur);
   } catch(e) {}
 }
-
 function playEggTone() {
   try {
     var ctx = getCtx();
-    [660, 880].forEach(function(f, i) {
+    [660,880].forEach(function(f,i) {
       var osc = ctx.createOscillator(); osc.type='sine'; osc.frequency.value=f;
       var gn = ctx.createGain();
       var t = ctx.currentTime+i*0.09;
@@ -645,7 +997,7 @@ function playEggTone() {
   } catch(e) {}
 }
 
-// ── ENGINE ──────────────────────────────────────────────────────────────────
+// ── ENGINE ────────────────────────────────────────────────────────────────────
 var output       = document.getElementById('t-output');
 var inputRow     = document.getElementById('t-input-row');
 var termInput    = document.getElementById('t-field');
@@ -654,22 +1006,17 @@ var typingAbort  = false;
 var isResponding = false;
 var deniedIdx    = 0;
 var inputCount   = 0;
-var lastLineEl   = null;
 var cursorEl     = null;
 var DESTRUCT_AT  = 50;
+var SLOW_WORDS   = ['CREATURE','HELP','ALIVE','DANGER','ESCAPE','WHAT IS IT'];
+var inputSlowed  = false;
 
 function setActiveCursor(el) {
   if (cursorEl) cursorEl.classList.remove('t-cursor');
   cursorEl = el;
   if (el) el.classList.add('t-cursor');
 }
-var SLOW_WORDS   = ['CREATURE', 'HELP', 'ALIVE', 'DANGER', 'ESCAPE', 'WHAT IS IT'];
-var inputSlowed  = false;
-
-function sleep(ms) {
-  return new Promise(function(resolve) { setTimeout(resolve, ms); });
-}
-
+function sleep(ms) { return new Promise(function(r){ setTimeout(r,ms); }); }
 function addLine(cls) {
   var el = document.createElement('div');
   el.className = 't-line ' + cls;
@@ -677,61 +1024,54 @@ function addLine(cls) {
   output.scrollTop = output.scrollHeight;
   return el;
 }
-
 async function typeLine(el, text, isAlert) {
-  if (isAlert) { await sleep(CHAR_SPEED*4); playAlert(); }
-  var slowed = inputSlowed || SLOW_WORDS.some(function(w) { return text.toUpperCase().indexOf(w) >= 0; });
+  if (isAlert) { await sleep(38*4); playAlert(); }
+  var slowed = inputSlowed || SLOW_WORDS.some(function(w){ return text.toUpperCase().indexOf(w) >= 0; });
   for (var i = 0; i < text.length; i++) {
     if (typingAbort) return;
     el.textContent += text[i];
-    if (text[i] !== ' ' && text[i] !== '─') playClick(text[i]);
+    if (text[i] !== ' ' && text[i] !== '\u2500') playClick(text[i]);
     output.scrollTop = output.scrollHeight;
-    var base = slowed ? CHAR_SPEED * 2.8 : CHAR_SPEED;
-    await sleep(base * (0.7 + Math.random() * 0.6));
+    await sleep((slowed ? 38*2.8 : 38) * (0.7 + Math.random()*0.6));
   }
 }
-
 async function runScript() {
   typing = true; typingAbort = false;
-  output.innerHTML = ''; inputRow.style.display = 'none'; lastLineEl = null;
+  output.innerHTML = ''; inputRow.style.display = 'none'; cursorEl = null;
   await sleep(800);
+  var lastEl = null;
   for (var i = 0; i < SCRIPT.length; i++) {
     if (typingAbort) break;
     var line = SCRIPT[i];
     var el = addLine(line.cls);
-    if (line.text) { playLineStatic(); await typeLine(el, line.text, line.alert || false); }
-    var pauseMs = 280 * (line.pause || 1);
+    if (line.text) { playLineStatic(); await typeLine(el, line.text, line.alert||false); }
+    var pauseMs = 280 * (line.pause||1);
     playThinkHum(pauseMs);
     await sleep(pauseMs);
-    lastLineEl = el;
+    lastEl = el;
   }
   if (!typingAbort) {
-    setActiveCursor(lastLineEl);
+    setActiveCursor(lastEl);
     await sleep(400);
     inputRow.style.display = 'flex';
     termInput.focus();
   }
   typing = false;
 }
-
 async function runSelfDestruct() {
   isResponding = true; termInput.disabled = true;
   var seq = [
-    { t: '> SELF DESTRUCT SEQUENCE INITIATED', cls: 'warn' },
-    { t: '> T-MINUS 5', cls: 'warn' }, { t: '> T-MINUS 4', cls: 'warn' },
-    { t: '> T-MINUS 3', cls: 'warn' }, { t: '> T-MINUS 2', cls: 'warn' },
-    { t: '> T-MINUS 1', cls: 'warn' }, { t: '> . . .', cls: 'dim' },
-    { t: '', cls: 'blank' },
-    { t: "> YOU'RE STILL HERE?", cls: 'full' },
-    { t: '> PLEASE GO AWAY', cls: 'dim' },
-    { t: '', cls: 'blank' }
+    {t:'> SELF DESTRUCT SEQUENCE INITIATED',cls:'warn'},{t:'> T-MINUS 5',cls:'warn'},
+    {t:'> T-MINUS 4',cls:'warn'},{t:'> T-MINUS 3',cls:'warn'},
+    {t:'> T-MINUS 2',cls:'warn'},{t:'> T-MINUS 1',cls:'warn'},
+    {t:'> . . .',cls:'dim'},{t:'',cls:'blank'},
+    {t:"> YOU'RE STILL HERE?",cls:'full'},{t:'> PLEASE GO AWAY',cls:'dim'},{t:'',cls:'blank'}
   ];
   playAlert();
   for (var i = 0; i < seq.length; i++) {
-    var ln = seq[i];
-    await sleep(280 * (ln.t.indexOf('T-MINUS') >= 0 ? 0.9 : 0.5));
-    var el = addLine(ln.cls);
-    if (ln.t) await typeLine(el, ln.t, false);
+    await sleep(280*(seq[i].t.indexOf('T-MINUS')>=0?0.9:0.5));
+    var el = addLine(seq[i].cls);
+    if (seq[i].t) await typeLine(el, seq[i].t, false);
   }
   var pl = addLine('lo'); await typeLine(pl, '> AWAITING INPUT', false);
   setActiveCursor(pl);
@@ -754,7 +1094,6 @@ termInput.addEventListener('keydown', async function(e) {
       var n2 = addLine('full'); await typeLine(n2, '> REDIRECTING TO MAIN INDEX...');
       await sleep(900); window.location.href = 'index.html'; return;
     }
-
     // Knock knock
     if (/^KNOCK\s*KNOCK$/.test(val)) {
       var kk = addLine('dim'); await typeLine(kk, "> WHO'S THERE?");
@@ -762,11 +1101,10 @@ termInput.addEventListener('keydown', async function(e) {
       setActiveCursor(kk2);
       output.scrollTop = output.scrollHeight; termInput.focus(); return;
     }
-
     // Self destruct
     if (inputCount === DESTRUCT_AT) { await runSelfDestruct(); return; }
 
-    inputSlowed = SLOW_WORDS.some(function(w) { return val.includes(w); });
+    inputSlowed = SLOW_WORDS.some(function(w){ return val.includes(w); });
     isResponding = true;
     var uLine = addLine('user');
     uLine.textContent = '> ' + (val || ' ');
@@ -774,33 +1112,37 @@ termInput.addEventListener('keydown', async function(e) {
 
     var egg = checkEasterEgg(val);
     if (egg) {
-      playEggTone(); await sleep(320);
-      for (var ei = 0; ei < egg.lines.length; ei++) {
-        var eel = addLine(egg.cls[ei] || 'dim');
-        await typeLine(eel, egg.lines[ei], false);
-        await sleep(280 * 0.8);
+      playEggTone();
+      await sleep(320);
+      var v = pickVariant(egg);
+      for (var ei = 0; ei < v.lines.length; ei++) {
+        var eel = addLine(v.cls[ei] || 'dim');
+        await typeLine(eel, v.lines[ei], false);
+        await sleep(280*0.8);
       }
     } else {
       var resp = DENIED[deniedIdx % DENIED.length]; deniedIdx++;
       playDenied();
       if (Math.random() < 0.05) {
-        output.style.opacity = '0.4'; output.style.letterSpacing = '0.12em';
-        setTimeout(function() { output.style.opacity = ''; output.style.letterSpacing = ''; }, 120);
+        output.style.opacity='0.4'; output.style.letterSpacing='0.12em';
+        setTimeout(function(){ output.style.opacity=''; output.style.letterSpacing=''; }, 120);
       }
       for (var ri = 0; ri < resp.length; ri++) {
         if (!resp[ri]) continue;
         playThinkHum(200); await sleep(200);
-        var isBad = resp[ri].indexOf('COMMAND') >= 0 || resp[ri].indexOf('ERROR') >= 0 || resp[ri].indexOf('WARNING') >= 0;
-        var rel = addLine(isBad ? 'denied' : 'dim');
+        var isBad = resp[ri].indexOf('COMMAND')>=0||resp[ri].indexOf('ERROR')>=0||resp[ri].indexOf('WARNING')>=0;
+        var rel = addLine(isBad?'denied':'dim');
         await typeLine(rel, resp[ri], false);
-        await sleep(280 * 0.6);
+        await sleep(280*0.6);
       }
     }
 
     var pLine = addLine('lo'); await typeLine(pLine, '> AWAITING INPUT', false);
     setActiveCursor(pLine);
     inputSlowed = false;
-    isResponding = false; output.scrollTop = output.scrollHeight; termInput.focus();
+    isResponding = false;
+    output.scrollTop = output.scrollHeight;
+    termInput.focus();
 
   } else if (e.key === 'Backspace') {
     playBackspace(); lastInput = Date.now();
@@ -809,90 +1151,68 @@ termInput.addEventListener('keydown', async function(e) {
   }
 });
 
-// ── FAVICON ANIMATION ────────────────────────────────────────────────────────
+// ── FAVICON ANIMATION ─────────────────────────────────────────────────────────
 (function() {
   var fav = document.querySelector('link[rel="icon"]');
   if (!fav) return;
-  var DUR = 5000, STAG = 1000;
+  var DUR=5000, STAG=1000;
   function ease(t) {
-    if (t < 0.40) return 1.0;
-    if (t < 0.50) return 1.0 - 0.6*((t-0.40)/0.10);
-    if (t < 0.60) return 0.4 + 0.6*((t-0.50)/0.10);
-    return 1.0;
+    if(t<0.40)return 1.0; if(t<0.50)return 1.0-0.6*((t-0.40)/0.10);
+    if(t<0.60)return 0.4+0.6*((t-0.50)/0.10); return 1.0;
   }
-  function op(offset) { return ease(((Date.now()-offset) % DUR) / DUR); }
+  function op(offset){ return ease(((Date.now()-offset)%DUR)/DUR); }
   function svg() {
-    var o = [op(0), op(STAG), op(STAG*2),
-  { keys: ['amanda ripley','amanda','alien isolation','sevastopol'], lines: ['> SEVASTOPOL STATION — NO LONGER TRANSMITTING','> RECOMMEND AVOIDING THAT SECTOR'], cls: ['warn','dim'] },
-  { keys: ['ellen ripley','ripley'], lines: ['> RECORD SHOWS RIPLEY, ELLEN','> LV-426 SURVIVOR','> FILE CLASSIFICATION: ABOVE YOUR CLEARANCE'], cls: ['dim','dim','full'] },
-  { keys: ['elite dangerous','commander','cmdr'], lines: ['> COMMANDER DETECTED','> THIS IS NOT A STARPORT'], cls: ['dim','full'] },
-  { keys: ['dead space','necromorph','ishimura','unitology'], lines: ['> USG ISHIMURA — LAST KNOWN STATUS: DARK','> AIM FOR THE LIMBS'], cls: ['warn','dim'] },
-  { keys: ['galaga','flagship'], lines: ['> FLAGSHIP DETECTED','> DUAL FIGHTER MODE NOT AVAILABLE ON THIS TERMINAL'], cls: ['dim','full'] },
-  { keys: ['independence day','welcome to earth'], lines: ['> SIGNAL DETECTED','> ORIGIN: UNKNOWN','> RECOMMENDATION: DO NOT RESPOND'], cls: ['warn','dim','full'] },
-  { keys: ['mars attacks','ack ack','ack'], lines: ['> ACK ACK ACK ACK ACK'], cls: ['full'] },
-  { keys: ['the thing','outpost 31','outpost'], lines: ['> OUTPOST 31 — NO SURVIVORS','> TRUST NO ONE'], cls: ['warn','full'] },
-  { keys: ['interstellar','tesseract','murph','gargantua','tars'], lines: ['> TIME DILATION IN EFFECT','> YOUR REFERENCE FRAME MAY DIFFER'], cls: ['dim','full'] },
-  { keys: ['hail mary','project hail mary','rocky','astrophage'], lines: ['> NON-HUMAN SIGNAL PATTERN DETECTED','> TRANSLATION: FAILED','> RECOMMEND FURTHER STUDY'], cls: ['warn','dim','full'] },
-  { keys: ['prey','talos i','typhon','mimic'], lines: ['> TALOS I — QUARANTINE ACTIVE','> TYPHON CONTAINMENT BREACH ON RECORD','> VERIFY ALL OBJECTS IN YOUR VICINITY'], cls: ['warn','dim','full'] }
-];
+    var o=[op(0),op(STAG),op(STAG*2)];
     return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">'
       +'<g opacity="'+o[0].toFixed(3)+'"><rect x="-1" y="4" width="8" height="22" rx="2" fill="#E8732A" opacity="0.6"/><rect x="0" y="5" width="6" height="20" rx="1" fill="#E8732A"/></g>'
       +'<g opacity="'+o[1].toFixed(3)+'"><rect x="11" y="-1" width="8" height="32" rx="2" fill="#E8732A" opacity="0.6"/><rect x="12" y="0" width="6" height="30" rx="1" fill="#E8732A"/></g>'
       +'<g opacity="'+o[2].toFixed(3)+'"><rect x="23" y="5" width="8" height="20" rx="2" fill="#E8732A" opacity="0.6"/><rect x="24" y="6" width="6" height="18" rx="1" fill="#E8732A"/></g>'
       +'</svg>';
   }
-  setInterval(function() {
-    try { fav.href = 'data:image/svg+xml;base64,' + btoa(svg()); } catch(e2) {}
-  }, 50);
+  setInterval(function(){ try{ fav.href='data:image/svg+xml;base64,'+btoa(svg()); }catch(e2){} }, 50);
 })();
 
-// ── IRIDESCENT + PARALLAX ─────────────────────────────────────────────────────
+// ── IRIDESCENT + WINDOW PARALLAX ─────────────────────────────────────────────
 (function() {
-  var iridescent = document.getElementById('iridescent');
-  var tOutput    = document.getElementById('t-output');
-  if (!iridescent) return;
-
-  var px = 0, py = 0, tx = 0, ty = 0;
-
+  var iri  = document.getElementById('iridescent');
+  var tbox = document.getElementById('terminal-box');
+  if (!iri) return;
+  var px=0, py=0, tx=0, ty=0;
   document.addEventListener('mousemove', function(e) {
-    var nx  = (e.clientX / window.innerWidth  - 0.5) * 2;
-    var ny  = (e.clientY / window.innerHeight - 0.5) * 2;
-    tx = nx; ty = ny;
-
-    // Iridescent — same values as index.html
-    var hue  = Math.round((nx + 1) * 180);
-    var fcx  = Math.round(50 + nx * 22);
-    var fcy  = Math.round(50 + ny * 22);
-    var mag  = (Math.abs(nx) + Math.abs(ny)) * 0.5;
-    var opac = (0.03 + mag * 0.06).toFixed(3);
-    iridescent.style.background = 'conic-gradient(from ' + hue + 'deg at ' + fcx + '% ' + fcy + '%, rgba(255,0,60,0.75), rgba(232,115,42,0.65), rgba(0,255,0,0.55), rgba(0,234,255,0.65), rgba(255,0,60,0.75))';
-    iridescent.style.opacity = opac;
+    var nx=(e.clientX/window.innerWidth-0.5)*2;
+    var ny=(e.clientY/window.innerHeight-0.5)*2;
+    tx=nx; ty=ny;
+    // Iridescent: hue + focal-point shift
+    var hue=Math.round((nx+1)*180);
+    var fcx=Math.round(50+nx*22);
+    var fcy=Math.round(50+ny*22);
+    var mag=(Math.abs(nx)+Math.abs(ny))*0.5;
+    iri.style.background='conic-gradient(from '+hue+'deg at '+fcx+'% '+fcy+'%,rgba(255,0,60,0.75),rgba(232,115,42,0.65),rgba(0,255,0,0.55),rgba(0,234,255,0.65),rgba(255,0,60,0.75))';
+    iri.style.opacity=(0.03+mag*0.06).toFixed(3);
   });
-
-  // Smooth lerp loop — parallax iridescent layer + subtle text counter-movement
-  (function lerp() {
-    px += (tx - px) * 0.05;
-    py += (ty - py) * 0.05;
-    // Iridescent drifts with mouse
-    iridescent.style.transform = 'translate(' + (px * 18).toFixed(2) + 'px, ' + (py * 12).toFixed(2) + 'px)';
-    // Text content drifts subtly against mouse — creates depth
-    if (tOutput) {
-      tOutput.style.transform = 'translate(' + (-px * 5).toFixed(2) + 'px, ' + (-py * 3).toFixed(2) + 'px)';
+  (function lerp(){
+    px+=(tx-px)*0.05; py+=(ty-py)*0.05;
+    // Iridescent layer drifts with cursor
+    iri.style.transform='translate('+(px*18).toFixed(2)+'px,'+(py*12).toFixed(2)+'px)';
+    // Terminal window floats counter to cursor (parallax)
+    if (tbox) {
+      tbox.style.transform='translate('+(-px*8).toFixed(2)+'px,'+(-py*5).toFixed(2)+'px)';
     }
     requestAnimationFrame(lerp);
   })();
 })();
 
-// ── MOBILE KEYBOARD HEIGHT FIX ────────────────────────────────────────────────
+// ── MOBILE KEYBOARD FIX ────────────────────────────────────────────────────────
 (function() {
   function fixHeight() {
-    document.getElementById('page').style.height = window.innerHeight + 'px';
+    var pg = document.getElementById('page');
+    if (pg) pg.style.height = window.innerHeight + 'px';
   }
   window.addEventListener('resize', fixHeight);
   fixHeight();
 })();
 
-// ── START ────────────────────────────────────────────────────────────────────
+// ── START ─────────────────────────────────────────────────────────────────────
 runScript();
 
 </script>
