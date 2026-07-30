@@ -2690,15 +2690,13 @@
      color are applied by wrapping the selection in a <span> (execCommand can't
      do arbitrary px sizes); bold/italic/underline/strike use execCommand since
      the browser already handles splitting/merging existing formatting for those. */
+  /* Kept to exactly the fonts this page actually uses (--body/--head/--mono),
+     so the picker can never suggest a font that doesn't exist anywhere on the
+     page. If you introduce a new font in the CSS, add it here too. */
   const FONT_OPTIONS = [
-    { label: 'Body (default)', value: 'Barlow, sans-serif', match: ['barlow'] },
-    { label: 'Heading (condensed)', value: '"Barlow Condensed", sans-serif', match: ['barlow condensed'] },
-    { label: 'Mono', value: '"Share Tech Mono", monospace', match: ['share tech mono'] },
-    { label: 'Georgia', value: 'Georgia, serif', match: ['georgia'] },
-    { label: 'Arial', value: 'Arial, Helvetica, sans-serif', match: ['arial'] },
-    { label: 'Courier New', value: '"Courier New", monospace', match: ['courier new'] },
-    { label: 'Times New Roman', value: '"Times New Roman", serif', match: ['times new roman'] },
-    { label: 'Verdana', value: 'Verdana, sans-serif', match: ['verdana'] }
+    { label: 'Body (Barlow)', value: 'Barlow, sans-serif', match: ['barlow'] },
+    { label: 'Heading (Barlow Condensed)', value: '"Barlow Condensed", sans-serif', match: ['barlow condensed'] },
+    { label: 'Mono (Share Tech Mono)', value: '"Share Tech Mono", monospace', match: ['share tech mono'] }
   ];
   const MIXED = '__mixed__';
 
@@ -2761,15 +2759,28 @@
       + '<button type="button" data-txt="underline" title="Underline"><u>U</u></button>'
       + '<button type="button" data-txt="strikeThrough" title="Strikethrough"><s>S</s></button>'
       + '<div class="rb-txt-sep"></div>'
-      + '<select class="rb-txt-family" title="Font family">'
-      + '<option value="' + MIXED + '" disabled>…</option>'
-      + FONT_OPTIONS.map(o => '<option value="' + o.value + '">' + o.label + '</option>').join('')
-      + '</select>'
+      + '<select class="rb-txt-family" title="Font family"></select>'
       + '<input type="number" class="rb-txt-size" min="8" max="200" step="1" title="Font size (px)" placeholder="px">'
       + '<input type="color" class="rb-txt-color" title="Text color">'
       + '<div class="rb-txt-sep"></div>'
       + '<button type="button" data-txt="clear" title="Clear formatting">✕</button>';
     document.body.appendChild(bar);
+
+    // Built via DOM APIs (not innerHTML) since font values like
+    // '"Barlow Condensed", sans-serif' contain quote characters that would
+    // otherwise break out of an HTML attribute string.
+    const familySelect = bar.querySelector('.rb-txt-family');
+    const mixedOpt = document.createElement('option');
+    mixedOpt.value = MIXED;
+    mixedOpt.disabled = true;
+    mixedOpt.textContent = '…';
+    familySelect.appendChild(mixedOpt);
+    FONT_OPTIONS.forEach(o => {
+      const opt = document.createElement('option');
+      opt.value = o.value;
+      opt.textContent = o.label;
+      familySelect.appendChild(opt);
+    });
 
     // Buttons must not steal focus/selection away from the editable text.
     bar.addEventListener('mousedown', function(e){
