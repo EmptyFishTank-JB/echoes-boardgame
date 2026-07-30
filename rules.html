@@ -32,13 +32,17 @@
     --head: 'Barlow Condensed', sans-serif;
     --body: 'Barlow', sans-serif;
 
-    /* ── page layout controls (adjustable via Layout panel in edit mode) ── */
+    /* ── page layout controls (adjustable via Layout panel in edit mode) ──
+       main/header-inner share max-width + margins so they are always aligned;
+       nav is fixed and JS-positioned flush against main's edge (updateNavLayout()),
+       reserve-l/r only gain a nonzero value when the viewport is too narrow for
+       nav to fit beside main without overlapping it. ── */
     --layout-nav-left: 0;
     --layout-nav-right: auto;
     --layout-nav-width: 240px;
-    --layout-nav-reserve-l: 240px;  /* space main/.container reserves so nav doesn't overlap it */
-    --layout-nav-reserve-r: 0px;
-    --layout-main-maxw: none;       /* 'none' = fill available width edge-to-edge (default) */
+    --layout-nav-reserve-l: 0px;   /* set dynamically by updateNavLayout() */
+    --layout-nav-reserve-r: 0px;   /* set dynamically by updateNavLayout() */
+    --layout-main-maxw: 1100px;    /* centered column width; 'none' = fill edge-to-edge */
     --layout-main-margin-left: auto;
     --layout-main-margin-right: auto;
     --layout-pad-l: 48px;
@@ -81,7 +85,9 @@
   /* ── HEADER ── */
   header {
     position: relative;
-    padding: 80px 40px 60px;
+    /* mirrors .container's nav-reserve so header-inner centers within the same
+       reduced box as main whenever updateNavLayout() has to reserve room. */
+    padding: 80px var(--layout-nav-reserve-r) 60px var(--layout-nav-reserve-l);
     border-bottom: 1px solid var(--border);
     overflow: hidden;
     background: rgba(10,12,15,0.88);
@@ -98,8 +104,13 @@
   }
 
   .header-inner {
-    max-width: 1100px;
-    margin: 0 auto;
+    /* mirrors main's box model (same vars) so the title/tagline always line up
+       with the body column, no matter how the Layout panel is set. */
+    max-width: var(--layout-main-maxw);
+    margin-left: var(--layout-main-margin-left);
+    margin-right: var(--layout-main-margin-right);
+    padding-left: var(--layout-pad-l);
+    padding-right: var(--layout-pad-r);
     position: relative;
   }
 
@@ -607,6 +618,7 @@
     nav { display: none; }
     main { max-width: 100%; margin-left: 0; margin-right: 0; padding: 24px 0; min-height: 100vh; }
     header { padding: 48px 24px 40px; }
+    .header-inner { max-width: 100%; margin-left: 0; margin-right: 0; padding-left: 0; padding-right: 0; }
   }
 
   /* ── LOGO ENGINE ── */
@@ -2015,16 +2027,13 @@
 
   function applyLayoutSettings(s){
     const root = document.documentElement.style;
+    document.documentElement.dataset.navSide = s.navSide === 'right' ? 'right' : 'left';
     if(s.navSide === 'right'){
       root.setProperty('--layout-nav-left','auto');
       root.setProperty('--layout-nav-right','0');
-      root.setProperty('--layout-nav-reserve-l','0px');
-      root.setProperty('--layout-nav-reserve-r','240px');
     } else {
       root.setProperty('--layout-nav-left','0');
       root.setProperty('--layout-nav-right','auto');
-      root.setProperty('--layout-nav-reserve-l','240px');
-      root.setProperty('--layout-nav-reserve-r','0px');
     }
     if(s.mainAlign === 'left'){
       root.setProperty('--layout-main-margin-left','0');
@@ -2041,14 +2050,57 @@
     if(s.padL !== undefined) root.setProperty('--layout-pad-l', s.padL + 'px');
     if(s.padR !== undefined) root.setProperty('--layout-pad-r', s.padR + 'px');
     try{ localStorage.setItem(STORAGE_KEY + '_layout', JSON.stringify(s)); }catch(e){}
+    updateNavLayout();
   }
 
   function loadLayoutSettings(){
     try{
       const raw = localStorage.getItem(STORAGE_KEY + '_layout');
       if(raw) applyLayoutSettings(JSON.parse(raw));
-    }catch(e){}
+      else updateNavLayout();
+    }catch(e){ updateNavLayout(); }
   }
+
+  /* ── nav positioning: attaches nav flush against main's rendered edge,
+     without main ever reserving space for it — main and header-inner stay
+     centered/aligned purely by their own maxw+margin. Only when the viewport
+     is too narrow for nav to fit in main's natural side margin does this add
+     just enough reserve padding to .container so nav can't overlap the text. ── */
+  function updateNavLayout(){
+    const nav = document.querySelector('nav');
+    const main = document.querySelector('main');
+    if(!nav || !main) return;
+    const root = document.documentElement.style;
+    root.setProperty('--layout-nav-reserve-l','0px');
+    root.setProperty('--layout-nav-reserve-r','0px');
+    if(window.innerWidth <= 768) return; // mobile: nav hidden, main full-width
+    const side = document.documentElement.dataset.navSide === 'right' ? 'right' : 'left';
+    const navWidth = nav.getBoundingClientRect().width
+      || parseInt(getComputedStyle(document.documentElement).getPropertyValue('--layout-nav-width'), 10) || 240;
+    let mainRect = main.getBoundingClientRect();
+    if(side === 'left'){
+      // if main's natural left margin can't fit nav, reserve navWidth outright
+      // (not just the shortfall) — max-width clamping means a partial reserve
+      // can under-shift main, which would push nav off-screen. A full reserve
+      // is always enough: main's left edge can only end up >= navWidth.
+      if(mainRect.left < navWidth) root.setProperty('--layout-nav-reserve-l', navWidth + 'px');
+      mainRect = main.getBoundingClientRect();
+      nav.style.left = (mainRect.left - navWidth) + 'px';
+      nav.style.right = 'auto';
+    } else {
+      if((window.innerWidth - mainRect.right) < navWidth) root.setProperty('--layout-nav-reserve-r', navWidth + 'px');
+      mainRect = main.getBoundingClientRect();
+      nav.style.left = mainRect.right + 'px';
+      nav.style.right = 'auto';
+    }
+  }
+
+  let navLayoutResizeRaf = null;
+  window.addEventListener('resize', function(){
+    if(navLayoutResizeRaf) return;
+    navLayoutResizeRaf = requestAnimationFrame(function(){ navLayoutResizeRaf = null; updateNavLayout(); });
+  });
+  window.addEventListener('load', updateNavLayout);
 
   function ensureLayoutPanel(){
     if(document.querySelector('.rb-layout-panel')) return;
@@ -2646,7 +2698,7 @@
         break;
       }
       case 'resetlayout': {
-        const d = { navSide:'left', mainAlign:'left', maxw:0, padL:48, padR:48 };
+        const d = { navSide:'left', mainAlign:'center', maxw:1100, padL:48, padR:48 };
         applyLayoutSettings(d);
         const panel = document.querySelector('.rb-layout-panel');
         panel.querySelector('.rb-lay-navside').value = d.navSide;
