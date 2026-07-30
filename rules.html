@@ -31,6 +31,18 @@
     --mono: 'Share Tech Mono', monospace;
     --head: 'Barlow Condensed', sans-serif;
     --body: 'Barlow', sans-serif;
+
+    /* ── page layout controls (adjustable via Layout panel in edit mode) ── */
+    --layout-nav-left: 0;
+    --layout-nav-right: auto;
+    --layout-nav-width: 240px;
+    --layout-nav-reserve-l: 240px;  /* space main/.container reserves so nav doesn't overlap it */
+    --layout-nav-reserve-r: 0px;
+    --layout-main-maxw: none;       /* 'none' = fill available width edge-to-edge (default) */
+    --layout-main-margin-left: auto;
+    --layout-main-margin-right: auto;
+    --layout-pad-l: 48px;
+    --layout-pad-r: 48px;
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -158,26 +170,28 @@
 
   /* ── LAYOUT ── */
   .container {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 0 40px;
-    display: grid;
-    grid-template-columns: 240px 1fr;
-    gap: 0;
+    padding-left: var(--layout-nav-reserve-l);
+    padding-right: var(--layout-nav-reserve-r);
     min-height: calc(100vh - 200px);
     padding-bottom: 56px;
   }
 
-  /* ── SIDEBAR NAV ── */
+  /* ── SIDEBAR NAV ──
+     Fixed to a viewport edge, independent of main's box model, so main can be
+     genuinely centered on the viewport rather than centered-minus-nav-width. */
   nav {
-    position: sticky;
+    position: fixed;
     top: 0;
+    left: var(--layout-nav-left);
+    right: var(--layout-nav-right);
+    width: var(--layout-nav-width);
     height: 100vh;
     overflow-y: auto;
     padding: 40px 24px 40px 16px;
     border-right: 1px solid var(--border);
     scrollbar-width: none;
     background: rgba(10,12,15,0.92);
+    z-index: 10;
   }
 
   nav::-webkit-scrollbar { display: none; }
@@ -238,9 +252,14 @@
   }
   .section a:hover { opacity: 0.75; }
 
-  /* ── MAIN CONTENT ── */
+  /* ── MAIN CONTENT ──
+     Genuinely centered on the viewport (within the space reserved for nav),
+     independent width/alignment/padding, all adjustable via the Layout panel. */
   main {
-    padding: 40px 0 80px 48px;
+    max-width: var(--layout-main-maxw);
+    margin-left: var(--layout-main-margin-left);
+    margin-right: var(--layout-main-margin-right);
+    padding: 40px var(--layout-pad-r) 80px var(--layout-pad-l);
     background: rgba(10,12,15,0.88);
   }
 
@@ -486,6 +505,8 @@
   }
 
   .stat-card.blue::before { background: var(--accent2); }
+  .stat-card.danger::before { background: var(--danger); }
+  .stat-card.success::before { background: var(--success); }
 
   .stat-label {
     font-family: var(--mono);
@@ -536,37 +557,19 @@
   .open-item .item-note { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
 
 
-  /* ── BACKGROUND LAYER (parallax) ── */
-  #bg-layer {
-    position: fixed;
-    inset: -6%;
-    width: 112%;
-    height: 112%;
-    background: url('bg.jpg') center/cover no-repeat;
-    z-index: 0;
-    will-change: transform;
-    filter: brightness(0.82);
-    pointer-events: none;
-  }
-
-  /* ── IRIDESCENT OVERLAY ── */
-  #iridescent {
+  /* ── STATIC SCANLINE OVERLAY (replaces parallax + iridescent) ── */
+  #scanlines {
     position: fixed;
     inset: 0;
     z-index: 1;
     pointer-events: none;
-    mix-blend-mode: screen;
-    opacity: 0.05;
-    background: conic-gradient(
-      from 0deg at 50% 50%,
-      rgba(255,0,60,0.75),
-      rgba(232,115,42,0.65),
-      rgba(0,255,0,0.55),
-      rgba(0,234,255,0.65),
-      rgba(255,0,60,0.75)
+    background: repeating-linear-gradient(
+      0deg,
+      rgba(255,255,255,0.018) 0px,
+      rgba(255,255,255,0.018) 1px,
+      transparent 1px,
+      transparent 3px
     );
-    will-change: opacity, background;
-    transition: opacity 0.4s ease;
   }
 
   /* ── STACK CONTENT ABOVE BG LAYERS ── */
@@ -600,11 +603,10 @@
   /* ── RESPONSIVE ── */
   @media (max-width: 768px) {
     footer { position: static; padding: 24px; }
-    .container { grid-template-columns: 1fr; padding-bottom: 0; min-height: 100vh; }
+    .container { padding: 0 24px; padding-bottom: 0; min-height: 100vh; }
     nav { display: none; }
-    main { padding: 24px 0; min-height: 100vh; }
+    main { max-width: 100%; margin-left: 0; margin-right: 0; padding: 24px 0; min-height: 100vh; }
     header { padding: 48px 24px 40px; }
-    .container { padding: 0 24px; }
   }
 
   /* ── LOGO ENGINE ── */
@@ -671,12 +673,123 @@
     color: var(--text-bright); opacity: 0;
     mix-blend-mode: screen; pointer-events: none;
   }
+
+  /* ── RULES EDITOR (v023) — F426 to toggle ── */
+  .rb-ui { display: none; }
+
+  /* Block wrapper: a horizontal toolbar bar sits above the content, full width,
+     like a mini header — never beside or overlapping it, so wide tables (many
+     columns) are never covered. Toolbar lives OUTSIDE the editable content
+     entirely (sibling, not child) — this is what prevents it being selected/
+     erased while editing text, and it stacks in normal flow so nothing can
+     clip or cover it regardless of the content's own overflow/width. */
+  .rb-block-wrap { display: flex; flex-direction: column; gap: 6px; }
+  .rb-block-wrap > .rb-block { width: 100%; }
+
+  .rb-toolbar-bar {
+    display: none; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 6px;
+    width: 100%; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 4px; padding: 6px 10px; font-family: var(--mono);
+  }
+  body.rb-edit-mode .rb-toolbar-bar { display: flex; }
+  .rb-toolbar-bar .rb-type-label {
+    font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent);
+    padding-right: 8px; border-right: 1px solid var(--border); white-space: nowrap;
+  }
+  .rb-toolbar-bar button, .rb-toolbar-bar select {
+    width: auto; text-align: left; background: var(--surface); color: var(--text-dim);
+    border: 1px solid var(--border); font-size: 10px; padding: 3px 6px; cursor: pointer;
+    border-radius: 2px; font-family: var(--mono);
+  }
+  .rb-toolbar-bar button:hover { color: var(--accent); border-color: var(--accent); }
+  .rb-toolbar-bar > .rb-style-panel {
+    display: flex; flex-direction: row; flex-wrap: wrap; gap: 10px; align-items: flex-end;
+    width: 100%; margin-top: 4px; padding-top: 6px; border-top: 1px dashed var(--border);
+  }
+  .rb-style-panel label { display: flex; flex-direction: column; gap: 2px; font-size: 9px; color: var(--text-dim); }
+  .rb-style-panel input, .rb-style-panel select { width: auto; }
+
+  .rb-section-toolbar {
+    gap: 6px; margin-top: 16px; padding-top: 12px; border-top: 1px dashed var(--border);
+    align-items: center; flex-wrap: wrap;
+  }
+  body.rb-edit-mode .rb-section-toolbar { display: flex; }
+  .rb-section-toolbar button, .rb-savebar button, .rb-nav-controls button, .rb-add-bookmark,
+  .rb-layout-panel button {
+    background: var(--surface); color: var(--text-dim); border: 1px solid var(--border);
+    font-size: 10px; padding: 2px 5px; cursor: pointer; border-radius: 2px; font-family: var(--mono);
+  }
+  .rb-section-toolbar button:hover, .rb-savebar button:hover,
+  .rb-nav-controls button:hover, .rb-add-bookmark:hover { color: var(--accent); border-color: var(--accent); }
+  .rb-section-toolbar select {
+    background: var(--surface); color: var(--text); border: 1px solid var(--border);
+    font-size: 11px; padding: 2px 4px;
+  }
+
+  .rb-nag {
+    position: fixed; top: 44px; left: 50%; transform: translateX(-50%);
+    z-index: 997; background: var(--surface2); border: 1px solid var(--accent);
+    color: var(--text); font-family: var(--mono); font-size: 11px; padding: 8px 14px;
+    border-radius: 3px; align-items: center; gap: 8px; max-width: 90vw; text-align: center;
+  }
+  .rb-nag button {
+    background: var(--surface); color: var(--text-dim); border: 1px solid var(--border);
+    font-size: 10px; padding: 2px 8px; cursor: pointer; border-radius: 2px; font-family: var(--mono);
+  }
+  .rb-nag button:hover { color: var(--accent); border-color: var(--accent); }
+  .rb-badge {
+    position: fixed; top: 10px; left: 50%; transform: translateX(-50%);
+    z-index: 999; background: var(--danger); color: #fff; font-family: var(--mono);
+    font-size: 11px; padding: 5px 14px; border-radius: 3px; letter-spacing: 0.1em;
+    align-items: center; gap: 8px;
+  }
+  body.rb-edit-mode .rb-badge { display: flex; }
+  .rb-savebar {
+    position: fixed; bottom: 44px; left: 0; right: 0; z-index: 998;
+    background: rgba(10,12,15,0.97); border-top: 1px solid var(--border);
+    padding: 8px 16px; gap: 8px; align-items: center; justify-content: center; flex-wrap: wrap;
+  }
+  body.rb-edit-mode .rb-savebar { display: flex; }
+  [contenteditable="true"] { outline: 1px dashed rgba(232,115,42,0.35); outline-offset: 3px; }
+  [contenteditable="true"]:focus { outline: 1px solid var(--accent); }
+  .rb-nav-controls { gap: 2px; margin: -4px 0 6px 2px; }
+  body.rb-edit-mode .rb-nav-controls { display: flex; }
+  .rb-add-bookmark { margin-top: 6px; width: 100%; }
+  body.rb-edit-mode .rb-add-bookmark { display: block; }
+  .rb-mini-del {
+    position: absolute; top: 2px; right: 2px; width: 16px; height: 16px; line-height: 1;
+    font-size: 9px; padding: 0; z-index: 10; background: var(--surface); color: var(--text-dim);
+    border: 1px solid var(--border); border-radius: 2px; cursor: pointer;
+  }
+  body.rb-edit-mode .rb-mini-del { display: block; }
+  .rb-mini-color {
+    position: absolute; top: 2px; right: 22px; width: 16px; height: 16px; line-height: 1;
+    font-size: 9px; padding: 0; z-index: 10; background: var(--surface); color: var(--text-dim);
+    border: 1px solid var(--border); border-radius: 2px; cursor: pointer;
+  }
+  body.rb-edit-mode .rb-mini-color { display: block; }
+  .rb-status { font-family: var(--mono); font-size: 10px; color: var(--text-dim); margin-left: 8px; }
+
+  /* ── Page layout controls (nav position / main alignment / padding) ──
+     Driven by CSS custom properties on :root so a full-file Save bakes
+     the current layout in as plain inline style — no separate config file. */
+  .rb-layout-panel {
+    position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+    z-index: 998; background: var(--surface2); border: 1px solid var(--accent);
+    border-radius: 4px; padding: 12px 16px; display: none; flex-wrap: wrap;
+    gap: 10px; font-family: var(--mono); font-size: 11px; max-width: 90vw;
+  }
+  .rb-layout-panel.rb-open { display: flex; }
+  .rb-layout-panel label { display: flex; flex-direction: column; gap: 3px; color: var(--text-dim); font-size: 10px; }
+  .rb-layout-panel input, .rb-layout-panel select {
+    background: var(--surface); color: var(--text); border: 1px solid var(--border);
+    font-size: 11px; padding: 3px 5px; width: 90px;
+  }
 </style>
 </head>
 <body>
 
-<div id="bg-layer"></div>
-<div id="iridescent"></div>
+<div id="scanlines"></div>
 
 <header>
   <div class="header-inner">
@@ -1569,52 +1682,6 @@
   startFlickerLoop(); startRGBGlitch(); startSliceGlitch();
 })();
 
-/* ── PARALLAX + IRIDESCENT ───────────────────────────────────────────── */
-(function () {
-  const bgLayer    = document.getElementById('bg-layer');
-  const iridescent = document.getElementById('iridescent');
-  if (!bgLayer || !iridescent) return;
-
-  let tx = 0, ty = 0, cx = 0, cy = 0;
-
-  document.addEventListener('mousemove', (e) => {
-    const nx = (e.clientX / window.innerWidth  - 0.5) * 2; // -1 to 1
-    const ny = (e.clientY / window.innerHeight - 0.5) * 2;
-    tx = nx; ty = ny;
-
-    // Iridescent: rotate hue + shift focal point with mouse
-    const hue  = Math.round((nx + 1) * 180);
-    const fcx  = Math.round(50 + nx * 22);
-    const fcy  = Math.round(50 + ny * 22);
-    const mag  = (Math.abs(nx) + Math.abs(ny)) * 0.5;
-    const opac = (0.04 + mag * 0.07).toFixed(3);
-
-    iridescent.style.background = `conic-gradient(
-      from ${hue}deg at ${fcx}% ${fcy}%,
-      rgba(255,0,60,0.75),
-      rgba(232,115,42,0.65),
-      rgba(0,255,0,0.55),
-      rgba(0,234,255,0.65),
-      rgba(255,0,60,0.75)
-    )`;
-    iridescent.style.opacity = opac;
-  });
-
-  // Smooth parallax loop
-  (function tick() {
-    cx += (tx - cx) * 0.07;
-    cy += (ty - cy) * 0.07;
-    bgLayer.style.transform =
-      `translate(${(-cx * 16).toFixed(2)}px, ${(-cy * 12).toFixed(2)}px)`;
-    requestAnimationFrame(tick);
-  })();
-
-  // Touch: no parallax, keep overlay static
-  window.addEventListener('touchstart', () => {
-    bgLayer.style.transform = 'translate(0,0)';
-  }, { once: true });
-})();
-
 /* ── FAVICON ANIMATION (Chrome-compatible) ───────────────────────────────── */
 (function () {
   const favicon = document.querySelector('link[rel="icon"]');
@@ -1649,6 +1716,992 @@
       favicon.href = 'data:image/svg+xml;base64,' + btoa(buildSVG());
     } catch(e) {}
   }, 50);
+})();
+
+/* ── RULES EDITOR v020 — type F426 to toggle edit mode ─────────────────── */
+(function(){
+  const STORAGE_KEY = 'echoes_rules_v020';
+  const navEl = document.querySelector('nav');
+  const mainEl = document.querySelector('main');
+  if(!navEl || !mainEl) return;
+
+  let editMode = false;
+  let undoStack = [], redoStack = [];
+  let typingSessionCaptured = false;
+  let saveTimer = null;
+
+  const TEMPLATES = {
+    paragraph: () => { const p = document.createElement('p'); p.textContent = 'New paragraph text.'; return p; },
+    h3: () => { const h = document.createElement('h3'); h.textContent = 'New Subheading'; return h; },
+    h4: () => { const h = document.createElement('h4'); h.textContent = '// New Label'; return h; },
+    callout: () => { const d = document.createElement('div'); d.className = 'callout info'; d.innerHTML = '<strong>// Note</strong>New callout text.'; return d; },
+    table: () => { const d = document.createElement('div'); d.className = 'tbl-wrap'; d.innerHTML = '<table><thead><tr><th>Column 1</th><th>Column 2</th></tr></thead><tbody><tr><td>Cell</td><td>Cell</td></tr></tbody></table>'; return d; },
+    statgrid: () => { const d = document.createElement('div'); d.className = 'stat-grid'; d.innerHTML = '<div class="stat-card"><div class="stat-label">Label</div><div class="stat-value">0</div><div class="stat-desc">Description</div></div>'; return d; },
+    ruleslist: () => { const u = document.createElement('ul'); u.className = 'rules-list'; u.innerHTML = '<li>New item</li>'; return u; },
+    openitem: () => { const d = document.createElement('div'); d.className = 'open-item'; d.innerHTML = '<span class="tag pending">PENDING</span><div><div class="item-text">New item</div><div class="item-note">Note</div></div>'; return d; },
+    prologue: () => { const d = document.createElement('div'); d.className = 'prologue'; d.innerHTML = '<div class="pull-quote">// New Note</div><p>Text.</p>'; return d; },
+    threatline: () => { const d = document.createElement('div'); d.className = 'threat-line'; d.textContent = 'New threat line text.'; return d; }
+  };
+
+  function escapeHTML(s){ const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+  function setEditable(el, on){
+    if(!el) return;
+    el.contentEditable = on;
+    el.classList.toggle('rb-editable', !!on);
+  }
+
+  function slugify(s){
+    const base = s.toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'') || 'section';
+    let id = base, n = 2;
+    while(document.getElementById(id)){ id = base + '-' + n; n++; }
+    return id;
+  }
+
+  /* ── header/footer ("chrome") — snapshotted by field, not by innerHTML block,
+     so we never recreate #echoTitle/#echoTitleGreen (the glitch script caches
+     references to those exact nodes at page load; replacing them would silently
+     kill the glitch effect). ── */
+  function syncTitleText(){
+    const titleEl = document.getElementById('echoTitle');
+    const greenEl = document.getElementById('echoTitleGreen');
+    if(!titleEl) return;
+    const text = titleEl.textContent;
+    titleEl.setAttribute('data-text', text);
+    if(greenEl){ greenEl.textContent = text; greenEl.setAttribute('data-text', text); }
+    document.querySelectorAll('.title .slice').forEach(s => { s.textContent = text; });
+  }
+
+  function snapshotChrome(){
+    const titleEl = document.getElementById('echoTitle');
+    const statusEl = document.querySelector('.header-meta .status-badge');
+    const footerP = document.querySelector('footer p');
+    return {
+      title: titleEl ? titleEl.textContent : null,
+      metas: Array.from(document.querySelectorAll('.header-meta .meta-tag')).map(m => m.innerHTML),
+      status: statusEl ? statusEl.innerHTML : null,
+      footer: footerP ? footerP.innerHTML : null
+    };
+  }
+
+  function restoreChrome(c){
+    if(!c) return;
+    if(typeof c.title === 'string'){
+      const titleEl = document.getElementById('echoTitle');
+      if(titleEl){ titleEl.textContent = c.title; syncTitleText(); }
+    }
+    if(c.metas){
+      const metas = document.querySelectorAll('.header-meta .meta-tag');
+      metas.forEach((m,i) => { if(c.metas[i] !== undefined) m.innerHTML = c.metas[i]; });
+    }
+    if(typeof c.status === 'string'){
+      const s = document.querySelector('.header-meta .status-badge');
+      if(s) s.innerHTML = c.status;
+    }
+    if(typeof c.footer === 'string'){
+      const f = document.querySelector('footer p');
+      if(f) f.innerHTML = c.footer;
+    }
+  }
+
+  function decorateChrome(){
+    const titleEl = document.getElementById('echoTitle');
+    if(titleEl){
+      setEditable(titleEl, true);
+      if(!titleEl.dataset.rbBound){
+        titleEl.dataset.rbBound = '1';
+        titleEl.addEventListener('input', syncTitleText);
+      }
+    }
+    document.querySelectorAll('.header-meta .meta-tag, .header-meta .status-badge').forEach(n => setEditable(n, true));
+    const footerP = document.querySelector('footer p');
+    if(footerP) setEditable(footerP, true);
+  }
+
+  /* ── clean serialization (strip editor UI before save/export/undo) ── */
+  function cleanClone(el){
+    const clone = el.cloneNode(true);
+    clone.querySelectorAll('.rb-ui').forEach(n => n.remove());
+    clone.querySelectorAll('.rb-block-wrap').forEach(wrap => {
+      const first = wrap.firstElementChild;
+      if(first) wrap.parentNode.insertBefore(first, wrap);
+      wrap.remove();
+    });
+    clone.querySelectorAll('.rb-nav-item').forEach(item => {
+      const a = item.querySelector('a');
+      if(a) item.parentNode.insertBefore(a, item);
+      item.remove();
+    });
+    clone.querySelectorAll('.rb-block').forEach(n => n.classList.remove('rb-block'));
+    clone.querySelectorAll('.rb-editable').forEach(n => n.classList.remove('rb-editable'));
+    clone.querySelectorAll('[contenteditable]').forEach(n => n.removeAttribute('contenteditable'));
+    return clone;
+  }
+
+  function snapshot(){
+    return { nav: cleanClone(navEl).innerHTML, main: cleanClone(mainEl).innerHTML, chrome: snapshotChrome() };
+  }
+
+  function restore(s){
+    navEl.innerHTML = s.nav;
+    mainEl.innerHTML = s.main;
+    if(s.chrome) restoreChrome(s.chrome);
+    if(editMode) decorateAll();
+  }
+
+  function captureBeforeChange(){
+    undoStack.push(snapshot());
+    if(undoStack.length > 50) undoStack.shift();
+    redoStack = [];
+    bumpEditsSinceExport();
+  }
+
+  /* ── export nag ── */
+  const EXPORT_NAG_THRESHOLD = 20;
+  let editsSinceExport = 0;
+  try{ editsSinceExport = parseInt(localStorage.getItem(STORAGE_KEY + '_edits') || '0', 10) || 0; }catch(e){}
+
+  function bumpEditsSinceExport(){
+    editsSinceExport++;
+    try{ localStorage.setItem(STORAGE_KEY + '_edits', String(editsSinceExport)); }catch(e){}
+    if(editsSinceExport >= EXPORT_NAG_THRESHOLD && editsSinceExport % EXPORT_NAG_THRESHOLD === 0){
+      showNag('You have ' + editsSinceExport + ' unsaved-to-disk edits. Consider hitting Save to write them to your file.');
+    }
+  }
+
+  function resetEditsSinceExport(){
+    editsSinceExport = 0;
+    try{ localStorage.setItem(STORAGE_KEY + '_edits', '0'); }catch(e){}
+    hideNag();
+  }
+
+  function showNag(msg){
+    let nag = document.querySelector('.rb-nag');
+    if(!nag){
+      nag = document.createElement('div');
+      nag.className = 'rb-ui rb-nag';
+      document.body.appendChild(nag);
+    }
+    nag.innerHTML = '<span>⚠ ' + msg + '</span>'
+      + '<button data-rb-action="save">Save Now</button>'
+      + '<button data-rb-action="dismissnag">✕</button>';
+    nag.style.display = 'flex';
+  }
+
+  function hideNag(){
+    const nag = document.querySelector('.rb-nag');
+    if(nag) nag.style.display = 'none';
+  }
+
+  function undo(){ if(!undoStack.length) return; redoStack.push(snapshot()); restore(undoStack.pop()); saveToStorage(true); }
+  function redo(){ if(!redoStack.length) return; undoStack.push(snapshot()); restore(redoStack.pop()); saveToStorage(true); }
+
+  /* ── persistence ── */
+  function saveToStorage(manual){
+    clearTimeout(saveTimer);
+    const doSave = () => {
+      try{
+        const data = JSON.stringify({ v:'022', savedAt: new Date().toISOString(), nav: cleanClone(navEl).innerHTML, main: cleanClone(mainEl).innerHTML, chrome: snapshotChrome() });
+        localStorage.setItem(STORAGE_KEY, data);
+        const status = document.querySelector('.rb-status');
+        if(status) status.textContent = 'Saved ' + new Date().toLocaleTimeString();
+      }catch(e){ console.error('Save failed', e); }
+    };
+    if(manual) doSave(); else saveTimer = setTimeout(doSave, 500);
+  }
+
+  function loadFromStorage(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if(!raw) return false;
+      const data = JSON.parse(raw);
+      if(data.nav) navEl.innerHTML = data.nav;
+      if(data.main) mainEl.innerHTML = data.main;
+      if(data.chrome) restoreChrome(data.chrome);
+      return true;
+    }catch(e){ console.error('Load failed', e); return false; }
+  }
+
+  /* ── FILE SAVE / SAVE AS ──
+     Writes a complete, standalone HTML file (this same file, with the editor
+     baked back in so it stays editable) directly back to disk — no separate
+     JSON data file involved. Uses the File System Access API (Chrome/Edge/Opera).
+     First Save (or Save As) prompts a file picker to get a writable handle;
+     subsequent plain Saves reuse that handle silently. Browsers without the
+     API (Firefox/Safari) fall back to a normal file download. ── */
+  let fileHandle = null;
+
+  function buildFullCleanHTML(){
+    const rootClone = document.documentElement.cloneNode(true);
+    rootClone.querySelectorAll('.rb-ui').forEach(n => n.remove());
+    rootClone.querySelectorAll('.rb-block-wrap').forEach(wrap => {
+      const first = wrap.firstElementChild;
+      if(first) wrap.parentNode.insertBefore(first, wrap);
+      wrap.remove();
+    });
+    rootClone.querySelectorAll('.rb-nav-item').forEach(item => {
+      const a = item.querySelector('a');
+      if(a) item.parentNode.insertBefore(a, item);
+      item.remove();
+    });
+    rootClone.querySelectorAll('.rb-block').forEach(n => n.classList.remove('rb-block'));
+    rootClone.querySelectorAll('.rb-editable').forEach(n => n.classList.remove('rb-editable'));
+    rootClone.querySelectorAll('[contenteditable]').forEach(n => n.removeAttribute('contenteditable'));
+    rootClone.querySelectorAll('[data-nav-group]').forEach(n => n.removeAttribute('data-nav-group'));
+    rootClone.querySelectorAll('[data-rb-bound]').forEach(n => n.removeAttribute('data-rb-bound'));
+    const bodyClone = rootClone.querySelector('body');
+    if(bodyClone) bodyClone.classList.remove('rb-edit-mode');
+    return '<!DOCTYPE html>\n' + rootClone.outerHTML;
+  }
+
+  function downloadFullHTML(html){
+    const blob = new Blob([html], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = (fileHandle && fileHandle.name) || ('rules_' + new Date().toISOString().replace(/[:.]/g,'-') + '.html');
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+    resetEditsSinceExport();
+    saveToStorage(true);
+    alert("Your browser can't save directly back to a file (that needs Chrome, Edge, or another Chromium browser). Downloaded a new copy instead \u2014 replace your existing file with this one.");
+  }
+
+  async function saveToFile(forceNewLocation){
+    const html = buildFullCleanHTML();
+    if(!window.showSaveFilePicker){
+      downloadFullHTML(html);
+      return;
+    }
+    try{
+      if(!fileHandle || forceNewLocation){
+        fileHandle = await window.showSaveFilePicker({
+          suggestedName: (fileHandle && fileHandle.name) || 'rules.html',
+          types: [{ description: 'HTML File', accept: { 'text/html': ['.html'] } }]
+        });
+      }
+      const writable = await fileHandle.createWritable();
+      await writable.write(html);
+      await writable.close();
+      resetEditsSinceExport();
+      saveToStorage(true);
+      const status = document.querySelector('.rb-status');
+      if(status) status.textContent = 'Saved to ' + fileHandle.name + ' ' + new Date().toLocaleTimeString();
+    }catch(e){
+      if(e && e.name === 'AbortError') return; // user cancelled the picker
+      alert('Save failed: ' + (e && e.message ? e.message : e));
+    }
+  }
+
+  /* ── page layout settings (nav position, main alignment/width, padding) ──
+     Stored as CSS custom properties on the root element's inline style, so a
+     full-file Save bakes the current layout in directly — no separate config. ── */
+  function readLayoutSettings(){
+    const cs = getComputedStyle(document.documentElement);
+    const navRight = cs.getPropertyValue('--layout-nav-right').trim();
+    const marginL = cs.getPropertyValue('--layout-main-margin-left').trim();
+    const marginR = cs.getPropertyValue('--layout-main-margin-right').trim();
+    let mainAlign = 'center';
+    if(marginL === '0' || marginL === '0px') mainAlign = 'left';
+    else if(marginR === '0' || marginR === '0px') mainAlign = 'right';
+    return {
+      navSide: (navRight === '0' || navRight === '0px') ? 'right' : 'left',
+      mainAlign: mainAlign,
+      maxw: parseInt(cs.getPropertyValue('--layout-main-maxw'), 10) || 0,
+      padL: parseInt(cs.getPropertyValue('--layout-pad-l'), 10) || 48,
+      padR: parseInt(cs.getPropertyValue('--layout-pad-r'), 10) || 48
+    };
+  }
+
+  function applyLayoutSettings(s){
+    const root = document.documentElement.style;
+    if(s.navSide === 'right'){
+      root.setProperty('--layout-nav-left','auto');
+      root.setProperty('--layout-nav-right','0');
+      root.setProperty('--layout-nav-reserve-l','0px');
+      root.setProperty('--layout-nav-reserve-r','240px');
+    } else {
+      root.setProperty('--layout-nav-left','0');
+      root.setProperty('--layout-nav-right','auto');
+      root.setProperty('--layout-nav-reserve-l','240px');
+      root.setProperty('--layout-nav-reserve-r','0px');
+    }
+    if(s.mainAlign === 'left'){
+      root.setProperty('--layout-main-margin-left','0');
+      root.setProperty('--layout-main-margin-right','auto');
+    } else if(s.mainAlign === 'right'){
+      root.setProperty('--layout-main-margin-left','auto');
+      root.setProperty('--layout-main-margin-right','0');
+    } else {
+      root.setProperty('--layout-main-margin-left','auto');
+      root.setProperty('--layout-main-margin-right','auto');
+    }
+    if(s.maxw && s.maxw > 0) root.setProperty('--layout-main-maxw', s.maxw + 'px');
+    else root.setProperty('--layout-main-maxw', 'none');
+    if(s.padL !== undefined) root.setProperty('--layout-pad-l', s.padL + 'px');
+    if(s.padR !== undefined) root.setProperty('--layout-pad-r', s.padR + 'px');
+    try{ localStorage.setItem(STORAGE_KEY + '_layout', JSON.stringify(s)); }catch(e){}
+  }
+
+  function loadLayoutSettings(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY + '_layout');
+      if(raw) applyLayoutSettings(JSON.parse(raw));
+    }catch(e){}
+  }
+
+  function ensureLayoutPanel(){
+    if(document.querySelector('.rb-layout-panel')) return;
+    const panel = document.createElement('div');
+    panel.className = 'rb-ui rb-layout-panel';
+    panel.innerHTML =
+      '<label>Nav side<select class="rb-lay-navside"><option value="left">Left</option><option value="right">Right</option></select></label>'
+      + '<label>Main align<select class="rb-lay-align"><option value="left">Left</option><option value="center">Center</option><option value="right">Right</option></select></label>'
+      + '<label>Max width (px, 0 = full width)<input type="number" class="rb-lay-maxw" min="0" max="2000" step="10" placeholder="0"></label>'
+      + '<label>Padding left (px)<input type="number" class="rb-lay-padl" min="0" max="200" step="4"></label>'
+      + '<label>Padding right (px)<input type="number" class="rb-lay-padr" min="0" max="200" step="4"></label>'
+      + '<button data-rb-action="applylayout" style="align-self:flex-end;">Apply</button>'
+      + '<button data-rb-action="resetlayout" style="align-self:flex-end;">Reset Default</button>';
+    document.body.appendChild(panel);
+  }
+
+  /* ── table helpers ── */
+  function tableOf(wrap){ return wrap.querySelector('table'); }
+  function addRow(wrap){
+    const t = tableOf(wrap); if(!t) return;
+    const tbody = t.querySelector('tbody') || t;
+    const firstRow = t.querySelector('tr');
+    const cols = firstRow ? firstRow.children.length : 1;
+    const tr = document.createElement('tr');
+    for(let i=0;i<cols;i++){ const td = document.createElement('td'); td.textContent = '—'; if(editMode) setEditable(td, true); tr.appendChild(td); }
+    tbody.appendChild(tr);
+  }
+  function removeRow(wrap){
+    const t = tableOf(wrap); if(!t) return;
+    const tbody = t.querySelector('tbody') || t;
+    const rows = tbody.querySelectorAll('tr');
+    if(rows.length > 1) rows[rows.length-1].remove();
+  }
+  function addCol(wrap){
+    const t = tableOf(wrap); if(!t) return;
+    t.querySelectorAll('tr').forEach(tr => {
+      const inHead = !!tr.closest('thead');
+      const cell = document.createElement(inHead ? 'th' : 'td');
+      cell.textContent = inHead ? 'New' : '—';
+      if(editMode) setEditable(cell, true);
+      tr.appendChild(cell);
+    });
+  }
+  function removeCol(wrap){
+    const t = tableOf(wrap); if(!t) return;
+    const rows = t.querySelectorAll('tr');
+    if(rows.length && rows[0].children.length > 1) rows.forEach(tr => { if(tr.lastElementChild) tr.lastElementChild.remove(); });
+  }
+
+  /* ── stat-grid helpers ── */
+  function addCard(grid){
+    const card = document.createElement('div');
+    card.className = 'stat-card';
+    card.innerHTML = '<div class="stat-label">LABEL</div><div class="stat-value">0</div><div class="stat-desc">Description</div>';
+    grid.appendChild(card);
+    decorateStatCard(card);
+  }
+  function decorateStatCard(card){
+    if(card.querySelector(':scope > .rb-mini-del')) return;
+    card.querySelectorAll('.stat-label,.stat-value,.stat-desc').forEach(n => setEditable(n, true));
+    const del = document.createElement('button');
+    del.className = 'rb-ui rb-mini-del';
+    del.setAttribute('data-rb-action','removecard');
+    del.title = 'Remove card';
+    del.textContent = '✕';
+    card.appendChild(del);
+    const color = document.createElement('button');
+    color.className = 'rb-ui rb-mini-color';
+    color.setAttribute('data-rb-action','togglecardcolor');
+    color.title = 'Cycle accent color (default \u2192 blue \u2192 danger \u2192 success)';
+    color.textContent = '🎨';
+    card.appendChild(color);
+  }
+
+  /* ── type labels (shown at the top of each block's toolbar) ── */
+  function calloutTypeOf(el){
+    return ['warning','danger','success'].find(c => el.classList.contains(c)) || 'info';
+  }
+  function getBlockLabel(el){
+    if(el.classList.contains('callout')){
+      const t = calloutTypeOf(el);
+      return 'Callout — ' + t.charAt(0).toUpperCase() + t.slice(1);
+    }
+    if(el.classList.contains('tbl-wrap')) return 'Table';
+    if(el.classList.contains('stat-grid')) return 'Stat Grid';
+    if(el.classList.contains('rules-list')) return 'Rules List';
+    if(el.classList.contains('open-item')) return 'Open Item';
+    if(el.classList.contains('prologue')) return 'Prologue';
+    if(el.classList.contains('threat-line')) return 'Threat Line';
+    if(el.tagName === 'H3') return 'Subheading';
+    if(el.tagName === 'H4') return 'Label';
+    if(el.tagName === 'P') return 'Paragraph';
+    return 'Component';
+  }
+  function updateBlockLabel(unit, toolbar){
+    const label = toolbar.querySelector(':scope > .rb-type-label');
+    if(label) label.textContent = getBlockLabel(unit);
+  }
+
+  /* ── toolbar builders ── */
+  function buildToolbarHTML(unit){
+    const isTable = unit.classList.contains('tbl-wrap');
+    const isGrid = unit.classList.contains('stat-grid');
+    const isPrologue = unit.classList.contains('prologue');
+    const isCallout = unit.classList.contains('callout');
+    let extra = '';
+    if(isTable) extra = '<button data-rb-action="addrow" title="Add row">+ Row</button><button data-rb-action="removerow" title="Remove last row">- Row</button><button data-rb-action="addcol" title="Add column">+ Col</button><button data-rb-action="removecol" title="Remove last column">- Col</button>';
+    if(isGrid) extra = '<button data-rb-action="addcard" title="Add stat card">+ Card</button>';
+    if(isPrologue) extra = '<select class="rb-prologue-add" title="Text style to add">'
+      + '<option value="quote">Quote/Title</option>'
+      + '<option value="body">Body (dim italic)</option>'
+      + '<option value="note">Bright Note</option>'
+      + '</select><button data-rb-action="addprologueline" title="Add this text line">+ Line</button>';
+    if(isCallout){
+      const cur = calloutTypeOf(unit);
+      extra = '<select class="rb-callout-type" title="Callout color/type">'
+        + ['info','warning','danger','success'].map(v => '<option value="' + v + '"' + (v===cur?' selected':'') + '>' + v.charAt(0).toUpperCase() + v.slice(1) + '</option>').join('')
+        + '</select><button data-rb-action="setcallouttype">Set Type</button>';
+    }
+    return '<div class="rb-type-label">' + getBlockLabel(unit) + '</div>'
+      + '<button data-rb-action="moveup" title="Move up">↑ Up</button>'
+      + '<button data-rb-action="movedown" title="Move down">↓ Down</button>'
+      + '<button data-rb-action="duplicate" title="Duplicate">⧉ Duplicate</button>'
+      + '<button data-rb-action="delete" title="Delete">✕ Delete</button>'
+      + '<button data-rb-action="style" title="Style overrides">🎨 Style</button>'
+      + extra;
+  }
+
+  function addPrologueLine(prologue, type){
+    let el;
+    if(type === 'quote'){
+      el = document.createElement('div');
+      el.className = 'pull-quote';
+      el.textContent = '// New Line';
+    } else if(type === 'note'){
+      el = document.createElement('p');
+      el.style.marginTop = '10px';
+      el.style.color = 'var(--text-bright)';
+      el.style.fontStyle = 'normal';
+      el.textContent = 'Note text.';
+    } else {
+      el = document.createElement('p');
+      el.textContent = 'Body text.';
+    }
+    prologue.appendChild(el);
+  }
+
+  /* ── decorateBlock(unit, wrap): unit is the actual content element; wrap is the
+     .rb-block-wrap flex container holding [unit, toolbar-sidebar] as siblings.
+     The toolbar is NEVER inside the editable content, which is what prevents it
+     being accidentally selected/erased while typing, and keeps it clear of any
+     overflow/clipping on the content box itself. ── */
+  function decorateBlock(unit, wrap){
+    unit.classList.add('rb-block');
+    const existingToolbar = wrap.querySelector(':scope > .rb-toolbar-bar');
+    if(existingToolbar){
+      updateBlockLabel(unit, existingToolbar);
+      return;
+    }
+    const toolbar = document.createElement('div');
+    toolbar.className = 'rb-ui rb-toolbar-bar';
+    toolbar.contentEditable = false;
+    toolbar.innerHTML = buildToolbarHTML(unit);
+    wrap.insertBefore(toolbar, wrap.firstChild);
+
+    if(unit.classList.contains('stat-grid')){
+      unit.querySelectorAll('.stat-card').forEach(decorateStatCard);
+    } else if(unit.classList.contains('tbl-wrap')){
+      unit.querySelectorAll('td,th').forEach(c => { setEditable(c, true); });
+    } else {
+      setEditable(unit, true);
+    }
+  }
+
+  function decorateSection(sec){
+    const h2 = sec.querySelector(':scope > .section-header .section-title');
+    if(h2) setEditable(h2, true);
+
+    Array.from(sec.children).forEach(child => {
+      if(child.classList.contains('section-header')) return;
+      if(child.classList.contains('rb-section-toolbar')) return;
+      if(child.classList.contains('rb-block-wrap')){
+        const inner = child.querySelector(':scope > .rb-block') || child.firstElementChild;
+        if(inner) decorateBlock(inner, child);
+        return;
+      }
+      const wrap = document.createElement('div');
+      wrap.className = 'rb-block-wrap';
+      child.parentNode.insertBefore(wrap, child);
+      wrap.appendChild(child);
+      decorateBlock(child, wrap);
+    });
+
+    if(!sec.querySelector(':scope > .rb-section-toolbar')){
+      const bar = document.createElement('div');
+      bar.className = 'rb-ui rb-section-toolbar';
+      bar.contentEditable = false;
+      bar.innerHTML = '<button data-rb-action="duplicatesection">⧉ Section</button>'
+        + '<button data-rb-action="deletesection">✕ Section</button>'
+        + '<button data-rb-action="movesectionup">↑ Section</button>'
+        + '<button data-rb-action="movesectiondown">↓ Section</button>'
+        + '<select class="rb-add-select">'
+        + '<option value="paragraph">Paragraph</option>'
+        + '<option value="h3">Subheading (H3)</option>'
+        + '<option value="h4">Label (H4)</option>'
+        + '<option value="callout">Callout</option>'
+        + '<option value="table">Table</option>'
+        + '<option value="statgrid">Stat Grid</option>'
+        + '<option value="ruleslist">Rules List</option>'
+        + '<option value="openitem">Open Item</option>'
+        + '<option value="prologue">Prologue</option>'
+        + '<option value="threatline">Threat Line</option>'
+        + '</select>'
+        + '<button data-rb-action="addcomponent">+ Add Component</button>';
+      sec.appendChild(bar);
+    }
+  }
+
+  function decorateNav(){
+    const links = Array.from(navEl.querySelectorAll(':scope > a'));
+    let currentGroup = 'default';
+    Array.from(navEl.children).forEach(child => {
+      if(child.classList.contains('nav-label')) currentGroup = child.textContent.trim();
+      if(child.tagName === 'A') child.setAttribute('data-nav-group', currentGroup);
+    });
+    links.forEach(a => {
+      setEditable(a, true);
+      const item = document.createElement('div');
+      item.className = 'rb-nav-item';
+      item.setAttribute('data-nav-group', a.getAttribute('data-nav-group') || 'default');
+      a.parentNode.insertBefore(item, a);
+      item.appendChild(a);
+      const ctrl = document.createElement('span');
+      ctrl.className = 'rb-ui rb-nav-controls';
+      ctrl.contentEditable = false;
+      ctrl.innerHTML = '<button data-rb-action="navup" title="Move up">↑</button><button data-rb-action="navdown" title="Move down">↓</button><button data-rb-action="navdel" title="Remove">✕</button>';
+      item.appendChild(ctrl);
+    });
+    if(!navEl.querySelector('.rb-add-bookmark')){
+      const btn = document.createElement('button');
+      btn.className = 'rb-ui rb-add-bookmark';
+      btn.setAttribute('data-rb-action','addbookmark');
+      btn.textContent = '+ Add Bookmark';
+      navEl.appendChild(btn);
+    }
+  }
+
+  function getSectionsGroupItems(){
+    return Array.from(navEl.querySelectorAll('.rb-nav-item')).filter(item =>
+      (item.getAttribute('data-nav-group') || '').toLowerCase().indexOf('section') !== -1);
+  }
+
+  function syncNavToSections(){
+    const secs = Array.from(mainEl.querySelectorAll(':scope > section.section'));
+    const secIds = secs.map(s => s.id);
+    const items = getSectionsGroupItems();
+    if(!items.length) return;
+    const matched = {};
+    const unmatched = [];
+    items.forEach(item => {
+      const a = item.querySelector('a');
+      const href = a ? (a.getAttribute('href') || '') : '';
+      const id = href.charAt(0) === '#' ? href.slice(1) : null;
+      if(id && secIds.indexOf(id) !== -1) matched[id] = item; else unmatched.push(item);
+    });
+    const newOrder = [];
+    secIds.forEach(id => { if(matched[id]) newOrder.push(matched[id]); });
+    unmatched.forEach(item => newOrder.push(item));
+    const anchor = items[items.length - 1].nextSibling;
+    newOrder.forEach(item => navEl.insertBefore(item, anchor));
+  }
+
+  function ensureBadgeAndSavebar(){
+    if(!document.querySelector('.rb-badge')){
+      const badge = document.createElement('div');
+      badge.className = 'rb-ui rb-badge';
+      badge.innerHTML = '<span>● EDIT MODE — type F426 to exit</span>';
+      document.body.appendChild(badge);
+    }
+    if(!document.querySelector('.rb-savebar')){
+      const bar = document.createElement('div');
+      bar.className = 'rb-ui rb-savebar';
+      bar.innerHTML = '<button data-rb-action="addsection">+ Add Section</button>'
+        + '<button data-rb-action="undo">↶ Undo</button>'
+        + '<button data-rb-action="redo">↷ Redo</button>'
+        + '<button data-rb-action="save">💾 Save</button>'
+        + '<button data-rb-action="saveas">💾 Save As</button>'
+        + '<button data-rb-action="togglelayout">⚏ Layout</button>'
+        + '<span class="rb-status"></span>';
+      document.body.appendChild(bar);
+    }
+    ensureLayoutPanel();
+  }
+
+  function decorateAll(){
+    mainEl.querySelectorAll(':scope > section.section').forEach(decorateSection);
+    decorateNav();
+    decorateChrome();
+    ensureBadgeAndSavebar();
+  }
+
+  /* ── structural actions ── */
+  function moveUnit(wrap, dir){
+    if(dir < 0 && wrap.previousElementSibling && !wrap.previousElementSibling.classList.contains('section-header')){
+      wrap.parentNode.insertBefore(wrap, wrap.previousElementSibling);
+    } else if(dir > 0 && wrap.nextElementSibling && !wrap.nextElementSibling.classList.contains('rb-section-toolbar')){
+      wrap.parentNode.insertBefore(wrap.nextElementSibling, wrap);
+    }
+  }
+  function duplicateUnit(wrap){
+    const clone = wrap.cloneNode(true);
+    clone.querySelectorAll('.rb-ui').forEach(n => n.remove());
+    wrap.parentNode.insertBefore(clone, wrap.nextSibling);
+  }
+  function addComponent(sec, type){
+    const maker = TEMPLATES[type];
+    if(!maker) return;
+    const el = maker();
+    const bar = sec.querySelector(':scope > .rb-section-toolbar');
+    if(bar) sec.insertBefore(el, bar); else sec.appendChild(el);
+  }
+  function addSection(){
+    const title = window.prompt('Section title:');
+    if(!title) return;
+    captureBeforeChange();
+    const id = slugify(title);
+    const count = mainEl.querySelectorAll(':scope > section.section').length + 1;
+    const num = String(count).padStart(2,'0');
+    const sec = document.createElement('section');
+    sec.className = 'section';
+    sec.id = id;
+    sec.innerHTML = '<div class="section-header"><span class="section-num">// ' + num + '</span><h2 class="section-title">' + escapeHTML(title) + '</h2></div>';
+    mainEl.appendChild(sec);
+    const addBtn = navEl.querySelector('.rb-add-bookmark');
+    const a = document.createElement('a');
+    a.href = '#' + id;
+    a.textContent = num + ' · ' + title;
+    if(addBtn) navEl.insertBefore(a, addBtn); else navEl.appendChild(a);
+    renumberSections();
+    decorateAll();
+    syncNavToSections();
+    saveToStorage(true);
+  }
+  function deleteSection(sec){
+    if(!confirm('Delete this entire section? Its bookmark will also be removed.')) return;
+    captureBeforeChange();
+    const id = sec.id;
+    sec.remove();
+    const link = navEl.querySelector('a[href="#' + id + '"]');
+    if(link){ const item = link.closest('.rb-nav-item') || link; item.remove(); }
+    renumberSections();
+    syncNavToSections();
+    saveToStorage(true);
+  }
+  function duplicateSection(sec){
+    captureBeforeChange();
+    const oldId = sec.id;
+    const origLink = navEl.querySelector('a[href="#' + oldId + '"]');
+    const origLabel = origLink ? origLink.textContent : null;
+    const clone = sec.cloneNode(true);
+    clone.querySelectorAll('.rb-ui').forEach(n => n.remove());
+    let newId = oldId + '-copy', n = 2;
+    while(document.getElementById(newId)){ newId = oldId + '-copy' + n; n++; }
+    clone.id = newId;
+    sec.parentNode.insertBefore(clone, sec.nextSibling);
+    if(origLink){
+      const newA = document.createElement('a');
+      newA.href = '#' + newId;
+      newA.textContent = (origLabel || 'Section') + ' (copy)';
+      const origItem = origLink.closest('.rb-nav-item') || origLink;
+      origItem.parentNode.insertBefore(newA, origItem.nextSibling);
+    }
+    renumberSections();
+    decorateAll();
+    syncNavToSections();
+    saveToStorage(true);
+  }
+  function moveSection(sec, dir){
+    captureBeforeChange();
+    if(dir < 0 && sec.previousElementSibling){ sec.parentNode.insertBefore(sec, sec.previousElementSibling); }
+    else if(dir > 0 && sec.nextElementSibling){ sec.parentNode.insertBefore(sec.nextElementSibling, sec); }
+    renumberSections();
+    syncNavToSections();
+    saveToStorage(true);
+  }
+  function renumberSections(){
+    const secs = mainEl.querySelectorAll(':scope > section.section');
+    secs.forEach((s,i) => {
+      const num = String(i+1).padStart(2,'0');
+      const numEl = s.querySelector(':scope > .section-header .section-num');
+      if(numEl) numEl.textContent = '// ' + num;
+    });
+  }
+
+  function moveNavItem(btn, dir){
+    const item = btn.closest('.rb-nav-item');
+    if(!item) return;
+    const group = item.getAttribute('data-nav-group');
+    if(dir < 0 && item.previousElementSibling
+        && item.previousElementSibling.classList.contains('rb-nav-item')
+        && item.previousElementSibling.getAttribute('data-nav-group') === group){
+      navEl.insertBefore(item, item.previousElementSibling);
+    } else if(dir > 0 && item.nextElementSibling
+        && item.nextElementSibling.classList.contains('rb-nav-item')
+        && item.nextElementSibling.getAttribute('data-nav-group') === group){
+      navEl.insertBefore(item.nextElementSibling, item);
+    }
+  }
+  function removeNavItem(btn){ const item = btn.closest('.rb-nav-item'); if(item) item.remove(); }
+  function addBookmark(){
+    const label = window.prompt('Bookmark label:');
+    if(!label) return;
+    const target = window.prompt('Link target (e.g. #section-id or index.html):', '#');
+    captureBeforeChange();
+    const addBtn = navEl.querySelector('.rb-add-bookmark');
+    const a = document.createElement('a');
+    a.href = target || '#';
+    a.textContent = label;
+    if(addBtn) navEl.insertBefore(a, addBtn); else navEl.appendChild(a);
+    decorateAll();
+    saveToStorage(true);
+  }
+
+  function toggleStylePanel(unit, toolbar){
+    const existing = toolbar.querySelector(':scope > .rb-style-panel');
+    if(existing){ existing.remove(); return; }
+    const panel = document.createElement('div');
+    panel.className = 'rb-ui rb-style-panel';
+    panel.contentEditable = false;
+    const curFont = unit.style.fontSize ? parseInt(unit.style.fontSize,10) : '';
+    const curAlign = unit.style.textAlign || 'left';
+    let html = '<label>Font size (px) <input type="number" class="rb-fs" value="' + curFont + '" placeholder="default"></label>'
+      + '<label>Align <select class="rb-align">'
+      + ['left','center','right'].map(v => '<option value="' + v + '"' + (v===curAlign?' selected':'') + '>' + v + '</option>').join('')
+      + '</select></label>';
+    if(unit.classList.contains('tbl-wrap')){
+      const table = unit.querySelector('table');
+      const firstRow = table.querySelector('tr');
+      const cols = firstRow ? firstRow.children.length : 0;
+      const existingCols = table.querySelectorAll('colgroup col');
+      html += '<div style="border-top:1px solid var(--border); margin-top:4px; padding-top:4px;">Column widths (%)</div>';
+      for(let i=0;i<cols;i++){
+        const w = existingCols[i] ? parseFloat(existingCols[i].style.width) || '' : '';
+        html += '<label>Col ' + (i+1) + ' <input type="number" class="rb-colw" data-idx="' + i + '" value="' + w + '" placeholder="auto"></label>';
+      }
+    }
+    if(unit.classList.contains('open-item')){
+      const tag = unit.querySelector('.tag');
+      const cur = tag ? (tag.classList.contains('confirmed') ? 'confirmed' : tag.classList.contains('progress') ? 'progress' : 'pending') : 'pending';
+      html += '<label>Status <select class="rb-tagstatus">'
+        + ['pending','progress','confirmed'].map(v => '<option value="' + v + '"' + (v===cur?' selected':'') + '>' + v + '</option>').join('')
+        + '</select></label>';
+    }
+    html += '<button data-rb-action="applystyle" style="margin-top:4px;">Apply</button>';
+    panel.innerHTML = html;
+    toolbar.appendChild(panel);
+  }
+
+  /* ── event delegation ── */
+  document.addEventListener('click', function(e){
+    const btn = e.target.closest('[data-rb-action]');
+    if(!btn || !editMode) return;
+    const action = btn.getAttribute('data-rb-action');
+    const wrap = btn.closest('.rb-block-wrap');
+    const unit = wrap ? (wrap.querySelector(':scope > .rb-block') || wrap.firstElementChild) : null;
+    const toolbar = btn.closest('.rb-toolbar-bar');
+    const sec = btn.closest('section.section');
+
+    switch(action){
+      case 'moveup': captureBeforeChange(); moveUnit(wrap,-1); decorateAll(); saveToStorage(true); break;
+      case 'movedown': captureBeforeChange(); moveUnit(wrap,1); decorateAll(); saveToStorage(true); break;
+      case 'duplicate': captureBeforeChange(); duplicateUnit(wrap); decorateAll(); saveToStorage(true); break;
+      case 'delete':
+        if(confirm('Delete this component?')){ captureBeforeChange(); wrap.remove(); decorateAll(); saveToStorage(true); }
+        break;
+      case 'style': toggleStylePanel(unit, toolbar); break;
+      case 'setcallouttype': {
+        const sel = toolbar.querySelector('.rb-callout-type');
+        if(sel){
+          captureBeforeChange();
+          ['info','warning','danger','success'].forEach(c => unit.classList.remove(c));
+          unit.classList.add(sel.value);
+          updateBlockLabel(unit, toolbar);
+          saveToStorage(true);
+        }
+        break;
+      }
+      case 'togglecardcolor': {
+        const card = btn.closest('.stat-card');
+        if(card){
+          captureBeforeChange();
+          const CARD_COLORS = ['', 'blue', 'danger', 'success'];
+          const current = CARD_COLORS.find(c => c && card.classList.contains(c)) || '';
+          const next = CARD_COLORS[(CARD_COLORS.indexOf(current) + 1) % CARD_COLORS.length];
+          CARD_COLORS.forEach(c => { if(c) card.classList.remove(c); });
+          if(next) card.classList.add(next);
+          saveToStorage(true);
+        }
+        break;
+      }
+      case 'applystyle': {
+        captureBeforeChange();
+        const panel = btn.closest('.rb-style-panel');
+        const fs = panel.querySelector('.rb-fs').value;
+        const al = panel.querySelector('.rb-align').value;
+        unit.style.fontSize = fs ? fs + 'px' : '';
+        unit.style.textAlign = al;
+        const colInputs = panel.querySelectorAll('.rb-colw');
+        if(colInputs.length){
+          const table = unit.querySelector('table');
+          const widths = Array.from(colInputs).map(i => i.value ? parseFloat(i.value) : null);
+          if(widths.some(w => w)){
+            let colgroup = table.querySelector('colgroup');
+            if(!colgroup){ colgroup = document.createElement('colgroup'); table.insertBefore(colgroup, table.firstChild); }
+            colgroup.innerHTML = widths.map(w => '<col style="width:' + (w || 'auto') + (w ? '%' : '') + '">').join('');
+          }
+        }
+        const tagSel = panel.querySelector('.rb-tagstatus');
+        if(tagSel){
+          const tag = unit.querySelector('.tag');
+          tag.classList.remove('pending','progress','confirmed');
+          tag.classList.add(tagSel.value);
+        }
+        panel.remove();
+        decorateAll();
+        saveToStorage(true);
+        break;
+      }
+      case 'addrow': captureBeforeChange(); addRow(unit); saveToStorage(true); break;
+      case 'removerow': captureBeforeChange(); removeRow(unit); saveToStorage(true); break;
+      case 'addcol': captureBeforeChange(); addCol(unit); saveToStorage(true); break;
+      case 'removecol': captureBeforeChange(); removeCol(unit); saveToStorage(true); break;
+      case 'addcard': captureBeforeChange(); addCard(unit); decorateAll(); saveToStorage(true); break;
+      case 'addprologueline': {
+        const sel = toolbar.querySelector('.rb-prologue-add');
+        captureBeforeChange();
+        addPrologueLine(unit, sel ? sel.value : 'body');
+        decorateAll();
+        saveToStorage(true);
+        break;
+      }
+      case 'removecard': {
+        const card = btn.closest('.stat-card');
+        if(card){ captureBeforeChange(); card.remove(); saveToStorage(true); }
+        break;
+      }
+      case 'duplicatesection': duplicateSection(sec); break;
+      case 'deletesection': deleteSection(sec); break;
+      case 'movesectionup': moveSection(sec,-1); break;
+      case 'movesectiondown': moveSection(sec,1); break;
+      case 'addcomponent': {
+        const sel = sec.querySelector('.rb-add-select');
+        captureBeforeChange();
+        addComponent(sec, sel.value);
+        decorateAll();
+        saveToStorage(true);
+        break;
+      }
+      case 'addsection': addSection(); break;
+      case 'navup': captureBeforeChange(); moveNavItem(btn,-1); decorateAll(); saveToStorage(true); break;
+      case 'navdown': captureBeforeChange(); moveNavItem(btn,1); decorateAll(); saveToStorage(true); break;
+      case 'navdel':
+        if(confirm('Remove this bookmark?')){ captureBeforeChange(); removeNavItem(btn); decorateAll(); saveToStorage(true); }
+        break;
+      case 'addbookmark': addBookmark(); break;
+      case 'undo': undo(); break;
+      case 'redo': redo(); break;
+      case 'save': saveToFile(false); break;
+      case 'saveas': saveToFile(true); break;
+      case 'dismissnag': hideNag(); break;
+      case 'togglelayout': {
+        ensureLayoutPanel();
+        const panel = document.querySelector('.rb-layout-panel');
+        const opening = !panel.classList.contains('rb-open');
+        panel.classList.toggle('rb-open');
+        if(opening){
+          const s = readLayoutSettings();
+          panel.querySelector('.rb-lay-navside').value = s.navSide;
+          panel.querySelector('.rb-lay-align').value = s.mainAlign;
+          panel.querySelector('.rb-lay-maxw').value = s.maxw;
+          panel.querySelector('.rb-lay-padl').value = s.padL;
+          panel.querySelector('.rb-lay-padr').value = s.padR;
+        }
+        break;
+      }
+      case 'applylayout': {
+        const panel = document.querySelector('.rb-layout-panel');
+        applyLayoutSettings({
+          navSide: panel.querySelector('.rb-lay-navside').value,
+          mainAlign: panel.querySelector('.rb-lay-align').value,
+          maxw: parseInt(panel.querySelector('.rb-lay-maxw').value, 10) || 900,
+          padL: parseInt(panel.querySelector('.rb-lay-padl').value, 10) || 0,
+          padR: parseInt(panel.querySelector('.rb-lay-padr').value, 10) || 0
+        });
+        break;
+      }
+      case 'resetlayout': {
+        const d = { navSide:'left', mainAlign:'left', maxw:0, padL:48, padR:48 };
+        applyLayoutSettings(d);
+        const panel = document.querySelector('.rb-layout-panel');
+        panel.querySelector('.rb-lay-navside').value = d.navSide;
+        panel.querySelector('.rb-lay-align').value = d.mainAlign;
+        panel.querySelector('.rb-lay-maxw').value = d.maxw;
+        panel.querySelector('.rb-lay-padl').value = d.padL;
+        panel.querySelector('.rb-lay-padr').value = d.padR;
+        break;
+      }
+    }
+  });
+
+  /* ── typing history + autosave ── */
+  document.addEventListener('focusin', function(e){
+    if(editMode && e.target.isContentEditable){
+      if(!typingSessionCaptured){ captureBeforeChange(); typingSessionCaptured = true; }
+    }
+  });
+  document.addEventListener('focusout', function(e){
+    if(e.target && e.target.isContentEditable){ typingSessionCaptured = false; saveToStorage(); }
+  });
+  document.addEventListener('input', function(e){
+    if(editMode && e.target && e.target.isContentEditable){ saveToStorage(); }
+  });
+
+  /* ── edit mode toggle + keyboard ── */
+  function enterEditMode(){ decorateAll(); }
+  function exitEditMode(){
+    document.querySelectorAll('.rb-editable').forEach(n => { setEditable(n, false); });
+    hideNag();
+  }
+  function toggleEditMode(){
+    editMode = !editMode;
+    document.body.classList.toggle('rb-edit-mode', editMode);
+    if(editMode) enterEditMode(); else { exitEditMode(); saveToStorage(true); }
+  }
+
+  let keyBuf = '';
+  document.addEventListener('keydown', function(e){
+    const ae = document.activeElement;
+    const typing = ae && (ae.isContentEditable || ae.tagName==='INPUT' || ae.tagName==='TEXTAREA');
+    if(editMode && (e.ctrlKey || e.metaKey)){
+      const k = e.key.toLowerCase();
+      if(k==='z' && !e.shiftKey){ e.preventDefault(); undo(); return; }
+      if(k==='y' || (k==='z' && e.shiftKey)){ e.preventDefault(); redo(); return; }
+    }
+    if(typing){ keyBuf=''; return; }
+    if(e.key.length===1){
+      keyBuf = (keyBuf + e.key.toLowerCase()).slice(-4);
+      if(keyBuf==='f426'){ toggleEditMode(); keyBuf=''; }
+    }
+  });
+
+  loadFromStorage();
+  loadLayoutSettings();
 })();
 </script>
 </body>
