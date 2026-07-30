@@ -797,6 +797,39 @@
     background: var(--surface); color: var(--text); border: 1px solid var(--border);
     font-size: 11px; padding: 3px 5px; width: 90px;
   }
+
+  /* ── floating text-selection format toolbar ──
+     Appears above/below whatever text is highlighted while editing. Shows the
+     current font/size/color for the selection, or a "mixed" placeholder when
+     the highlighted text isn't uniform. */
+  .rb-text-toolbar {
+    position: fixed; z-index: 1000; display: none; flex-direction: row; align-items: center;
+    gap: 4px; background: var(--surface2); border: 1px solid var(--accent);
+    border-radius: 4px; padding: 5px 6px; font-family: var(--mono); box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+  }
+  .rb-text-toolbar.rb-open { display: flex; }
+  .rb-text-toolbar button {
+    background: var(--surface); color: var(--text-dim); border: 1px solid var(--border);
+    font-size: 11px; width: 26px; height: 24px; line-height: 1; cursor: pointer;
+    border-radius: 2px; font-family: var(--mono);
+  }
+  .rb-text-toolbar button:hover { color: var(--accent); border-color: var(--accent); }
+  .rb-text-toolbar button.rb-txt-active { color: #0a0c0f; background: var(--accent); border-color: var(--accent); }
+  .rb-text-toolbar select, .rb-text-toolbar input[type="number"] {
+    background: var(--surface); color: var(--text); border: 1px solid var(--border);
+    font-size: 10px; padding: 3px 4px; border-radius: 2px; font-family: var(--mono);
+  }
+  .rb-text-toolbar select { width: 118px; }
+  .rb-text-toolbar input[type="number"] { width: 48px; }
+  .rb-text-toolbar input[type="number"]::placeholder { color: var(--text-dim); font-style: italic; }
+  .rb-text-toolbar .rb-txt-sep { width: 1px; align-self: stretch; background: var(--border); margin: 0 2px; }
+  .rb-text-toolbar input[type="color"] {
+    width: 26px; height: 24px; padding: 0; border: 1px solid var(--border); border-radius: 2px;
+    background: var(--surface); cursor: pointer;
+  }
+  .rb-text-toolbar .rb-txt-mixed {
+    font-size: 9px; color: var(--text-dim); letter-spacing: 0.05em; white-space: nowrap;
+  }
 </style>
 </head>
 <body>
@@ -1896,6 +1929,7 @@
     }
     nag.innerHTML = '<span>⚠ ' + msg + '</span>'
       + '<button data-rb-action="save">Save Now</button>'
+      + '<button data-rb-action="clearhistory" title="Wipe the autosave cache + undo history stored in this browser, so reopening the file starts fresh">Clear History</button>'
       + '<button data-rb-action="dismissnag">✕</button>';
     nag.style.display = 'flex';
   }
@@ -2559,6 +2593,241 @@
     toolbar.appendChild(panel);
   }
 
+  /* ── floating text-selection format toolbar ──
+     Shows font family/size/color + B/I/U/S for whatever text is currently
+     highlighted inside an editable region, and lets you change it. Family/size/
+     color are applied by wrapping the selection in a <span> (execCommand can't
+     do arbitrary px sizes); bold/italic/underline/strike use execCommand since
+     the browser already handles splitting/merging existing formatting for those. */
+  const FONT_OPTIONS = [
+    { label: 'Body (default)', value: 'Barlow, sans-serif', match: ['barlow'] },
+    { label: 'Heading (condensed)', value: '"Barlow Condensed", sans-serif', match: ['barlow condensed'] },
+    { label: 'Mono', value: '"Share Tech Mono", monospace', match: ['share tech mono'] },
+    { label: 'Georgia', value: 'Georgia, serif', match: ['georgia'] },
+    { label: 'Arial', value: 'Arial, Helvetica, sans-serif', match: ['arial'] },
+    { label: 'Courier New', value: '"Courier New", monospace', match: ['courier new'] },
+    { label: 'Times New Roman', value: '"Times New Roman", serif', match: ['times new roman'] },
+    { label: 'Verdana', value: 'Verdana, sans-serif', match: ['verdana'] }
+  ];
+  const MIXED = '__mixed__';
+
+  let savedRange = null;
+  let savedEditable = null;
+
+  function rgbToHex(rgb){
+    const m = /^rgba?\((\d+),\s*(\d+),\s*(\d+)/.exec(rgb || '');
+    if(!m) return '#e8732a';
+    return '#' + [1,2,3].map(i => parseInt(m[i],10).toString(16).padStart(2,'0')).join('');
+  }
+
+  function matchFontOption(computedFamily){
+    const first = (computedFamily || '').split(',')[0].replace(/["']/g,'').trim().toLowerCase();
+    const found = FONT_OPTIONS.find(o => o.match.includes(first));
+    return found ? found.value : null;
+  }
+
+  function getRangeTextNodes(range){
+    let root = range.commonAncestorContainer;
+    if(root.nodeType !== 1) root = root.parentNode;
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    const out = [];
+    let n;
+    while((n = walker.nextNode())){
+      if(!n.textContent || !n.textContent.trim()) continue;
+      if(range.intersectsNode ? range.intersectsNode(n) : true) out.push(n);
+    }
+    return out;
+  }
+
+  function computeSelectionState(range){
+    const nodes = getRangeTextNodes(range);
+    if(!nodes.length) return null;
+    let family, size, color, famMixed = false, sizeMixed = false, colorMixed = false;
+    nodes.forEach(n => {
+      const cs = getComputedStyle(n.parentElement);
+      const f = matchFontOption(cs.fontFamily);
+      const s = Math.round(parseFloat(cs.fontSize));
+      const c = rgbToHex(cs.color);
+      if(family === undefined) family = f; else if(family !== f) famMixed = true;
+      if(size === undefined) size = s; else if(size !== s) sizeMixed = true;
+      if(color === undefined) color = c; else if(color !== c) colorMixed = true;
+    });
+    return {
+      family: famMixed ? MIXED : (family || MIXED),
+      size: sizeMixed ? null : size,
+      color: colorMixed ? null : color
+    };
+  }
+
+  function ensureTextToolbar(){
+    let bar = document.querySelector('.rb-text-toolbar');
+    if(bar) return bar;
+    bar = document.createElement('div');
+    bar.className = 'rb-ui rb-text-toolbar';
+    bar.innerHTML =
+      '<button type="button" data-txt="bold" title="Bold"><b>B</b></button>'
+      + '<button type="button" data-txt="italic" title="Italic"><i>I</i></button>'
+      + '<button type="button" data-txt="underline" title="Underline"><u>U</u></button>'
+      + '<button type="button" data-txt="strikeThrough" title="Strikethrough"><s>S</s></button>'
+      + '<div class="rb-txt-sep"></div>'
+      + '<select class="rb-txt-family" title="Font family">'
+      + '<option value="' + MIXED + '" disabled>…</option>'
+      + FONT_OPTIONS.map(o => '<option value="' + o.value + '">' + o.label + '</option>').join('')
+      + '</select>'
+      + '<input type="number" class="rb-txt-size" min="8" max="200" step="1" title="Font size (px)" placeholder="px">'
+      + '<input type="color" class="rb-txt-color" title="Text color">'
+      + '<div class="rb-txt-sep"></div>'
+      + '<button type="button" data-txt="clear" title="Clear formatting">✕</button>';
+    document.body.appendChild(bar);
+
+    // Buttons must not steal focus/selection away from the editable text.
+    bar.addEventListener('mousedown', function(e){
+      if(e.target.closest('button')) e.preventDefault();
+    });
+
+    bar.querySelectorAll('button[data-txt]').forEach(btn => {
+      btn.addEventListener('click', function(){
+        const cmd = btn.getAttribute('data-txt');
+        if(!restoreSavedSelection()) return;
+        captureBeforeChange();
+        if(cmd === 'clear'){
+          try{ document.execCommand('removeFormat'); }catch(err){}
+        } else {
+          try{ document.execCommand(cmd); }catch(err){}
+        }
+        afterInlineChange();
+      });
+    });
+
+    bar.querySelector('.rb-txt-family').addEventListener('change', function(){
+      if(!restoreSavedSelection()) return;
+      captureBeforeChange();
+      try{ document.execCommand('fontName', false, this.value); }catch(err){}
+      afterInlineChange();
+    });
+
+    bar.querySelector('.rb-txt-size').addEventListener('change', function(){
+      const px = parseInt(this.value, 10);
+      if(!px || !restoreSavedSelection()) return;
+      captureBeforeChange();
+      applyWrappedStyle({ fontSize: px + 'px' });
+      afterInlineChange();
+    });
+
+    bar.querySelector('.rb-txt-color').addEventListener('change', function(){
+      if(!restoreSavedSelection()) return;
+      captureBeforeChange();
+      try{ document.execCommand('foreColor', false, this.value); }catch(err){}
+      afterInlineChange();
+    });
+
+    return bar;
+  }
+
+  function restoreSavedSelection(){
+    if(!savedRange || !savedEditable) return false;
+    savedEditable.focus();
+    try{ document.execCommand('styleWithCSS', false, true); }catch(err){}
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(savedRange);
+    return true;
+  }
+
+  function applyWrappedStyle(styleProps){
+    const sel = window.getSelection();
+    if(!sel.rangeCount) return;
+    const range = sel.getRangeAt(0);
+    if(range.collapsed) return;
+    let span = null;
+    const container = range.commonAncestorContainer;
+    const candidate = container.nodeType === 1 ? container : container.parentElement;
+    if(candidate && candidate.classList && candidate.classList.contains('rb-inline-style') && range.toString() === candidate.textContent){
+      span = candidate;
+    } else {
+      const frag = range.extractContents();
+      span = document.createElement('span');
+      span.className = 'rb-inline-style';
+      span.appendChild(frag);
+      range.insertNode(span);
+    }
+    Object.keys(styleProps).forEach(k => { span.style[k] = styleProps[k]; });
+    const newRange = document.createRange();
+    newRange.selectNodeContents(span);
+    sel.removeAllRanges();
+    sel.addRange(newRange);
+    savedRange = newRange.cloneRange();
+  }
+
+  function afterInlineChange(){
+    const sel = window.getSelection();
+    if(sel.rangeCount && !sel.isCollapsed) savedRange = sel.getRangeAt(0).cloneRange();
+    updateTextToolbarUI();
+    saveToStorage(true);
+  }
+
+  function positionTextToolbar(bar, range){
+    const rect = range.getBoundingClientRect();
+    bar.style.visibility = 'hidden';
+    bar.classList.add('rb-open');
+    const bw = bar.offsetWidth, bh = bar.offsetHeight;
+    let top = rect.top - bh - 8;
+    if(top < 4) top = rect.bottom + 8;
+    let left = rect.left + (rect.width / 2) - (bw / 2);
+    left = Math.max(4, Math.min(left, window.innerWidth - bw - 4));
+    bar.style.top = top + 'px';
+    bar.style.left = left + 'px';
+    bar.style.visibility = 'visible';
+  }
+
+  function updateTextToolbarUI(){
+    const bar = document.querySelector('.rb-text-toolbar');
+    if(!bar || !savedRange) return;
+    const state = computeSelectionState(savedRange);
+    if(!state) return;
+    ['bold','italic','underline','strikeThrough'].forEach(cmd => {
+      const btn = bar.querySelector('[data-txt="' + cmd + '"]');
+      let active = false;
+      try{ active = document.queryCommandState(cmd); }catch(err){}
+      btn.classList.toggle('rb-txt-active', active);
+    });
+    bar.querySelector('.rb-txt-family').value = state.family;
+    const sizeInput = bar.querySelector('.rb-txt-size');
+    sizeInput.value = state.size === null ? '' : state.size;
+    sizeInput.placeholder = state.size === null ? '...' : 'px';
+    const colorInput = bar.querySelector('.rb-txt-color');
+    colorInput.value = state.color === null ? '#e8732a' : state.color;
+    colorInput.title = state.color === null ? 'Text color (mixed)' : 'Text color';
+  }
+
+  function showTextToolbar(range, editable){
+    savedRange = range.cloneRange();
+    savedEditable = editable;
+    const bar = ensureTextToolbar();
+    updateTextToolbarUI();
+    positionTextToolbar(bar, range);
+  }
+
+  function hideTextToolbar(){
+    const bar = document.querySelector('.rb-text-toolbar');
+    if(bar) bar.classList.remove('rb-open');
+    savedRange = null;
+    savedEditable = null;
+  }
+
+  document.addEventListener('selectionchange', function(){
+    if(!editMode) return;
+    const bar = document.querySelector('.rb-text-toolbar');
+    if(bar && bar.contains(document.activeElement)) return; // don't hide while using the toolbar's own controls
+    const sel = window.getSelection();
+    if(!sel || !sel.rangeCount || sel.isCollapsed){ hideTextToolbar(); return; }
+    const range = sel.getRangeAt(0);
+    const anchorEl = range.commonAncestorContainer.nodeType === 1 ? range.commonAncestorContainer : range.commonAncestorContainer.parentElement;
+    const editable = anchorEl && anchorEl.closest('[contenteditable="true"]');
+    if(!editable){ hideTextToolbar(); return; }
+    showTextToolbar(range, editable);
+  });
+
   /* ── event delegation ── */
   document.addEventListener('click', function(e){
     const btn = e.target.closest('[data-rb-action]');
@@ -2671,6 +2940,18 @@
       case 'save': saveToFile(false); break;
       case 'saveas': saveToFile(true); break;
       case 'dismissnag': hideNag(); break;
+      case 'clearhistory': {
+        if(confirm('Clear all unsaved edit history? This wipes the autosave cache and undo/redo history stored in this browser. It does NOT touch your saved .html file — reopening it will start fresh, without these edits.')){
+          try{
+            localStorage.removeItem(STORAGE_KEY);
+            localStorage.removeItem(STORAGE_KEY + '_edits');
+          }catch(err){}
+          undoStack = [];
+          redoStack = [];
+          resetEditsSinceExport();
+        }
+        break;
+      }
       case 'togglelayout': {
         ensureLayoutPanel();
         const panel = document.querySelector('.rb-layout-panel');
