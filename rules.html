@@ -757,9 +757,10 @@
   }
   body.rb-edit-mode .rb-badge { display: flex; }
   .rb-savebar {
-    position: fixed; bottom: 44px; left: 0; right: 0; z-index: 998;
-    background: rgba(10,12,15,0.97); border-top: 1px solid var(--border);
-    padding: 8px 16px; gap: 8px; align-items: center; justify-content: center; flex-wrap: wrap;
+    position: fixed; bottom: 54px; left: 50%; transform: translateX(-50%); z-index: 998;
+    background: rgba(10,12,15,0.97); border: 1px solid var(--accent); border-radius: 4px;
+    padding: 8px 14px; gap: 8px; align-items: center; justify-content: center; flex-wrap: wrap;
+    max-width: 92vw; box-shadow: 0 4px 16px rgba(0,0,0,0.5);
   }
   body.rb-edit-mode .rb-savebar { display: flex; }
   [contenteditable="true"] { outline: 1px dashed rgba(232,115,42,0.35); outline-offset: 3px; }
@@ -849,6 +850,20 @@
   }
   .rb-find-panel button:hover { color: var(--accent); border-color: var(--accent); }
   .rb-find-status { font-size: 10px; color: var(--text-dim); white-space: nowrap; min-width: 54px; }
+  /* Custom Highlight API paint for find matches — purely visual, doesn't touch
+     the document Selection, so the find input never loses focus while typing. */
+  ::highlight(rb-find-all) { background: rgba(232,115,42,0.28); }
+  ::highlight(rb-find-current) { background: var(--accent); color: #0a0c0f; }
+
+  /* ── small flashing toast (undo/redo with nothing left, etc.) ── */
+  .rb-toast {
+    position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%);
+    z-index: 1001; display: none; background: var(--surface2); border: 1px solid var(--danger);
+    color: var(--text); font-family: var(--mono); font-size: 11px; padding: 6px 14px;
+    border-radius: 3px; letter-spacing: 0.05em;
+  }
+  .rb-toast.rb-show { display: block; animation: rbToastFlash 0.6s ease-in-out 2; }
+  @keyframes rbToastFlash { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 </style>
 </head>
 <body>
@@ -1958,8 +1973,30 @@
     if(nag) nag.style.display = 'none';
   }
 
-  function undo(){ if(!undoStack.length) return; redoStack.push(snapshot()); restore(undoStack.pop()); saveToStorage(true); }
-  function redo(){ if(!redoStack.length) return; undoStack.push(snapshot()); restore(redoStack.pop()); saveToStorage(true); }
+  let toastTimer = null;
+  function showToast(msg){
+    let toast = document.querySelector('.rb-toast');
+    if(!toast){
+      toast = document.createElement('div');
+      toast.className = 'rb-ui rb-toast';
+      document.body.appendChild(toast);
+    }
+    toast.textContent = msg;
+    toast.classList.remove('rb-show');
+    void toast.offsetWidth; // restart the flash animation
+    toast.classList.add('rb-show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { toast.classList.remove('rb-show'); }, 1400);
+  }
+
+  function undo(){
+    if(!undoStack.length){ showToast('Nothing left to undo'); return; }
+    redoStack.push(snapshot()); restore(undoStack.pop()); saveToStorage(true);
+  }
+  function redo(){
+    if(!redoStack.length){ showToast('Nothing left to redo'); return; }
+    undoStack.push(snapshot()); restore(redoStack.pop()); saveToStorage(true);
+  }
 
   /* ── persistence ── */
   function saveToStorage(manual){
@@ -2849,15 +2886,29 @@
   });
 
   /* ── quick find (edit mode) ──
-     Searches visible text inside <main> (skipping editor chrome), then selects
-     and scrolls to matches natively — no DOM markup added, so nothing needs
-     cleaning up before save. Open with the Find button or "/" (when not typing). */
+     Searches visible text inside <main> (skipping editor chrome). Matches are
+     painted with the CSS Custom Highlight API — a purely visual overlay that
+     never touches the document Selection, so the find input keeps focus while
+     you type the whole query. Selecting/scrolling to a match (which does need
+     the Selection API) only happens on an explicit Enter/Next/Prev, never as
+     a side effect of typing. Open with the Find button or "/" (when not typing). */
+  const supportsHighlightAPI = typeof CSS !== 'undefined' && !!CSS.highlights && typeof Highlight !== 'undefined';
+  let findHighlightAll = null;
+  let findHighlightCurrent = null;
+  if(supportsHighlightAPI){
+    findHighlightAll = new Highlight();
+    findHighlightCurrent = new Highlight();
+    CSS.highlights.set('rb-find-all', findHighlightAll);
+    CSS.highlights.set('rb-find-current', findHighlightCurrent);
+  }
+
   let findMatches = [];
   let findIndex = -1;
 
   function collectFindMatches(query){
     findMatches = [];
     findIndex = -1;
+    if(supportsHighlightAPI){ findHighlightAll.clear(); findHighlightCurrent.clear(); }
     if(!query) return;
     const q = query.toLowerCase();
     const walker = document.createTreeWalker(mainEl, NodeFilter.SHOW_TEXT, {
@@ -2876,6 +2927,7 @@
         range.setStart(node, idx);
         range.setEnd(node, idx + q.length);
         findMatches.push(range);
+        if(supportsHighlightAPI) findHighlightAll.add(range);
         idx += q.length;
       }
     }
@@ -2893,9 +2945,14 @@
     if(!findMatches.length) return;
     findIndex = (findIndex + dir + findMatches.length) % findMatches.length;
     const range = findMatches[findIndex];
-    const sel = window.getSelection();
-    sel.removeAllRanges();
-    sel.addRange(range);
+    if(supportsHighlightAPI){
+      findHighlightCurrent.clear();
+      findHighlightCurrent.add(range);
+    } else {
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+    }
     const el = range.startContainer.nodeType === 1 ? range.startContainer : range.startContainer.parentElement;
     if(el) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
     updateFindStatus(document.querySelector('.rb-find-input').value);
@@ -2916,8 +2973,10 @@
 
     const input = panel.querySelector('.rb-find-input');
     input.addEventListener('input', function(){
+      // Only recompute + paint match highlights here — never move selection/
+      // focus, so you can type the entire query without interruption.
       collectFindMatches(this.value);
-      if(findMatches.length) gotoFindMatch(1); else updateFindStatus(this.value);
+      updateFindStatus(this.value);
     });
     input.addEventListener('keydown', function(e){
       if(e.key === 'Enter'){ e.preventDefault(); gotoFindMatch(e.shiftKey ? -1 : 1); }
@@ -2940,6 +2999,7 @@
     if(panel) panel.classList.remove('rb-open');
     findMatches = [];
     findIndex = -1;
+    if(supportsHighlightAPI){ findHighlightAll.clear(); findHighlightCurrent.clear(); }
   }
 
   /* ── event delegation ── */
