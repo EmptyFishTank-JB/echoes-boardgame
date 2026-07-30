@@ -2207,22 +2207,29 @@
     document.body.appendChild(panel);
   }
 
-  /* ── table helpers ── */
+  /* ── table helpers ──
+     Row/column removal targets whichever one is picked in the toolbar's
+     row/col <select>, not just the last — populateTablePickers() keeps those
+     dropdowns in sync with the table's current row/column count. */
   function tableOf(wrap){ return wrap.querySelector('table'); }
+  function bodyRowsOf(t){ const tbody = t.querySelector('tbody'); return tbody ? Array.from(tbody.querySelectorAll(':scope > tr')) : Array.from(t.querySelectorAll(':scope > tr')).filter(tr => !tr.closest('thead')); }
+  function headerRowOf(t){ return t.querySelector('thead tr') || t.querySelector('tr'); }
+
   function addRow(wrap){
     const t = tableOf(wrap); if(!t) return;
     const tbody = t.querySelector('tbody') || t;
-    const firstRow = t.querySelector('tr');
-    const cols = firstRow ? firstRow.children.length : 1;
+    const headerRow = headerRowOf(t);
+    const cols = headerRow ? headerRow.children.length : 1;
     const tr = document.createElement('tr');
     for(let i=0;i<cols;i++){ const td = document.createElement('td'); td.textContent = '—'; if(editMode) setEditable(td, true); tr.appendChild(td); }
     tbody.appendChild(tr);
   }
-  function removeRow(wrap){
-    const t = tableOf(wrap); if(!t) return;
-    const tbody = t.querySelector('tbody') || t;
-    const rows = tbody.querySelectorAll('tr');
-    if(rows.length > 1) rows[rows.length-1].remove();
+  function removeRowAt(wrap, idx){
+    const t = tableOf(wrap); if(!t) return false;
+    const rows = bodyRowsOf(t);
+    if(rows.length <= 1 || !rows[idx]) return false;
+    rows[idx].remove();
+    return true;
   }
   function addCol(wrap){
     const t = tableOf(wrap); if(!t) return;
@@ -2234,10 +2241,31 @@
       tr.appendChild(cell);
     });
   }
-  function removeCol(wrap){
-    const t = tableOf(wrap); if(!t) return;
-    const rows = t.querySelectorAll('tr');
-    if(rows.length && rows[0].children.length > 1) rows.forEach(tr => { if(tr.lastElementChild) tr.lastElementChild.remove(); });
+  function removeColAt(wrap, idx){
+    const t = tableOf(wrap); if(!t) return false;
+    const headerRow = headerRowOf(t);
+    if(!headerRow || headerRow.children.length <= 1 || !headerRow.children[idx]) return false;
+    t.querySelectorAll('tr').forEach(tr => { if(tr.children[idx]) tr.children[idx].remove(); });
+    return true;
+  }
+  function populateTablePickers(wrap, toolbar){
+    const t = tableOf(wrap);
+    const rowPick = toolbar.querySelector('.rb-row-pick');
+    const colPick = toolbar.querySelector('.rb-col-pick');
+    if(!t || (!rowPick && !colPick)) return;
+    if(rowPick){
+      const prev = rowPick.value;
+      const rows = bodyRowsOf(t);
+      rowPick.innerHTML = rows.map((tr, i) => '<option value="' + i + '">Row ' + (i + 1) + '</option>').join('');
+      if(prev && rows[prev]) rowPick.value = prev;
+    }
+    if(colPick){
+      const prev = colPick.value;
+      const headerRow = headerRowOf(t);
+      const count = headerRow ? headerRow.children.length : 0;
+      colPick.innerHTML = Array.from({ length: count }, (_, i) => '<option value="' + i + '">Col ' + (i + 1) + '</option>').join('');
+      if(prev && parseInt(prev, 10) < count) colPick.value = prev;
+    }
   }
 
   /* ── stat-grid helpers ── */
@@ -2297,7 +2325,12 @@
     const isPrologue = unit.classList.contains('prologue');
     const isCallout = unit.classList.contains('callout');
     let extra = '';
-    if(isTable) extra = '<button data-rb-action="addrow" title="Add row">+ Row</button><button data-rb-action="removerow" title="Remove last row">- Row</button><button data-rb-action="addcol" title="Add column">+ Col</button><button data-rb-action="removecol" title="Remove last column">- Col</button>';
+    if(isTable) extra = '<button data-rb-action="addrow" title="Add row">+ Row</button>'
+      + '<select class="rb-row-pick" title="Row to remove"></select>'
+      + '<button data-rb-action="removerowat" title="Remove the selected row">- Row</button>'
+      + '<button data-rb-action="addcol" title="Add column">+ Col</button>'
+      + '<select class="rb-col-pick" title="Column to remove"></select>'
+      + '<button data-rb-action="removecolat" title="Remove the selected column">- Col</button>';
     if(isGrid) extra = '<button data-rb-action="addcard" title="Add stat card">+ Card</button>';
     if(isPrologue) extra = '<select class="rb-prologue-add" title="Text style to add">'
       + '<option value="quote">Quote/Title</option>'
@@ -2360,6 +2393,7 @@
       unit.querySelectorAll('.stat-card').forEach(decorateStatCard);
     } else if(unit.classList.contains('tbl-wrap')){
       unit.querySelectorAll('td,th').forEach(c => { setEditable(c, true); });
+      populateTablePickers(unit, toolbar);
     } else {
       setEditable(unit, true);
     }
@@ -3072,10 +3106,34 @@
         saveToStorage(true);
         break;
       }
-      case 'addrow': captureBeforeChange(); addRow(unit); saveToStorage(true); break;
-      case 'removerow': captureBeforeChange(); removeRow(unit); saveToStorage(true); break;
-      case 'addcol': captureBeforeChange(); addCol(unit); saveToStorage(true); break;
-      case 'removecol': captureBeforeChange(); removeCol(unit); saveToStorage(true); break;
+      case 'addrow': captureBeforeChange(); addRow(unit); populateTablePickers(unit, toolbar); saveToStorage(true); break;
+      case 'addcol': captureBeforeChange(); addCol(unit); populateTablePickers(unit, toolbar); saveToStorage(true); break;
+      case 'removerowat': {
+        const sel = toolbar.querySelector('.rb-row-pick');
+        const idx = sel ? parseInt(sel.value, 10) : NaN;
+        const t = tableOf(unit);
+        const rows = t ? bodyRowsOf(t) : [];
+        if(isNaN(idx) || !rows[idx]) break;
+        if(rows.length <= 1){ showToast('A table needs at least one row'); break; }
+        captureBeforeChange();
+        removeRowAt(unit, idx);
+        populateTablePickers(unit, toolbar);
+        saveToStorage(true);
+        break;
+      }
+      case 'removecolat': {
+        const sel = toolbar.querySelector('.rb-col-pick');
+        const idx = sel ? parseInt(sel.value, 10) : NaN;
+        const t = tableOf(unit);
+        const headerRow = t ? headerRowOf(t) : null;
+        if(isNaN(idx) || !headerRow || !headerRow.children[idx]) break;
+        if(headerRow.children.length <= 1){ showToast('A table needs at least one column'); break; }
+        captureBeforeChange();
+        removeColAt(unit, idx);
+        populateTablePickers(unit, toolbar);
+        saveToStorage(true);
+        break;
+      }
       case 'addcard': captureBeforeChange(); addCard(unit); decorateAll(); saveToStorage(true); break;
       case 'addprologueline': {
         const sel = toolbar.querySelector('.rb-prologue-add');
