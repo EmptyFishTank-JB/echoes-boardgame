@@ -17,6 +17,7 @@
     --blue:       #4fc3f7;
     --good:       #4fe0a1;
     --bad:        #ff4d5e;
+    --violet:     #b98aff;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body {
@@ -183,18 +184,18 @@
     transition: 0.3s;
   }
   .fuse.shut {
-    background: rgba(255,77,94,0.08);
-    border-color: var(--bad);
-    color: var(--bad);
+    background: rgba(79,224,161,0.08);
+    border-color: var(--good);
+    color: var(--good);
   }
   .fuse.shut::after {
     content: "";
     position: absolute; left: -10%; top: 50%; width: 120%; height: 2px;
-    background: var(--bad); transform: translateY(-50%) rotate(-18deg);
+    background: var(--good); transform: translateY(-50%) rotate(-18deg);
   }
   .fuse.just-shut { animation: cut 0.5s ease; }
   @keyframes cut {
-    0% { transform: scale(1.15); box-shadow: 0 0 18px rgba(255,77,94,0.6); }
+    0% { transform: scale(1.15); box-shadow: 0 0 18px rgba(79,224,161,0.6); }
     100% { transform: scale(1); box-shadow: none; }
   }
 
@@ -208,6 +209,8 @@
     letter-spacing: 0.2em; text-transform: uppercase; margin-top: 8px;
     color: var(--text-dim);
   }
+  .die-label.red-label { color: var(--red); }
+  .die-label.blue-label { color: var(--blue); }
   .die {
     width: 64px; height: 64px; border-radius: 10px;
     display: grid; grid-template-columns: repeat(3,1fr); grid-template-rows: repeat(3,1fr);
@@ -233,7 +236,14 @@
     margin-bottom: 22px; min-height: 18px;
   }
   .math-line .val { color: var(--text); font-weight: 700; }
-  .math-line .cut { color: var(--bad); }
+  .math-line .src-red   { color: var(--red); }
+  .math-line .src-blue  { color: var(--blue); }
+  .math-line .src-sum   { color: var(--orange); }
+  .math-line .src-diff  { color: var(--violet); }
+  .log .src-red   { color: var(--red); }
+  .log .src-blue  { color: var(--blue); }
+  .log .src-sum   { color: var(--orange); }
+  .log .src-diff  { color: var(--violet); }
 
   .log {
     font-family: 'Share Tech Mono', monospace; font-size: 11px;
@@ -323,11 +333,11 @@
     <div class="dice-stage">
       <div class="die-wrap">
         <div class="die red" id="dieRed"></div>
-        <div class="die-label">Red</div>
+        <div class="die-label red-label">Red</div>
       </div>
       <div class="die-wrap">
         <div class="die blue" id="dieBlue"></div>
-        <div class="die-label">Blue</div>
+        <div class="die-label blue-label">Blue</div>
       </div>
     </div>
 
@@ -488,29 +498,37 @@
     updatePips();
 
     const candidates = [
-      {v: red,  label: 'Red ' + red},
-      {v: blue, label: 'Blue ' + blue},
-      {v: sum,  label: 'Sum ' + sum},
-      {v: diff, label: 'Diff ' + diff}
+      {v: red,  label: 'Red',  src: 'src-red'},
+      {v: blue, label: 'Blue', src: 'src-blue'},
+      {v: sum,  label: 'Sum',  src: 'src-sum'},
+      {v: diff, label: 'Diff', src: 'src-diff'}
     ];
 
     const cutThisRoll = [];
     candidates.forEach(c => {
       if (c.v >= 1 && c.v <= 6 && fuseOpen[c.v]){
         fuseOpen[c.v] = false;
-        cutThisRoll.push(c.v);
+        cutThisRoll.push({v: c.v, src: c.src});
       }
     });
 
-    mathLine.innerHTML = 'Red <span class="val">' + red + '</span> &middot; Blue <span class="val">' + blue +
-      '</span> &middot; Sum <span class="val">' + sum + '</span> &middot; Diff <span class="val">' + diff + '</span>' +
-      (cutThisRoll.length ? ' &rarr; cut <span class="cut">' + cutThisRoll.join(', ') + '</span>' : ' &rarr; nothing new cut');
+    const breakdown = candidates
+      .map(c => c.label + ' <span class="' + c.src + '">' + c.v + '</span>')
+      .join(' &middot; ');
+    const cutSpans = cutThisRoll.map(c => '<span class="' + c.src + '">' + c.v + '</span>').join(', ');
 
-    log('<span class="tag">Roll ' + rollsUsed + '/' + MAX_ROLLS + '</span> — Red ' + red + ', Blue ' + blue +
-      ', Sum ' + sum + ', Diff ' + diff + (cutThisRoll.length ? ' — cut ' + cutThisRoll.join(', ') : ' — no new fuses cut'));
+    mathLine.innerHTML = breakdown +
+      (cutThisRoll.length ? ' &rarr; cut ' + cutSpans : ' &rarr; nothing new cut');
 
-    cutThisRoll.forEach(n => {
-      const el = document.getElementById('fuse-' + n);
+    const logBreakdown = candidates
+      .map(c => c.label + ' <span class="' + c.src + '">' + c.v + '</span>')
+      .join(', ');
+    const logCut = cutThisRoll.map(c => '<span class="' + c.src + '">' + c.v + '</span>').join(', ');
+    log('<span class="tag">Roll ' + rollsUsed + '/' + MAX_ROLLS + '</span> — ' + logBreakdown +
+      (cutThisRoll.length ? ' — cut ' + logCut : ' — no new fuses cut'));
+
+    cutThisRoll.forEach(c => {
+      const el = document.getElementById('fuse-' + c.v);
       el.classList.add('shut', 'just-shut');
       setTimeout(() => el.classList.remove('just-shut'), 500);
     });
