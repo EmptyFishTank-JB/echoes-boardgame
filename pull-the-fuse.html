@@ -21,44 +21,28 @@
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body {
     width: 100%; min-height: 100%;
-    background: #0a0c0f;
+    background: #050709;
     font-family: 'Barlow Condensed', sans-serif;
     color: var(--text);
   }
   body {
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 0%, rgba(79,195,247,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse 70% 50% at 50% 100%, rgba(232,115,42,0.06) 0%, transparent 60%),
+      linear-gradient(160deg, #030508 0%, #070b12 45%, #05080d 100%);
     min-height: 100vh;
     display: flex;
     flex-direction: column;
     align-items: center;
     padding: 28px 20px 60px;
   }
-  /* ── STATIC SCANLINE OVERLAY (matches rules.html) ── */
   body::before {
     content: "";
-    position: fixed;
-    inset: 0;
-    z-index: 1000;
-    pointer-events: none;
-    background: repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 2px,
-      rgba(0,0,0,0.03) 2px,
-      rgba(0,0,0,0.03) 4px
-    );
-  }
-  #scanlines {
-    position: fixed;
-    inset: 0;
-    z-index: 0;
-    pointer-events: none;
-    background: repeating-linear-gradient(
-      0deg,
-      rgba(255,255,255,0.018) 0px,
-      rgba(255,255,255,0.018) 1px,
-      transparent 1px,
-      transparent 3px
-    );
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background: repeating-linear-gradient(0deg,
+      rgba(255,255,255,0.05) 0px, rgba(255,255,255,0.05) 1px,
+      transparent 1px, transparent 4px);
+    mix-blend-mode: overlay;
   }
 
   nav {
@@ -247,6 +231,11 @@
   .btn-row { display: flex; gap: 10px; }
 
   /* ── RESULT ── */
+  #resultScreen {
+    margin-top: 20px;
+    padding-top: 18px;
+    border-top: 1px solid var(--border);
+  }
   .result-banner {
     text-align: center; padding: 10px 0 6px;
   }
@@ -274,8 +263,6 @@
 </style>
 </head>
 <body>
-
-<div id="scanlines"></div>
 
 <nav>
   <a href="index.html">&larr; Echoes</a>
@@ -338,17 +325,17 @@
     <div class="btn-row">
       <button class="btn" id="rollBtn">Roll the Dice</button>
     </div>
-  </div>
 
-  <!-- RESULT SCREEN -->
-  <div id="resultScreen" class="hidden">
-    <div class="result-banner" id="resultBanner">
-      <div class="big" id="resultBig"></div>
-      <div class="result-detail" id="resultDetail"></div>
-    </div>
-    <div class="btn-row">
-      <button class="btn" id="againBtn">Run Again</button>
-      <button class="btn secondary" id="closeBtn" onclick="window.location.href='index.html'">Back to Echoes</button>
+    <!-- RESULT (appears below roll info once rolls are spent) -->
+    <div id="resultScreen" class="hidden">
+      <div class="result-banner" id="resultBanner">
+        <div class="big" id="resultBig"></div>
+        <div class="result-detail" id="resultDetail"></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn" id="againBtn">Run Again</button>
+        <button class="btn secondary" id="closeBtn" onclick="window.location.href='index.html'">Back to Echoes</button>
+      </div>
     </div>
   </div>
 
@@ -531,7 +518,6 @@
     gameOver = true;
     rollBtn.disabled = true;
     setTimeout(() => {
-      gameScreen.classList.add('hidden');
       resultScreen.classList.remove('hidden');
       if (won){
         resultBanner.className = 'result-banner win';
@@ -544,6 +530,7 @@
         resultDetail.innerHTML = '<strong>' + wager + '</strong> lost. Fuse' + (openList.length === 1 ? '' : 's') + ' ' +
           openList.join(', ') + ' still open — <strong>+' + openList.length + ' Noise</strong>.';
       }
+      resultScreen.scrollIntoView({ behavior: 'smooth', block: 'end' });
     }, 500);
   }
 
@@ -552,6 +539,7 @@
     resourceRow.querySelectorAll('.resource-btn').forEach(b => b.classList.remove('selected'));
     stakeBtn.disabled = true;
     resultScreen.classList.add('hidden');
+    gameScreen.classList.add('hidden');
     stakeScreen.classList.remove('hidden');
   });
 })();
