@@ -19,114 +19,46 @@
     --rgb-cyan:   #00eaff;
     --rgb-green:  #00ff00;
     --rgb-duration: 0.25s;
-    --scanline-alpha: 0.09;
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   html, body {
     width: 100%; height: 100%;
-    background: #000;
+    background: #0a0c0f;
     overflow: hidden;
     font-family: 'Barlow Condensed', sans-serif;
     color: var(--text);
   }
 
-  /* ── VIDEO BACKGROUND ── */
-  #bg-video {
-    position: fixed;
-    inset: 0;
-    width: 100%; height: 100%;
-    object-fit: cover;
-    z-index: 0;
-    opacity: 0.55;
-    filter: saturate(0.3) brightness(0.7);
-  }
-
-  /* Fallback gradient shown until video loads */
-  #bg-fallback {
-    position: fixed;
-    inset: 0;
-    z-index: 0;
-    background:
-      radial-gradient(ellipse 80% 60% at 50% 60%, rgba(10,18,30,0.0) 0%, rgba(0,0,0,1) 100%),
-      linear-gradient(160deg, #030810 0%, #0a1220 40%, #060d18 70%, #000 100%);
-  }
-
-  /* Dark vignette overlay on top of video */
-  #vignette {
-    position: fixed;
-    inset: 0;
-    z-index: 1;
-    background:
-      radial-gradient(ellipse 100% 100% at 50% 50%,
-        transparent 0%,
-        rgba(0,0,0,0.35) 55%,
-        rgba(0,0,0,0.82) 100%);
-    pointer-events: none;
-  }
-
-  /* Scanlines */
+  /* ── STATIC SCANLINE OVERLAY (replaces video + parallax + iridescent) ── */
   body::before {
     content: "";
     position: fixed;
     inset: 0;
-    z-index: 2;
+    z-index: 1000;
     pointer-events: none;
-    background: repeating-linear-gradient(0deg,
-      rgba(255,255,255,var(--scanline-alpha)) 0px,
-      rgba(255,255,255,var(--scanline-alpha)) 1px,
-      transparent 1px,
-      transparent 4px);
-    mix-blend-mode: overlay;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.03) 2px,
+      rgba(0,0,0,0.03) 4px
+    );
   }
 
-  /* Subtle film grain */
-  body::after {
-    content: "";
-    position: fixed;
-    inset: -50%;
-    z-index: 2;
-    pointer-events: none;
-    width: 200%; height: 200%;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.05'/%3E%3C/svg%3E");
-    opacity: 0.18;
-    animation: grain 0.12s steps(1) infinite;
-  }
-
-  @keyframes grain {
-    0%   { transform: translate(0,0); }
-    10%  { transform: translate(-3%,-4%); }
-    20%  { transform: translate(-6%, 3%); }
-    30%  { transform: translate( 4%,-2%); }
-    40%  { transform: translate(-2%, 6%); }
-    50%  { transform: translate(-5%,-3%); }
-    60%  { transform: translate( 3%, 5%); }
-    70%  { transform: translate( 6%,-4%); }
-    80%  { transform: translate(-4%, 2%); }
-    90%  { transform: translate( 2%,-6%); }
-    100% { transform: translate(-3%, 4%); }
-  }
-
-
-  /* ── IRIDESCENT OVERLAY ── */
-  #iridescent {
+  #scanlines {
     position: fixed;
     inset: 0;
-    z-index: 3;
+    z-index: 1;
     pointer-events: none;
-    mix-blend-mode: screen;
-    opacity: 0.04;
-    background: conic-gradient(
-      from 0deg at 50% 50%,
-      rgba(255,0,60,0.75),
-      rgba(232,115,42,0.65),
-      rgba(0,255,0,0.55),
-      rgba(0,234,255,0.65),
-      rgba(255,0,60,0.75)
+    background: repeating-linear-gradient(
+      0deg,
+      rgba(255,255,255,0.018) 0px,
+      rgba(255,255,255,0.018) 1px,
+      transparent 1px,
+      transparent 3px
     );
-    will-change: opacity, background;
-    transition: opacity 0.4s ease;
   }
 
   /* ── NAV ── */
@@ -401,22 +333,7 @@
 </head>
 <body>
 
-<!-- ══ VIDEO BACKGROUND ══════════════════════════════════════════ -->
-<!--
-  SETUP INSTRUCTIONS:
-  1. Create a /video/ folder in your GitHub repo
-  2. Add your corridor video as: /video/corridor.mp4
-  3. Optionally add a WebM version: /video/corridor.webm
-  The fallback gradient below shows until the video is added.
--->
-<div id="iridescent"></div>
-<div id="bg-fallback"></div>
-<video id="bg-video" autoplay muted loop playsinline>
-  <source src="video/corridor.webm" type="video/webm">
-  <source src="video/corridor.mp4"  type="video/mp4">
-</video>
-
-<div id="vignette"></div>
+<div id="scanlines"></div>
 
 <!-- ══ NAVIGATION ════════════════════════════════════════════════ -->
 <nav>
@@ -427,8 +344,6 @@
   <a href="assets.html">Assets</a>
   <span class="sep">//</span>
   <a href="terminal.html">Terminal</a>
-  <span class="sep">//</span>
-  <a href="pull-the-fuse.html">Pull the Fuse</a>
 </nav>
 
 <!-- ══ CENTER CONTENT ════════════════════════════════════════════ -->
@@ -565,38 +480,6 @@
     startSliceGlitch();
   }, 600);
 
-  /* Hide fallback once video can play */
-  const video = document.getElementById("bg-video");
-  if (video){
-    video.addEventListener("canplay", () => {
-      const fb = document.getElementById("bg-fallback");
-      if (fb) fb.style.opacity = "0";
-    }, { once: true });
-  }
-})();
-
-/* ── IRIDESCENT + MOUSE TILT ─────────────────────────────────────── */
-(function () {
-  const iridescent = document.getElementById('iridescent');
-  if (!iridescent) return;
-
-  document.addEventListener('mousemove', (e) => {
-    const nx = (e.clientX / window.innerWidth  - 0.5) * 2;
-    const ny = (e.clientY / window.innerHeight - 0.5) * 2;
-    const hue  = Math.round((nx + 1) * 180);
-    const fcx  = Math.round(50 + nx * 22);
-    const fcy  = Math.round(50 + ny * 22);
-    const mag  = (Math.abs(nx) + Math.abs(ny)) * 0.5;
-    const opac = (0.03 + mag * 0.06).toFixed(3);
-    iridescent.style.background = `conic-gradient(
-      from ${hue}deg at ${fcx}% ${fcy}%,
-      rgba(255,0,60,0.75),
-      rgba(232,115,42,0.65),
-      rgba(0,255,0,0.55),
-      rgba(0,234,255,0.65),
-      rgba(255,0,60,0.75))`;
-    iridescent.style.opacity = opac;
-  });
 })();
 
 /* ── FAVICON ANIMATION (Chrome-compatible) ───────────────────────────────── */

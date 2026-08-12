@@ -21,28 +21,44 @@
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body {
     width: 100%; min-height: 100%;
-    background: #050709;
+    background: #0a0c0f;
     font-family: 'Barlow Condensed', sans-serif;
     color: var(--text);
   }
   body {
-    background:
-      radial-gradient(ellipse 80% 60% at 50% 0%, rgba(79,195,247,0.06) 0%, transparent 60%),
-      radial-gradient(ellipse 70% 50% at 50% 100%, rgba(232,115,42,0.06) 0%, transparent 60%),
-      linear-gradient(160deg, #030508 0%, #070b12 45%, #05080d 100%);
     min-height: 100vh;
     display: flex;
     flex-direction: column;
     align-items: center;
     padding: 28px 20px 60px;
   }
+  /* ── STATIC SCANLINE OVERLAY (matches rules.html) ── */
   body::before {
     content: "";
-    position: fixed; inset: 0; z-index: 0; pointer-events: none;
-    background: repeating-linear-gradient(0deg,
-      rgba(255,255,255,0.05) 0px, rgba(255,255,255,0.05) 1px,
-      transparent 1px, transparent 4px);
-    mix-blend-mode: overlay;
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.03) 2px,
+      rgba(0,0,0,0.03) 4px
+    );
+  }
+  #scanlines {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+      0deg,
+      rgba(255,255,255,0.018) 0px,
+      rgba(255,255,255,0.018) 1px,
+      transparent 1px,
+      transparent 3px
+    );
   }
 
   nav {
@@ -258,6 +274,8 @@
 </style>
 </head>
 <body>
+
+<div id="scanlines"></div>
 
 <nav>
   <a href="index.html">&larr; Echoes</a>
