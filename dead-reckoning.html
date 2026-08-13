@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+CiAgPHJlY3QgeD0iNSIgeT0iNiIgd2lkdGg9IjYiIGhlaWdodD0iMTAiIHJ4PSIxIiBmaWxsPSIjZTg3MzJhIiBvcGFjaXR5PSIwLjkiLz4KICA8cmVjdCB4PSIxMyIgeT0iMiIgd2lkdGg9IjYiIGhlaWdodD0iMTQiIHJ4PSIxIiBmaWxsPSIjZTg3MzJhIi8+CiAgPHJlY3QgeD0iMjEiIHk9IjYiIHdpZHRoPSI2IiBoZWlnaHQ9IjEwIiByeD0iMSIgZmlsbD0iI2U4NzMyYSIgb3BhY2l0eT0iMC45Ii8+CiAgPHJlY3QgeD0iMSIgeT0iMTciIHdpZHRoPSIxMyIgaGVpZ2h0PSIxMyIgcng9IjIuNSIgZmlsbD0iI2Q4MWYyZiIvPgogIDxjaXJjbGUgY3g9IjQuMyIgY3k9IjIwLjMiIHI9IjEuMyIgZmlsbD0iI2ZmZiIvPgogIDxjaXJjbGUgY3g9IjcuNSIgY3k9IjIzLjUiIHI9IjEuMyIgZmlsbD0iI2ZmZiIvPgogIDxjaXJjbGUgY3g9IjEwLjciIGN5PSIyNi43IiByPSIxLjMiIGZpbGw9IiNmZmYiLz4KICA8cmVjdCB4PSIxOCIgeT0iMTciIHdpZHRoPSIxMyIgaGVpZ2h0PSIxMyIgcng9IjIuNSIgZmlsbD0iIzFjOGZjNyIvPgogIDxjaXJjbGUgY3g9IjI3LjciIGN5PSIyMC4zIiByPSIxLjMiIGZpbGw9IiNmZmYiLz4KICA8Y2lyY2xlIGN4PSIyMS4zIiBjeT0iMjYuNyIgcj0iMS4zIiBmaWxsPSIjZmZmIi8+Cjwvc3ZnPgo=">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ECHOES // Dead Reckoning</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --text:       #eef0f5;
+    --text-dim:   rgba(238,240,245,0.45);
+    --accent:     #4fc3f7;
+    --orange:     #e8732a;
+    --border:     rgba(238,240,245,0.12);
+    --red:        #ff4d5e;
+    --blue:       #4fc3f7;
+    --good:       #4fe0a1;
+    --bad:        #ff4d5e;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: 100%; min-height: 100%;
+    background: #050709;
+    font-family: 'Barlow Condensed', sans-serif;
+    color: var(--text);
+  }
+  body {
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 0%, rgba(79,195,247,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse 70% 50% at 50% 100%, rgba(232,115,42,0.06) 0%, transparent 60%),
+      linear-gradient(160deg, #030508 0%, #070b12 45%, #05080d 100%);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 28px 20px 60px;
+  }
+  body::before {
+    content: "";
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background: repeating-linear-gradient(0deg,
+      rgba(255,255,255,0.05) 0px, rgba(255,255,255,0.05) 1px,
+      transparent 1px, transparent 4px);
+    mix-blend-mode: overlay;
+  }
+
+  nav {
+    width: 100%; max-width: 760px;
+    display: flex; align-items: center; justify-content: center;
+    gap: 22px; flex-wrap: wrap;
+    padding: 4px 4px 22px;
+    z-index: 1;
+  }
+  nav a {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--text-dim); text-decoration: none;
+  }
+  nav a:hover { color: var(--text); }
+
+  header.title-block {
+    z-index: 1;
+    text-align: center;
+    margin-bottom: 22px;
+  }
+  .eyebrow {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px; letter-spacing: 0.28em; text-transform: uppercase;
+    color: var(--accent); opacity: 0.8; margin-bottom: 8px;
+  }
+  h1 {
+    font-weight: 900; letter-spacing: 0.04em; text-transform: uppercase;
+    font-size: clamp(32px, 6vw, 52px);
+    line-height: 0.95;
+  }
+  .subtitle {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px; color: var(--text-dim); letter-spacing: 0.05em;
+    margin-top: 10px; max-width: 520px; line-height: 1.7;
+  }
+
+  .panel {
+    z-index: 1;
+    width: 100%; max-width: 620px;
+    background: rgba(15,18,24,0.72);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    backdrop-filter: blur(6px);
+    padding: 28px;
+    position: relative;
+  }
+  .panel::before {
+    content: "";
+    position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, var(--orange), var(--accent));
+    opacity: 0.7;
+  }
+
+  /* ── STAKE SCREEN ── */
+  .stake-row {
+    display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;
+    margin: 18px 0 22px;
+  }
+  .resource-btn {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--text); background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border); border-radius: 3px;
+    padding: 12px 16px; cursor: pointer; transition: 0.15s;
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    min-width: 92px;
+  }
+  .resource-btn .icon { font-size: 20px; }
+  .resource-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .resource-btn.selected { border-color: var(--orange); background: rgba(232,115,42,0.12); color: var(--orange); }
+
+  .rules-mini {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px; line-height: 1.9; color: var(--text-dim);
+    border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+    padding: 14px 0; margin: 20px 0;
+  }
+  .rules-mini strong { color: var(--text); }
+
+  .btn {
+    display: block; width: 100%;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px; letter-spacing: 0.16em; text-transform: uppercase;
+    color: #05080d; background: var(--accent);
+    border: none; border-radius: 3px; padding: 14px;
+    cursor: pointer; transition: 0.15s; font-weight: 700;
+  }
+  .btn:hover:not(:disabled) { filter: brightness(1.15); transform: translateY(-1px); }
+  .btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  .btn.secondary {
+    background: transparent; color: var(--text-dim);
+    border: 1px solid var(--border);
+  }
+  .btn.secondary:hover:not(:disabled) { color: var(--text); border-color: var(--text-dim); }
+
+  /* ── COORDINATE GRID ── */
+  .grid-section-label {
+    font-family: 'Share Tech Mono', monospace; font-size: 11px;
+    letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-dim);
+    margin: 22px 0 10px; text-align: center;
+  }
+  .coord-wrap {
+    display: flex; justify-content: center;
+    margin-bottom: 8px;
+  }
+  .coord-grid {
+    display: grid;
+    grid-template-columns: 26px repeat(6, 1fr);
+    grid-template-rows: 20px repeat(6, 1fr);
+    gap: 5px;
+    max-width: 360px;
+    width: 100%;
+  }
+  .coord-axis {
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Share Tech Mono', monospace; font-size: 11px; font-weight: 700;
+  }
+  .coord-axis.top { color: var(--red); }
+  .coord-axis.side { color: var(--blue); }
+  .coord-corner {}
+  .coord-cell {
+    aspect-ratio: 1;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    background: rgba(255,255,255,0.03);
+    cursor: pointer;
+    transition: 0.15s;
+  }
+  .coord-cell:hover { border-color: var(--accent); background: rgba(79,195,247,0.1); }
+  .coord-cell.selected {
+    background: rgba(232,115,42,0.18);
+    border-color: var(--orange);
+    box-shadow: 0 0 0 2px rgba(232,115,42,0.35) inset;
+  }
+  .coord-caption {
+    text-align: center; font-family: 'Share Tech Mono', monospace;
+    font-size: 11px; color: var(--text-dim); margin-top: 10px; min-height: 16px;
+  }
+  .coord-caption strong { color: var(--text); }
+
+  /* ── GAME SCREEN ── */
+  .status-bar {
+    display: flex; justify-content: space-between; align-items: center;
+    font-family: 'Share Tech Mono', monospace; font-size: 11px;
+    letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-dim);
+    margin-bottom: 20px;
+  }
+  .status-bar .wager { color: var(--orange); }
+  .status-bar .call { color: var(--text); }
+
+  .dice-stage {
+    display: flex; align-items: center; justify-content: center; gap: 28px;
+    margin: 10px 0 22px;
+  }
+  .die-wrap { text-align: center; }
+  .die-label {
+    font-family: 'Share Tech Mono', monospace; font-size: 10px;
+    letter-spacing: 0.2em; text-transform: uppercase; margin-top: 8px;
+    color: var(--text-dim);
+  }
+  .die {
+    width: 64px; height: 64px; border-radius: 10px;
+    display: grid; grid-template-columns: repeat(3,1fr); grid-template-rows: repeat(3,1fr);
+    padding: 10px; gap: 2px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.5);
+  }
+  .die.red { background: linear-gradient(145deg, #ff6270, #c11f30); }
+  .die.blue { background: linear-gradient(145deg, #6fd4ff, #1c8fc7); }
+  .die .pip-dot { border-radius: 50%; }
+  .die .pip-dot.on { background: #fff; }
+  .die.rolling { animation: shake 0.5s ease; }
+  @keyframes shake {
+    0%,100% { transform: rotate(0deg); }
+    20% { transform: rotate(-14deg); }
+    40% { transform: rotate(10deg); }
+    60% { transform: rotate(-8deg); }
+    80% { transform: rotate(6deg); }
+  }
+
+  .math-line {
+    text-align: center; font-family: 'Share Tech Mono', monospace;
+    font-size: 13px; color: var(--text-dim); letter-spacing: 0.06em;
+    margin-bottom: 22px; min-height: 18px;
+  }
+  .math-line .val { color: var(--text); font-weight: 700; }
+
+  .btn-row { display: flex; gap: 10px; }
+
+  /* ── RESULT ── */
+  #resultScreen {
+    margin-top: 20px;
+    padding-top: 18px;
+    border-top: 1px solid var(--border);
+  }
+  .result-banner {
+    text-align: center; padding: 10px 0 6px;
+  }
+  .result-banner .big {
+    font-weight: 900; letter-spacing: 0.05em; text-transform: uppercase;
+    font-size: clamp(26px, 5vw, 38px); margin-bottom: 10px;
+  }
+  .result-banner.win .big { color: var(--good); }
+  .result-banner.fail .big { color: var(--bad); }
+  .result-detail {
+    font-family: 'Share Tech Mono', monospace; font-size: 12px;
+    color: var(--text-dim); line-height: 1.9; margin-bottom: 22px;
+  }
+  .result-detail strong { color: var(--text); }
+
+  .hidden { display: none !important; }
+
+  footer {
+    z-index: 1;
+    margin-top: 26px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase;
+    color: rgba(238,240,245,0.25);
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html">&larr; Echoes</a>
+  <a href="rules.html">Rules &amp; Design</a>
+  <a href="echo-events.html">Echo Events</a>
+  <a href="assets.html">Assets</a>
+  <a href="terminal.html">Terminal</a>
+</nav>
+
+<header class="title-block">
+  <div class="eyebrow">// Echo Event 03 — Coordinate Bet</div>
+  <h1>Dead Reckoning</h1>
+  <p class="subtitle">Call a coordinate on the Red/Blue grid, then roll once. Land it exactly and your wager doubles &mdash; miss and the creature notices.</p>
+</header>
+
+<div class="panel">
+
+  <!-- STAKE + CALL SCREEN -->
+  <div id="stakeScreen">
+    <div class="rules-mini">
+      <div><strong>Wager:</strong> Stake one resource before rolling. No resource = automatic failure.</div>
+      <div><strong>Win:</strong> Roll matches your called coordinate exactly &mdash; wager returned, doubled.</div>
+      <div><strong>Near Miss:</strong> Exactly one die matches your call &mdash; wager lost, +2 Noise, Creature +1.</div>
+      <div><strong>Miss:</strong> Neither die matches &mdash; wager lost, +4 Noise, Creature +1.</div>
+    </div>
+    <div class="stake-row" id="resourceRow">
+      <div class="resource-btn" data-resource="Scrap"><span class="icon">&#9881;</span>Scrap</div>
+      <div class="resource-btn" data-resource="Salvage"><span class="icon">&#128230;</span>Salvage</div>
+      <div class="resource-btn" data-resource="Components"><span class="icon">&#128295;</span>Components</div>
+      <div class="resource-btn" data-resource="Data"><span class="icon">&#128225;</span>Data</div>
+    </div>
+
+    <div class="grid-section-label">// Call Your Coordinate — Red &times; Blue</div>
+    <div class="coord-wrap">
+      <div class="coord-grid" id="coordGrid"></div>
+    </div>
+    <div class="coord-caption" id="coordCaption">Pick a cell: column = Red value, row = Blue value.</div>
+
+    <button class="btn" id="stakeBtn" disabled style="margin-top:18px;">Lock In &amp; Roll</button>
+  </div>
+
+  <!-- GAME SCREEN -->
+  <div id="gameScreen" class="hidden">
+    <div class="status-bar">
+      <span class="wager" id="wagerLabel"></span>
+      <span class="call" id="callLabel"></span>
+    </div>
+
+    <div class="dice-stage">
+      <div class="die-wrap">
+        <div class="die red" id="dieRed"></div>
+        <div class="die-label">Red</div>
+      </div>
+      <div class="die-wrap">
+        <div class="die blue" id="dieBlue"></div>
+        <div class="die-label">Blue</div>
+      </div>
+    </div>
+
+    <div class="math-line" id="mathLine">One roll. Everything rides on it.</div>
+
+    <div class="btn-row">
+      <button class="btn" id="rollBtn">Roll the Dice</button>
+    </div>
+
+    <!-- RESULT (appears below roll info once the roll is made) -->
+    <div id="resultScreen" class="hidden">
+      <div class="result-banner" id="resultBanner">
+        <div class="big" id="resultBig"></div>
+        <div class="result-detail" id="resultDetail"></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn" id="againBtn">Run Again</button>
+        <button class="btn secondary" id="closeBtn" onclick="window.location.href='index.html'">Back to Echoes</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer>ECHOES · EmptyFishTank-JB · Echo Event Mini-Game</footer>
+
+<script>
+(function(){
+  const DOTS = {
+    1: [4],
+    2: [0,8],
+    3: [0,4,8],
+    4: [0,2,6,8],
+    5: [0,2,4,6,8],
+    6: [0,2,3,5,6,8]
+  };
+  const NUMS = [1,2,3,4,5,6];
+
+  let wager = null;
+  let callRed = null;
+  let callBlue = null;
+  let rolled = false;
+
+  const stakeScreen  = document.getElementById('stakeScreen');
+  const gameScreen   = document.getElementById('gameScreen');
+  const resultScreen = document.getElementById('resultScreen');
+  const resourceRow  = document.getElementById('resourceRow');
+  const coordGrid    = document.getElementById('coordGrid');
+  const coordCaption = document.getElementById('coordCaption');
+  const stakeBtn     = document.getElementById('stakeBtn');
+  const wagerLabel   = document.getElementById('wagerLabel');
+  const callLabel    = document.getElementById('callLabel');
+  const dieRed       = document.getElementById('dieRed');
+  const dieBlue      = document.getElementById('dieBlue');
+  const mathLine     = document.getElementById('mathLine');
+  const rollBtn      = document.getElementById('rollBtn');
+  const resultBanner = document.getElementById('resultBanner');
+  const resultBig    = document.getElementById('resultBig');
+  const resultDetail = document.getElementById('resultDetail');
+  const againBtn     = document.getElementById('againBtn');
+
+  function renderDie(el, value){
+    el.innerHTML = '';
+    for (let i = 0; i < 9; i++){
+      const d = document.createElement('div');
+      d.className = 'pip-dot' + (DOTS[value].includes(i) ? ' on' : '');
+      el.appendChild(d);
+    }
+  }
+
+  function buildGrid(){
+    coordGrid.innerHTML = '';
+    const corner = document.createElement('div');
+    corner.className = 'coord-corner';
+    coordGrid.appendChild(corner);
+    NUMS.forEach(r => {
+      const axis = document.createElement('div');
+      axis.className = 'coord-axis top';
+      axis.textContent = r;
+      coordGrid.appendChild(axis);
+    });
+    NUMS.forEach(b => {
+      const axis = document.createElement('div');
+      axis.className = 'coord-axis side';
+      axis.textContent = b;
+      coordGrid.appendChild(axis);
+      NUMS.forEach(r => {
+        const cell = document.createElement('div');
+        cell.className = 'coord-cell';
+        cell.dataset.red = r;
+        cell.dataset.blue = b;
+        coordGrid.appendChild(cell);
+      });
+    });
+  }
+
+  function updateStakeBtn(){
+    stakeBtn.disabled = !(wager && callRed && callBlue);
+  }
+
+  coordGrid.addEventListener('click', (e) => {
+    const cell = e.target.closest('.coord-cell');
+    if (!cell) return;
+    coordGrid.querySelectorAll('.coord-cell.selected').forEach(c => c.classList.remove('selected'));
+    cell.classList.add('selected');
+    callRed = parseInt(cell.dataset.red, 10);
+    callBlue = parseInt(cell.dataset.blue, 10);
+    coordCaption.innerHTML = 'Called: <strong>Red ' + callRed + ', Blue ' + callBlue + '</strong>';
+    updateStakeBtn();
+  });
+
+  resourceRow.addEventListener('click', (e) => {
+    const btn = e.target.closest('.resource-btn');
+    if (!btn) return;
+    resourceRow.querySelectorAll('.resource-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    wager = btn.dataset.resource;
+    updateStakeBtn();
+  });
+
+  stakeBtn.addEventListener('click', () => {
+    rolled = false;
+    wagerLabel.textContent = 'Wager: ' + wager;
+    callLabel.textContent = 'Called: Red ' + callRed + ', Blue ' + callBlue;
+    renderDie(dieRed, 1);
+    renderDie(dieBlue, 1);
+    mathLine.textContent = 'One roll. Everything rides on it.';
+    rollBtn.disabled = false;
+    rollBtn.textContent = 'Roll the Dice';
+    stakeScreen.classList.add('hidden');
+    resultScreen.classList.add('hidden');
+    gameScreen.classList.remove('hidden');
+  });
+
+  rollBtn.addEventListener('click', () => {
+    if (rolled) return;
+    rollBtn.disabled = true;
+    dieRed.classList.add('rolling');
+    dieBlue.classList.add('rolling');
+
+    let ticks = 0;
+    const spin = setInterval(() => {
+      renderDie(dieRed, 1 + Math.floor(Math.random()*6));
+      renderDie(dieBlue, 1 + Math.floor(Math.random()*6));
+      ticks++;
+      if (ticks > 8){
+        clearInterval(spin);
+        resolveRoll();
+      }
+    }, 60);
+  });
+
+  function resolveRoll(){
+    rolled = true;
+    dieRed.classList.remove('rolling');
+    dieBlue.classList.remove('rolling');
+
+    const red = 1 + Math.floor(Math.random()*6);
+    const blue = 1 + Math.floor(Math.random()*6);
+    renderDie(dieRed, red);
+    renderDie(dieBlue, blue);
+
+    const redHit = red === callRed;
+    const blueHit = blue === callBlue;
+    const hits = (redHit ? 1 : 0) + (blueHit ? 1 : 0);
+
+    mathLine.innerHTML = 'Rolled <span class="val">Red ' + red + ', Blue ' + blue + '</span> vs. called <span class="val">Red ' +
+      callRed + ', Blue ' + callBlue + '</span>';
+
+    endGame(hits);
+  }
+
+  function endGame(hits){
+    rollBtn.disabled = true;
+    setTimeout(() => {
+      resultScreen.classList.remove('hidden');
+      if (hits === 2){
+        resultBanner.className = 'result-banner win';
+        resultBig.textContent = 'DEAD ON';
+        resultDetail.innerHTML = 'Exact coordinate match. <strong>' + wager + '</strong> returned, doubled.';
+      } else if (hits === 1){
+        resultBanner.className = 'result-banner fail';
+        resultBig.textContent = 'NEAR MISS';
+        resultDetail.innerHTML = 'One die matched your call. <strong>' + wager + '</strong> lost — <strong>+2 Noise</strong>, <strong>Creature +1</strong>.';
+      } else {
+        resultBanner.className = 'result-banner fail';
+        resultBig.textContent = 'MISSED THE MARK';
+        resultDetail.innerHTML = 'Neither die matched your call. <strong>' + wager + '</strong> lost — <strong>+4 Noise</strong>, <strong>Creature +1</strong>.';
+      }
+      resultScreen.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    }, 500);
+  }
+
+  againBtn.addEventListener('click', () => {
+    wager = null;
+    callRed = null;
+    callBlue = null;
+    resourceRow.querySelectorAll('.resource-btn').forEach(b => b.classList.remove('selected'));
+    coordGrid.querySelectorAll('.coord-cell.selected').forEach(c => c.classList.remove('selected'));
+    coordCaption.textContent = 'Pick a cell: column = Red value, row = Blue value.';
+    stakeBtn.disabled = true;
+    resultScreen.classList.add('hidden');
+    gameScreen.classList.add('hidden');
+    stakeScreen.classList.remove('hidden');
+  });
+
+  buildGrid();
+})();
+</script>
+
+</body>
+</html>

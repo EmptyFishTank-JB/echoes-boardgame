@@ -1628,7 +1628,7 @@
           <tbody>
             <tr><td>01</td><td><strong>Pressure Leak</strong></td><td>Risk Selection</td><td>3</td><td>Wager + Tier reward</td><td>Varies by Tier</td><td style="color:var(--text-dim);">&mdash;</td></tr>
             <tr><td>02</td><td><strong>Pull the Fuse</strong></td><td>Puzzle Solving</td><td>3 Rolls</td><td>Wager doubled</td><td>+1 per open fuse</td><td><a href="pull-the-fuse.html" style="color:var(--accent);">&#9654; Play</a></td></tr>
-            <tr><td>03</td><td><strong>Dead Reckoning</strong></td><td>Coordinate Bet</td><td>1</td><td>Wager doubled</td><td>+2/+4 + Creature +1</td><td style="color:var(--text-dim);">&mdash;</td></tr>
+            <tr><td>03</td><td><strong>Dead Reckoning</strong></td><td>Coordinate Bet</td><td>1</td><td>Wager doubled</td><td>+2/+4 + Creature +1</td><td><a href="dead-reckoning.html" style="color:var(--accent);">&#9654; Play</a></td></tr>
             <tr><td>04</td><td><strong>Cascade Failure</strong></td><td>Push Your Luck</td><td>3 Rolls</td><td>Wager doubled (18–21)</td><td>+3 + 1s rolled</td><td style="color:var(--text-dim);">&mdash;</td></tr>
             <tr><td>05</td><td><strong>Dead Signal</strong></td><td>Sequential Match</td><td>3 Rolls</td><td>Wager doubled + Data Token</td><td>+2/+4 + Creature +1</td><td style="color:var(--text-dim);">&mdash;</td></tr>
           </tbody>
@@ -2514,6 +2514,7 @@
         + '<button data-rb-action="saveas">💾 Save As</button>'
         + '<button data-rb-action="togglelayout">⚏ Layout</button>'
         + '<button data-rb-action="togglefind">🔎 Find</button>'
+        + '<button data-rb-action="clearhistory" title="Wipe the autosave cache + undo history stored in this browser, then reload fresh from this file">🗑 Clear History</button>'
         + '<span class="rb-status"></span>';
       document.body.appendChild(bar);
     }
@@ -3192,14 +3193,16 @@
       case 'findprev': gotoFindMatch(-1); break;
       case 'closefind': closeFindPanel(); break;
       case 'clearhistory': {
-        if(confirm('Clear all unsaved edit history? This wipes the autosave cache and undo/redo history stored in this browser. It does NOT touch your saved .html file — reopening it will start fresh, without these edits.')){
+        if(confirm('Clear all unsaved edit history? This wipes the autosave cache and undo/redo history stored in this browser, then reloads the page fresh from this file. It does NOT touch the .html file on disk.')){
           try{
             localStorage.removeItem(STORAGE_KEY);
             localStorage.removeItem(STORAGE_KEY + '_edits');
+            localStorage.removeItem(STORAGE_KEY + '_layout');
           }catch(err){}
           undoStack = [];
           redoStack = [];
           resetEditsSinceExport();
+          location.reload();
         }
         break;
       }
