@@ -694,11 +694,11 @@
         if (n === GAUGE_SEGMENTS + 1){
           SFX.bustAlert();
         } else if (n === WIN_MAX){
-          SFX.chime(880);
+          SFX.chime(440);
         } else if (n === WIN_MIN){
-          SFX.chime(659);
+          SFX.chime(329.5);
         } else if (n === PARTIAL_MIN){
-          SFX.chime(523);
+          SFX.chime(261.5);
         } else {
           SFX.barTick(progress);
         }
