@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+CiAgPHJlY3QgeD0iNSIgeT0iNiIgd2lkdGg9IjYiIGhlaWdodD0iMTAiIHJ4PSIxIiBmaWxsPSIjZTg3MzJhIiBvcGFjaXR5PSIwLjkiLz4KICA8cmVjdCB4PSIxMyIgeT0iMiIgd2lkdGg9IjYiIGhlaWdodD0iMTQiIHJ4PSIxIiBmaWxsPSIjZTg3MzJhIi8+CiAgPHJlY3QgeD0iMjEiIHk9IjYiIHdpZHRoPSI2IiBoZWlnaHQ9IjEwIiByeD0iMSIgZmlsbD0iI2U4NzMyYSIgb3BhY2l0eT0iMC45Ii8+CiAgPHJlY3QgeD0iMSIgeT0iMTciIHdpZHRoPSIxMyIgaGVpZ2h0PSIxMyIgcng9IjIuNSIgZmlsbD0iI2Q4MWYyZiIvPgogIDxjaXJjbGUgY3g9IjQuMyIgY3k9IjIwLjMiIHI9IjEuMyIgZmlsbD0iI2ZmZiIvPgogIDxjaXJjbGUgY3g9IjcuNSIgY3k9IjIzLjUiIHI9IjEuMyIgZmlsbD0iI2ZmZiIvPgogIDxjaXJjbGUgY3g9IjEwLjciIGN5PSIyNi43IiByPSIxLjMiIGZpbGw9IiNmZmYiLz4KICA8cmVjdCB4PSIxOCIgeT0iMTciIHdpZHRoPSIxMyIgaGVpZ2h0PSIxMyIgcng9IjIuNSIgZmlsbD0iIzFjOGZjNyIvPgogIDxjaXJjbGUgY3g9IjI3LjciIGN5PSIyMC4zIiByPSIxLjMiIGZpbGw9IiNmZmYiLz4KICA8Y2lyY2xlIGN4PSIyMS4zIiBjeT0iMjYuNyIgcj0iMS4zIiBmaWxsPSIjZmZmIi8+Cjwvc3ZnPgo=">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ECHOES // Pressure Leak</title>
+<title>ECHOES // Dead Signal</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -149,46 +149,46 @@
   }
   .status-bar .wager { color: var(--orange); }
 
-  /* ── TIER PICKER ── */
-  .tier-section-label {
+  /* ── SIGNAL VALUES ── */
+  .signal-section-label {
     font-family: 'Share Tech Mono', monospace; font-size: 11px;
     letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-dim);
     margin: 18px 0 10px; text-align: center;
   }
-  .tier-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
-    margin-bottom: 10px;
+  .signal-row {
+    display: flex; justify-content: center; gap: 16px;
+    margin-bottom: 8px;
   }
-  .tier-grid.disabled { opacity: 0.3; pointer-events: none; }
-  .tier-btn {
-    font-family: 'Share Tech Mono', monospace;
-    background: rgba(255,255,255,0.03);
+  .signal-slot {
+    width: 80px; height: 80px;
+    border-radius: 8px;
     border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 10px 6px;
-    cursor: pointer;
-    transition: 0.15s;
-    text-align: center;
+    background: rgba(255,255,255,0.03);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    transition: background 0.3s, border-color 0.3s;
   }
-  .tier-btn:hover { background: rgba(255,255,255,0.06); }
-  .tier-btn .tier-name {
-    font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+  .signal-slot .signal-value {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 30px; font-weight: 700; color: var(--text-dim);
   }
-  .tier-btn .tier-ceiling {
-    font-size: 10px; color: var(--text-dim); margin-top: 3px;
+  .signal-slot .signal-tag {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--text-dim); margin-top: 4px;
   }
-  .tier-btn .tier-payout {
-    font-size: 10px; margin-top: 4px; font-weight: 700;
+  .signal-slot.set .signal-value { color: var(--text); }
+  .signal-slot.confirmed {
+    background: rgba(79,224,161,0.1);
+    border-color: var(--good);
   }
-  .tier-btn.selected { background: rgba(255,255,255,0.08); }
+  .signal-slot.confirmed .signal-value { color: var(--good); }
+  .signal-slot.confirmed .signal-tag { color: var(--good); }
 
-  .tier-caption {
+  .signal-caption {
     text-align: center; font-family: 'Share Tech Mono', monospace;
-    font-size: 11px; color: var(--text-dim); margin: 8px 0 22px; min-height: 16px;
+    font-size: 11px; color: var(--text-dim); margin: 10px 0 22px; min-height: 16px;
   }
-  .tier-caption strong { color: var(--text); }
+  .signal-caption strong { color: var(--text); }
 
   .dice-stage {
     display: flex; align-items: center; justify-content: center; gap: 28px;
@@ -200,16 +200,14 @@
     letter-spacing: 0.2em; text-transform: uppercase; margin-top: 8px;
     color: var(--text-dim);
   }
-  .die-label.champion-label { color: var(--blue); }
-  .die-label.opposing-label { color: var(--bad); }
   .die {
     width: 64px; height: 64px; border-radius: 10px;
     display: grid; grid-template-columns: repeat(3,1fr); grid-template-rows: repeat(3,1fr);
     padding: 10px; gap: 2px;
     box-shadow: 0 4px 14px rgba(0,0,0,0.5);
   }
-  .die.champion { background: linear-gradient(145deg, #6fd4ff, #1c8fc7); }
-  .die.opposing { background: linear-gradient(145deg, #ff6270, #c11f30); }
+  .die.red { background: linear-gradient(145deg, #ff6270, #c11f30); }
+  .die.blue { background: linear-gradient(145deg, #6fd4ff, #1c8fc7); }
   .die .pip-dot { border-radius: 50%; }
   .die .pip-dot.on { background: #fff; }
   .die.rolling { animation: shake 0.5s ease; }
@@ -232,7 +230,6 @@
   }
   .math-line .val { color: var(--text); font-weight: 700; }
   .math-line .val-good { color: var(--good); font-weight: 700; }
-  .math-line .val-bad { color: var(--bad); font-weight: 700; }
 
   .log {
     font-family: 'Share Tech Mono', monospace; font-size: 11px;
@@ -288,18 +285,18 @@
 </nav>
 
 <header class="title-block">
-  <div class="eyebrow">// Echo Event 01 — Risk Selection</div>
-  <h1>Pressure Leak</h1>
-  <p class="subtitle">Pick a Tier before you roll — it sets your Champion Die's ceiling and your payout. Lower Tiers pay bigger but leave almost no room for error.</p>
+  <div class="eyebrow">// Echo Event 05 — Sequential Match</div>
+  <h1>Dead Signal</h1>
+  <p class="subtitle">Establish two Signal Values, then chase them down across up to three Pulses. Confirmed values stay locked between rolls — only the leftovers matter.</p>
 </header>
 
 <div class="panel">
 
   <div class="rules-mini">
     <div><strong>Wager:</strong> Stake one resource before rolling. No resource = automatic failure.</div>
-    <div><strong>Win:</strong> Champion Die beats or matches Opposing Die, and stays at or under your Tier's ceiling, on any of 3 rolls.</div>
-    <div><strong>Fail:</strong> 3 rolls exhausted without meeting your Tier &mdash; wager lost, Noise penalty scales with Tier chosen.</div>
-    <div><strong>Commitment:</strong> Your Tier locks in the moment you roll. No changing your mind mid-attempt.</div>
+    <div><strong>Establish:</strong> One free roll sets two Signal Values, locked for the run.</div>
+    <div><strong>Win:</strong> Both Signal Values confirmed within 3 Pulses &mdash; wager doubled, plus a Data Token placed at any terminal or data point.</div>
+    <div><strong>Fail:</strong> 3 Pulses exhausted with any value unconfirmed &mdash; wager lost, +2 Noise per unconfirmed value (max +4), Creature advances +1.</div>
   </div>
 
   <div class="stake-row" id="resourceRow">
@@ -310,18 +307,27 @@
   </div>
   <div class="status-bar"><span class="wager" id="wagerLabel">No wager staked</span></div>
 
-  <div class="tier-section-label">// Choose Your Tier</div>
-  <div class="tier-grid disabled" id="tierGrid"></div>
-  <div class="tier-caption" id="tierCaption">Stake a resource to unlock Tier selection.</div>
+  <div class="signal-section-label">// Signal Values</div>
+  <div class="signal-row">
+    <div class="signal-slot" id="slot0">
+      <div class="signal-value" id="slot0Value">?</div>
+      <div class="signal-tag">Unconfirmed</div>
+    </div>
+    <div class="signal-slot" id="slot1">
+      <div class="signal-value" id="slot1Value">?</div>
+      <div class="signal-tag">Unconfirmed</div>
+    </div>
+  </div>
+  <div class="signal-caption" id="signalCaption">Stake a resource, then establish the signal.</div>
 
   <div class="dice-stage">
     <div class="die-wrap">
-      <div class="die champion" id="dieChampion"></div>
-      <div class="die-label champion-label">Champion</div>
+      <div class="die red" id="dieRed"></div>
+      <div class="die-label">Red</div>
     </div>
     <div class="die-wrap">
-      <div class="die opposing" id="dieOpposing"></div>
-      <div class="die-label opposing-label">Opposing</div>
+      <div class="die blue" id="dieBlue"></div>
+      <div class="die-label">Blue</div>
     </div>
   </div>
 
@@ -329,12 +335,12 @@
     <div class="pip"></div><div class="pip"></div><div class="pip"></div>
   </div>
 
-  <div class="math-line" id="mathLine">Pick a Tier, then roll.</div>
+  <div class="math-line" id="mathLine">Waiting on a wager.</div>
 
   <div class="log" id="log"></div>
 
   <div class="btn-row">
-    <button class="btn" id="rollBtn" disabled>Roll the Dice</button>
+    <button class="btn" id="mainBtn" disabled>Establish Signal</button>
   </div>
 
   <!-- RESULT (appears below everything once the run ends) -->
@@ -366,32 +372,26 @@
 
   const MAX_ROLLS = 3;
 
-  // Reward = bonus resources ON TOP of the returned wager. Noise = penalty
-  // on failure. Higher risk (lower tier number) pays more and stings more.
-  const TIERS = [
-    { n: 6, name: 'Tier 6', color: '#4fe0a1', ceiling: 6, bonus: 0, noise: 1, note: 'Safest. Any value beats or matches Opposing.' },
-    { n: 5, name: 'Tier 5', color: '#9bd94f', ceiling: 5, bonus: 0, noise: 2, note: 'Opposing rolling a 6 auto-fails the roll.' },
-    { n: 4, name: 'Tier 4', color: '#e8d44f', ceiling: 4, bonus: 1, noise: 3, note: 'Champion capped at 4.' },
-    { n: 3, name: 'Tier 3', color: '#e8732a', ceiling: 3, bonus: 2, noise: 4, note: 'Significant risk. Champion capped at 3.' },
-    { n: 2, name: 'Tier 2', color: '#e8502a', ceiling: 2, bonus: 3, noise: 5, note: 'High danger. Champion capped at 2.' },
-    { n: 1, name: 'Tier 1', color: '#ff4d5e', ceiling: 1, bonus: 5, noise: 6, note: 'The Jackpot. Both dice must roll a 1.' }
-  ];
-
   let wager = null;
-  let tier = null;
+  let phase = 'stake'; // stake -> establish -> pulses -> done
+  let signalValues = [null, null];
+  let confirmed = [false, false];
   let rollsUsed = 0;
   let gameOver = false;
 
   const resourceRow  = document.getElementById('resourceRow');
   const wagerLabel   = document.getElementById('wagerLabel');
-  const tierGrid     = document.getElementById('tierGrid');
-  const tierCaption  = document.getElementById('tierCaption');
-  const dieChampion  = document.getElementById('dieChampion');
-  const dieOpposing  = document.getElementById('dieOpposing');
+  const slot0        = document.getElementById('slot0');
+  const slot1        = document.getElementById('slot1');
+  const slot0Value   = document.getElementById('slot0Value');
+  const slot1Value   = document.getElementById('slot1Value');
+  const signalCaption = document.getElementById('signalCaption');
+  const dieRed       = document.getElementById('dieRed');
+  const dieBlue      = document.getElementById('dieBlue');
   const pipsEl       = document.getElementById('pips');
   const mathLine     = document.getElementById('mathLine');
   const logEl        = document.getElementById('log');
-  const rollBtn      = document.getElementById('rollBtn');
+  const mainBtn      = document.getElementById('mainBtn');
   const resultScreen = document.getElementById('resultScreen');
   const resultBanner = document.getElementById('resultBanner');
   const resultBig    = document.getElementById('resultBig');
@@ -407,57 +407,6 @@
     }
   }
 
-  function buildTierGrid(){
-    tierGrid.innerHTML = '';
-    TIERS.forEach(t => {
-      const btn = document.createElement('div');
-      btn.className = 'tier-btn';
-      btn.dataset.tier = t.n;
-      btn.style.borderColor = 'rgba(255,255,255,0.12)';
-      btn.innerHTML = '<div class="tier-name" style="color:' + t.color + ';">' + t.name + '</div>' +
-        '<div class="tier-ceiling">Ceiling 1&ndash;' + t.ceiling + '</div>' +
-        '<div class="tier-payout" style="color:' + t.color + ';">' +
-        (t.bonus > 0 ? '+' + t.bonus + ' bonus' : 'no bonus') + '</div>';
-      tierGrid.appendChild(btn);
-    });
-  }
-
-  function updateRollBtn(){
-    rollBtn.disabled = gameOver || !wager || tier === null;
-  }
-
-  tierGrid.addEventListener('click', (e) => {
-    if (rollsUsed > 0 || gameOver) return;
-    const btn = e.target.closest('.tier-btn');
-    if (!btn) return;
-    const n = parseInt(btn.dataset.tier, 10);
-    tier = TIERS.find(t => t.n === n);
-    tierGrid.querySelectorAll('.tier-btn').forEach(b => {
-      b.classList.remove('selected');
-      b.style.borderColor = 'rgba(255,255,255,0.12)';
-      b.style.background = 'rgba(255,255,255,0.03)';
-    });
-    btn.classList.add('selected');
-    btn.style.borderColor = tier.color;
-    btn.style.background = tier.color + '1f';
-    tierCaption.innerHTML = 'Locked in: <strong style="color:' + tier.color + ';">' + tier.name + '</strong> &mdash; ' + tier.note;
-    mathLine.textContent = 'Champion must beat or match Opposing, and stay at or under ' + tier.ceiling + '.';
-    updateRollBtn();
-  });
-
-  resourceRow.addEventListener('click', (e) => {
-    if (rollsUsed > 0 || gameOver) return;
-    const btn = e.target.closest('.resource-btn');
-    if (!btn) return;
-    resourceRow.querySelectorAll('.resource-btn').forEach(b => b.classList.remove('selected'));
-    btn.classList.add('selected');
-    wager = btn.dataset.resource;
-    wagerLabel.textContent = 'Wager: ' + wager;
-    tierGrid.classList.remove('disabled');
-    if (tier === null) tierCaption.textContent = 'Pick a Tier below.';
-    updateRollBtn();
-  });
-
   function updatePips(){
     const pips = pipsEl.querySelectorAll('.pip');
     pips.forEach((p, i) => p.classList.toggle('used', i < rollsUsed));
@@ -470,49 +419,115 @@
     logEl.scrollTop = logEl.scrollHeight;
   }
 
-  rollBtn.addEventListener('click', () => {
-    if (gameOver || !wager || tier === null || rollsUsed >= MAX_ROLLS) return;
-    rollBtn.disabled = true;
-    resourceRow.querySelectorAll('.resource-btn').forEach(b => b.classList.add('locked'));
-    tierGrid.classList.add('disabled');
-    dieChampion.classList.add('rolling');
-    dieOpposing.classList.add('rolling');
+  function renderSlots(){
+    [slot0, slot1].forEach((slot, i) => {
+      const valueEl = i === 0 ? slot0Value : slot1Value;
+      const tagEl = slot.querySelector('.signal-tag');
+      if (signalValues[i] === null){
+        slot.classList.remove('set', 'confirmed');
+        valueEl.textContent = '?';
+        tagEl.textContent = 'Unconfirmed';
+      } else {
+        slot.classList.add('set');
+        valueEl.textContent = signalValues[i];
+        if (confirmed[i]){
+          slot.classList.add('confirmed');
+          tagEl.textContent = 'Confirmed';
+        } else {
+          slot.classList.remove('confirmed');
+          tagEl.textContent = 'Unconfirmed';
+        }
+      }
+    });
+  }
 
+  function spinDice(callback){
+    dieRed.classList.add('rolling');
+    dieBlue.classList.add('rolling');
     let ticks = 0;
     const spin = setInterval(() => {
-      renderDie(dieChampion, 1 + Math.floor(Math.random()*6));
-      renderDie(dieOpposing, 1 + Math.floor(Math.random()*6));
+      renderDie(dieRed, 1 + Math.floor(Math.random()*6));
+      renderDie(dieBlue, 1 + Math.floor(Math.random()*6));
       ticks++;
       if (ticks > 6){
         clearInterval(spin);
-        resolveRoll();
+        dieRed.classList.remove('rolling');
+        dieBlue.classList.remove('rolling');
+        const red = 1 + Math.floor(Math.random()*6);
+        const blue = 1 + Math.floor(Math.random()*6);
+        renderDie(dieRed, red);
+        renderDie(dieBlue, blue);
+        callback(red, blue);
       }
     }, 60);
+  }
+
+  resourceRow.addEventListener('click', (e) => {
+    if (phase !== 'stake') return;
+    const btn = e.target.closest('.resource-btn');
+    if (!btn) return;
+    resourceRow.querySelectorAll('.resource-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    wager = btn.dataset.resource;
+    wagerLabel.textContent = 'Wager: ' + wager;
+    mainBtn.disabled = false;
+    signalCaption.textContent = 'Ready. Establish the signal to reveal your two targets.';
+    mathLine.textContent = 'One free roll sets your Signal Values.';
   });
 
-  function resolveRoll(){
-    dieChampion.classList.remove('rolling');
-    dieOpposing.classList.remove('rolling');
+  mainBtn.addEventListener('click', () => {
+    if (phase === 'stake'){
+      if (!wager) return;
+      mainBtn.disabled = true;
+      spinDice(establishSignal);
+    } else if (phase === 'pulses'){
+      if (gameOver || rollsUsed >= MAX_ROLLS) return;
+      mainBtn.disabled = true;
+      resourceRow.querySelectorAll('.resource-btn').forEach(b => b.classList.add('locked'));
+      spinDice(resolvePulse);
+    }
+  });
 
-    const champion = 1 + Math.floor(Math.random()*6);
-    const opposing = 1 + Math.floor(Math.random()*6);
-    renderDie(dieChampion, champion);
-    renderDie(dieOpposing, opposing);
+  function establishSignal(red, blue){
+    signalValues = [red, blue];
+    confirmed = [false, false];
+    renderSlots();
+    const dup = red === blue;
+    signalCaption.innerHTML = 'Signal locked: <strong>' + red + '</strong> and <strong>' + blue + '</strong>' +
+      (dup ? ' &mdash; a double. Both instances must be matched to confirm.' : '.');
+    log('<span class="tag">Signal Established</span> — targets ' + red + ' and ' + blue + (dup ? ' (double)' : '') + '.');
+    mathLine.textContent = 'Match both values across your dice within 3 Pulses.';
+    phase = 'pulses';
+    mainBtn.textContent = 'Roll the Dice';
+    mainBtn.disabled = false;
+  }
+
+  function resolvePulse(red, blue){
     rollsUsed++;
     updatePips();
 
-    const beatsOpposing = champion >= opposing;
-    const underCeiling = champion <= tier.ceiling;
-    const won = beatsOpposing && underCeiling;
+    const pool = [red, blue];
+    const newlyConfirmed = [];
+    signalValues.forEach((val, i) => {
+      if (!confirmed[i]){
+        const idx = pool.indexOf(val);
+        if (idx !== -1){
+          confirmed[i] = true;
+          newlyConfirmed.push(i);
+          pool.splice(idx, 1);
+        }
+      }
+    });
+    renderSlots();
 
-    mathLine.innerHTML = 'Roll ' + rollsUsed + '/' + MAX_ROLLS + ': Champion <span class="' + (won ? 'val-good' : 'val') + '">' + champion +
-      '</span> vs. Opposing <span class="val">' + opposing + '</span> — ceiling <span class="val">' + tier.ceiling + '</span>';
+    const bothDone = confirmed[0] && confirmed[1];
+    mathLine.innerHTML = 'Roll ' + rollsUsed + '/' + MAX_ROLLS + ': Red <span class="val">' + red + '</span> &middot; Blue <span class="val">' + blue + '</span>' +
+      (newlyConfirmed.length ? ' &rarr; <span class="val-good">confirmed ' + newlyConfirmed.length + '</span>' : ' &rarr; no match');
 
-    log('<span class="tag">Roll ' + rollsUsed + '/' + MAX_ROLLS + '</span> — Champion ' + champion + ', Opposing ' + opposing +
-      (won ? ' — <span class="tag">met ' + tier.name + '</span>' :
-        (!beatsOpposing ? ' — Champion did not beat Opposing' : ' — Champion exceeded the Tier ceiling')));
+    log('<span class="tag">Pulse ' + rollsUsed + '/' + MAX_ROLLS + '</span> — Red ' + red + ', Blue ' + blue +
+      (newlyConfirmed.length ? ' — confirmed ' + newlyConfirmed.length + ' value' + (newlyConfirmed.length > 1 ? 's' : '') : ' — wasted, no match'));
 
-    if (won){
+    if (bothDone){
       endGame(true);
       return;
     }
@@ -520,25 +535,28 @@
       endGame(false);
       return;
     }
-    rollBtn.disabled = false;
-    rollBtn.textContent = 'Roll Again (' + (MAX_ROLLS - rollsUsed) + ' left)';
+    mainBtn.disabled = false;
+    mainBtn.textContent = 'Roll Again (' + (MAX_ROLLS - rollsUsed) + ' left)';
   }
 
   function endGame(won){
     gameOver = true;
-    rollBtn.disabled = true;
+    phase = 'done';
+    mainBtn.disabled = true;
     setTimeout(() => {
       resultScreen.classList.remove('hidden');
       if (won){
         resultBanner.className = 'result-banner win';
-        resultBig.textContent = 'SEAL HOLDS';
-        resultDetail.innerHTML = '<strong>' + tier.name + '</strong> met on roll ' + rollsUsed + '. <strong>' + wager + '</strong> returned' +
-          (tier.bonus > 0 ? ', plus <strong>+' + tier.bonus + ' ' + wager + '</strong>.' : ', no bonus.');
+        resultBig.textContent = 'SIGNAL CONFIRMED';
+        resultDetail.innerHTML = 'Both values matched within ' + rollsUsed + ' Pulse' + (rollsUsed === 1 ? '' : 's') + '. <strong>' + wager +
+          '</strong> returned, doubled. Place <strong>1 Data Token</strong> at any terminal or data point.';
       } else {
+        const unconfirmedCount = confirmed.filter(c => !c).length;
+        const noise = unconfirmedCount * 2;
         resultBanner.className = 'result-banner fail';
-        resultBig.textContent = 'PRESSURE LOST';
-        resultDetail.innerHTML = '<strong>' + tier.name + '</strong> never met across 3 rolls. <strong>' + wager +
-          '</strong> lost — <strong>+' + tier.noise + ' Noise</strong>.';
+        resultBig.textContent = 'SIGNAL LOST';
+        resultDetail.innerHTML = unconfirmedCount + ' of 2 values never confirmed. <strong>' + wager + '</strong> lost — <strong>+' + noise +
+          ' Noise</strong>, <strong>Creature +1</strong>.';
       }
       resultScreen.scrollIntoView({ behavior: 'smooth', block: 'end' });
     }, 500);
@@ -546,21 +564,22 @@
 
   function resetGame(){
     wager = null;
-    tier = null;
+    phase = 'stake';
+    signalValues = [null, null];
+    confirmed = [false, false];
     rollsUsed = 0;
     gameOver = false;
     resourceRow.querySelectorAll('.resource-btn').forEach(b => b.classList.remove('selected', 'locked'));
     wagerLabel.textContent = 'No wager staked';
-    buildTierGrid();
-    tierGrid.classList.add('disabled');
-    tierCaption.textContent = 'Stake a resource to unlock Tier selection.';
-    renderDie(dieChampion, 1);
-    renderDie(dieOpposing, 1);
+    renderSlots();
+    signalCaption.textContent = 'Stake a resource, then establish the signal.';
+    renderDie(dieRed, 1);
+    renderDie(dieBlue, 1);
     updatePips();
-    mathLine.textContent = 'Pick a Tier, then roll.';
+    mathLine.textContent = 'Waiting on a wager.';
     logEl.innerHTML = '';
-    rollBtn.textContent = 'Roll the Dice';
-    updateRollBtn();
+    mainBtn.textContent = 'Establish Signal';
+    mainBtn.disabled = true;
     resultScreen.classList.add('hidden');
   }
 
