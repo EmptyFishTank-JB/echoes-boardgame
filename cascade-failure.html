@@ -193,7 +193,7 @@
     position: absolute; inset: 0;
     border-radius: 1px;
     background: repeating-linear-gradient(135deg,
-      rgba(255,77,94,0.35) 0px, rgba(255,77,94,0.35) 3px,
+      var(--bad) 0px, var(--bad) 3px,
       transparent 3px, transparent 6px);
   }
   .gauge-ticks {
@@ -321,8 +321,9 @@
   <div class="rules-mini">
     <div><strong>Wager:</strong> Stake one resource before rolling. No resource = automatic failure.</div>
     <div><strong>Win:</strong> Bank 18&ndash;20 &mdash; wager doubled. Bank exactly 21 &mdash; wager tripled.</div>
-    <div><strong>Bust:</strong> Total exceeds 21 &mdash; wager lost, +3 Noise + 1 per &ldquo;1&rdquo; rolled.</div>
-    <div><strong>Short:</strong> Bank (or run out of rolls) under 18 &mdash; wager lost, +3 Noise + 1 per &ldquo;1&rdquo; rolled.</div>
+    <div><strong>Bust:</strong> Total exceeds 21 &mdash; wager lost, +3 Noise.</div>
+    <div><strong>Short:</strong> Bank (or run out of rolls) under 18 &mdash; wager lost, +3 Noise.</div>
+    <div><strong>Every Run:</strong> +1 Noise per &ldquo;1&rdquo; rolled, whether you win or lose.</div>
   </div>
 
   <div class="stake-row" id="resourceRow">
@@ -608,26 +609,31 @@
     updateGate();
     const won = total >= WIN_MIN && total <= WIN_MAX;
     const exact = total === WIN_MAX;
+    // The reactor keeps a noise signature for every "1" rolled during the
+    // run, win or lose — only the flat +3 penalty is fail-only.
+    const onesNoise = onesCount > 0
+      ? ' <strong>+' + onesCount + ' Noise</strong> (' + onesCount + ' one' + (onesCount === 1 ? '' : 's') + ' rolled).'
+      : '';
     setTimeout(() => {
       resultScreen.classList.remove('hidden');
       if (won && exact){
         resultBanner.className = 'result-banner win';
         resultBig.textContent = 'PERFECT CONTAINMENT';
-        resultDetail.innerHTML = 'Banked at exactly <strong>21</strong>. <strong>' + wager + '</strong> returned, tripled.';
+        resultDetail.innerHTML = 'Banked at exactly <strong>21</strong>. <strong>' + wager + '</strong> returned, tripled.' + onesNoise;
       } else if (won){
         resultBanner.className = 'result-banner win';
         resultBig.textContent = 'CASCADE CONTAINED';
-        resultDetail.innerHTML = 'Banked at <strong>' + total + '</strong>. <strong>' + wager + '</strong> returned, doubled.';
+        resultDetail.innerHTML = 'Banked at <strong>' + total + '</strong>. <strong>' + wager + '</strong> returned, doubled.' + onesNoise;
       } else if (reason === 'bust'){
         resultBanner.className = 'result-banner fail';
         resultBig.textContent = 'REACTOR OVERLOAD';
         resultDetail.innerHTML = 'Total hit <strong>' + total + '</strong> — past the 21 limit. <strong>' + wager +
-          '</strong> lost — <strong>+3 Noise</strong>, <strong>+' + onesCount + ' Noise</strong> (' + onesCount + ' one' + (onesCount === 1 ? '' : 's') + ' rolled).';
+          '</strong> lost — <strong>+3 Noise</strong>' + (onesCount > 0 ? ', plus' + onesNoise : '.');
       } else {
         resultBanner.className = 'result-banner fail';
         resultBig.textContent = 'CONTAINMENT FAILED';
         resultDetail.innerHTML = 'Stopped at <strong>' + total + '</strong> — short of 18. <strong>' + wager +
-          '</strong> lost — <strong>+3 Noise</strong>, <strong>+' + onesCount + ' Noise</strong> (' + onesCount + ' one' + (onesCount === 1 ? '' : 's') + ' rolled).';
+          '</strong> lost — <strong>+3 Noise</strong>' + (onesCount > 0 ? ', plus' + onesNoise : '.');
       }
       resultScreen.scrollIntoView({ behavior: 'smooth', block: 'end' });
     }, 400);
