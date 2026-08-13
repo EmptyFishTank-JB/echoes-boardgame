@@ -142,15 +142,15 @@
 
   /* ── GAME SCREEN ── */
   .status-bar {
-    display: flex; justify-content: space-between; align-items: center;
+    display: flex; justify-content: center; align-items: center;
     font-family: 'Share Tech Mono', monospace; font-size: 11px;
     letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-dim);
-    margin-bottom: 20px;
+    margin: 4px 0 4px;
   }
   .status-bar .wager { color: var(--orange); }
-  .pips { display: flex; gap: 6px; }
-  .pip { width: 9px; height: 9px; border-radius: 50%; background: rgba(255,255,255,0.12); border: 1px solid var(--border); }
-  .pip.used { background: var(--accent); border-color: var(--accent); }
+  .pips { display: flex; gap: 6px; justify-content: center; margin: 0 0 18px; }
+  .pip { width: 9px; height: 9px; border-radius: 2px; background: rgba(255,255,255,0.12); border: 1px solid var(--border); }
+  .pip.used { background: var(--orange); border-color: var(--orange); }
 
   .fuse-row {
     display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px;
@@ -236,7 +236,6 @@
   .log {
     font-family: 'Share Tech Mono', monospace; font-size: 11px;
     color: var(--text-dim); line-height: 1.9;
-    max-height: 110px; overflow-y: auto;
     border-top: 1px solid var(--border);
     padding-top: 12px; margin-bottom: 20px;
   }
@@ -307,14 +306,13 @@
     <div class="resource-btn" data-resource="Components"><span class="icon">&#128295;</span>Components</div>
     <div class="resource-btn" data-resource="Data"><span class="icon">&#128190;</span>Data</div>
   </div>
-  <div class="status-bar">
-    <span class="wager" id="wagerLabel">No wager staked</span>
-    <div class="pips" id="pips">
-      <div class="pip"></div><div class="pip"></div><div class="pip"></div>
-    </div>
-  </div>
+  <div class="status-bar"><span class="wager" id="wagerLabel">No wager staked</span></div>
 
   <div class="fuse-row disabled" id="fuseRow"></div>
+
+  <div class="pips" id="pips">
+    <div class="pip"></div><div class="pip"></div><div class="pip"></div>
+  </div>
 
   <div class="dice-stage">
     <div class="die-wrap">
