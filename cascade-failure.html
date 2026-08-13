@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+CiAgPHJlY3QgeD0iNSIgeT0iNiIgd2lkdGg9IjYiIGhlaWdodD0iMTAiIHJ4PSIxIiBmaWxsPSIjZTg3MzJhIiBvcGFjaXR5PSIwLjkiLz4KICA8cmVjdCB4PSIxMyIgeT0iMiIgd2lkdGg9IjYiIGhlaWdodD0iMTQiIHJ4PSIxIiBmaWxsPSIjZTg3MzJhIi8+CiAgPHJlY3QgeD0iMjEiIHk9IjYiIHdpZHRoPSI2IiBoZWlnaHQ9IjEwIiByeD0iMSIgZmlsbD0iI2U4NzMyYSIgb3BhY2l0eT0iMC45Ii8+CiAgPHJlY3QgeD0iMSIgeT0iMTciIHdpZHRoPSIxMyIgaGVpZ2h0PSIxMyIgcng9IjIuNSIgZmlsbD0iI2Q4MWYyZiIvPgogIDxjaXJjbGUgY3g9IjQuMyIgY3k9IjIwLjMiIHI9IjEuMyIgZmlsbD0iI2ZmZiIvPgogIDxjaXJjbGUgY3g9IjcuNSIgY3k9IjIzLjUiIHI9IjEuMyIgZmlsbD0iI2ZmZiIvPgogIDxjaXJjbGUgY3g9IjEwLjciIGN5PSIyNi43IiByPSIxLjMiIGZpbGw9IiNmZmYiLz4KICA8cmVjdCB4PSIxOCIgeT0iMTciIHdpZHRoPSIxMyIgaGVpZ2h0PSIxMyIgcng9IjIuNSIgZmlsbD0iIzFjOGZjNyIvPgogIDxjaXJjbGUgY3g9IjI3LjciIGN5PSIyMC4zIiByPSIxLjMiIGZpbGw9IiNmZmYiLz4KICA8Y2lyY2xlIGN4PSIyMS4zIiBjeT0iMjYuNyIgcj0iMS4zIiBmaWxsPSIjZmZmIi8+Cjwvc3ZnPgo=">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ECHOES // Cascade Failure</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --text:       #eef0f5;
+    --text-dim:   rgba(238,240,245,0.45);
+    --accent:     #4fc3f7;
+    --orange:     #e8732a;
+    --border:     rgba(238,240,245,0.12);
+    --red:        #ff4d5e;
+    --blue:       #4fc3f7;
+    --good:       #4fe0a1;
+    --bad:        #ff4d5e;
+    --violet:     #b98aff;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: 100%; min-height: 100%;
+    background: #050709;
+    font-family: 'Barlow Condensed', sans-serif;
+    color: var(--text);
+  }
+  body {
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 0%, rgba(79,195,247,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse 70% 50% at 50% 100%, rgba(232,115,42,0.06) 0%, transparent 60%),
+      linear-gradient(160deg, #030508 0%, #070b12 45%, #05080d 100%);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 28px 20px 60px;
+  }
+  body::before {
+    content: "";
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background: repeating-linear-gradient(0deg,
+      rgba(255,255,255,0.05) 0px, rgba(255,255,255,0.05) 1px,
+      transparent 1px, transparent 4px);
+    mix-blend-mode: overlay;
+  }
+
+  nav {
+    width: 100%; max-width: 760px;
+    display: flex; align-items: center; justify-content: center;
+    gap: 22px; flex-wrap: wrap;
+    padding: 4px 4px 22px;
+    z-index: 1;
+  }
+  nav a {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--text-dim); text-decoration: none;
+  }
+  nav a:hover { color: var(--text); }
+
+  header.title-block {
+    z-index: 1;
+    text-align: center;
+    margin-bottom: 22px;
+  }
+  .eyebrow {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px; letter-spacing: 0.28em; text-transform: uppercase;
+    color: var(--accent); opacity: 0.8; margin-bottom: 8px;
+  }
+  h1 {
+    font-weight: 900; letter-spacing: 0.04em; text-transform: uppercase;
+    font-size: clamp(32px, 6vw, 52px);
+    line-height: 0.95;
+  }
+  .subtitle {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px; color: var(--text-dim); letter-spacing: 0.05em;
+    margin-top: 10px; max-width: 520px; line-height: 1.7;
+  }
+
+  .panel {
+    z-index: 1;
+    width: 100%; max-width: 620px;
+    background: rgba(15,18,24,0.72);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    backdrop-filter: blur(6px);
+    padding: 28px;
+    position: relative;
+  }
+  .panel::before {
+    content: "";
+    position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, var(--orange), var(--accent));
+    opacity: 0.7;
+  }
+
+  /* ── WAGER ── */
+  .stake-row {
+    display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;
+    margin: 18px 0 4px;
+  }
+  .resource-btn {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--text); background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border); border-radius: 3px;
+    padding: 12px 16px; cursor: pointer; transition: 0.15s;
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    min-width: 92px;
+  }
+  .resource-btn .icon { font-size: 20px; }
+  .resource-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .resource-btn.selected { border-color: var(--orange); background: rgba(232,115,42,0.12); color: var(--orange); }
+  .resource-btn.locked { pointer-events: none; opacity: 0.55; }
+
+  .rules-mini {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px; line-height: 1.9; color: var(--text-dim);
+    border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+    padding: 14px 0; margin: 20px 0;
+  }
+  .rules-mini strong { color: var(--text); }
+
+  .btn {
+    display: block; width: 100%;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px; letter-spacing: 0.16em; text-transform: uppercase;
+    color: #05080d; background: var(--accent);
+    border: none; border-radius: 3px; padding: 14px;
+    cursor: pointer; transition: 0.15s; font-weight: 700;
+  }
+  .btn:hover:not(:disabled) { filter: brightness(1.15); transform: translateY(-1px); }
+  .btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  .btn.secondary {
+    background: transparent; color: var(--text-dim);
+    border: 1px solid var(--border);
+  }
+  .btn.secondary:hover:not(:disabled) { color: var(--text); border-color: var(--text-dim); }
+  .btn.good { background: var(--good); }
+
+  .status-bar {
+    display: flex; justify-content: center; align-items: center;
+    font-family: 'Share Tech Mono', monospace; font-size: 11px;
+    letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-dim);
+    margin: 4px 0 4px;
+  }
+  .status-bar .wager { color: var(--orange); }
+
+  /* ── TOTAL GAUGE ── */
+  .gauge-section-label {
+    font-family: 'Share Tech Mono', monospace; font-size: 11px;
+    letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-dim);
+    margin: 18px 0 10px; text-align: center;
+  }
+  .gauge-wrap {
+    position: relative;
+    height: 22px;
+    border-radius: 4px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    margin-bottom: 6px;
+  }
+  .gauge-wrap.disabled { opacity: 0.3; }
+  .gauge-zone {
+    position: absolute; top: 0; bottom: 0;
+    background: rgba(79,224,161,0.18);
+    border-left: 1px solid rgba(79,224,161,0.5);
+    border-right: 1px solid rgba(79,224,161,0.5);
+  }
+  .gauge-fill {
+    position: absolute; top: 0; bottom: 0; left: 0;
+    width: 0%;
+    background: linear-gradient(90deg, var(--accent), var(--orange));
+    transition: width 0.4s ease, background 0.3s ease;
+  }
+  .gauge-fill.bust { background: var(--bad); }
+  .gauge-fill.win { background: var(--good); }
+  .gauge-ticks {
+    display: flex; justify-content: space-between;
+    font-family: 'Share Tech Mono', monospace; font-size: 9px;
+    color: var(--text-dim); margin-bottom: 14px; padding: 0 1px;
+  }
+
+  .total-row {
+    display: flex; justify-content: center; align-items: baseline; gap: 18px;
+    margin-bottom: 6px;
+  }
+  .total-value {
+    font-family: 'Share Tech Mono', monospace; font-weight: 700;
+    font-size: 34px; color: var(--text);
+  }
+  .total-label {
+    font-family: 'Share Tech Mono', monospace; font-size: 10px;
+    letter-spacing: 0.18em; text-transform: uppercase; color: var(--text-dim);
+  }
+  .ones-count { color: var(--red); }
+
+  .pips { display: flex; gap: 6px; justify-content: center; margin: 0 0 18px; }
+  .pip { width: 9px; height: 9px; border-radius: 50%; background: rgba(255,255,255,0.12); border: 1px solid var(--border); }
+  .pip.used { background: var(--accent); border-color: var(--accent); }
+
+  .dice-stage {
+    display: flex; align-items: center; justify-content: center; gap: 28px;
+    margin: 10px 0 22px;
+  }
+  .die-wrap { text-align: center; }
+  .die-label {
+    font-family: 'Share Tech Mono', monospace; font-size: 10px;
+    letter-spacing: 0.2em; text-transform: uppercase; margin-top: 8px;
+    color: var(--text-dim);
+  }
+  .die {
+    width: 64px; height: 64px; border-radius: 10px;
+    display: grid; grid-template-columns: repeat(3,1fr); grid-template-rows: repeat(3,1fr);
+    padding: 10px; gap: 2px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.5);
+  }
+  .die.red { background: linear-gradient(145deg, #ff6270, #c11f30); }
+  .die.blue { background: linear-gradient(145deg, #6fd4ff, #1c8fc7); }
+  .die .pip-dot { border-radius: 50%; }
+  .die .pip-dot.on { background: #fff; }
+  .die.rolling { animation: shake 0.5s ease; }
+  @keyframes shake {
+    0%,100% { transform: rotate(0deg); }
+    20% { transform: rotate(-14deg); }
+    40% { transform: rotate(10deg); }
+    60% { transform: rotate(-8deg); }
+    80% { transform: rotate(6deg); }
+  }
+
+  .math-line {
+    text-align: center; font-family: 'Share Tech Mono', monospace;
+    font-size: 13px; color: var(--text-dim); letter-spacing: 0.06em;
+    margin-bottom: 18px; min-height: 18px;
+  }
+  .math-line .val { color: var(--text); font-weight: 700; }
+  .math-line .val-one { color: var(--red); font-weight: 700; }
+
+  .log {
+    font-family: 'Share Tech Mono', monospace; font-size: 11px;
+    color: var(--text-dim); line-height: 1.9;
+    max-height: 90px; overflow-y: auto;
+    border-top: 1px solid var(--border);
+    padding-top: 12px; margin-bottom: 20px;
+  }
+  .log div span.tag { color: var(--accent); }
+
+  .btn-row { display: flex; gap: 10px; }
+
+  /* ── RESULT ── */
+  #resultScreen {
+    margin-top: 20px;
+    padding-top: 18px;
+    border-top: 1px solid var(--border);
+  }
+  .result-banner {
+    text-align: center; padding: 10px 0 6px;
+  }
+  .result-banner .big {
+    font-weight: 900; letter-spacing: 0.05em; text-transform: uppercase;
+    font-size: clamp(24px, 5vw, 36px); margin-bottom: 10px;
+  }
+  .result-banner.win .big { color: var(--good); }
+  .result-banner.fail .big { color: var(--bad); }
+  .result-detail {
+    font-family: 'Share Tech Mono', monospace; font-size: 12px;
+    color: var(--text-dim); line-height: 1.9; margin-bottom: 22px;
+  }
+  .result-detail strong { color: var(--text); }
+
+  .hidden { display: none !important; }
+
+  footer {
+    z-index: 1;
+    margin-top: 26px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase;
+    color: rgba(238,240,245,0.25);
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html">&larr; Echoes</a>
+  <a href="rules.html">Rules &amp; Design</a>
+  <a href="echo-events.html">Echo Events</a>
+  <a href="assets.html">Assets</a>
+  <a href="terminal.html">Terminal</a>
+</nav>
+
+<header class="title-block">
+  <div class="eyebrow">// Echo Event 04 — Push Your Luck</div>
+  <h1>Cascade Failure</h1>
+  <p class="subtitle">Roll up to three times, stacking a running total across every die. Bank between 18 and 21 and your wager doubles &mdash; overshoot, or come up short, and the reactor spikes.</p>
+</header>
+
+<div class="panel">
+
+  <div class="rules-mini">
+    <div><strong>Wager:</strong> Stake one resource before rolling. No resource = automatic failure.</div>
+    <div><strong>Win:</strong> Bank a running total of 18&ndash;21 &mdash; wager returned, doubled.</div>
+    <div><strong>Bust:</strong> Total exceeds 21 &mdash; wager lost, +3 Noise + 1 per &ldquo;1&rdquo; rolled.</div>
+    <div><strong>Short:</strong> Bank (or run out of rolls) under 18 &mdash; wager lost, +3 Noise + 1 per &ldquo;1&rdquo; rolled.</div>
+  </div>
+
+  <div class="stake-row" id="resourceRow">
+    <div class="resource-btn" data-resource="Scrap"><span class="icon">&#9881;</span>Scrap</div>
+    <div class="resource-btn" data-resource="Salvage"><span class="icon">&#128230;</span>Salvage</div>
+    <div class="resource-btn" data-resource="Components"><span class="icon">&#128295;</span>Components</div>
+    <div class="resource-btn" data-resource="Data"><span class="icon">&#128225;</span>Data</div>
+  </div>
+  <div class="status-bar"><span class="wager" id="wagerLabel">No wager staked</span></div>
+
+  <div class="gauge-section-label">// Running Total — Bank at 18&ndash;21</div>
+  <div class="gauge-wrap disabled" id="gaugeWrap">
+    <div class="gauge-zone" id="gaugeZone"></div>
+    <div class="gauge-fill" id="gaugeFill"></div>
+  </div>
+  <div class="gauge-ticks"><span>0</span><span>18</span><span>21</span><span>36</span></div>
+
+  <div class="total-row">
+    <div><span class="total-value" id="totalValue">0</span> <span class="total-label">Total</span></div>
+    <div><span class="total-value ones-count" id="onesValue">0</span> <span class="total-label">Ones</span></div>
+  </div>
+
+  <div class="pips" id="pips">
+    <div class="pip"></div><div class="pip"></div><div class="pip"></div>
+  </div>
+
+  <div class="dice-stage">
+    <div class="die-wrap">
+      <div class="die red" id="dieRed"></div>
+      <div class="die-label">Red</div>
+    </div>
+    <div class="die-wrap">
+      <div class="die blue" id="dieBlue"></div>
+      <div class="die-label">Blue</div>
+    </div>
+  </div>
+
+  <div class="math-line" id="mathLine">Stake a resource to unlock the reactor.</div>
+
+  <div class="log" id="log"></div>
+
+  <div class="btn-row" id="actionRow">
+    <button class="btn" id="rollBtn" disabled>Roll the Dice</button>
+  </div>
+
+  <!-- RESULT (appears below everything once the run ends) -->
+  <div id="resultScreen" class="hidden">
+    <div class="result-banner" id="resultBanner">
+      <div class="big" id="resultBig"></div>
+      <div class="result-detail" id="resultDetail"></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn" id="againBtn">Run Again</button>
+      <button class="btn secondary" id="closeBtn" onclick="window.location.href='index.html'">Back to Echoes</button>
+    </div>
+  </div>
+
+</div>
+
+<footer>ECHOES · EmptyFishTank-JB · Echo Event Mini-Game</footer>
+
+<script>
+(function(){
+  const DOTS = {
+    1: [4],
+    2: [0,8],
+    3: [0,4,8],
+    4: [0,2,6,8],
+    5: [0,2,4,6,8],
+    6: [0,2,3,5,6,8]
+  };
+
+  const MAX_ROLLS = 3;
+  const MAX_TOTAL = 36; // 3 rolls x 2 dice x 6
+  const WIN_MIN = 18, WIN_MAX = 21;
+
+  let wager = null;
+  let total = 0;
+  let onesCount = 0;
+  let rollsUsed = 0;
+  let gameOver = false;
+
+  const resourceRow  = document.getElementById('resourceRow');
+  const wagerLabel   = document.getElementById('wagerLabel');
+  const gaugeWrap    = document.getElementById('gaugeWrap');
+  const gaugeZone    = document.getElementById('gaugeZone');
+  const gaugeFill    = document.getElementById('gaugeFill');
+  const totalValue   = document.getElementById('totalValue');
+  const onesValue    = document.getElementById('onesValue');
+  const pipsEl       = document.getElementById('pips');
+  const dieRed       = document.getElementById('dieRed');
+  const dieBlue      = document.getElementById('dieBlue');
+  const mathLine     = document.getElementById('mathLine');
+  const logEl        = document.getElementById('log');
+  const actionRow    = document.getElementById('actionRow');
+  const resultScreen = document.getElementById('resultScreen');
+  const resultBanner = document.getElementById('resultBanner');
+  const resultBig    = document.getElementById('resultBig');
+  const resultDetail = document.getElementById('resultDetail');
+  const againBtn     = document.getElementById('againBtn');
+
+  function renderDie(el, value){
+    el.innerHTML = '';
+    for (let i = 0; i < 9; i++){
+      const d = document.createElement('div');
+      d.className = 'pip-dot' + (DOTS[value].includes(i) ? ' on' : '');
+      el.appendChild(d);
+    }
+  }
+
+  function pct(n){ return Math.max(0, Math.min(100, (n / MAX_TOTAL) * 100)); }
+
+  function layoutGauge(){
+    const left = pct(WIN_MIN - 1);
+    const right = pct(WIN_MAX);
+    gaugeZone.style.left = left + '%';
+    gaugeZone.style.width = (right - left) + '%';
+  }
+
+  function updateGauge(){
+    totalValue.textContent = total;
+    onesValue.textContent = onesCount;
+    gaugeFill.style.width = pct(total) + '%';
+    gaugeFill.classList.remove('bust', 'win');
+    if (total > MAX_TOTAL) gaugeFill.classList.add('bust');
+    else if (total >= WIN_MIN && total <= WIN_MAX) gaugeFill.classList.add('win');
+  }
+
+  function updatePips(){
+    const pips = pipsEl.querySelectorAll('.pip');
+    pips.forEach((p, i) => p.classList.toggle('used', i < rollsUsed));
+  }
+
+  function log(msg){
+    const line = document.createElement('div');
+    line.innerHTML = msg;
+    logEl.appendChild(line);
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+
+  function updateGate(){
+    gaugeWrap.classList.toggle('disabled', !wager);
+  }
+
+  resourceRow.addEventListener('click', (e) => {
+    if (gameOver) return;
+    const btn = e.target.closest('.resource-btn');
+    if (!btn) return;
+    resourceRow.querySelectorAll('.resource-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    wager = btn.dataset.resource;
+    wagerLabel.textContent = 'Wager: ' + wager;
+    mathLine.textContent = 'Reactor online. Roll when ready.';
+    updateGate();
+    renderActions();
+  });
+
+  function renderActions(){
+    actionRow.innerHTML = '';
+    if (gameOver) return;
+    if (rollsUsed === 0){
+      const roll = document.createElement('button');
+      roll.className = 'btn';
+      roll.id = 'rollBtn';
+      roll.textContent = 'Roll the Dice';
+      roll.disabled = !wager;
+      roll.addEventListener('click', doRoll);
+      actionRow.appendChild(roll);
+    } else if (total > MAX_TOTAL || rollsUsed >= MAX_ROLLS) {
+      // no choice left — resolveEnd() handles this case directly
+    } else {
+      const bank = document.createElement('button');
+      bank.className = 'btn good';
+      bank.textContent = 'Bank It (' + total + ')';
+      bank.addEventListener('click', () => resolveEnd('banked'));
+      actionRow.appendChild(bank);
+
+      const push = document.createElement('button');
+      push.className = 'btn secondary';
+      push.textContent = 'Push Your Luck (' + (MAX_ROLLS - rollsUsed) + ' left)';
+      push.addEventListener('click', doRoll);
+      actionRow.appendChild(push);
+    }
+  }
+
+  function doRoll(){
+    if (gameOver || rollsUsed >= MAX_ROLLS) return;
+    actionRow.querySelectorAll('button').forEach(b => b.disabled = true);
+    dieRed.classList.add('rolling');
+    dieBlue.classList.add('rolling');
+
+    let ticks = 0;
+    const spin = setInterval(() => {
+      renderDie(dieRed, 1 + Math.floor(Math.random()*6));
+      renderDie(dieBlue, 1 + Math.floor(Math.random()*6));
+      ticks++;
+      if (ticks > 6){
+        clearInterval(spin);
+        resolveRoll();
+      }
+    }, 60);
+  }
+
+  function resolveRoll(){
+    dieRed.classList.remove('rolling');
+    dieBlue.classList.remove('rolling');
+
+    const red = 1 + Math.floor(Math.random()*6);
+    const blue = 1 + Math.floor(Math.random()*6);
+    renderDie(dieRed, red);
+    renderDie(dieBlue, blue);
+    rollsUsed++;
+    total += red + blue;
+    const onesThisRoll = (red === 1 ? 1 : 0) + (blue === 1 ? 1 : 0);
+    onesCount += onesThisRoll;
+    updatePips();
+    updateGauge();
+
+    mathLine.innerHTML = 'Roll ' + rollsUsed + '/' + MAX_ROLLS + ': Red <span class="val">' + red +
+      '</span> + Blue <span class="val">' + blue + '</span> &rarr; total <span class="val">' + total + '</span>' +
+      (onesThisRoll ? ' <span class="val-one">(' + onesThisRoll + ' one' + (onesThisRoll > 1 ? 's' : '') + ')</span>' : '');
+
+    log('<span class="tag">Roll ' + rollsUsed + '/' + MAX_ROLLS + '</span> — Red ' + red + ', Blue ' + blue +
+      ' — running total ' + total + (onesThisRoll ? ', +' + onesThisRoll + ' to Ones' : ''));
+
+    if (total > MAX_TOTAL){
+      resolveEnd('bust');
+      return;
+    }
+    if (rollsUsed >= MAX_ROLLS){
+      resolveEnd('forced');
+      return;
+    }
+    renderActions();
+  }
+
+  function resolveEnd(reason){
+    gameOver = true;
+    actionRow.innerHTML = '';
+    updateGate();
+    const won = total >= WIN_MIN && total <= WIN_MAX;
+    setTimeout(() => {
+      resultScreen.classList.remove('hidden');
+      if (won){
+        resultBanner.className = 'result-banner win';
+        resultBig.textContent = 'CASCADE CONTAINED';
+        resultDetail.innerHTML = 'Banked at <strong>' + total + '</strong>. <strong>' + wager + '</strong> returned, doubled.';
+      } else if (reason === 'bust'){
+        resultBanner.className = 'result-banner fail';
+        resultBig.textContent = 'REACTOR OVERLOAD';
+        resultDetail.innerHTML = 'Total hit <strong>' + total + '</strong> — past the 21 limit. <strong>' + wager +
+          '</strong> lost — <strong>+3 Noise</strong>, <strong>+' + onesCount + ' Noise</strong> (' + onesCount + ' one' + (onesCount === 1 ? '' : 's') + ' rolled).';
+      } else {
+        resultBanner.className = 'result-banner fail';
+        resultBig.textContent = 'CONTAINMENT FAILED';
+        resultDetail.innerHTML = 'Stopped at <strong>' + total + '</strong> — short of 18. <strong>' + wager +
+          '</strong> lost — <strong>+3 Noise</strong>, <strong>+' + onesCount + ' Noise</strong> (' + onesCount + ' one' + (onesCount === 1 ? '' : 's') + ' rolled).';
+      }
+      resultScreen.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    }, 400);
+  }
+
+  function resetGame(){
+    wager = null;
+    total = 0;
+    onesCount = 0;
+    rollsUsed = 0;
+    gameOver = false;
+    resourceRow.querySelectorAll('.resource-btn').forEach(b => b.classList.remove('selected', 'locked'));
+    wagerLabel.textContent = 'No wager staked';
+    layoutGauge();
+    updateGauge();
+    updatePips();
+    renderDie(dieRed, 1);
+    renderDie(dieBlue, 1);
+    mathLine.textContent = 'Stake a resource to unlock the reactor.';
+    logEl.innerHTML = '';
+    renderActions();
+    updateGate();
+    resultScreen.classList.add('hidden');
+  }
+
+  againBtn.addEventListener('click', resetGame);
+
+  resetGame();
+})();
+</script>
+
+</body>
+</html>
