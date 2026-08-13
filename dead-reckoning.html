@@ -186,7 +186,6 @@
   .coord-cell.zone-red-col { background: rgba(255,77,94,0.14); }
   .coord-cell.zone-blue-row { background: rgba(79,195,247,0.14); }
   .coord-cell.zone-red-col.zone-blue-row { background: rgba(185,138,255,0.14); }
-  .coord-cell.called { background: rgba(232,115,42,0.12); border-color: var(--orange); }
   .cell-signal { width: 46%; height: 46%; }
 
   .coord-grid.locked .coord-cell { cursor: default; }
@@ -426,16 +425,15 @@
 
   function clearCellStyles(){
     coordGrid.querySelectorAll('.coord-cell').forEach(c => {
-      c.classList.remove('zone-red-col', 'zone-blue-row', 'called');
+      c.classList.remove('zone-red-col', 'zone-blue-row');
       c.style.background = '';
-      c.style.borderColor = '';
-      c.style.boxShadow = '';
       c.innerHTML = '';
     });
   }
 
-  /* Pre-roll: only the exact called cell is marked. Row/column don't light
-     up until after the roll, when they show the dice's actual outcome. */
+  /* Pre-roll: only the exact called cell is marked, via the signal icon
+     alone — no fill or outline. Row/column don't light up until after the
+     roll, when they show the dice's actual outcome. */
   function paintSelection(){
     clearCellStyles();
     if (callCol === null || callRow === null) return;
@@ -443,7 +441,6 @@
       const col = parseInt(c.dataset.col, 10);
       const row = parseInt(c.dataset.row, 10);
       if (col === callCol && row === callRow){
-        c.classList.add('called');
         c.innerHTML = SIGNAL_ICON;
       }
     });
@@ -457,10 +454,6 @@
       if (row === blueZone) c.classList.add('zone-blue-row');
       if (col === redZone && row === blueZone){
         c.style.background = RESULT_BG;
-        c.style.borderColor = 'var(--violet)';
-        if (col === callCol && row === callRow){
-          c.style.boxShadow = '0 0 0 2px var(--orange) inset';
-        }
       }
     });
   }
