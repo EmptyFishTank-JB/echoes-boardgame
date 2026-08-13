@@ -177,9 +177,17 @@
     width: 0%;
     background: linear-gradient(90deg, var(--accent), var(--orange));
     transition: width 0.4s ease, background 0.3s ease;
+    display: flex; align-items: center;
+    overflow: hidden; white-space: nowrap;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px; font-weight: 700; letter-spacing: 1px;
+    color: rgba(10,12,15,0.85);
   }
-  .gauge-fill.bust { background: var(--bad); }
   .gauge-fill.win { background: var(--good); }
+  .gauge-fill.bust {
+    background: rgba(255,77,94,0.14);
+    color: var(--bad);
+  }
   .gauge-ticks {
     display: flex; justify-content: space-between;
     font-family: 'Share Tech Mono', monospace; font-size: 9px;
@@ -322,7 +330,7 @@
     <div class="gauge-zone" id="gaugeZone"></div>
     <div class="gauge-fill" id="gaugeFill"></div>
   </div>
-  <div class="gauge-ticks"><span>0</span><span>18</span><span>21</span><span>36</span></div>
+  <div class="gauge-ticks"><span>0</span><span>18</span><span>21+</span></div>
 
   <div class="total-row">
     <div><span class="total-value" id="totalValue">0</span> <span class="total-label">Total</span></div>
@@ -380,8 +388,8 @@
   };
 
   const MAX_ROLLS = 3;
-  const MAX_TOTAL = 36; // 3 rolls x 2 dice x 6
   const WIN_MIN = 18, WIN_MAX = 21;
+  const GAUGE_MAX = WIN_MAX; // meter reads 0-21; past 21 it shows "broken" instead
 
   let wager = null;
   let total = 0;
@@ -417,7 +425,7 @@
     }
   }
 
-  function pct(n){ return Math.max(0, Math.min(100, (n / MAX_TOTAL) * 100)); }
+  function pct(n){ return Math.max(0, Math.min(100, (n / GAUGE_MAX) * 100)); }
 
   function layoutGauge(){
     const left = pct(WIN_MIN - 1);
@@ -429,10 +437,16 @@
   function updateGauge(){
     totalValue.textContent = total;
     onesValue.textContent = onesCount;
-    gaugeFill.style.width = pct(total) + '%';
     gaugeFill.classList.remove('bust', 'win');
-    if (total > MAX_TOTAL) gaugeFill.classList.add('bust');
-    else if (total >= WIN_MIN && total <= WIN_MAX) gaugeFill.classList.add('win');
+    if (total > WIN_MAX){
+      gaugeFill.style.width = '100%';
+      gaugeFill.classList.add('bust');
+      gaugeFill.textContent = '/'.repeat(40);
+    } else {
+      gaugeFill.style.width = pct(total) + '%';
+      gaugeFill.textContent = '';
+      if (total >= WIN_MIN && total <= WIN_MAX) gaugeFill.classList.add('win');
+    }
   }
 
   function updatePips(){
@@ -452,7 +466,7 @@
   }
 
   resourceRow.addEventListener('click', (e) => {
-    if (gameOver) return;
+    if (gameOver || rollsUsed > 0) return;
     const btn = e.target.closest('.resource-btn');
     if (!btn) return;
     resourceRow.querySelectorAll('.resource-btn').forEach(b => b.classList.remove('selected'));
@@ -475,7 +489,7 @@
       roll.disabled = !wager;
       roll.addEventListener('click', doRoll);
       actionRow.appendChild(roll);
-    } else if (total > MAX_TOTAL || rollsUsed >= MAX_ROLLS) {
+    } else if (total > WIN_MAX || rollsUsed >= MAX_ROLLS) {
       // no choice left — resolveEnd() handles this case directly
     } else {
       const bank = document.createElement('button');
@@ -518,6 +532,9 @@
     const blue = 1 + Math.floor(Math.random()*6);
     renderDie(dieRed, red);
     renderDie(dieBlue, blue);
+    if (rollsUsed === 0){
+      resourceRow.querySelectorAll('.resource-btn').forEach(b => b.classList.add('locked'));
+    }
     rollsUsed++;
     total += red + blue;
     const onesThisRoll = (red === 1 ? 1 : 0) + (blue === 1 ? 1 : 0);
@@ -532,7 +549,7 @@
     log('<span class="tag">Roll ' + rollsUsed + '/' + MAX_ROLLS + '</span> — Red ' + red + ', Blue ' + blue +
       ' — running total ' + total + (onesThisRoll ? ', +' + onesThisRoll + ' to Ones' : ''));
 
-    if (total > MAX_TOTAL){
+    if (total > WIN_MAX){
       resolveEnd('bust');
       return;
     }
