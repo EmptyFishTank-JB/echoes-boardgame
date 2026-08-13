@@ -34,22 +34,6 @@
     100%{ transform:translate(-3%,4%); }
   }
 
-  #iridescent {
-    position:fixed; inset:-6%; width:112%; height:112%;
-    z-index:90; pointer-events:none;
-    mix-blend-mode:screen; opacity:0.12;
-    background:conic-gradient(
-      from 0deg at 50% 50%,
-      rgba(255,0,60,0.75),
-      rgba(232,115,42,0.65),
-      rgba(0,255,0,0.55),
-      rgba(0,234,255,0.65),
-      rgba(255,0,60,0.75)
-    );
-    will-change:opacity, background, transform;
-    transition:opacity 0.4s ease;
-  }
-
   #page {
     position: relative;
     height: 100vh;
@@ -67,8 +51,6 @@
     border: 1px solid rgba(238, 240, 245, 0.08);
     min-height: 0;
     overflow: hidden;
-    will-change: transform;
-    transform-origin: center center;
   }
 
   #t-output {
@@ -122,8 +104,6 @@
 </style>
 </head>
 <body>
-
-<div id="iridescent"></div>
 
 <div id="page">
   <div id="terminal-box">
@@ -1170,36 +1150,6 @@ termInput.addEventListener('keydown', async function(e) {
       +'</svg>';
   }
   setInterval(function(){ try{ fav.href='data:image/svg+xml;base64,'+btoa(svg()); }catch(e2){} }, 50);
-})();
-
-// ── IRIDESCENT + WINDOW PARALLAX ─────────────────────────────────────────────
-(function() {
-  var iri  = document.getElementById('iridescent');
-  var tbox = document.getElementById('terminal-box');
-  if (!iri) return;
-  var px=0, py=0, tx=0, ty=0;
-  document.addEventListener('mousemove', function(e) {
-    var nx=(e.clientX/window.innerWidth-0.5)*2;
-    var ny=(e.clientY/window.innerHeight-0.5)*2;
-    tx=nx; ty=ny;
-    // Iridescent: hue + focal-point shift
-    var hue=Math.round((nx+1)*180);
-    var fcx=Math.round(50+nx*22);
-    var fcy=Math.round(50+ny*22);
-    var mag=(Math.abs(nx)+Math.abs(ny))*0.5;
-    iri.style.background='conic-gradient(from '+hue+'deg at '+fcx+'% '+fcy+'%,rgba(255,0,60,0.75),rgba(232,115,42,0.65),rgba(0,255,0,0.55),rgba(0,234,255,0.65),rgba(255,0,60,0.75))';
-    iri.style.opacity=(0.03+mag*0.06).toFixed(3);
-  });
-  (function lerp(){
-    px+=(tx-px)*0.05; py+=(ty-py)*0.05;
-    // Iridescent layer drifts with cursor
-    iri.style.transform='translate('+(px*18).toFixed(2)+'px,'+(py*12).toFixed(2)+'px)';
-    // Terminal window floats counter to cursor (parallax)
-    if (tbox) {
-      tbox.style.transform='translate('+(-px*8).toFixed(2)+'px,'+(-py*5).toFixed(2)+'px)';
-    }
-    requestAnimationFrame(lerp);
-  })();
 })();
 
 // ── MOBILE KEYBOARD FIX ────────────────────────────────────────────────────────

@@ -206,10 +206,13 @@
       transparent 3px, transparent 6px);
   }
   .gauge-ticks {
-    display: flex; justify-content: space-between;
+    display: grid;
+    grid-template-columns: repeat(21, 1fr);
+    gap: 2px;
     font-family: 'Share Tech Mono', monospace; font-size: 9px;
-    color: var(--text-dim); margin-bottom: 14px; padding: 0 1px;
+    color: var(--text-dim); margin-bottom: 14px; padding: 0 3px;
   }
+  .gauge-ticks span { text-align: center; }
 
   .total-row {
     display: flex; justify-content: center; align-items: baseline; gap: 18px;
@@ -365,7 +368,12 @@
   <div class="gauge-wrap disabled" id="gaugeWrap">
     <div class="gauge-segments" id="gaugeSegments"></div>
   </div>
-  <div class="gauge-ticks"><span>0</span><span>14</span><span>18</span><span>21</span></div>
+  <div class="gauge-ticks">
+    <span style="grid-column:1;">1</span>
+    <span style="grid-column:14;">14</span>
+    <span style="grid-column:18;">18</span>
+    <span style="grid-column:21;">21</span>
+  </div>
 
   <div class="total-row">
     <div><span class="total-value" id="totalValue">0</span> <span class="total-label">Total</span></div>

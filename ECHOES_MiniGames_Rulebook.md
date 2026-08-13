@@ -245,3 +245,13 @@ The following table summarizes all five Echo Event mini-games for fast reference
 | Dead Reckoning | Coordinate Bet | 1 | Wager doubled (Direct Hit) | +2 Noise (Miss only) |
 | Cascade Failure | Push Your Luck | 3 Pulses | Wager doubled (18–21) | +3 + 1s rolled |
 | Dead Signal | Sequential Match | 3 Pulses | Wager doubled + Data Token | +2/+4 + Creature +1 |
+
+---
+
+# Presentation Notes (Web Prototype Only)
+
+Not game rules — notes on how the digital mini-game pages render the dice, kept here so the idea doesn't get lost.
+
+**Dice material:** tested four visual treatments for the Red/Blue dice (flat gradient, translucent + outline, CSS gradient marble, SVG turbulence swirl) against a mock-up of the real resin-cast dice. Decision: keep the current flat gradient for now.
+
+**Under consideration:** clicking either die face could cycle through the alternate material styles, as a lightweight way to keep comparing options live in the actual game pages instead of a separate test page. Not yet built — no games currently do this.
