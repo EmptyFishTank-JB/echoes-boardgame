@@ -141,6 +141,7 @@
   }
   .btn.secondary:hover:not(:disabled) { color: var(--text); border-color: var(--text-dim); }
   .btn.good { background: var(--good); }
+  .btn.risk { background: var(--orange); }
 
   .status-bar {
     display: flex; justify-content: center; align-items: center;
@@ -494,12 +495,13 @@
     } else {
       const bank = document.createElement('button');
       bank.className = 'btn good';
-      bank.textContent = 'Bank It (' + total + ')';
+      bank.textContent = total < WIN_MIN ? 'Bank It (needs ' + WIN_MIN + '+)' : 'Bank It (' + total + ')';
+      bank.disabled = total < WIN_MIN;
       bank.addEventListener('click', () => resolveEnd('banked'));
       actionRow.appendChild(bank);
 
       const push = document.createElement('button');
-      push.className = 'btn secondary';
+      push.className = 'btn risk';
       push.textContent = 'Push Your Luck (' + (MAX_ROLLS - rollsUsed) + ' left)';
       push.addEventListener('click', doRoll);
       actionRow.appendChild(push);
