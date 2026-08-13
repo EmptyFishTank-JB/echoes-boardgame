@@ -159,35 +159,31 @@
   }
   .gauge-wrap {
     position: relative;
-    height: 22px;
     border-radius: 4px;
     background: rgba(255,255,255,0.04);
     border: 1px solid var(--border);
-    overflow: hidden;
+    padding: 3px;
     margin-bottom: 6px;
   }
   .gauge-wrap.disabled { opacity: 0.3; }
-  .gauge-zone {
-    position: absolute; top: 0; bottom: 0;
-    background: rgba(79,224,161,0.18);
-    border-left: 1px solid rgba(79,224,161,0.5);
-    border-right: 1px solid rgba(79,224,161,0.5);
+  .gauge-segments {
+    display: grid;
+    grid-template-columns: repeat(36, 1fr);
+    gap: 1px;
+    height: 22px;
   }
-  .gauge-fill {
-    position: absolute; top: 0; bottom: 0; left: 0;
-    width: 0%;
-    background: linear-gradient(90deg, var(--accent), var(--orange));
-    transition: width 0.4s ease, background 0.3s ease;
-    display: flex; align-items: center;
-    overflow: hidden; white-space: nowrap;
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 13px; font-weight: 700; letter-spacing: 1px;
-    color: rgba(10,12,15,0.85);
+  .gauge-seg {
+    background: rgba(255,255,255,0.05);
+    border-radius: 1px;
+    transition: background 0.2s;
   }
-  .gauge-fill.win { background: var(--good); }
-  .gauge-fill.bust {
-    background: rgba(255,77,94,0.14);
-    color: var(--bad);
+  .gauge-seg.zone-orange.lit { background: var(--orange); }
+  .gauge-seg.zone-blue.lit { background: var(--accent); }
+  .gauge-seg.zone-green.lit { background: var(--good); }
+  .gauge-seg.zone-bust.lit {
+    background: repeating-linear-gradient(135deg,
+      var(--bad) 0px, var(--bad) 3px,
+      #2a0a0d 3px, #2a0a0d 6px);
   }
   .gauge-ticks {
     display: flex; justify-content: space-between;
@@ -313,7 +309,7 @@
 
   <div class="rules-mini">
     <div><strong>Wager:</strong> Stake one resource before rolling. No resource = automatic failure.</div>
-    <div><strong>Win:</strong> Bank a running total of 18&ndash;21 &mdash; wager returned, doubled.</div>
+    <div><strong>Win:</strong> Bank 18&ndash;20 &mdash; wager doubled. Bank exactly 21 &mdash; wager tripled.</div>
     <div><strong>Bust:</strong> Total exceeds 21 &mdash; wager lost, +3 Noise + 1 per &ldquo;1&rdquo; rolled.</div>
     <div><strong>Short:</strong> Bank (or run out of rolls) under 18 &mdash; wager lost, +3 Noise + 1 per &ldquo;1&rdquo; rolled.</div>
   </div>
@@ -326,12 +322,11 @@
   </div>
   <div class="status-bar"><span class="wager" id="wagerLabel">No wager staked</span></div>
 
-  <div class="gauge-section-label">// Running Total — Bank at 18&ndash;21</div>
+  <div class="gauge-section-label">// Running Total — Bank at 18&ndash;21, 21 Pays Triple</div>
   <div class="gauge-wrap disabled" id="gaugeWrap">
-    <div class="gauge-zone" id="gaugeZone"></div>
-    <div class="gauge-fill" id="gaugeFill"></div>
+    <div class="gauge-segments" id="gaugeSegments"></div>
   </div>
-  <div class="gauge-ticks"><span>0</span><span>18</span><span>21+</span></div>
+  <div class="gauge-ticks"><span>0</span><span>18</span><span>21</span><span>36</span></div>
 
   <div class="total-row">
     <div><span class="total-value" id="totalValue">0</span> <span class="total-label">Total</span></div>
@@ -390,7 +385,7 @@
 
   const MAX_ROLLS = 3;
   const WIN_MIN = 18, WIN_MAX = 21;
-  const GAUGE_MAX = WIN_MAX; // meter reads 0-21; past 21 it shows "broken" instead
+  const GAUGE_SEGMENTS = 36; // 3 rolls x 2 dice x 6 = highest possible total
 
   let wager = null;
   let total = 0;
@@ -401,8 +396,7 @@
   const resourceRow  = document.getElementById('resourceRow');
   const wagerLabel   = document.getElementById('wagerLabel');
   const gaugeWrap    = document.getElementById('gaugeWrap');
-  const gaugeZone    = document.getElementById('gaugeZone');
-  const gaugeFill    = document.getElementById('gaugeFill');
+  const gaugeSegments = document.getElementById('gaugeSegments');
   const totalValue   = document.getElementById('totalValue');
   const onesValue    = document.getElementById('onesValue');
   const pipsEl       = document.getElementById('pips');
@@ -426,28 +420,33 @@
     }
   }
 
-  function pct(n){ return Math.max(0, Math.min(100, (n / GAUGE_MAX) * 100)); }
+  // One segment per point, 1-36. Below 18 = orange, 18-20 = blue, 21 = green,
+  // 22+ = red/slashed "burst" bars — each one past 21 that lights up shows
+  // how far over the limit the total went (25 = 4 lit burst bars, etc).
+  function zoneClass(i){
+    if (i < WIN_MIN) return 'zone-orange';
+    if (i < WIN_MAX) return 'zone-blue';
+    if (i === WIN_MAX) return 'zone-green';
+    return 'zone-bust';
+  }
 
-  function layoutGauge(){
-    const left = pct(WIN_MIN - 1);
-    const right = pct(WIN_MAX);
-    gaugeZone.style.left = left + '%';
-    gaugeZone.style.width = (right - left) + '%';
+  function buildGaugeSegments(){
+    gaugeSegments.innerHTML = '';
+    for (let i = 1; i <= GAUGE_SEGMENTS; i++){
+      const seg = document.createElement('div');
+      seg.className = 'gauge-seg ' + zoneClass(i);
+      seg.dataset.i = i;
+      gaugeSegments.appendChild(seg);
+    }
   }
 
   function updateGauge(){
     totalValue.textContent = total;
     onesValue.textContent = onesCount;
-    gaugeFill.classList.remove('bust', 'win');
-    if (total > WIN_MAX){
-      gaugeFill.style.width = '100%';
-      gaugeFill.classList.add('bust');
-      gaugeFill.textContent = '/'.repeat(40);
-    } else {
-      gaugeFill.style.width = pct(total) + '%';
-      gaugeFill.textContent = '';
-      if (total >= WIN_MIN && total <= WIN_MAX) gaugeFill.classList.add('win');
-    }
+    gaugeSegments.querySelectorAll('.gauge-seg').forEach(seg => {
+      const i = parseInt(seg.dataset.i, 10);
+      seg.classList.toggle('lit', total >= i);
+    });
   }
 
   function updatePips(){
@@ -495,7 +494,8 @@
     } else {
       const bank = document.createElement('button');
       bank.className = 'btn good';
-      bank.textContent = total < WIN_MIN ? 'Bank It (needs ' + WIN_MIN + '+)' : 'Bank It (' + total + ')';
+      bank.textContent = total < WIN_MIN ? 'Bank It (needs ' + WIN_MIN + '+)' :
+        (total === WIN_MAX ? 'Bank It (21 — TRIPLE!)' : 'Bank It (' + total + ')');
       bank.disabled = total < WIN_MIN;
       bank.addEventListener('click', () => resolveEnd('banked'));
       actionRow.appendChild(bank);
@@ -567,9 +567,14 @@
     actionRow.innerHTML = '';
     updateGate();
     const won = total >= WIN_MIN && total <= WIN_MAX;
+    const exact = total === WIN_MAX;
     setTimeout(() => {
       resultScreen.classList.remove('hidden');
-      if (won){
+      if (won && exact){
+        resultBanner.className = 'result-banner win';
+        resultBig.textContent = 'PERFECT CONTAINMENT';
+        resultDetail.innerHTML = 'Banked at exactly <strong>21</strong>. <strong>' + wager + '</strong> returned, tripled.';
+      } else if (won){
         resultBanner.className = 'result-banner win';
         resultBig.textContent = 'CASCADE CONTAINED';
         resultDetail.innerHTML = 'Banked at <strong>' + total + '</strong>. <strong>' + wager + '</strong> returned, doubled.';
@@ -596,7 +601,7 @@
     gameOver = false;
     resourceRow.querySelectorAll('.resource-btn').forEach(b => b.classList.remove('selected', 'locked'));
     wagerLabel.textContent = 'No wager staked';
-    layoutGauge();
+    buildGaugeSegments();
     updateGauge();
     updatePips();
     renderDie(dieRed, 1);
