@@ -560,6 +560,31 @@
             osc.start(t); osc.stop(t+0.1);
           });
         } catch(e) {}
+      },
+      chime(freq){
+        try {
+          const c = getCtx();
+          const osc = c.createOscillator(); osc.type='triangle'; osc.frequency.value=freq;
+          const gn = c.createGain();
+          gn.gain.setValueAtTime(0, c.currentTime);
+          gn.gain.linearRampToValueAtTime(VOL*0.4, c.currentTime+0.015);
+          gn.gain.exponentialRampToValueAtTime(0.001, c.currentTime+0.22);
+          osc.connect(gn); gn.connect(c.destination);
+          osc.start(); osc.stop(c.currentTime+0.22);
+        } catch(e) {}
+      },
+      bustAlert(){
+        try {
+          const c = getCtx();
+          const gn = c.createGain(); gn.connect(c.destination);
+          [110,116].forEach((freq) => {
+            const osc = c.createOscillator(); osc.type='sawtooth'; osc.frequency.value=freq;
+            osc.connect(gn);
+            osc.start(); osc.stop(c.currentTime+0.22);
+          });
+          gn.gain.setValueAtTime(VOL*0.5, c.currentTime);
+          gn.gain.exponentialRampToValueAtTime(0.001, c.currentTime+0.22);
+        } catch(e) {}
       }
     };
   })();
@@ -666,7 +691,17 @@
       const progress = barIndex / GAUGE_SEGMENTS;
       setTimeout(() => {
         if (seg) seg.classList.add(overlay ? 'overlay' : 'lit');
-        SFX.barTick(progress);
+        if (n === GAUGE_SEGMENTS + 1){
+          SFX.bustAlert();
+        } else if (n === WIN_MAX){
+          SFX.chime(880);
+        } else if (n === WIN_MIN){
+          SFX.chime(659);
+        } else if (n === PARTIAL_MIN){
+          SFX.chime(523);
+        } else {
+          SFX.barTick(progress);
+        }
       }, step * FILL_STEP_MS);
       step++;
     }
