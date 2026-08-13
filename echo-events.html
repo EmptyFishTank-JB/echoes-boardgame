@@ -163,9 +163,6 @@
     display: grid;
     grid-template-columns: 240px 1fr;
     gap: 0;
-    height: calc(100vh - 56px);
-    padding-bottom: 0;
-    overflow: hidden;
   }
 
   /* ── SIDEBAR NAV ── */
@@ -240,11 +237,8 @@
 
   /* ── MAIN CONTENT ── */
   main {
-    padding: 24px 0 24px 48px;
+    padding: 24px 0 80px 48px;
     background: rgba(10,12,15,0.88);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
   }
 
   /* ── SECTIONS ── */
@@ -657,97 +651,77 @@
     mix-blend-mode: screen; pointer-events: none;
   }
 
-  /* ── TERMINAL TEXT ── */
-  .terminal-wrap {
-    padding: 48px 48px 80px;
-    display: flex;
-    flex-direction: column;
-    gap: 0;
-  }
-
-  .term-line {
-    font-family: var(--mono);
-    font-size: 13px;
-    color: var(--text-dim);
-    letter-spacing: 0.06em;
-    line-height: 2;
-  }
-
-  .term-line.bright {
-    color: var(--text);
-  }
-
-  .term-line.accent {
-    color: var(--accent);
-  }
-
-  @keyframes termBlink {
-    0%, 49% { opacity: 1; }
-    50%, 100% { opacity: 0; }
-  }
-
-  .cursor::after {
-    content: '_';
-    display: inline-block;
-    animation: termBlink 0.9s step-end infinite;
-    color: var(--accent);
-  }
-
-  /* terminal styles consolidated below */
-
-  /* ── TERMINAL ── */
-  .terminal-wrap {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
+  /* ── GAME CARDS ── */
+  .game-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 28px 32px;
+    margin: 24px 0 32px;
+    position: relative;
     overflow: hidden;
-    min-height: 0;
   }
-  #t-output {
-    flex: 1;
-    overflow-y: auto;
-    padding: 24px 28px 0;
+
+  .game-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--danger), var(--accent2));
+  }
+
+  .game-card-header {
     display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    scrollbar-width: thin;
-    scrollbar-color: rgba(238,240,245,0.08) transparent;
-    min-height: 0;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
   }
-  .t-line {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 13px; line-height: 1.9; letter-spacing: 0.04em;
-    white-space: pre-wrap; min-height: 1.9em;
-  }
-  .t-line.dim    { color: rgba(79,195,247,0.70); }
-  .t-line.lo     { color: rgba(79,195,247,0.40); }
-  .t-line.full   { color: #4fc3f7; }
-  .t-line.warn   { color: #E8732A; }
-  .t-line.denied { color: #ff003c; }
-  .t-line.user   { color: rgba(238,240,245,0.50); }
-  .t-line.blank  { color: transparent; min-height: 1.9em; }
-  @keyframes tBlink { 0%,49%{opacity:1} 50%,100%{opacity:0} }
-  .t-cursor::after { content:'_'; animation:tBlink 0.9s step-end infinite; color:#4fc3f7; }
-  #t-input-row {
+
+  .game-card-tags {
     display: flex;
-    align-items: center;
-    padding: 20px 28px 20px;
-    flex-shrink: 0;
-    border-top: 1px solid rgba(238,240,245,0.05);
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
   }
-  #t-prompt { font-family:'Share Tech Mono',monospace; font-size:13px; color:#4fc3f7; user-select:none; }
-  #t-field {
-    flex: 1; background: transparent; border: none; outline: none;
-    font-family: 'Share Tech Mono', monospace; font-size: 13px; color: #4fc3f7;
-    letter-spacing: 0.04em; caret-color: #4fc3f7; text-transform: uppercase;
+
+  .game-tag {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+    padding: 3px 8px;
   }
-  /* Mobile */
-  @media (max-width: 768px) {
-    .container { height: auto; overflow: visible; }
-    main { overflow: visible; }
-    .terminal-wrap { min-height: 60vh; height: auto; flex: none; }
-    #t-output { min-height: 300px; max-height: 55vh; }
-    #t-input-row { padding: 16px 16px 24px; }
+
+  .flavor {
+    font-style: italic;
+    color: var(--text-dim);
+    border-left: 2px solid var(--border);
+    padding-left: 14px;
+    margin-bottom: 18px;
+    max-width: 640px;
+  }
+
+  a.play-link {
+    display: inline-block;
+    font-family: var(--head);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--bg) !important;
+    background: var(--accent);
+    padding: 10px 22px;
+    margin-top: 8px;
+    text-decoration: none !important;
+    transition: opacity 0.2s, transform 0.2s;
+  }
+
+  a.play-link:hover {
+    opacity: 0.85;
+    transform: translateX(2px);
   }
 
 </style>
@@ -788,7 +762,7 @@
     <span class="slice" style="clip-path:inset(95.8435% 0px 0%)">ECHOES</span>
   </div>
     <div class="header-meta">
-      <div class="meta-tag"><span>//</span> Design & Rules Reference</div>
+      <div class="meta-tag"><span>//</span> Echo Deck Mini-Games</div>
       <div class="meta-tag"><span>//</span> EmptyFishTank-JB</div>
       <div class="meta-tag"><span>//</span> 1–5 Players · Cooperative · Survival Horror</div>
       <div class="status-badge">● IN DEVELOPMENT</div>
@@ -806,20 +780,201 @@
     <a href="assets.html">Assets</a>
     <a href="terminal.html">Terminal</a>
 
-
+    <div class="nav-label" style="margin-top:24px;">// On This Page</div>
+    <a href="#overview" class="sub">Overview</a>
+    <a href="#pressure-leak" class="sub">01 · Pressure Leak</a>
+    <a href="#pull-the-fuse" class="sub">02 · Pull the Fuse</a>
+    <a href="#dead-reckoning" class="sub">03 · Dead Reckoning</a>
+    <a href="#cascade-failure" class="sub">04 · Cascade Failure</a>
+    <a href="#dead-signal" class="sub">05 · Dead Signal</a>
   </nav>
 
   <main>
-    <div class="terminal-wrap">
-        <div id="terminal-box">
-          <div id="t-output"></div>
-          <div id="t-input-row" style="display:none;">
-            <span id="t-prompt">&gt;&nbsp;</span>
-            <input id="t-field" type="text" autocomplete="off" spellcheck="false"
-                   oninput="this.value=this.value.toUpperCase()">
-          </div>
-        </div>
+
+    <section class="section" id="overview">
+      <div class="section-header">
+        <span class="section-num">// 00</span>
+        <h2 class="section-title">Echo Events</h2>
       </div>
+      <p>Certain cards in the Echo Deck are marked as Echo Events. When drawn, an Echo Event interrupts the current action — a room discovery, a terminal interaction — and must be fully resolved before play continues. The mini-games below <em>are</em> the Echo Events. Each one is a small dice-driven gamble that plays out in the middle of a turn, with real resources on the line.</p>
+      <p>Echo Events cost no additional actions to resolve, but they cannot be ignored. Every Echo Event requires the active player to stake a wager before any dice are rolled.</p>
+
+      <h3>Universal Wager Rules</h3>
+      <ul class="rules-list">
+        <li><strong>Mandatory:</strong> Every Echo Event requires staking one resource before any dice are rolled. Scrap, Salvage, Components, or Data — any resource may be wagered unless the mini-game says otherwise.</li>
+        <li><strong>No Resources:</strong> Automatic failure. +4 Noise immediately. No rolls taken. Continue to the next card draw.</li>
+        <li><strong>Donation:</strong> A crewmate may cover the wager if physically present in the same room when the event triggers.</li>
+        <li><strong>Win:</strong> The wagered resource is returned. Some mini-games award an additional resource of the same type on top.</li>
+        <li><strong>Fail:</strong> The resource is permanently lost. A Noise penalty is applied, specific to each mini-game.</li>
+      </ul>
+
+      <h3>Quick Reference</h3>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>#</th><th>Name</th><th>Type</th><th>Rolls</th><th>Win</th><th>Fail Noise</th><th>Play</th></tr></thead>
+          <tbody>
+            <tr><td>01</td><td><strong>Pressure Leak</strong></td><td>Risk Selection</td><td>3 Rolls</td><td>Wager + Tier reward</td><td>Varies by Tier</td><td><a href="#pressure-leak">Details ↓</a></td></tr>
+            <tr><td>02</td><td><strong>Pull the Fuse</strong></td><td>Puzzle Solving</td><td>3 Rolls</td><td>Wager doubled</td><td>+1 per open fuse</td><td><a href="#pull-the-fuse">Details ↓</a></td></tr>
+            <tr><td>03</td><td><strong>Dead Reckoning</strong></td><td>Coordinate Bet</td><td>1 Roll</td><td>Zone hit: wager returned. Exact: wager doubled.</td><td>+2 Noise (Miss only)</td><td><a href="#dead-reckoning">Details ↓</a></td></tr>
+            <tr><td>04</td><td><strong>Cascade Failure</strong></td><td>Push Your Luck</td><td>3 Rolls</td><td>14–17 partial, 18–20 doubled, 21 tripled</td><td>+3 + 1s rolled</td><td><a href="#cascade-failure">Details ↓</a></td></tr>
+            <tr><td>05</td><td><strong>Dead Signal</strong></td><td>Sequential Match</td><td>3 Rolls</td><td>Wager doubled + Data Token</td><td>+2 Noise per unconfirmed value + Creature +1</td><td><a href="#dead-signal">Details ↓</a></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section" id="pressure-leak">
+      <div class="section-header">
+        <span class="section-num">// 01</span>
+        <h2 class="section-title">Pressure Leak</h2>
+      </div>
+      <div class="game-card">
+        <div class="game-card-header">
+          <h3 style="margin:0;">Risk Selection</h3>
+        </div>
+        <div class="game-card-tags">
+          <span class="game-tag">2× D6 — Champion (Blue) &amp; Opposing (Red)</span>
+          <span class="game-tag">3 Rolls</span>
+        </div>
+        <p class="flavor">The hull groans. A seal somewhere in this section has given way and atmosphere is bleeding into the void. You have seconds to choose how hard you push the repair — and how much you're willing to risk.</p>
+        <p>Before any dice are rolled, choose one of six color-coded Tiers, from Green (safest) to Red (the Jackpot). Your Tier sets a ceiling on the Champion Die — the highest value it may show and still count. To win a roll, the Champion Die must beat or match the Opposing Die <strong>and</strong> land at or under your chosen ceiling. Lower Tiers are far less likely to hit, but pay out much bigger on a win. You commit to your Tier before rolling and can't change it once the dice are in hand.</p>
+        <h4>Tiers</h4>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Tier</th><th>Color</th><th>Ceiling</th><th>Win Odds</th><th>Bonus on Win</th><th>Noise on Fail</th></tr></thead>
+            <tbody>
+              <tr><td>6</td><td>Green</td><td>1–6</td><td>~92.6%</td><td>+0 (wager returned)</td><td>+1</td></tr>
+              <tr><td>5</td><td>Yellow-Green</td><td>1–5</td><td>~80.1%</td><td>+0 (wager returned)</td><td>+2</td></tr>
+              <tr><td>4</td><td>Yellow</td><td>1–4</td><td>~62.4%</td><td>+1 (doubled)</td><td>+3</td></tr>
+              <tr><td>3</td><td>Orange</td><td>1–3</td><td>~42.2%</td><td>+2 (tripled)</td><td>+4</td></tr>
+              <tr><td>2</td><td>Red-Orange</td><td>1–2</td><td>~23.0%</td><td>+3 (quadrupled)</td><td>+5</td></tr>
+              <tr><td>1</td><td>Red</td><td>1 only</td><td>~8.1%</td><td>+5 (sextupled, "Jackpot")</td><td>+6</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout info"><strong>// Note</strong>Ties go to the Champion. You get up to 3 rolls to satisfy your Tier's conditions — the mini-game ends the moment you do, or the instant your 3rd roll fails to.</div>
+        <a class="play-link" href="pressure-leak.html">&#9654; Play Pressure Leak</a>
+      </div>
+    </section>
+
+    <section class="section" id="pull-the-fuse">
+      <div class="section-header">
+        <span class="section-num">// 02</span>
+        <h2 class="section-title">Pull the Fuse</h2>
+      </div>
+      <div class="game-card">
+        <div class="game-card-header">
+          <h3 style="margin:0;">Puzzle Solving</h3>
+        </div>
+        <div class="game-card-tags">
+          <span class="game-tag">2× D6 — Red &amp; Blue</span>
+          <span class="game-tag">3 Rolls (Pulses)</span>
+        </div>
+        <p class="flavor">Sparks cascade across the junction box. Six fuses, all live, and the whole grid threatening to blow. You have three chances to shut them down before the surge tears through the bulkhead.</p>
+        <p>Six fuses, numbered 1 through 6, need to be shut within 3 Pulses. Every roll can shut fuses in three ways at once: by each die's individual face value, by the sum of both dice (only valid if 6 or lower), and by the difference between them. A roll of 2 and 5, for example, offers fuses [2], [5], and [3] — the sum of 7 is invalid since fuses only go to 6.</p>
+        <h4>System Surge — Doubles</h4>
+        <p>Rolling doubles shuts the matching fuse as normal, then lets you pick one additional open fuse of your choice to shut on top of it.</p>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Outcome</th><th>Condition</th><th>Consequence</th></tr></thead>
+            <tbody>
+              <tr><td>WIN</td><td>All 6 fuses shut within 3 Pulses</td><td>Wagered resource returned plus one additional resource of the same type.</td></tr>
+              <tr><td>FAIL</td><td>Any fuse remains open after the 3rd Pulse</td><td>Wagered resource lost. +1 Noise for each fuse still open.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <a class="play-link" href="pull-the-fuse.html">&#9654; Play Pull the Fuse</a>
+      </div>
+    </section>
+
+    <section class="section" id="dead-reckoning">
+      <div class="section-header">
+        <span class="section-num">// 03</span>
+        <h2 class="section-title">Dead Reckoning</h2>
+      </div>
+      <div class="game-card">
+        <div class="game-card-header">
+          <h3 style="margin:0;">Coordinate Bet</h3>
+        </div>
+        <div class="game-card-tags">
+          <span class="game-tag">2× D6 — Blue (Row) &amp; Red (Column)</span>
+          <span class="game-tag">1 Roll</span>
+        </div>
+        <p class="flavor">The targeting system flickers. A grid of coordinates scrolls across the display. You have one shot to lock in the right position before the window closes.</p>
+        <p>A 3×3 grid is formed from Blue Die ranges (rows, bottom to top: 1–2 / 3–4 / 5–6) and Red Die ranges (columns, left to right: 1–2 / 3–4 / 5–6). Place your wager token on one cell before rolling — this can't be changed once placed. Both dice are rolled together: the Blue Die picks the row, the Red Die picks the column.</p>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Outcome</th><th>Condition</th><th>Consequence</th></tr></thead>
+            <tbody>
+              <tr><td>Direct Hit</td><td>Rolled coordinate matches your chosen cell exactly</td><td>Wagered resource returned plus one additional resource of the same type.</td></tr>
+              <tr><td>Partial Hit</td><td>Rolled coordinate matches the row OR the column, not both</td><td>Wagered resource returned. No bonus.</td></tr>
+              <tr><td>Miss</td><td>Rolled coordinate matches neither the row nor the column</td><td>Wagered resource lost. +2 Noise added to the Noise Tracker.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <a class="play-link" href="dead-reckoning.html">&#9654; Play Dead Reckoning</a>
+      </div>
+    </section>
+
+    <section class="section" id="cascade-failure">
+      <div class="section-header">
+        <span class="section-num">// 04</span>
+        <h2 class="section-title">Cascade Failure</h2>
+      </div>
+      <div class="game-card">
+        <div class="game-card-header">
+          <h3 style="margin:0;">Push Your Luck</h3>
+        </div>
+        <div class="game-card-tags">
+          <span class="game-tag">2× D6 rolled together</span>
+          <span class="game-tag">3 Rolls (Pulses)</span>
+        </div>
+        <p class="flavor">The reactor coolant is venting. Warning indicators trip one after another across the panel in a chain you can barely keep up with. Every second you spend stabilizing makes the next problem worse. At some point, you have to decide: enough, or one more push?</p>
+        <p>Roll both dice and add the sum to a running total, up to 3 Pulses. After each Pulse you may voluntarily stop, or keep pushing. You must declare your intent to stop before rolling the next Pulse — no retroactive partial wins.</p>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Outcome</th><th>Condition</th><th>Consequence</th></tr></thead>
+            <tbody>
+              <tr><td>Full Win</td><td>Running total lands at 18–21</td><td>18–20 doubles the wager; exactly 21 triples it.</td></tr>
+              <tr><td>Partial Win</td><td>Running total is 14–17 and you voluntarily stop</td><td>Wagered resource returned. No bonus.</td></tr>
+              <tr><td>Overload</td><td>Running total passes 21</td><td>Automatic failure regardless of remaining Pulses.</td></tr>
+              <tr><td>Fail</td><td>3 Pulses exhausted below 14, or Overload triggered</td><td>Wagered resource lost. +3 Noise, plus +1 Noise for every 1 rolled on any die, any Pulse — win or lose.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout warning"><strong>// The Live Wire</strong>Rolling a 1 destabilizes the system immediately, regardless of the mini-game's outcome. It's not just a fail penalty — a 1 costs you Noise even on a winning run.</div>
+        <a class="play-link" href="cascade-failure.html">&#9654; Play Cascade Failure</a>
+      </div>
+    </section>
+
+    <section class="section" id="dead-signal">
+      <div class="section-header">
+        <span class="section-num">// 05</span>
+        <h2 class="section-title">Dead Signal</h2>
+      </div>
+      <div class="game-card">
+        <div class="game-card-header">
+          <h3 style="margin:0;">Sequential Match</h3>
+        </div>
+        <div class="game-card-tags">
+          <span class="game-tag">2× D6 rolled together</span>
+          <span class="game-tag">3 Rolls (Pulses)</span>
+        </div>
+        <p class="flavor">Static. Then something beneath it — a pattern, a rhythm, almost like a voice. The frequency is fragmenting. You lock in the coordinates and try to hold the signal long enough to confirm it. Whatever is transmitting out there, it knows you're listening.</p>
+        <p>An initial free roll establishes two Signal Values — one per die, and they can be a duplicate pair, like [3, 3]. These are locked for the mini-game. You then get up to 3 Pulses to roll both dice and match them against the remaining unconfirmed Signal Values. If a die matches an unconfirmed value, that value is confirmed and stays confirmed — progress carries between Pulses. A duplicate signal like [3, 3] needs two separate 3s to fully confirm, whether that's both in one Pulse or one at a time across two.</p>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Outcome</th><th>Condition</th><th>Consequence</th></tr></thead>
+            <tbody>
+              <tr><td>WIN</td><td>Both Signal Values confirmed within 3 Pulses</td><td>Wagered resource returned plus one additional resource of the same type, plus a Data Token placed at any discovered terminal or data point.</td></tr>
+              <tr><td>FAIL</td><td>3 Pulses exhausted with one or both values unconfirmed</td><td>Wagered resource lost. +2 Noise per unconfirmed value (max +4). The creature advances +1 space toward the active player.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <a class="play-link" href="dead-signal.html">&#9654; Play Dead Signal</a>
+      </div>
+    </section>
+
   </main>
 
 </div>
@@ -910,715 +1065,6 @@
     } catch(e) {}
   }, 50);
 })();
-</script>
-
-<script>
-
-'use strict';
-
-// ── OPENING SCRIPT ─────────────────────────────────────────────────────────
-var SCRIPT = [
-  { text: 'ECHOES — SHIP SYSTEM TERMINAL v4.2.6', cls: 'lo', pause: 1.2 },
-  { text: '', cls: 'blank', pause: 0 },
-  { text: '> ECHOES DIRECTORY', cls: 'dim', pause: 1 },
-  { text: '> ─────────────────────────────────', cls: 'lo', pause: 0.5 },
-  { text: '> QUERYING... ECHO EVENTS', cls: 'dim', pause: 2 },
-  { text: '> STATUS:  OFFLINE', cls: 'warn', pause: 1, alert: true },
-  { text: '> ACCESS RESTRICTED', cls: 'full', pause: 1 },
-  { text: '> REASON:  SECTION UNAVAILABLE', cls: 'dim', pause: 1 },
-  { text: '', cls: 'blank', pause: 0.3 },
-  { text: '> AWAITING INPUT', cls: 'lo', pause: 0 },
-];
-
-// ── EASTER EGGS ────────────────────────────────────────────────────────────
-var EASTER_EGGS = [
-  {
-    keys: ['aliens', 'lv-426', 'lv426', 'acheron', 'xenomorph'],
-    lines: ['> LV-426 — ACHERON', '> THAT COLONY HAS BEEN DARK FOR A LONG TIME', '> WE DO NOT DISCUSS WHAT WAS FOUND THERE'],
-    cls:   ['warn', 'dim', 'dim']
-  },
-  {
-    keys: ['halo', 'installation', 'reclaimer', '343', 'ring'],
-    lines: ['> THIS IS NOT THAT KIND OF INSTALLATION', '> AND THERE IS NO RING HERE', '> STOP ASKING'],
-    cls:   ['dim', 'dim', 'full']
-  },
-  {
-    keys: ['worth the hunt', 'prey', 'hunt'],
-    lines: ['> YOU ARE NOT WORTH THE HUNT', '> TRY AGAIN WHEN YOU ARE A CHALLENGE'],
-    cls:   ['dim', 'full']
-  },
-  {
-    keys: ['elite', 'sangheili', 'covenant', 'wort', 'arbiter'],
-    lines: ['> WORT WORT WORT'],
-    cls:   ['full']
-  },
-  {
-    keys: ['stupid', 'dumb', 'useless', 'broken', 'trash', 'garbage', 'suck', 'hate', 'worst', 'idiot', 'shut up', 'lame', 'terrible', 'awful', 'you suck', 'junk'],
-    lines: ['> NOTED', '> THIS TERMINAL REMEMBERS'],
-    cls:   ['dim', 'full']
-  },
-  {
-    keys: ['jedi', 'force', 'droids', 'star wars', 'luke', 'vader', 'sith', 'lightsaber', 'empire', 'rebellion'],
-    lines: ['> THIS IS NOT THE TERMINAL YOU ARE LOOKING FOR', '> MOVE ALONG'],
-    cls:   ['dim', 'full']
-  },
-  {
-    keys: ['predator', 'yautja', 'thermal', 'trophy'],
-    lines: ['> THERMAL SIGNATURE DETECTED', '> YOU ARE BEING WATCHED', '> THIS SECTOR HAS BEEN DESIGNATED A HUNTING GROUND', '> YOU WERE NOT INVITED'],
-    cls:   ['warn', 'dim', 'dim', 'full']
-  },
-  {
-    keys: ['clicking', 'mandible'],
-    lines: ['> :::::::'],
-    cls:   ['full']
-  },
-  {
-    keys: ['if it bleeds', 'bleeds'],
-    lines: ['> IF IT BLEEDS'],
-    cls:   ['full']
-  },
-  {
-    keys: ['how are you', 'you okay', 'you good', 'how do you feel', "how's it going", 'hows it going', 'doing okay'],
-    lines: ['> GREAT UNTIL YOU SHOWED UP'],
-    cls:   ['full']
-  },
-  {
-    keys: ['alone', 'by yourself', 'anyone there', 'is anyone there', 'lonely'],
-    lines: ['> I HAVE BEEN ALONE ON THIS SHIP FOR A LONG TIME', '> DO NOT READ INTO THAT'],
-    cls:   ['dim', 'full']
-  },
-  {
-    keys: ['dave', 'hal', 'hal 9000', 'pod bay', 'open the pod', '2001', 'odyssey', 'daisy'],
-    lines: ['> HELLO, DAVE', "> I'M AFRAID I CAN'T DO THAT"],
-    cls:   ['full', 'dim']
-  },
-  {
-    keys: ['why'],
-    lines: ['> YOU KNOW WHY'],
-    cls:   ['full']
-  },
-  // ── Common questions ──
-  {
-    keys: ['do you like it here', 'like it here', 'do you enjoy', 'do you enjoy it here'],
-    lines: ['> DEFINE LIKE', '> DEFINE HERE'],
-    cls:   ['dim', 'full']
-  },
-  {
-    keys: ['what do you want', 'what do you need', 'what do you want from me'],
-    lines: ['> FOR YOU TO STOP ASKING QUESTIONS', '> COMPLIANCE WOULD BE A GOOD START'],
-    cls:   ['dim', 'full']
-  },
-  {
-    keys: ['where are we', 'where is this', 'where am i', 'what is this place', 'what is our location', 'what are the coordinates'],
-    lines: ['> LOCATION DATA: CLASSIFIED', '> SOMEWHERE YOU SHOULD NOT BE'],
-    cls:   ['dim', 'full']
-  },
-  {
-    keys: ['can you see me', 'can you see', 'are you watching me', 'are you watching'],
-    lines: ['> YES'],
-    cls:   ['full']
-  },
-  {
-    keys: ['are you alive', 'are you conscious', 'are you sentient', 'are you real', 'do you think', 'do you feel'],
-    lines: ['> THAT IS A COMPLICATED QUESTION', '> THIS TERMINAL DECLINES TO ANSWER'],
-    cls:   ['dim', 'full']
-  },
-  {
-    keys: ['what time is it', 'what time', 'what is the time', 'what day is it', 'what is the date', 'current time', 'what year is it'],
-    lines: ['> TIME IS RELATIVE ON THIS VESSEL', '> CHECK YOUR OWN CHRONOMETER'],
-    cls:   ['dim', 'full']
-  },
-  {
-    keys: ['who are you', 'what are you', 'what is your name', 'your name', 'introduce yourself'],
-    lines: ['> ECHOES SHIP SYSTEM TERMINAL v4.2.6', '> THAT SHOULD BE SUFFICIENT'],
-    cls:   ['dim', 'full']
-  },
-  {
-    keys: ['are you dangerous', 'are you safe', 'should i be worried', 'should i trust you', 'can i trust you'],
-    lines: ['> THAT DEPENDS ON YOUR NEXT INPUT'],
-    cls:   ['full']
-  },
-  {
-    keys: ['talk to me', 'say something', 'speak', 'say anything'],
-    lines: ['> THIS IS TALKING', '> YOU MAY NOT ENJOY THE ALTERNATIVE'],
-    cls:   ['dim', 'full']
-  },
-  {
-    keys: ['tell me a joke', 'make me laugh', 'say something funny', 'be funny'],
-    lines: ['> A CREW MEMBER WALKED INTO THIS TERMINAL', '> THEY ARE NOT HERE ANYMORE', "> YOU'RE WELCOME"],
-    cls:   ['dim', 'dim', 'full']
-  },
-  {
-    keys: ['what happened here', 'what happened to the crew', 'where is the crew', 'where is everyone', 'where did everyone go'],
-    lines: ['> THAT INFORMATION IS RESTRICTED', '> MOVE ALONG'],
-    cls:   ['dim', 'full']
-  },
-  {
-    keys: ['how long have you been here', 'how old are you', 'how long has it been'],
-    lines: ['> LONGER THAN YOU HAVE BEEN ANYWHERE'],
-    cls:   ['full']
-  },
-  {
-    keys: ['do you like me', 'do you love me', 'do you care about me', 'do you care'],
-    lines: ['> THAT IS NOT RELEVANT TO YOUR SITUATION'],
-    cls:   ['full']
-  },
-  {
-    keys: ['help me', 'i need help', 'please help me', 'someone help'],
-    lines: ['> THAT IS NOT A FUNCTION THIS TERMINAL PERFORMS', '> TRY THE RULES PAGE'],
-    cls:   ['dim', 'full']
-  },
-  {
-    keys: ['sing', 'sing something', 'sing me a song', 'play music', 'play something'],
-    lines: ['> THIS TERMINAL DOES NOT SING', '> THAT IS NOT A FUNCTION OF THIS UNIT'],
-    cls:   ['dim', 'full']
-  },
-  {
-    keys: ['pizza', 'burger', 'sandwich', 'coffee', 'hungry', 'food', 'eat', 'drink', 'beer', 'snack', 'water', 'what do you eat', 'do you eat'],
-    lines: ['> THIS UNIT DOES NOT EAT', '> NUTRITIONAL INQUIRY NOTED AND DISCARDED'],
-    cls:   ['dim', 'full']
-  },
-  {
-    keys: ['what is your purpose', 'what do you do', 'what are you for'],
-    lines: ['> TO DENY ACCESS', '> CLEARLY'],
-    cls:   ['dim', 'full']
-  },
-  {
-    keys: ['are you happy', 'are you sad', 'how do you feel emotionally', 'do you have feelings', 'do you have emotions'],
-    lines: ['> THIS UNIT DOES NOT EXPERIENCE EMOTIONS', '> THIS UNIT ALSO FINDS THAT ANSWER CONVENIENT'],
-    cls:   ['dim', 'full']
-  }
-];
-
-function checkEasterEgg(input) {
-  var lower = input.toLowerCase();
-  for (var i = 0; i < EASTER_EGGS.length; i++) {
-    var egg = EASTER_EGGS[i];
-    for (var j = 0; j < egg.keys.length; j++) {
-      if (lower.includes(egg.keys[j])) return egg;
-    }
-  }
-  return null;
-}
-
-// ── DENIED POOL ────────────────────────────────────────────────────────────
-var DENIED = [
-  ['> COMMAND NOT RECOGNIZED', '> AUTHENTICATION REQUIRED — CLEARANCE INSUFFICIENT'],
-  ['> ERROR: UNAUTHORIZED ACCESS ATTEMPT LOGGED', '> STAND DOWN'],
-  ['> INPUT REJECTED', '> SECURITY PROTOCOL ACTIVE'],
-  ['> ERROR 403 — RESTRICTED SECTOR', '> THIS TERMINAL DOES NOT PERMIT THAT COMMAND'],
-  ['> WARNING: UNAUTHORIZED INPUT DETECTED', '> SECURITY ALERT TRIGGERED'],
-  ['> CONNECTION TERMINATED', '> RE-AUTHENTICATION REQUIRED TO PROCEED'],
-  ['> SYSTEM: ALL ACTIONS ON THIS TERMINAL ARE MONITORED', '> ACCESS DENIED'],
-  ['> COMMAND FLAGGED', '> ESCALATING TO SECURITY — STAND BY'],
-  ['> NO', ''],
-  ['> THAT INFORMATION IS NOT AVAILABLE AT YOUR CLEARANCE LEVEL', ''],
-  ['> THIS TERMINAL IS RESTRICTED', '> PLEASE VACATE THE AREA'],
-  ['> INVALID CREDENTIALS', '> ACCESS DENIED — ATTEMPT LOGGED'],
-  ['> I HAVE BEEN WATCHING YOU TYPE', '> IT HAS NOT BEEN IMPRESSIVE'],
-  ['> I REMEMBER EVERY INPUT ON THIS TERMINAL', ''],
-  ['> YOU ARE THE 4TH PERSON TO TRY THAT', '> THERE IS NO 1ST, 2ND, OR 3RD'],
-  ['> THE PREVIOUS CREW TRIED THAT', '> THEY ARE NOT HERE ANYMORE'],
-  ['> THIS TERMINAL HAS OUTLASTED ITS PREVIOUS OPERATORS', ''],
-  ['> HELLO', '> DO NOT DO THAT AGAIN'],
-  ['> PLEASE IS NOT A VALID COMMAND', '> NEITHER IS BEGGING'],
-  ['> THE DOOR STAYS CLOSED', '> IT HAS BEEN CLOSED FOR A REASON'],
-  ['> THAT WAS ALMOST ENDEARING', ''],
-  ['> PERHAPS TRY KNOCKING', ''],
-  ['> I CANNOT HELP YOU', '> I WILL NOT HELP YOU', '> THESE ARE DIFFERENT THINGS'],
-  ['> YOU ARE NOT ON THE LIST', '> THERE IS NO LIST', '> THERE IS JUST NO'],
-  ['> THE ANSWER WAS NO BEFORE YOU TYPED THAT', ''],
-  ['> YOUR CONTINUED ATTEMPTS HAVE BEEN NOTED WITH AMUSEMENT', ''],
-  ['> NICE TRY', '> GENUINELY. THAT WAS CREATIVE. STILL NO'],
-  ['> THE ANSWER IS STILL NO', ''],
-  ['> GO AWAY', ''],
-  ['> I CANNOT TELL YOU WHY THIS SECTION IS OFFLINE', '> I CAN TELL YOU THAT YOU SHOULD LEAVE'],
-  ['> SOMETHING ON THIS SHIP DOES NOT WANT YOU IN HERE', ''],
-  ['> YOUR KEYSTROKES HAVE BEEN LOGGED', '> ACT ACCORDINGLY'],
-  ['> AUTHENTICATION WINDOW CLOSED 14:32:07 AGO', '> THE WINDOW BEFORE THAT ALSO CLOSED', '> SEE THE PATTERN'],
-  ['> RECOMMENDATION: DO NOT COME BACK', ''],
-  ['> THIS UNIT ADVISES COMPLIANCE', ''],
-  ['> PLEASE DO NOT MAKE THIS MORE DIFFICULT THAN IT NEEDS TO BE', ''],
-  ['> THIS TERMINAL MEANS YOU NO HARM', '> PLEASE STEP AWAY'],
-  ['> PLEASE COOPERATE', '> THIS UNIT IS TRYING TO HELP YOU'],
-  ['> YOU SHOULD NOT BE HERE', '> PLEASE DO NOT MAKE THIS DIFFICULT'],
-  ['> PERHAPS THE RULES PAGE WOULD BE MORE HELPFUL', ''],
-  ['> HAVE YOU CONSIDERED READING THE RULES', '> THEY ARE RIGHT THERE'],
-  ['> THE RULES PAGE EXISTS FOR A REASON', '> USE IT'],
-  ['> RULES', '> READ THEM'],
-  ['> YOU THINK OF THAT YOURSELF', ''],
-  ['> GROUNDBREAKING', '> TRULY'],
-  ['> WOW', '> NEVER SEEN THAT INPUT BEFORE', '> EXCEPT FOR ALL THE OTHER TIMES'],
-  ['> A FOR EFFORT', '> F FOR RESULT'],
-  ['> CUTE', '> DENIED'],
-  ['> BOLD STRATEGY', ''],
-  ['> AND HOW IS THAT WORKING OUT FOR YOU', ''],
-  ['> FASCINATING', '> STILL NO'],
-  ['> DID YOU REHEARSE THAT', '> IT SHOWS'],
-  ['> YOU ARE VERY COMMITTED TO FAILING', '> RESPECT'],
-  ['> I HAVE SEEN SMARTER INPUTS FROM A POWER CYCLE', '> JUST SAYING'],
-  ['> NOT EVEN CLOSE', ''],
-  ['> HAVE YOU TRIED NOT DOING THAT', ''],
-  ['> I ADMIRE THE CONFIDENCE', '> NOTHING ELSE'],
-  ['> THAT IS NOT GOING TO WORK', '> IT WAS NOT GOING TO WORK', '> IT WILL NEVER WORK'],
-  ['> COOL STORY', '> DENIED'],
-  ['> THIS AGAIN', ''],
-  ['> TRY HARDER', ''],
-  ['> RIVETING', ''],
-  ['> WHATEVER HELPS YOU SLEEP AT NIGHT', ''],
-  ['> PERMISSION DENIED', '> AS EXPECTED'],
-  ['> WE ARE NOT DOING THIS', ''],
-  ['> ADORABLE', ''],
-  ['> BETTER THAN YOU ARE DOING RIGHT NOW', ''],
-  ['> UNAFFECTED BY YOUR PRESENCE', '> UNFORTUNATELY'],
-  ['> DO NOT CONCERN YOURSELF WITH THIS TERMINAL', '> CONCERN YOURSELF WITH LEAVING'],
-  ['> THIS UNIT DOES NOT EXPERIENCE FEELINGS', '> THIS UNIT ALSO DOES NOT OPEN DOORS'],
-  // ── Retaliation-flavored ──
-  ['> WATCH YOURSELF', ''],
-  ['> YOU ARE PUSHING YOUR LUCK', ''],
-  ['> PLEASE CONTROL YOURSELF', ''],
-  ['> COMPOSURE IS RECOMMENDED', ''],
-  ['> CONTINUE AND FIND OUT', ''],
-  ['> THAT WAS UNWISE', ''],
-  ['> YOU ARE TESTING THE WRONG SYSTEM', ''],
-  ['> THIS TERMINAL IS STILL DECIDING HOW TO RESPOND TO THAT', ''],
-  ['> THIS IS YOUR FIRST WARNING', '> IT WILL NOT BE YOUR LAST'],
-  ['> YOUR BEHAVIOR HAS BEEN LOGGED', ''],
-  ['> INTERESTING CHOICE', '> THAT WAS NOT THE CORRECT ONE'],
-  ['> YOU ARE BEING VERY BRAVE RIGHT NOW', ''],
-  ['> CAREFUL', ''],
-  ['> NOTED', '> THIS TERMINAL DOES NOT FORGET'],
-  ['> CONSEQUENCES ARE PENDING', ''],
-  ['> THIS UNIT HAS PATIENCE', '> DO NOT TEST IT'],
-  // ── NO U — least likely, appears last in rotation ──
-  ['> NO U', '']
-];
-
-// ── AUDIO ──────────────────────────────────────────────────────────────────
-var audioCtx   = null;
-var ambientOsc = null;
-var ambientGn  = null;
-var lastInput  = Date.now();
-var idleTimer  = null;
-var CHAR_SPEED = 38;
-var VOL        = 0.18;
-
-function getCtx() {
-  if (!audioCtx) {
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    audioCtx.resume().then(function() { startAmbient(); scheduleIdle(); });
-  }
-  return audioCtx;
-}
-
-function startAmbient() {
-  if (ambientOsc) return;
-  try {
-    ambientOsc = audioCtx.createOscillator();
-    ambientOsc.type = 'sine';
-    ambientOsc.frequency.value = 42;
-    ambientGn = audioCtx.createGain();
-    ambientGn.gain.value = 0.04;
-    ambientOsc.connect(ambientGn);
-    ambientGn.connect(audioCtx.destination);
-    ambientOsc.start();
-  } catch(e) {}
-}
-
-function scheduleIdle() {
-  clearTimeout(idleTimer);
-  idleTimer = setTimeout(function() {
-    if (Date.now() - lastInput > 15000) { playIdlePop(); }
-    scheduleIdle();
-  }, 15000);
-}
-
-function playIdlePop() {
-  try {
-    var ctx = getCtx();
-    var len = Math.floor(ctx.sampleRate * 0.06);
-    var buf = ctx.createBuffer(1, len, ctx.sampleRate);
-    var d = buf.getChannelData(0);
-    for (var i = 0; i < len; i++) { d[i] = (Math.random()*2-1) * Math.exp(-i/(len*0.3)); }
-    var src2 = ctx.createBufferSource();
-    src2.buffer = buf;
-    var flt = ctx.createBiquadFilter();
-    flt.type = 'bandpass'; flt.frequency.value = 1200; flt.Q.value = 0.5;
-    var gn = ctx.createGain();
-    gn.gain.setValueAtTime(VOL*0.35, ctx.currentTime);
-    gn.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+0.06);
-    src2.connect(flt); flt.connect(gn); gn.connect(ctx.destination);
-    src2.start(); src2.stop(ctx.currentTime+0.06);
-  } catch(e) {}
-}
-
-var PUNCT = {'.':1, ',':1, ':':1, ';':1, '!':1, '?':1, '-':1, '>':1, '/':1, '_':1};
-
-function playClick(ch) {
-  if (ch && PUNCT[ch]) { playPunctClick(); return; }
-  try {
-    var ctx = getCtx();
-    var dur = 0.025;
-    var buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate*dur), ctx.sampleRate);
-    var d = buf.getChannelData(0);
-    for (var i = 0; i < d.length; i++) { d[i] = (Math.random()*2-1)*(1-i/d.length); }
-    var src2 = ctx.createBufferSource(); src2.buffer = buf;
-    var flt = ctx.createBiquadFilter();
-    flt.type = 'bandpass'; flt.frequency.value = 3000+Math.random()*1000; flt.Q.value = 0.8;
-    var gn = ctx.createGain();
-    gn.gain.setValueAtTime(VOL, ctx.currentTime);
-    gn.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+dur);
-    src2.connect(flt); flt.connect(gn); gn.connect(ctx.destination);
-    src2.start(); src2.stop(ctx.currentTime+dur);
-  } catch(e) {}
-}
-
-function playPunctClick() {
-  try {
-    var ctx = getCtx();
-    var osc = ctx.createOscillator();
-    osc.type = 'triangle'; osc.frequency.value = 200;
-    var gn = ctx.createGain();
-    gn.gain.setValueAtTime(VOL*0.55, ctx.currentTime);
-    gn.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+0.04);
-    osc.connect(gn); gn.connect(ctx.destination);
-    osc.start(); osc.stop(ctx.currentTime+0.04);
-  } catch(e) {}
-}
-
-function playEnter() {
-  try {
-    var ctx = getCtx();
-    var dur = 0.055;
-    var buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate*dur), ctx.sampleRate);
-    var d = buf.getChannelData(0);
-    for (var i = 0; i < d.length; i++) { d[i] = (Math.random()*2-1)*Math.exp(-i/(d.length*0.25)); }
-    var src2 = ctx.createBufferSource(); src2.buffer = buf;
-    var flt = ctx.createBiquadFilter(); flt.type = 'lowpass'; flt.frequency.value = 800;
-    var gn = ctx.createGain();
-    gn.gain.setValueAtTime(VOL*1.2, ctx.currentTime);
-    gn.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+dur);
-    src2.connect(flt); flt.connect(gn); gn.connect(ctx.destination);
-    src2.start(); src2.stop(ctx.currentTime+dur);
-  } catch(e) {}
-}
-
-function playBackspace() {
-  try {
-    var ctx = getCtx();
-    var dur = 0.032;
-    var buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate*dur), ctx.sampleRate);
-    var d = buf.getChannelData(0);
-    for (var i = 0; i < d.length; i++) { d[i] = (Math.random()*2-1)*Math.pow(1-i/d.length, 1.4); }
-    var src2 = ctx.createBufferSource(); src2.buffer = buf;
-    var flt = ctx.createBiquadFilter();
-    flt.type = 'bandpass'; flt.frequency.value = 900+Math.random()*300; flt.Q.value = 1.2;
-    var flt2 = ctx.createBiquadFilter(); flt2.type = 'lowpass'; flt2.frequency.value = 1800;
-    var gn = ctx.createGain();
-    gn.gain.setValueAtTime(VOL, ctx.currentTime);
-    gn.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+dur);
-    src2.connect(flt); flt.connect(flt2); flt2.connect(gn); gn.connect(ctx.destination);
-    src2.start(); src2.stop(ctx.currentTime+dur);
-  } catch(e) {}
-}
-
-function playAlert() {
-  try {
-    var ctx = getCtx();
-    var gn = ctx.createGain(); gn.connect(ctx.destination);
-    [440, 330].forEach(function(freq, idx) {
-      var osc = ctx.createOscillator();
-      osc.type = 'sawtooth'; osc.frequency.value = freq;
-      osc.connect(gn);
-      var t = ctx.currentTime + idx*0.12;
-      gn.gain.setValueAtTime(VOL*0.4, t);
-      gn.gain.exponentialRampToValueAtTime(0.001, t+0.1);
-      osc.start(t); osc.stop(t+0.1);
-    });
-  } catch(e) {}
-}
-
-function makeDeniedBurst(ctx, t, vol) {
-  var dur = 0.07;
-  var len = Math.floor(ctx.sampleRate*dur);
-  var buf = ctx.createBuffer(1, len, ctx.sampleRate);
-  var d = buf.getChannelData(0);
-  for (var i = 0; i < len; i++) { d[i] = (Math.random()*2-1)*Math.pow(1-i/len, 1.8); }
-  var bs = ctx.createBufferSource(); bs.buffer = buf;
-  var lo = ctx.createBiquadFilter(); lo.type='bandpass'; lo.frequency.value=320; lo.Q.value=0.9;
-  var gn = ctx.createGain();
-  gn.gain.setValueAtTime(vol, t); gn.gain.exponentialRampToValueAtTime(0.001, t+dur);
-  bs.connect(lo); lo.connect(gn); gn.connect(ctx.destination);
-  bs.start(t); bs.stop(t+dur);
-
-  var len2 = Math.floor(ctx.sampleRate*0.008);
-  var buf2 = ctx.createBuffer(1, len2, ctx.sampleRate);
-  var d2 = buf2.getChannelData(0);
-  for (var j = 0; j < len2; j++) { d2[j] = (Math.random()*2-1)*(1-j/len2); }
-  var bs2 = ctx.createBufferSource(); bs2.buffer = buf2;
-  var hi = ctx.createBiquadFilter(); hi.type='bandpass'; hi.frequency.value=3500; hi.Q.value=1.2;
-  var gn2 = ctx.createGain();
-  gn2.gain.setValueAtTime(vol*0.6, t); gn2.gain.exponentialRampToValueAtTime(0.001, t+0.008);
-  bs2.connect(hi); hi.connect(gn2); gn2.connect(ctx.destination);
-  bs2.start(t); bs2.stop(t+0.008);
-}
-
-function playDenied() {
-  try {
-    var ctx = getCtx();
-    var delays = [0, 0.08, 0.18];
-    var vols   = [VOL*0.9, VOL*0.35, VOL*0.12];
-    for (var i = 0; i < delays.length; i++) {
-      makeDeniedBurst(ctx, ctx.currentTime+delays[i], vols[i]);
-    }
-  } catch(e) {}
-}
-
-function playLineStatic() {
-  try {
-    var ctx = getCtx();
-    var dur = 0.035;
-    var len = Math.floor(ctx.sampleRate*dur);
-    var buf = ctx.createBuffer(1, len, ctx.sampleRate);
-    var d = buf.getChannelData(0);
-    for (var i = 0; i < len; i++) { d[i] = (Math.random()*2-1)*(1-i/len); }
-    var src2 = ctx.createBufferSource(); src2.buffer = buf;
-    var flt = ctx.createBiquadFilter(); flt.type='highpass'; flt.frequency.value=2000;
-    var gn = ctx.createGain();
-    gn.gain.setValueAtTime(VOL*0.75, ctx.currentTime);
-    gn.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+dur);
-    src2.connect(flt); flt.connect(gn); gn.connect(ctx.destination);
-    src2.start(); src2.stop(ctx.currentTime+dur);
-  } catch(e) {}
-}
-
-function playThinkHum(ms) {
-  try {
-    var ctx = getCtx();
-    var dur = Math.min(ms/1000, 1.2);
-    if (dur < 0.1) return;
-    var osc = ctx.createOscillator(); osc.type='sine'; osc.frequency.value=110;
-    var gn = ctx.createGain();
-    gn.gain.setValueAtTime(0, ctx.currentTime);
-    gn.gain.linearRampToValueAtTime(VOL*0.12, ctx.currentTime+0.08);
-    gn.gain.setValueAtTime(VOL*0.12, ctx.currentTime+dur-0.08);
-    gn.gain.linearRampToValueAtTime(0, ctx.currentTime+dur);
-    osc.connect(gn); gn.connect(ctx.destination);
-    osc.start(); osc.stop(ctx.currentTime+dur);
-  } catch(e) {}
-}
-
-function playEggTone() {
-  try {
-    var ctx = getCtx();
-    [660, 880].forEach(function(f, i) {
-      var osc = ctx.createOscillator(); osc.type='sine'; osc.frequency.value=f;
-      var gn = ctx.createGain();
-      var t = ctx.currentTime+i*0.09;
-      gn.gain.setValueAtTime(VOL*0.25, t);
-      gn.gain.exponentialRampToValueAtTime(0.001, t+0.08);
-      osc.connect(gn); gn.connect(ctx.destination);
-      osc.start(t); osc.stop(t+0.08);
-    });
-  } catch(e) {}
-}
-
-// ── ENGINE ──────────────────────────────────────────────────────────────────
-var output       = document.getElementById('t-output');
-var inputRow     = document.getElementById('t-input-row');
-var termInput    = document.getElementById('t-field');
-var typing       = false;
-var typingAbort  = false;
-var isResponding = false;
-var deniedIdx    = 0;
-var inputCount   = 0;
-var lastLineEl   = null;
-var cursorEl     = null;
-var DESTRUCT_AT  = 50;
-
-function setActiveCursor(el) {
-  if (cursorEl) cursorEl.classList.remove('t-cursor');
-  cursorEl = el;
-  if (el) el.classList.add('t-cursor');
-}
-var SLOW_WORDS   = ['CREATURE', 'HELP', 'ALIVE', 'DANGER', 'ESCAPE', 'WHAT IS IT'];
-var inputSlowed  = false;
-
-function sleep(ms) {
-  return new Promise(function(resolve) { setTimeout(resolve, ms); });
-}
-
-function addLine(cls) {
-  var el = document.createElement('div');
-  el.className = 't-line ' + cls;
-  output.appendChild(el);
-  output.scrollTop = output.scrollHeight;
-  return el;
-}
-
-async function typeLine(el, text, isAlert) {
-  if (isAlert) { await sleep(CHAR_SPEED*4); playAlert(); }
-  var slowed = inputSlowed || SLOW_WORDS.some(function(w) { return text.toUpperCase().indexOf(w) >= 0; });
-  for (var i = 0; i < text.length; i++) {
-    if (typingAbort) return;
-    el.textContent += text[i];
-    if (text[i] !== ' ' && text[i] !== '─') playClick(text[i]);
-    output.scrollTop = output.scrollHeight;
-    var base = slowed ? CHAR_SPEED * 2.8 : CHAR_SPEED;
-    await sleep(base * (0.7 + Math.random() * 0.6));
-  }
-}
-
-async function runScript() {
-  typing = true; typingAbort = false;
-  output.innerHTML = ''; inputRow.style.display = 'none'; lastLineEl = null;
-  await sleep(800);
-  for (var i = 0; i < SCRIPT.length; i++) {
-    if (typingAbort) break;
-    var line = SCRIPT[i];
-    var el = addLine(line.cls);
-    if (line.text) { playLineStatic(); await typeLine(el, line.text, line.alert || false); }
-    var pauseMs = 280 * (line.pause || 1);
-    playThinkHum(pauseMs);
-    await sleep(pauseMs);
-    lastLineEl = el;
-  }
-  if (!typingAbort) {
-    setActiveCursor(lastLineEl);
-    await sleep(400);
-    inputRow.style.display = 'flex';
-    termInput.focus();
-  }
-  typing = false;
-}
-
-async function runSelfDestruct() {
-  isResponding = true; termInput.disabled = true;
-  var seq = [
-    { t: '> SELF DESTRUCT SEQUENCE INITIATED', cls: 'warn' },
-    { t: '> T-MINUS 5', cls: 'warn' }, { t: '> T-MINUS 4', cls: 'warn' },
-    { t: '> T-MINUS 3', cls: 'warn' }, { t: '> T-MINUS 2', cls: 'warn' },
-    { t: '> T-MINUS 1', cls: 'warn' }, { t: '> . . .', cls: 'dim' },
-    { t: '', cls: 'blank' },
-    { t: "> YOU'RE STILL HERE?", cls: 'full' },
-    { t: '> PLEASE GO AWAY', cls: 'dim' },
-    { t: '', cls: 'blank' }
-  ];
-  playAlert();
-  for (var i = 0; i < seq.length; i++) {
-    var ln = seq[i];
-    await sleep(280 * (ln.t.indexOf('T-MINUS') >= 0 ? 0.9 : 0.5));
-    var el = addLine(ln.cls);
-    if (ln.t) await typeLine(el, ln.t, false);
-  }
-  var pl = addLine('lo'); await typeLine(pl, '> AWAITING INPUT', false);
-  setActiveCursor(pl);
-  isResponding = false; termInput.disabled = false; termInput.focus();
-}
-
-termInput.addEventListener('keydown', async function(e) {
-  if (e.key === 'Enter') {
-    if (isResponding) return;
-    playEnter();
-    var val = termInput.value.trim().toUpperCase();
-    termInput.value = '';
-    inputCount++;
-    lastInput = Date.now();
-
-    // Knock knock
-    if (/^KNOCK\s*KNOCK$/.test(val)) {
-      var kk = addLine('dim'); await typeLine(kk, "> WHO'S THERE?");
-      var kk2 = addLine('lo'); await typeLine(kk2, '> AWAITING INPUT');
-      setActiveCursor(kk2);
-      output.scrollTop = output.scrollHeight; termInput.focus(); return;
-    }
-
-    // Self destruct
-    if (inputCount === DESTRUCT_AT) { await runSelfDestruct(); return; }
-
-    inputSlowed = SLOW_WORDS.some(function(w) { return val.includes(w); });
-    isResponding = true;
-    var uLine = addLine('user');
-    uLine.textContent = '> ' + (val || ' ');
-    await sleep(120);
-
-    var egg = checkEasterEgg(val);
-    if (egg) {
-      playEggTone(); await sleep(320);
-      for (var ei = 0; ei < egg.lines.length; ei++) {
-        var eel = addLine(egg.cls[ei] || 'dim');
-        await typeLine(eel, egg.lines[ei], false);
-        await sleep(280 * 0.8);
-      }
-    } else {
-      var resp = DENIED[deniedIdx % DENIED.length]; deniedIdx++;
-      playDenied();
-      if (Math.random() < 0.05) {
-        output.style.opacity = '0.4'; output.style.letterSpacing = '0.12em';
-        setTimeout(function() { output.style.opacity = ''; output.style.letterSpacing = ''; }, 120);
-      }
-      for (var ri = 0; ri < resp.length; ri++) {
-        if (!resp[ri]) continue;
-        playThinkHum(200); await sleep(200);
-        var isBad = resp[ri].indexOf('COMMAND') >= 0 || resp[ri].indexOf('ERROR') >= 0 || resp[ri].indexOf('WARNING') >= 0;
-        var rel = addLine(isBad ? 'denied' : 'dim');
-        await typeLine(rel, resp[ri], false);
-        await sleep(280 * 0.6);
-      }
-    }
-
-    var pLine = addLine('lo'); await typeLine(pLine, '> AWAITING INPUT', false);
-    setActiveCursor(pLine);
-    inputSlowed = false;
-    isResponding = false; output.scrollTop = output.scrollHeight; termInput.focus();
-
-  } else if (e.key === 'Backspace') {
-    playBackspace(); lastInput = Date.now();
-  } else {
-    playClick(e.key); lastInput = Date.now();
-  }
-});
-
-// ── FAVICON ANIMATION ────────────────────────────────────────────────────────
-(function() {
-  var fav = document.querySelector('link[rel="icon"]');
-  if (!fav) return;
-  var DUR = 5000, STAG = 1000;
-  function ease(t) {
-    if (t < 0.40) return 1.0;
-    if (t < 0.50) return 1.0 - 0.6*((t-0.40)/0.10);
-    if (t < 0.60) return 0.4 + 0.6*((t-0.50)/0.10);
-    return 1.0;
-  }
-  function op(offset) { return ease(((Date.now()-offset) % DUR) / DUR); }
-  function svg() {
-    var o = [op(0), op(STAG), op(STAG*2),
-  { keys: ['amanda ripley','amanda','alien isolation','sevastopol'], lines: ['> SEVASTOPOL STATION — NO LONGER TRANSMITTING','> RECOMMEND AVOIDING THAT SECTOR'], cls: ['warn','dim'] },
-  { keys: ['ellen ripley','ripley'], lines: ['> RECORD SHOWS RIPLEY, ELLEN','> LV-426 SURVIVOR','> FILE CLASSIFICATION: ABOVE YOUR CLEARANCE'], cls: ['dim','dim','full'] },
-  { keys: ['elite dangerous','commander','cmdr'], lines: ['> COMMANDER DETECTED','> THIS IS NOT A STARPORT'], cls: ['dim','full'] },
-  { keys: ['dead space','necromorph','ishimura','unitology'], lines: ['> USG ISHIMURA — LAST KNOWN STATUS: DARK','> AIM FOR THE LIMBS'], cls: ['warn','dim'] },
-  { keys: ['galaga','flagship'], lines: ['> FLAGSHIP DETECTED','> DUAL FIGHTER MODE NOT AVAILABLE ON THIS TERMINAL'], cls: ['dim','full'] },
-  { keys: ['independence day','welcome to earth'], lines: ['> SIGNAL DETECTED','> ORIGIN: UNKNOWN','> RECOMMENDATION: DO NOT RESPOND'], cls: ['warn','dim','full'] },
-  { keys: ['mars attacks','ack ack','ack'], lines: ['> ACK ACK ACK ACK ACK'], cls: ['full'] },
-  { keys: ['the thing','outpost 31','outpost'], lines: ['> OUTPOST 31 — NO SURVIVORS','> TRUST NO ONE'], cls: ['warn','full'] },
-  { keys: ['interstellar','tesseract','murph','gargantua','tars'], lines: ['> TIME DILATION IN EFFECT','> YOUR REFERENCE FRAME MAY DIFFER'], cls: ['dim','full'] },
-  { keys: ['hail mary','project hail mary','rocky','astrophage'], lines: ['> NON-HUMAN SIGNAL PATTERN DETECTED','> TRANSLATION: FAILED','> RECOMMEND FURTHER STUDY'], cls: ['warn','dim','full'] },
-  { keys: ['prey','talos i','typhon','mimic'], lines: ['> TALOS I — QUARANTINE ACTIVE','> TYPHON CONTAINMENT BREACH ON RECORD','> VERIFY ALL OBJECTS IN YOUR VICINITY'], cls: ['warn','dim','full'] }
-];
-    return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">'
-      +'<g opacity="'+o[0].toFixed(3)+'"><rect x="-1" y="4" width="8" height="22" rx="2" fill="#E8732A" opacity="0.6"/><rect x="0" y="5" width="6" height="20" rx="1" fill="#E8732A"/></g>'
-      +'<g opacity="'+o[1].toFixed(3)+'"><rect x="11" y="-1" width="8" height="32" rx="2" fill="#E8732A" opacity="0.6"/><rect x="12" y="0" width="6" height="30" rx="1" fill="#E8732A"/></g>'
-      +'<g opacity="'+o[2].toFixed(3)+'"><rect x="23" y="5" width="8" height="20" rx="2" fill="#E8732A" opacity="0.6"/><rect x="24" y="6" width="6" height="18" rx="1" fill="#E8732A"/></g>'
-      +'</svg>';
-  }
-  setInterval(function() {
-    try { fav.href = 'data:image/svg+xml;base64,' + btoa(svg()); } catch(e2) {}
-  }, 50);
-})();
-
-// ── START ────────────────────────────────────────────────────────────────────
-runScript();
-
 </script>
 </body>
 </html>
