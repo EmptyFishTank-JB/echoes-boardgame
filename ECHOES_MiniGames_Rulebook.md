@@ -69,6 +69,19 @@ The player has a maximum of 3 rolls to satisfy their chosen Tier conditions. If 
 | WIN | Champion Die meets Tier conditions on any roll | Wagered resource returned. Reward determined by Tier chosen — higher risk Tiers yield greater returns. |
 | FAIL | 3 rolls exhausted without meeting Tier conditions | Wagered resource lost. Noise penalty applied based on chosen Tier. |
 
+> **Implementation Note (not in the original document):** The doc doesn't specify exact reward/Noise numbers per Tier, only that they scale with risk. `pressure-leak.html` uses this scale, chosen to keep both curves proportional to each Tier's actual win odds:
+>
+> | Tier | Ceiling | Win Odds (3 rolls) | Bonus on Win | Noise on Fail |
+> |---|---|---|---|---|
+> | 6 | 1–6 | ~92.6% | +0 (wager returned only) | +1 |
+> | 5 | 1–5 | ~80.1% | +0 (wager returned only) | +2 |
+> | 4 | 1–4 | ~62.4% | +1 (doubled) | +3 |
+> | 3 | 1–3 | ~42.2% | +2 (tripled) | +4 |
+> | 2 | 1–2 | ~23.0% | +3 (quadrupled) | +5 |
+> | 1 | 1 only | ~8.1% | +5 (sextupled, "Jackpot") | +6 |
+>
+> Adjust freely — these are a starting point, not a ruling.
+
 ---
 
 # MINI-GAME 02 — Pull the Fuse
@@ -95,16 +108,16 @@ A single roll of 2 and 5 therefore offers the following fuse options: [2], [5], 
 
 If both dice show the same number, a System Surge occurs. The player shuts the fuse matching the rolled number as normal, and may additionally shut one extra fuse of their choice from any remaining open fuses.
 
-## The Fail Condition
+## ~~The Fail Condition~~ *(SCRAPPED — not implemented)*
 
-If a roll produces values that cannot be applied to any remaining open fuse — meaning every value derived from that roll corresponds to a fuse already shut — the mini-game immediately fails. The player does not need to wait for the 3rd Pulse.
+~~If a roll produces values that cannot be applied to any remaining open fuse — meaning every value derived from that roll corresponds to a fuse already shut — the mini-game immediately fails. The player does not need to wait for the 3rd Pulse.~~
 
 ## Outcomes
 
 | Outcome | Condition | Consequence |
 |---|---|---|
 | WIN | All 6 fuses shut within 3 Pulses | Wagered resource returned plus one additional resource of the same type. |
-| FAIL | Any fuse remains open after 3rd Pulse, or a roll cannot be applied to any open fuse | Wagered resource lost. Add +1 Noise to the Noise Tracker for each fuse that remains open at the time of failure. |
+| FAIL | Any fuse remains open after 3rd Pulse ~~, or a roll cannot be applied to any open fuse *(scrapped)*~~ | Wagered resource lost. Add +1 Noise to the Noise Tracker for each fuse that remains open at the time of failure. |
 
 ---
 

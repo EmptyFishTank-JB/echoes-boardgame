@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+CiAgPHJlY3QgeD0iNSIgeT0iNiIgd2lkdGg9IjYiIGhlaWdodD0iMTAiIHJ4PSIxIiBmaWxsPSIjZTg3MzJhIiBvcGFjaXR5PSIwLjkiLz4KICA8cmVjdCB4PSIxMyIgeT0iMiIgd2lkdGg9IjYiIGhlaWdodD0iMTQiIHJ4PSIxIiBmaWxsPSIjZTg3MzJhIi8+CiAgPHJlY3QgeD0iMjEiIHk9IjYiIHdpZHRoPSI2IiBoZWlnaHQ9IjEwIiByeD0iMSIgZmlsbD0iI2U4NzMyYSIgb3BhY2l0eT0iMC45Ii8+CiAgPHJlY3QgeD0iMSIgeT0iMTciIHdpZHRoPSIxMyIgaGVpZ2h0PSIxMyIgcng9IjIuNSIgZmlsbD0iI2Q4MWYyZiIvPgogIDxjaXJjbGUgY3g9IjQuMyIgY3k9IjIwLjMiIHI9IjEuMyIgZmlsbD0iI2ZmZiIvPgogIDxjaXJjbGUgY3g9IjcuNSIgY3k9IjIzLjUiIHI9IjEuMyIgZmlsbD0iI2ZmZiIvPgogIDxjaXJjbGUgY3g9IjEwLjciIGN5PSIyNi43IiByPSIxLjMiIGZpbGw9IiNmZmYiLz4KICA8cmVjdCB4PSIxOCIgeT0iMTciIHdpZHRoPSIxMyIgaGVpZ2h0PSIxMyIgcng9IjIuNSIgZmlsbD0iIzFjOGZjNyIvPgogIDxjaXJjbGUgY3g9IjI3LjciIGN5PSIyMC4zIiByPSIxLjMiIGZpbGw9IiNmZmYiLz4KICA8Y2lyY2xlIGN4PSIyMS4zIiBjeT0iMjYuNyIgcj0iMS4zIiBmaWxsPSIjZmZmIi8+Cjwvc3ZnPgo=">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ECHOES // Pressure Leak</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --text:       #eef0f5;
+    --text-dim:   rgba(238,240,245,0.45);
+    --accent:     #4fc3f7;
+    --orange:     #e8732a;
+    --border:     rgba(238,240,245,0.12);
+    --red:        #ff4d5e;
+    --blue:       #4fc3f7;
+    --good:       #4fe0a1;
+    --bad:        #ff4d5e;
+    --violet:     #b98aff;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: 100%; min-height: 100%;
+    background: #050709;
+    font-family: 'Barlow Condensed', sans-serif;
+    color: var(--text);
+  }
+  body {
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 0%, rgba(79,195,247,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse 70% 50% at 50% 100%, rgba(232,115,42,0.06) 0%, transparent 60%),
+      linear-gradient(160deg, #030508 0%, #070b12 45%, #05080d 100%);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 28px 20px 60px;
+  }
+  body::before {
+    content: "";
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background: repeating-linear-gradient(0deg,
+      rgba(255,255,255,0.05) 0px, rgba(255,255,255,0.05) 1px,
+      transparent 1px, transparent 4px);
+    mix-blend-mode: overlay;
+  }
+
+  nav {
+    width: 100%; max-width: 760px;
+    display: flex; align-items: center; justify-content: center;
+    gap: 22px; flex-wrap: wrap;
+    padding: 4px 4px 22px;
+    z-index: 1;
+  }
+  nav a {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--text-dim); text-decoration: none;
+  }
+  nav a:hover { color: var(--text); }
+
+  header.title-block {
+    z-index: 1;
+    text-align: center;
+    margin-bottom: 22px;
+  }
+  .eyebrow {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px; letter-spacing: 0.28em; text-transform: uppercase;
+    color: var(--accent); opacity: 0.8; margin-bottom: 8px;
+  }
+  h1 {
+    font-weight: 900; letter-spacing: 0.04em; text-transform: uppercase;
+    font-size: clamp(32px, 6vw, 52px);
+    line-height: 0.95;
+  }
+  .subtitle {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px; color: var(--text-dim); letter-spacing: 0.05em;
+    margin-top: 10px; max-width: 520px; line-height: 1.7;
+  }
+
+  .panel {
+    z-index: 1;
+    width: 100%; max-width: 620px;
+    background: rgba(15,18,24,0.72);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    backdrop-filter: blur(6px);
+    padding: 28px;
+    position: relative;
+  }
+  .panel::before {
+    content: "";
+    position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, var(--orange), var(--accent));
+    opacity: 0.7;
+  }
+
+  /* ── WAGER ── */
+  .stake-row {
+    display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;
+    margin: 18px 0 4px;
+  }
+  .resource-btn {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--text); background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border); border-radius: 3px;
+    padding: 12px 16px; cursor: pointer; transition: 0.15s;
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    min-width: 92px;
+  }
+  .resource-btn .icon { font-size: 20px; }
+  .resource-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .resource-btn.selected { border-color: var(--orange); background: rgba(232,115,42,0.12); color: var(--orange); }
+  .resource-btn.locked { pointer-events: none; opacity: 0.55; }
+
+  .rules-mini {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px; line-height: 1.9; color: var(--text-dim);
+    border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+    padding: 14px 0; margin: 20px 0;
+  }
+  .rules-mini strong { color: var(--text); }
+
+  .btn {
+    display: block; width: 100%;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px; letter-spacing: 0.16em; text-transform: uppercase;
+    color: #05080d; background: var(--accent);
+    border: none; border-radius: 3px; padding: 14px;
+    cursor: pointer; transition: 0.15s; font-weight: 700;
+  }
+  .btn:hover:not(:disabled) { filter: brightness(1.15); transform: translateY(-1px); }
+  .btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  .btn.secondary {
+    background: transparent; color: var(--text-dim);
+    border: 1px solid var(--border);
+  }
+  .btn.secondary:hover:not(:disabled) { color: var(--text); border-color: var(--text-dim); }
+
+  .status-bar {
+    display: flex; justify-content: center; align-items: center;
+    font-family: 'Share Tech Mono', monospace; font-size: 11px;
+    letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-dim);
+    margin: 4px 0 4px;
+  }
+  .status-bar .wager { color: var(--orange); }
+
+  /* ── TIER PICKER ── */
+  .tier-section-label {
+    font-family: 'Share Tech Mono', monospace; font-size: 11px;
+    letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-dim);
+    margin: 18px 0 10px; text-align: center;
+  }
+  .tier-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .tier-grid.disabled { opacity: 0.3; pointer-events: none; }
+  .tier-btn {
+    font-family: 'Share Tech Mono', monospace;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 10px 6px;
+    cursor: pointer;
+    transition: 0.15s;
+    text-align: center;
+  }
+  .tier-btn:hover { background: rgba(255,255,255,0.06); }
+  .tier-btn .tier-name {
+    font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+  }
+  .tier-btn .tier-ceiling {
+    font-size: 10px; color: var(--text-dim); margin-top: 3px;
+  }
+  .tier-btn .tier-payout {
+    font-size: 10px; margin-top: 4px; font-weight: 700;
+  }
+  .tier-btn.selected { background: rgba(255,255,255,0.08); }
+
+  .tier-caption {
+    text-align: center; font-family: 'Share Tech Mono', monospace;
+    font-size: 11px; color: var(--text-dim); margin: 8px 0 22px; min-height: 16px;
+  }
+  .tier-caption strong { color: var(--text); }
+
+  .dice-stage {
+    display: flex; align-items: center; justify-content: center; gap: 28px;
+    margin: 10px 0 22px;
+  }
+  .die-wrap { text-align: center; }
+  .die-label {
+    font-family: 'Share Tech Mono', monospace; font-size: 10px;
+    letter-spacing: 0.2em; text-transform: uppercase; margin-top: 8px;
+    color: var(--text-dim);
+  }
+  .die-label.champion-label { color: var(--good); }
+  .die-label.opposing-label { color: var(--bad); }
+  .die {
+    width: 64px; height: 64px; border-radius: 10px;
+    display: grid; grid-template-columns: repeat(3,1fr); grid-template-rows: repeat(3,1fr);
+    padding: 10px; gap: 2px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.5);
+  }
+  .die.champion { background: linear-gradient(145deg, #6fe8b8, #1e8a5c); }
+  .die.opposing { background: linear-gradient(145deg, #ff6270, #c11f30); }
+  .die .pip-dot { border-radius: 50%; }
+  .die .pip-dot.on { background: #fff; }
+  .die.rolling { animation: shake 0.5s ease; }
+  @keyframes shake {
+    0%,100% { transform: rotate(0deg); }
+    20% { transform: rotate(-14deg); }
+    40% { transform: rotate(10deg); }
+    60% { transform: rotate(-8deg); }
+    80% { transform: rotate(6deg); }
+  }
+
+  .pips { display: flex; gap: 6px; justify-content: center; margin: 0 0 14px; }
+  .pip { width: 9px; height: 9px; border-radius: 50%; background: rgba(255,255,255,0.12); border: 1px solid var(--border); }
+  .pip.used { background: var(--accent); border-color: var(--accent); }
+
+  .math-line {
+    text-align: center; font-family: 'Share Tech Mono', monospace;
+    font-size: 13px; color: var(--text-dim); letter-spacing: 0.06em;
+    margin-bottom: 18px; min-height: 18px;
+  }
+  .math-line .val { color: var(--text); font-weight: 700; }
+  .math-line .val-good { color: var(--good); font-weight: 700; }
+  .math-line .val-bad { color: var(--bad); font-weight: 700; }
+
+  .log {
+    font-family: 'Share Tech Mono', monospace; font-size: 11px;
+    color: var(--text-dim); line-height: 1.9;
+    max-height: 90px; overflow-y: auto;
+    border-top: 1px solid var(--border);
+    padding-top: 12px; margin-bottom: 20px;
+  }
+  .log div span.tag { color: var(--accent); }
+
+  .btn-row { display: flex; gap: 10px; }
+
+  /* ── RESULT ── */
+  #resultScreen {
+    margin-top: 20px;
+    padding-top: 18px;
+    border-top: 1px solid var(--border);
+  }
+  .result-banner {
+    text-align: center; padding: 10px 0 6px;
+  }
+  .result-banner .big {
+    font-weight: 900; letter-spacing: 0.05em; text-transform: uppercase;
+    font-size: clamp(24px, 5vw, 36px); margin-bottom: 10px;
+  }
+  .result-banner.win .big { color: var(--good); }
+  .result-banner.fail .big { color: var(--bad); }
+  .result-detail {
+    font-family: 'Share Tech Mono', monospace; font-size: 12px;
+    color: var(--text-dim); line-height: 1.9; margin-bottom: 22px;
+  }
+  .result-detail strong { color: var(--text); }
+
+  .hidden { display: none !important; }
+
+  footer {
+    z-index: 1;
+    margin-top: 26px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase;
+    color: rgba(238,240,245,0.25);
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html">&larr; Echoes</a>
+  <a href="rules.html">Rules &amp; Design</a>
+  <a href="echo-events.html">Echo Events</a>
+  <a href="assets.html">Assets</a>
+  <a href="terminal.html">Terminal</a>
+</nav>
+
+<header class="title-block">
+  <div class="eyebrow">// Echo Event 01 — Risk Selection</div>
+  <h1>Pressure Leak</h1>
+  <p class="subtitle">Pick a Tier before you roll — it sets your Champion Die's ceiling and your payout. Lower Tiers pay bigger but leave almost no room for error.</p>
+</header>
+
+<div class="panel">
+
+  <div class="rules-mini">
+    <div><strong>Wager:</strong> Stake one resource before rolling. No resource = automatic failure.</div>
+    <div><strong>Win:</strong> Champion Die beats or matches Opposing Die, and stays at or under your Tier's ceiling, on any of 3 rolls.</div>
+    <div><strong>Fail:</strong> 3 rolls exhausted without meeting your Tier &mdash; wager lost, Noise penalty scales with Tier chosen.</div>
+    <div><strong>Commitment:</strong> Your Tier locks in the moment you roll. No changing your mind mid-attempt.</div>
+  </div>
+
+  <div class="stake-row" id="resourceRow">
+    <div class="resource-btn" data-resource="Scrap"><span class="icon">&#9881;</span>Scrap</div>
+    <div class="resource-btn" data-resource="Salvage"><span class="icon">&#128230;</span>Salvage</div>
+    <div class="resource-btn" data-resource="Components"><span class="icon">&#128295;</span>Components</div>
+    <div class="resource-btn" data-resource="Data"><span class="icon">&#128190;</span>Data</div>
+  </div>
+  <div class="status-bar"><span class="wager" id="wagerLabel">No wager staked</span></div>
+
+  <div class="tier-section-label">// Choose Your Tier</div>
+  <div class="tier-grid disabled" id="tierGrid"></div>
+  <div class="tier-caption" id="tierCaption">Stake a resource to unlock Tier selection.</div>
+
+  <div class="dice-stage">
+    <div class="die-wrap">
+      <div class="die champion" id="dieChampion"></div>
+      <div class="die-label champion-label">Champion</div>
+    </div>
+    <div class="die-wrap">
+      <div class="die opposing" id="dieOpposing"></div>
+      <div class="die-label opposing-label">Opposing</div>
+    </div>
+  </div>
+
+  <div class="pips" id="pips">
+    <div class="pip"></div><div class="pip"></div><div class="pip"></div>
+  </div>
+
+  <div class="math-line" id="mathLine">Pick a Tier, then roll.</div>
+
+  <div class="log" id="log"></div>
+
+  <div class="btn-row">
+    <button class="btn" id="rollBtn" disabled>Roll the Dice</button>
+  </div>
+
+  <!-- RESULT (appears below everything once the run ends) -->
+  <div id="resultScreen" class="hidden">
+    <div class="result-banner" id="resultBanner">
+      <div class="big" id="resultBig"></div>
+      <div class="result-detail" id="resultDetail"></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn" id="againBtn">Run Again</button>
+      <button class="btn secondary" id="closeBtn" onclick="window.location.href='rules.html#mini-games'">Back to Echoes</button>
+    </div>
+  </div>
+
+</div>
+
+<footer>ECHOES · EmptyFishTank-JB · Echo Event Mini-Game</footer>
+
+<script>
+(function(){
+  const DOTS = {
+    1: [4],
+    2: [0,8],
+    3: [0,4,8],
+    4: [0,2,6,8],
+    5: [0,2,4,6,8],
+    6: [0,2,3,5,6,8]
+  };
+
+  const MAX_ROLLS = 3;
+
+  // Reward = bonus resources ON TOP of the returned wager. Noise = penalty
+  // on failure. Higher risk (lower tier number) pays more and stings more.
+  const TIERS = [
+    { n: 6, name: 'Tier 6', color: '#4fe0a1', ceiling: 6, bonus: 0, noise: 1, note: 'Safest. Any value beats or matches Opposing.' },
+    { n: 5, name: 'Tier 5', color: '#9bd94f', ceiling: 5, bonus: 0, noise: 2, note: 'Opposing rolling a 6 auto-fails the roll.' },
+    { n: 4, name: 'Tier 4', color: '#e8d44f', ceiling: 4, bonus: 1, noise: 3, note: 'Champion capped at 4.' },
+    { n: 3, name: 'Tier 3', color: '#e8732a', ceiling: 3, bonus: 2, noise: 4, note: 'Significant risk. Champion capped at 3.' },
+    { n: 2, name: 'Tier 2', color: '#e8502a', ceiling: 2, bonus: 3, noise: 5, note: 'High danger. Champion capped at 2.' },
+    { n: 1, name: 'Tier 1', color: '#ff4d5e', ceiling: 1, bonus: 5, noise: 6, note: 'The Jackpot. Both dice must roll a 1.' }
+  ];
+
+  let wager = null;
+  let tier = null;
+  let rollsUsed = 0;
+  let gameOver = false;
+
+  const resourceRow  = document.getElementById('resourceRow');
+  const wagerLabel   = document.getElementById('wagerLabel');
+  const tierGrid     = document.getElementById('tierGrid');
+  const tierCaption  = document.getElementById('tierCaption');
+  const dieChampion  = document.getElementById('dieChampion');
+  const dieOpposing  = document.getElementById('dieOpposing');
+  const pipsEl       = document.getElementById('pips');
+  const mathLine     = document.getElementById('mathLine');
+  const logEl        = document.getElementById('log');
+  const rollBtn      = document.getElementById('rollBtn');
+  const resultScreen = document.getElementById('resultScreen');
+  const resultBanner = document.getElementById('resultBanner');
+  const resultBig    = document.getElementById('resultBig');
+  const resultDetail = document.getElementById('resultDetail');
+  const againBtn     = document.getElementById('againBtn');
+
+  function renderDie(el, value){
+    el.innerHTML = '';
+    for (let i = 0; i < 9; i++){
+      const d = document.createElement('div');
+      d.className = 'pip-dot' + (DOTS[value].includes(i) ? ' on' : '');
+      el.appendChild(d);
+    }
+  }
+
+  function buildTierGrid(){
+    tierGrid.innerHTML = '';
+    TIERS.forEach(t => {
+      const btn = document.createElement('div');
+      btn.className = 'tier-btn';
+      btn.dataset.tier = t.n;
+      btn.style.borderColor = 'rgba(255,255,255,0.12)';
+      btn.innerHTML = '<div class="tier-name" style="color:' + t.color + ';">' + t.name + '</div>' +
+        '<div class="tier-ceiling">Ceiling 1&ndash;' + t.ceiling + '</div>' +
+        '<div class="tier-payout" style="color:' + t.color + ';">' +
+        (t.bonus > 0 ? '+' + t.bonus + ' bonus' : 'no bonus') + '</div>';
+      tierGrid.appendChild(btn);
+    });
+  }
+
+  function updateRollBtn(){
+    rollBtn.disabled = gameOver || !wager || tier === null;
+  }
+
+  tierGrid.addEventListener('click', (e) => {
+    if (rollsUsed > 0 || gameOver) return;
+    const btn = e.target.closest('.tier-btn');
+    if (!btn) return;
+    const n = parseInt(btn.dataset.tier, 10);
+    tier = TIERS.find(t => t.n === n);
+    tierGrid.querySelectorAll('.tier-btn').forEach(b => {
+      b.classList.remove('selected');
+      b.style.borderColor = 'rgba(255,255,255,0.12)';
+      b.style.background = 'rgba(255,255,255,0.03)';
+    });
+    btn.classList.add('selected');
+    btn.style.borderColor = tier.color;
+    btn.style.background = tier.color + '1f';
+    tierCaption.innerHTML = 'Locked in: <strong style="color:' + tier.color + ';">' + tier.name + '</strong> &mdash; ' + tier.note;
+    mathLine.textContent = 'Champion must beat or match Opposing, and stay at or under ' + tier.ceiling + '.';
+    updateRollBtn();
+  });
+
+  resourceRow.addEventListener('click', (e) => {
+    if (rollsUsed > 0 || gameOver) return;
+    const btn = e.target.closest('.resource-btn');
+    if (!btn) return;
+    resourceRow.querySelectorAll('.resource-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    wager = btn.dataset.resource;
+    wagerLabel.textContent = 'Wager: ' + wager;
+    tierGrid.classList.remove('disabled');
+    if (tier === null) tierCaption.textContent = 'Pick a Tier below.';
+    updateRollBtn();
+  });
+
+  function updatePips(){
+    const pips = pipsEl.querySelectorAll('.pip');
+    pips.forEach((p, i) => p.classList.toggle('used', i < rollsUsed));
+  }
+
+  function log(msg){
+    const line = document.createElement('div');
+    line.innerHTML = msg;
+    logEl.appendChild(line);
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+
+  rollBtn.addEventListener('click', () => {
+    if (gameOver || !wager || tier === null || rollsUsed >= MAX_ROLLS) return;
+    rollBtn.disabled = true;
+    resourceRow.querySelectorAll('.resource-btn').forEach(b => b.classList.add('locked'));
+    tierGrid.classList.add('disabled');
+    dieChampion.classList.add('rolling');
+    dieOpposing.classList.add('rolling');
+
+    let ticks = 0;
+    const spin = setInterval(() => {
+      renderDie(dieChampion, 1 + Math.floor(Math.random()*6));
+      renderDie(dieOpposing, 1 + Math.floor(Math.random()*6));
+      ticks++;
+      if (ticks > 6){
+        clearInterval(spin);
+        resolveRoll();
+      }
+    }, 60);
+  });
+
+  function resolveRoll(){
+    dieChampion.classList.remove('rolling');
+    dieOpposing.classList.remove('rolling');
+
+    const champion = 1 + Math.floor(Math.random()*6);
+    const opposing = 1 + Math.floor(Math.random()*6);
+    renderDie(dieChampion, champion);
+    renderDie(dieOpposing, opposing);
+    rollsUsed++;
+    updatePips();
+
+    const beatsOpposing = champion >= opposing;
+    const underCeiling = champion <= tier.ceiling;
+    const won = beatsOpposing && underCeiling;
+
+    mathLine.innerHTML = 'Roll ' + rollsUsed + '/' + MAX_ROLLS + ': Champion <span class="' + (won ? 'val-good' : 'val') + '">' + champion +
+      '</span> vs. Opposing <span class="val">' + opposing + '</span> — ceiling <span class="val">' + tier.ceiling + '</span>';
+
+    log('<span class="tag">Roll ' + rollsUsed + '/' + MAX_ROLLS + '</span> — Champion ' + champion + ', Opposing ' + opposing +
+      (won ? ' — <span class="tag">met ' + tier.name + '</span>' :
+        (!beatsOpposing ? ' — Champion did not beat Opposing' : ' — Champion exceeded the Tier ceiling')));
+
+    if (won){
+      endGame(true);
+      return;
+    }
+    if (rollsUsed >= MAX_ROLLS){
+      endGame(false);
+      return;
+    }
+    rollBtn.disabled = false;
+    rollBtn.textContent = 'Roll Again (' + (MAX_ROLLS - rollsUsed) + ' left)';
+  }
+
+  function endGame(won){
+    gameOver = true;
+    rollBtn.disabled = true;
+    setTimeout(() => {
+      resultScreen.classList.remove('hidden');
+      if (won){
+        resultBanner.className = 'result-banner win';
+        resultBig.textContent = 'SEAL HOLDS';
+        resultDetail.innerHTML = '<strong>' + tier.name + '</strong> met on roll ' + rollsUsed + '. <strong>' + wager + '</strong> returned' +
+          (tier.bonus > 0 ? ', plus <strong>+' + tier.bonus + ' ' + wager + '</strong>.' : ', no bonus.');
+      } else {
+        resultBanner.className = 'result-banner fail';
+        resultBig.textContent = 'PRESSURE LOST';
+        resultDetail.innerHTML = '<strong>' + tier.name + '</strong> never met across 3 rolls. <strong>' + wager +
+          '</strong> lost — <strong>+' + tier.noise + ' Noise</strong>.';
+      }
+      resultScreen.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    }, 500);
+  }
+
+  function resetGame(){
+    wager = null;
+    tier = null;
+    rollsUsed = 0;
+    gameOver = false;
+    resourceRow.querySelectorAll('.resource-btn').forEach(b => b.classList.remove('selected', 'locked'));
+    wagerLabel.textContent = 'No wager staked';
+    buildTierGrid();
+    tierGrid.classList.add('disabled');
+    tierCaption.textContent = 'Stake a resource to unlock Tier selection.';
+    renderDie(dieChampion, 1);
+    renderDie(dieOpposing, 1);
+    updatePips();
+    mathLine.textContent = 'Pick a Tier, then roll.';
+    logEl.innerHTML = '';
+    rollBtn.textContent = 'Roll the Dice';
+    updateRollBtn();
+    resultScreen.classList.add('hidden');
+  }
+
+  againBtn.addEventListener('click', resetGame);
+
+  resetGame();
+})();
+</script>
+
+</body>
+</html>
