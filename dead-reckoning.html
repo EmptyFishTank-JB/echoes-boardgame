@@ -186,6 +186,7 @@
   .coord-cell.zone-red-col { background: rgba(255,77,94,0.14); }
   .coord-cell.zone-blue-row { background: rgba(79,195,247,0.14); }
   .coord-cell.zone-red-col.zone-blue-row { background: rgba(185,138,255,0.14); }
+  .coord-cell.called { background: rgba(232,115,42,0.12); border-color: var(--orange); }
   .cell-signal { width: 46%; height: 46%; }
 
   .coord-grid.locked .coord-cell { cursor: default; }
@@ -358,10 +359,6 @@
   const ZONE_LABEL = { 1: '1–2', 2: '3–4', 3: '5–6' };
   function zoneOf(v){ return v <= 2 ? 1 : (v <= 4 ? 2 : 3); }
 
-  // Diagonal red/blue "X" split for the result cell — top & bottom wedges
-  // red, left & right wedges blue, seams running corner-to-corner.
-  const RESULT_BG = 'conic-gradient(from -45deg, rgba(255,77,94,0.4) 0deg 90deg, rgba(79,195,247,0.4) 90deg 180deg, rgba(255,77,94,0.4) 180deg 270deg, rgba(79,195,247,0.4) 270deg 360deg)';
-
   let wager = null;
   let callCol = null; // red zone (1-3)
   let callRow = null; // blue zone (1-3)
@@ -425,15 +422,14 @@
 
   function clearCellStyles(){
     coordGrid.querySelectorAll('.coord-cell').forEach(c => {
-      c.classList.remove('zone-red-col', 'zone-blue-row');
-      c.style.background = '';
+      c.classList.remove('zone-red-col', 'zone-blue-row', 'called');
       c.innerHTML = '';
     });
   }
 
-  /* Pre-roll: only the exact called cell is marked, via the signal icon
-     alone — no fill or outline. Row/column don't light up until after the
-     roll, when they show the dice's actual outcome. */
+  /* Pre-roll: only the exact called cell is marked (orange fill + icon).
+     Row/column don't light up until after the roll, when they show the
+     dice's actual outcome. */
   function paintSelection(){
     clearCellStyles();
     if (callCol === null || callRow === null) return;
@@ -441,20 +437,22 @@
       const col = parseInt(c.dataset.col, 10);
       const row = parseInt(c.dataset.row, 10);
       if (col === callCol && row === callRow){
+        c.classList.add('called');
         c.innerHTML = SIGNAL_ICON;
       }
     });
   }
 
+  /* The crossing (bullseye) cell gets zone-red-col + zone-blue-row just
+     like any other cell in the rolled column/row — the combo rule below
+     blends them into the same-intensity purple tint automatically, so it
+     never appears brighter than the plain row/column highlighting. */
   function paintResult(redZone, blueZone){
     coordGrid.querySelectorAll('.coord-cell').forEach(c => {
       const col = parseInt(c.dataset.col, 10);
       const row = parseInt(c.dataset.row, 10);
       if (col === redZone) c.classList.add('zone-red-col');
       if (row === blueZone) c.classList.add('zone-blue-row');
-      if (col === redZone && row === blueZone){
-        c.style.background = RESULT_BG;
-      }
     });
   }
 
