@@ -480,6 +480,86 @@
             bs.start(t); bs.stop(t+dur);
           });
         } catch(e) {}
+      },
+      hover(){
+        try {
+          const c = getCtx();
+          const osc = c.createOscillator(); osc.type='sine'; osc.frequency.value=1800;
+          const gn = c.createGain();
+          gn.gain.setValueAtTime(VOL*0.06, c.currentTime);
+          gn.gain.exponentialRampToValueAtTime(0.001, c.currentTime+0.02);
+          osc.connect(gn); gn.connect(c.destination);
+          osc.start(); osc.stop(c.currentTime+0.02);
+        } catch(e) {}
+      },
+      select(freq){
+        try {
+          const c = getCtx();
+          const osc = c.createOscillator(); osc.type='triangle'; osc.frequency.value=freq||260;
+          const gn = c.createGain();
+          gn.gain.setValueAtTime(VOL*0.6, c.currentTime);
+          gn.gain.exponentialRampToValueAtTime(0.001, c.currentTime+0.045);
+          osc.connect(gn); gn.connect(c.destination);
+          osc.start(); osc.stop(c.currentTime+0.045);
+        } catch(e) {}
+      },
+      lock(){
+        try {
+          const c = getCtx();
+          const dur = 0.09;
+          const buf = c.createBuffer(1, Math.floor(c.sampleRate*dur), c.sampleRate);
+          const d = buf.getChannelData(0);
+          for (let i=0;i<d.length;i++) d[i] = (Math.random()*2-1)*Math.pow(1-i/d.length, 1.4);
+          const src = c.createBufferSource(); src.buffer = buf;
+          const flt = c.createBiquadFilter(); flt.type='bandpass'; flt.frequency.value=350; flt.Q.value=1.2;
+          const flt2 = c.createBiquadFilter(); flt2.type='lowpass'; flt2.frequency.value=700;
+          const gn = c.createGain();
+          gn.gain.setValueAtTime(VOL*0.9, c.currentTime);
+          gn.gain.exponentialRampToValueAtTime(0.001, c.currentTime+dur);
+          src.connect(flt); flt.connect(flt2); flt2.connect(gn); gn.connect(c.destination);
+          src.start(); src.stop(c.currentTime+dur);
+        } catch(e) {}
+      },
+      barTick(progress){
+        try {
+          const c = getCtx();
+          const dur = 0.03;
+          const buf = c.createBuffer(1, Math.floor(c.sampleRate*dur), c.sampleRate);
+          const d = buf.getChannelData(0);
+          for (let i=0;i<d.length;i++) d[i] = (Math.random()*2-1)*(1-i/d.length);
+          const src = c.createBufferSource(); src.buffer = buf;
+          const flt = c.createBiquadFilter(); flt.type='highpass'; flt.frequency.value = 1800 + (progress||0)*2200;
+          const gn = c.createGain();
+          gn.gain.setValueAtTime(VOL*0.35, c.currentTime);
+          gn.gain.exponentialRampToValueAtTime(0.001, c.currentTime+dur);
+          src.connect(flt); flt.connect(gn); gn.connect(c.destination);
+          src.start(); src.stop(c.currentTime+dur);
+        } catch(e) {}
+      },
+      confirm(){
+        try {
+          const c = getCtx();
+          const osc = c.createOscillator(); osc.type='sine'; osc.frequency.value=740;
+          const gn = c.createGain();
+          gn.gain.setValueAtTime(VOL*0.25, c.currentTime);
+          gn.gain.exponentialRampToValueAtTime(0.001, c.currentTime+0.09);
+          osc.connect(gn); gn.connect(c.destination);
+          osc.start(); osc.stop(c.currentTime+0.09);
+        } catch(e) {}
+      },
+      surge(){
+        try {
+          const c = getCtx();
+          const gn = c.createGain(); gn.connect(c.destination);
+          [330,440].forEach((freq,idx) => {
+            const osc = c.createOscillator(); osc.type='sawtooth'; osc.frequency.value=freq;
+            osc.connect(gn);
+            const t = c.currentTime+idx*0.1;
+            gn.gain.setValueAtTime(VOL*0.35, t);
+            gn.gain.exponentialRampToValueAtTime(0.001, t+0.1);
+            osc.start(t); osc.stop(t+0.1);
+          });
+        } catch(e) {}
       }
     };
   })();
@@ -583,8 +663,10 @@
     for (let n = fromTotal + 1; n <= toTotal; n++){
       const { barIndex, overlay } = pointToSegment(n);
       const seg = segByIndex(barIndex);
+      const progress = barIndex / GAUGE_SEGMENTS;
       setTimeout(() => {
         if (seg) seg.classList.add(overlay ? 'overlay' : 'lit');
+        SFX.barTick(progress);
       }, step * FILL_STEP_MS);
       step++;
     }
@@ -606,10 +688,16 @@
     gaugeWrap.classList.toggle('disabled', !wager);
   }
 
+  resourceRow.addEventListener('pointerenter', (e) => {
+    const btn = e.target.closest && e.target.closest('.resource-btn');
+    if (btn && !gameOver && rollsUsed === 0) SFX.hover();
+  }, true);
+
   resourceRow.addEventListener('click', (e) => {
     if (gameOver || rollsUsed > 0) return;
     const btn = e.target.closest('.resource-btn');
     if (!btn) return;
+    SFX.select();
     resourceRow.querySelectorAll('.resource-btn').forEach(b => b.classList.remove('selected'));
     btn.classList.add('selected');
     wager = btn.dataset.resource;
@@ -628,7 +716,7 @@
       roll.id = 'rollBtn';
       roll.textContent = 'Roll the Dice';
       roll.disabled = !wager;
-      roll.addEventListener('click', doRoll);
+      roll.addEventListener('click', () => { SFX.select(); doRoll(); });
       actionRow.appendChild(roll);
     } else if (total > WIN_MAX || rollsUsed >= MAX_ROLLS) {
       // no choice left — resolveEnd() handles this case directly
@@ -640,13 +728,13 @@
         total >= WIN_MIN ? 'Bank It (' + total + ')' :
         'Bank It (' + total + ' — safe)';
       bank.disabled = total < PARTIAL_MIN;
-      bank.addEventListener('click', () => resolveEnd('banked'));
+      bank.addEventListener('click', () => { SFX.select(); resolveEnd('banked'); });
       actionRow.appendChild(bank);
 
       const push = document.createElement('button');
       push.className = 'btn risk';
       push.textContent = 'Push Your Luck (' + (MAX_ROLLS - rollsUsed) + ' left)';
-      push.addEventListener('click', doRoll);
+      push.addEventListener('click', () => { SFX.select(); doRoll(); });
       actionRow.appendChild(push);
     }
   }
@@ -681,6 +769,7 @@
     renderDie(dieBlue, blue);
     if (rollsUsed === 0){
       resourceRow.querySelectorAll('.resource-btn').forEach(b => b.classList.add('locked'));
+      SFX.lock();
     }
     rollsUsed++;
     const beforeTotal = total;
