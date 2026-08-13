@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+CiAgPHJlY3QgeD0iNSIgeT0iNiIgd2lkdGg9IjYiIGhlaWdodD0iMTAiIHJ4PSIxIiBmaWxsPSIjZTg3MzJhIiBvcGFjaXR5PSIwLjkiLz4KICA8cmVjdCB4PSIxMyIgeT0iMiIgd2lkdGg9IjYiIGhlaWdodD0iMTQiIHJ4PSIxIiBmaWxsPSIjZTg3MzJhIi8+CiAgPHJlY3QgeD0iMjEiIHk9IjYiIHdpZHRoPSI2IiBoZWlnaHQ9IjEwIiByeD0iMSIgZmlsbD0iI2U4NzMyYSIgb3BhY2l0eT0iMC45Ii8+CiAgPHJlY3QgeD0iMSIgeT0iMTciIHdpZHRoPSIxMyIgaGVpZ2h0PSIxMyIgcng9IjIuNSIgZmlsbD0iI2Q4MWYyZiIvPgogIDxjaXJjbGUgY3g9IjQuMyIgY3k9IjIwLjMiIHI9IjEuMyIgZmlsbD0iI2ZmZiIvPgogIDxjaXJjbGUgY3g9IjcuNSIgY3k9IjIzLjUiIHI9IjEuMyIgZmlsbD0iI2ZmZiIvPgogIDxjaXJjbGUgY3g9IjEwLjciIGN5PSIyNi43IiByPSIxLjMiIGZpbGw9IiNmZmYiLz4KICA8cmVjdCB4PSIxOCIgeT0iMTciIHdpZHRoPSIxMyIgaGVpZ2h0PSIxMyIgcng9IjIuNSIgZmlsbD0iIzFjOGZjNyIvPgogIDxjaXJjbGUgY3g9IjI3LjciIGN5PSIyMC4zIiByPSIxLjMiIGZpbGw9IiNmZmYiLz4KICA8Y2lyY2xlIGN4PSIyMS4zIiBjeT0iMjYuNyIgcj0iMS4zIiBmaWxsPSIjZmZmIi8+Cjwvc3ZnPgo=">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ECHOES // Core Stabilization</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --text:       #eef0f5;
+    --text-dim:   rgba(238,240,245,0.45);
+    --accent:     #4fc3f7;
+    --orange:     #e8732a;
+    --border:     rgba(238,240,245,0.12);
+    --red:        #ff4d5e;
+    --blue:       #4fc3f7;
+    --good:       #4fe0a1;
+    --bad:        #ff4d5e;
+    --violet:     #b98aff;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: 100%; min-height: 100%;
+    background: #050709;
+    font-family: 'Barlow Condensed', sans-serif;
+    color: var(--text);
+  }
+  body {
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 0%, rgba(79,195,247,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse 70% 50% at 50% 100%, rgba(232,115,42,0.06) 0%, transparent 60%),
+      linear-gradient(160deg, #030508 0%, #070b12 45%, #05080d 100%);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 28px 20px 60px;
+  }
+  body::before {
+    content: "";
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background: repeating-linear-gradient(0deg,
+      rgba(255,255,255,0.05) 0px, rgba(255,255,255,0.05) 1px,
+      transparent 1px, transparent 4px);
+    mix-blend-mode: overlay;
+  }
+
+  nav {
+    width: 100%; max-width: 760px;
+    display: flex; align-items: center; justify-content: center;
+    gap: 22px; flex-wrap: wrap;
+    padding: 4px 4px 22px;
+    z-index: 1;
+  }
+  nav a {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--text-dim); text-decoration: none;
+  }
+  nav a:hover { color: var(--text); }
+  nav .sep {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: rgba(238,240,245,0.2);
+    letter-spacing: 0;
+    user-select: none;
+  }
+  .games-nav { margin-top: -14px; }
+
+  .test-banner {
+    width: 100%; max-width: 620px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--orange); text-align: center;
+    border: 1px dashed rgba(232,115,42,0.4);
+    background: rgba(232,115,42,0.06);
+    padding: 8px 14px; margin-bottom: 18px; z-index: 1;
+  }
+
+  header.title-block {
+    z-index: 1;
+    text-align: center;
+    margin-bottom: 22px;
+  }
+  .eyebrow {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px; letter-spacing: 0.28em; text-transform: uppercase;
+    color: var(--accent); opacity: 0.8; margin-bottom: 8px;
+  }
+  h1 {
+    font-weight: 900; letter-spacing: 0.04em; text-transform: uppercase;
+    font-size: clamp(32px, 6vw, 52px);
+    line-height: 0.95;
+  }
+  .subtitle {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px; color: var(--text-dim); letter-spacing: 0.05em;
+    margin-top: 10px; max-width: 520px; line-height: 1.7;
+  }
+
+  .panel {
+    z-index: 1;
+    width: 100%; max-width: 620px;
+    background: rgba(15,18,24,0.72);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    backdrop-filter: blur(6px);
+    padding: 28px;
+    position: relative;
+  }
+  .panel::before {
+    content: "";
+    position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, var(--red), var(--blue));
+    opacity: 0.7;
+  }
+
+  /* ── WAGER ── */
+  .stake-row {
+    display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;
+    margin: 18px 0 22px;
+  }
+  .resource-btn {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--text); background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border); border-radius: 3px;
+    padding: 12px 16px; cursor: pointer; transition: 0.15s;
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    min-width: 92px;
+  }
+  .resource-btn .icon { font-size: 20px; }
+  .resource-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .resource-btn.selected { border-color: var(--orange); background: rgba(232,115,42,0.12); color: var(--orange); }
+  .resource-btn.locked { pointer-events: none; opacity: 0.55; }
+
+  .rules-mini {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px; line-height: 1.9; color: var(--text-dim);
+    border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+    padding: 14px 0; margin: 20px 0;
+  }
+  .rules-mini strong { color: var(--text); }
+
+  .btn {
+    display: block; width: 100%;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px; letter-spacing: 0.16em; text-transform: uppercase;
+    color: #05080d; background: var(--accent);
+    border: none; border-radius: 3px; padding: 14px;
+    cursor: pointer; transition: 0.15s; font-weight: 700;
+  }
+  .btn:hover:not(:disabled) { filter: brightness(1.15); transform: translateY(-1px); }
+  .btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  .btn.secondary {
+    background: transparent; color: var(--text-dim);
+    border: 1px solid var(--border);
+  }
+  .btn.secondary:hover:not(:disabled) { color: var(--text); border-color: var(--text-dim); }
+  .btn.choice-blue { background: var(--blue); }
+  .btn.choice-red { background: var(--red); color: #eef0f5; }
+  .btn.choice-both { background: var(--orange); }
+
+  .status-bar {
+    display: flex; justify-content: center; align-items: center;
+    font-family: 'Share Tech Mono', monospace; font-size: 11px;
+    letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-dim);
+    margin: 4px 0 4px;
+  }
+  .status-bar .wager { color: var(--orange); }
+  .pips { display: flex; gap: 6px; justify-content: center; margin: 0 0 18px; }
+  .pip { width: 9px; height: 9px; border-radius: 2px; background: rgba(255,255,255,0.12); border: 1px solid var(--border); }
+  .pip.used { background: var(--orange); border-color: var(--orange); }
+
+  /* ── ALIGNMENT GAUGE ── */
+  .gauge-wrap { margin-bottom: 22px; transition: opacity 0.2s; }
+  .gauge-wrap.disabled { opacity: 0.3; }
+  .gauge-value-row {
+    display: flex; justify-content: center; align-items: baseline; gap: 8px;
+    margin-bottom: 10px;
+  }
+  .gauge-value-label {
+    font-family: 'Share Tech Mono', monospace; font-size: 10px;
+    letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-dim);
+  }
+  .gauge-value {
+    font-family: 'Share Tech Mono', monospace; font-size: 22px; font-weight: 700;
+    color: var(--text); transition: color 0.3s;
+  }
+  .gauge-value.zero { color: var(--good); }
+  .gauge-value.glancing { color: var(--violet); }
+  .gauge-value.fracture { color: var(--bad); }
+
+  .gauge-track {
+    position: relative;
+    height: 12px; border-radius: 6px;
+    background: linear-gradient(90deg,
+      var(--bad) 0%, rgba(255,77,94,0.35) 22%,
+      var(--violet) 44%, var(--good) 50%, var(--violet) 56%,
+      rgba(255,77,94,0.35) 78%, var(--bad) 100%);
+    opacity: 0.85;
+    margin: 0 6px 8px;
+  }
+  .gauge-center-tick {
+    position: absolute; left: 50%; top: -4px; bottom: -4px; width: 2px;
+    background: rgba(255,255,255,0.5); transform: translateX(-50%);
+  }
+  .gauge-pointer {
+    position: absolute; top: 50%; left: 50%;
+    width: 16px; height: 16px; border-radius: 50%;
+    background: var(--text); border: 2px solid #05080d;
+    box-shadow: 0 0 10px rgba(0,0,0,0.6);
+    transform: translate(-50%, -50%);
+    transition: left 0.5s cubic-bezier(0.22, 1, 0.36, 1), background 0.3s;
+  }
+  .gauge-pointer.zero { background: var(--good); }
+  .gauge-pointer.glancing { background: var(--violet); }
+  .gauge-pointer.fracture { background: var(--bad); }
+  .gauge-labels {
+    display: flex; justify-content: space-between;
+    font-family: 'Share Tech Mono', monospace; font-size: 9px;
+    color: var(--text-dim); padding: 0 2px;
+  }
+
+  .dice-stage {
+    display: flex; align-items: center; justify-content: center; gap: 28px;
+    margin: 10px 0 22px;
+  }
+  .die-wrap { text-align: center; }
+  .die-label {
+    font-family: 'Share Tech Mono', monospace; font-size: 10px;
+    letter-spacing: 0.2em; text-transform: uppercase; margin-top: 8px;
+    color: var(--text-dim);
+  }
+  .die-label .sign { font-weight: 700; }
+  .die {
+    width: 64px; height: 64px; border-radius: 10px;
+    display: grid; grid-template-columns: repeat(3,1fr); grid-template-rows: repeat(3,1fr);
+    padding: 10px; gap: 2px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.5);
+  }
+  .die.red { background: linear-gradient(145deg, #ff6270, #c11f30); }
+  .die.blue { background: linear-gradient(145deg, #6fd4ff, #1c8fc7); }
+  .die .pip-dot { border-radius: 50%; }
+  .die .pip-dot.on { background: #fff; }
+  .die.rolling { animation: shake 0.5s ease; }
+  @keyframes shake {
+    0%,100% { transform: rotate(0deg); }
+    20% { transform: rotate(-14deg); }
+    40% { transform: rotate(10deg); }
+    60% { transform: rotate(-8deg); }
+    80% { transform: rotate(6deg); }
+  }
+
+  .math-line {
+    text-align: center; font-family: 'Share Tech Mono', monospace;
+    font-size: 13px; color: var(--text-dim); letter-spacing: 0.06em;
+    margin-bottom: 22px; min-height: 18px;
+  }
+  .math-line .val { color: var(--text); font-weight: 700; }
+  .math-line .val-blue { color: var(--blue); font-weight: 700; }
+  .math-line .val-red { color: var(--red); font-weight: 700; }
+
+  .log {
+    font-family: 'Share Tech Mono', monospace; font-size: 11px;
+    color: var(--text-dim); line-height: 1.9;
+    border-top: 1px solid var(--border);
+    padding-top: 12px; margin-bottom: 20px;
+  }
+  .log div span.tag { color: var(--accent); }
+
+  .btn-row { display: flex; gap: 10px; }
+  .choice-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .choice-row .btn { flex: 1; min-width: 150px; }
+
+  /* ── RESULT ── */
+  #resultScreen {
+    margin-top: 20px;
+    padding-top: 18px;
+    border-top: 1px solid var(--border);
+  }
+  .result-banner {
+    text-align: center; padding: 10px 0 6px;
+  }
+  .result-banner .big {
+    font-weight: 900; letter-spacing: 0.05em; text-transform: uppercase;
+    font-size: clamp(26px, 5vw, 38px); margin-bottom: 10px;
+  }
+  .result-banner.win .big { color: var(--good); }
+  .result-banner.partial .big { color: var(--violet); }
+  .result-banner.fail .big { color: var(--bad); }
+  .result-detail {
+    font-family: 'Share Tech Mono', monospace; font-size: 12px;
+    color: var(--text-dim); line-height: 1.9; margin-bottom: 22px;
+  }
+  .result-detail strong { color: var(--text); }
+
+  .hidden { display: none !important; }
+
+  footer {
+    z-index: 1;
+    margin-top: 26px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase;
+    color: rgba(238,240,245,0.25);
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html">&larr; Echoes</a>
+  <span class="sep">//</span>
+  <a href="rules.html">Rules &amp; Design</a>
+  <span class="sep">//</span>
+  <a href="echo-events.html">Echo Events</a>
+  <span class="sep">//</span>
+  <a href="assets.html">Assets</a>
+  <span class="sep">//</span>
+  <a href="terminal.html">Terminal</a>
+</nav>
+
+<nav class="games-nav">
+  <a href="pull-the-fuse.html">Pull the Fuse</a>
+  <span class="sep">//</span>
+  <a href="dead-reckoning.html">Dead Reckoning</a>
+  <span class="sep">//</span>
+  <a href="cascade-failure.html">Cascade Failure</a>
+  <span class="sep">//</span>
+  <a href="pressure-leak.html">Pressure Leak</a>
+  <span class="sep">//</span>
+  <a href="dead-signal.html">Dead Signal</a>
+  <span class="sep">//</span>
+  <a href="core-stabilization.html" style="color:var(--accent);">Core Stabilization</a>
+</nav>
+
+<div class="test-banner">// Prototype — not yet listed on Rules &amp; Echo Events. Playtesting only.</div>
+
+<header class="title-block">
+  <div class="eyebrow">// Echo Event 06 — Balance Control</div>
+  <h1>Core Stabilization</h1>
+  <p class="subtitle">The gravity tether is out of alignment, violently swinging the ship's center of mass. Counter-steer the system back to true neutral before the stress tears the bulkhead apart.</p>
+</header>
+
+<div class="panel">
+
+  <div class="rules-mini">
+    <div><strong>Wager:</strong> Stake one resource before rolling. No resource = automatic failure.</div>
+    <div><strong>Each Pulse:</strong> Roll both dice, then apply Blue only, Red only, or both (net) to the running total. At least one die must be applied.</div>
+    <div><strong>Perfect Balance (0):</strong> Wager returned, doubled. <strong>Glancing Save (&plusmn;1):</strong> Wager returned, no bonus.</div>
+    <div><strong>Hull Fracture:</strong> Beyond &plusmn;1 after 3 Pulses &mdash; wager lost, +1 Noise per point away from zero.</div>
+  </div>
+
+  <div class="stake-row" id="resourceRow">
+    <div class="resource-btn" data-resource="Scrap"><span class="icon">&#9881;</span>Scrap</div>
+    <div class="resource-btn" data-resource="Salvage"><span class="icon">&#128230;</span>Salvage</div>
+    <div class="resource-btn" data-resource="Components"><span class="icon">&#128295;</span>Components</div>
+    <div class="resource-btn" data-resource="Data"><span class="icon">&#128190;</span>Data</div>
+  </div>
+  <div class="status-bar"><span class="wager" id="wagerLabel">No wager staked</span></div>
+
+  <div class="pips" id="pips">
+    <div class="pip"></div><div class="pip"></div><div class="pip"></div>
+  </div>
+
+  <div class="gauge-wrap disabled" id="gaugeWrap">
+    <div class="gauge-value-row">
+      <span class="gauge-value-label">Alignment</span>
+      <span class="gauge-value" id="gaugeValue">0</span>
+    </div>
+    <div class="gauge-track">
+      <div class="gauge-center-tick"></div>
+      <div class="gauge-pointer zero" id="gaugePointer"></div>
+    </div>
+    <div class="gauge-labels"><span>-18</span><span>0</span><span>+18</span></div>
+  </div>
+
+  <div class="dice-stage">
+    <div class="die-wrap">
+      <div class="die red" id="dieRed"></div>
+      <div class="die-label">Red <span class="sign">(&minus;)</span></div>
+    </div>
+    <div class="die-wrap">
+      <div class="die blue" id="dieBlue"></div>
+      <div class="die-label">Blue <span class="sign">(+)</span></div>
+    </div>
+  </div>
+
+  <div class="math-line" id="mathLine">Stake a resource to bring the tether online.</div>
+
+  <div class="log" id="log"></div>
+
+  <div id="actionRow" class="btn-row">
+    <button class="btn" id="rollBtn" disabled>Roll the Dice</button>
+  </div>
+
+  <!-- RESULT (appears below everything once pulses are spent) -->
+  <div id="resultScreen" class="hidden">
+    <div class="result-banner" id="resultBanner">
+      <div class="big" id="resultBig"></div>
+      <div class="result-detail" id="resultDetail"></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn" id="againBtn">Run Again</button>
+      <button class="btn secondary" id="closeBtn" onclick="window.location.href='rules.html#mini-games'">Back to Echoes</button>
+    </div>
+  </div>
+
+</div>
+
+<footer>ECHOES · EmptyFishTank-JB · Echo Event Mini-Game (Prototype)</footer>
+
+<script>
+(function(){
+  /* ── SOUND FX (adapted from terminal.html's synth engine) ── */
+  const SFX = (() => {
+    let ctx;
+    function getCtx(){
+      if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
+      if (ctx.state === 'suspended') ctx.resume();
+      return ctx;
+    }
+    const VOL = 0.18;
+    function noiseBurst(dur, filterType, freq, q, vol, envPow){
+      try {
+        const c = getCtx();
+        const buf = c.createBuffer(1, Math.floor(c.sampleRate*dur), c.sampleRate);
+        const d = buf.getChannelData(0);
+        for (let i=0;i<d.length;i++) d[i] = (Math.random()*2-1)*Math.pow(1-i/d.length, envPow||1);
+        const src = c.createBufferSource(); src.buffer = buf;
+        const flt = c.createBiquadFilter(); flt.type = filterType; flt.frequency.value = freq; if (q) flt.Q.value = q;
+        const gn = c.createGain();
+        gn.gain.setValueAtTime(vol, c.currentTime);
+        gn.gain.exponentialRampToValueAtTime(0.001, c.currentTime+dur);
+        src.connect(flt); flt.connect(gn); gn.connect(c.destination);
+        src.start(); src.stop(c.currentTime+dur);
+      } catch(e) {}
+    }
+    return {
+      tick(){ noiseBurst(0.025, 'bandpass', 3000+Math.random()*1000, 0.8, VOL, 1); },
+      settle(){ noiseBurst(0.055, 'lowpass', 800, null, VOL*1.2, 0.25); },
+      win(){
+        try {
+          const c = getCtx();
+          [660,880].forEach((f,i) => {
+            const osc = c.createOscillator(); osc.type='sine'; osc.frequency.value=f;
+            const gn = c.createGain();
+            const t = c.currentTime+i*0.09;
+            gn.gain.setValueAtTime(VOL*0.25, t);
+            gn.gain.exponentialRampToValueAtTime(0.001, t+0.08);
+            osc.connect(gn); gn.connect(c.destination);
+            osc.start(t); osc.stop(t+0.08);
+          });
+        } catch(e) {}
+      },
+      fail(){
+        try {
+          const c = getCtx();
+          [0, 0.08, 0.18].forEach((delay, i) => {
+            const t = c.currentTime+delay;
+            const vol = VOL*[0.9,0.35,0.12][i];
+            const dur = 0.07;
+            const buf = c.createBuffer(1, Math.floor(c.sampleRate*dur), c.sampleRate);
+            const d = buf.getChannelData(0);
+            for (let j=0;j<d.length;j++) d[j] = (Math.random()*2-1)*Math.pow(1-j/d.length, 1.8);
+            const bs = c.createBufferSource(); bs.buffer = buf;
+            const lo = c.createBiquadFilter(); lo.type='bandpass'; lo.frequency.value=320; lo.Q.value=0.9;
+            const gn = c.createGain();
+            gn.gain.setValueAtTime(vol, t); gn.gain.exponentialRampToValueAtTime(0.001, t+dur);
+            bs.connect(lo); lo.connect(gn); gn.connect(c.destination);
+            bs.start(t); bs.stop(t+dur);
+          });
+        } catch(e) {}
+      },
+      hover(){
+        try {
+          const c = getCtx();
+          const osc = c.createOscillator(); osc.type='sine'; osc.frequency.value=1800;
+          const gn = c.createGain();
+          gn.gain.setValueAtTime(VOL*0.06, c.currentTime);
+          gn.gain.exponentialRampToValueAtTime(0.001, c.currentTime+0.02);
+          osc.connect(gn); gn.connect(c.destination);
+          osc.start(); osc.stop(c.currentTime+0.02);
+        } catch(e) {}
+      },
+      select(freq){
+        try {
+          const c = getCtx();
+          const osc = c.createOscillator(); osc.type='triangle'; osc.frequency.value=freq||260;
+          const gn = c.createGain();
+          gn.gain.setValueAtTime(VOL*0.6, c.currentTime);
+          gn.gain.exponentialRampToValueAtTime(0.001, c.currentTime+0.045);
+          osc.connect(gn); gn.connect(c.destination);
+          osc.start(); osc.stop(c.currentTime+0.045);
+        } catch(e) {}
+      },
+      lock(){
+        try {
+          const c = getCtx();
+          const dur = 0.09;
+          const buf = c.createBuffer(1, Math.floor(c.sampleRate*dur), c.sampleRate);
+          const d = buf.getChannelData(0);
+          for (let i=0;i<d.length;i++) d[i] = (Math.random()*2-1)*Math.pow(1-i/d.length, 1.4);
+          const src = c.createBufferSource(); src.buffer = buf;
+          const flt = c.createBiquadFilter(); flt.type='bandpass'; flt.frequency.value=350; flt.Q.value=1.2;
+          const flt2 = c.createBiquadFilter(); flt2.type='lowpass'; flt2.frequency.value=700;
+          const gn = c.createGain();
+          gn.gain.setValueAtTime(VOL*0.9, c.currentTime);
+          gn.gain.exponentialRampToValueAtTime(0.001, c.currentTime+dur);
+          src.connect(flt); flt.connect(flt2); flt2.connect(gn); gn.connect(c.destination);
+          src.start(); src.stop(c.currentTime+dur);
+        } catch(e) {}
+      },
+      confirm(){
+        try {
+          const c = getCtx();
+          const osc = c.createOscillator(); osc.type='sine'; osc.frequency.value=740;
+          const gn = c.createGain();
+          gn.gain.setValueAtTime(VOL*0.25, c.currentTime);
+          gn.gain.exponentialRampToValueAtTime(0.001, c.currentTime+0.09);
+          osc.connect(gn); gn.connect(c.destination);
+          osc.start(); osc.stop(c.currentTime+0.09);
+        } catch(e) {}
+      }
+    };
+  })();
+
+  const DOTS = {
+    1: [4],
+    2: [0,8],
+    3: [0,4,8],
+    4: [0,2,6,8],
+    5: [0,2,4,6,8],
+    6: [0,2,3,5,6,8]
+  };
+
+  const MAX_ROLLS = 3;
+  const RANGE = 18; // gauge display range, -18..+18
+
+  let wager = null;
+  let total = 0;
+  let pulsesUsed = 0;
+  let gameOver = false;
+
+  const resourceRow  = document.getElementById('resourceRow');
+  const wagerLabel   = document.getElementById('wagerLabel');
+  const pipsEl       = document.getElementById('pips');
+  const gaugeWrap    = document.getElementById('gaugeWrap');
+  const gaugeValue   = document.getElementById('gaugeValue');
+  const gaugePointer = document.getElementById('gaugePointer');
+  const dieRed       = document.getElementById('dieRed');
+  const dieBlue      = document.getElementById('dieBlue');
+  const mathLine     = document.getElementById('mathLine');
+  const logEl        = document.getElementById('log');
+  const actionRow    = document.getElementById('actionRow');
+  const resultScreen = document.getElementById('resultScreen');
+  const resultBanner = document.getElementById('resultBanner');
+  const resultBig    = document.getElementById('resultBig');
+  const resultDetail = document.getElementById('resultDetail');
+  const againBtn     = document.getElementById('againBtn');
+
+  function renderDie(el, value){
+    el.innerHTML = '';
+    for (let i = 0; i < 9; i++){
+      const d = document.createElement('div');
+      d.className = 'pip-dot' + (DOTS[value].includes(i) ? ' on' : '');
+      el.appendChild(d);
+    }
+  }
+
+  function updatePips(){
+    const pips = pipsEl.querySelectorAll('.pip');
+    pips.forEach((p, i) => p.classList.toggle('used', i < pulsesUsed));
+  }
+
+  function log(msg){
+    const line = document.createElement('div');
+    line.innerHTML = msg;
+    logEl.appendChild(line);
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+
+  function zoneOf(t){
+    if (t === 0) return 'zero';
+    if (Math.abs(t) === 1) return 'glancing';
+    return 'fracture';
+  }
+
+  function updateGauge(){
+    const zone = zoneOf(total);
+    gaugeValue.textContent = (total > 0 ? '+' : '') + total;
+    gaugeValue.className = 'gauge-value ' + zone;
+    gaugePointer.className = 'gauge-pointer ' + zone;
+    const clamped = Math.max(-RANGE, Math.min(RANGE, total));
+    const pct = ((clamped + RANGE) / (RANGE * 2)) * 100;
+    gaugePointer.style.left = pct + '%';
+  }
+
+  function updateGate(){
+    gaugeWrap.classList.toggle('disabled', !wager);
+  }
+
+  resourceRow.addEventListener('pointerenter', (e) => {
+    const btn = e.target.closest && e.target.closest('.resource-btn');
+    if (btn && !gameOver && pulsesUsed === 0) SFX.hover();
+  }, true);
+
+  resourceRow.addEventListener('click', (e) => {
+    if (gameOver || pulsesUsed > 0) return;
+    const btn = e.target.closest('.resource-btn');
+    if (!btn) return;
+    SFX.select();
+    resourceRow.querySelectorAll('.resource-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    wager = btn.dataset.resource;
+    wagerLabel.textContent = 'Wager: ' + wager;
+    mathLine.textContent = 'Tether online. Roll when ready.';
+    updateGate();
+    renderActions();
+  });
+
+  function renderActions(){
+    actionRow.innerHTML = '';
+    if (gameOver) return;
+    const roll = document.createElement('button');
+    roll.className = 'btn';
+    roll.id = 'rollBtn';
+    roll.textContent = pulsesUsed === 0 ? 'Roll the Dice' : 'Roll Again (' + (MAX_ROLLS - pulsesUsed) + ' left)';
+    roll.disabled = !wager;
+    roll.addEventListener('click', () => { SFX.select(); doRoll(); });
+    actionRow.appendChild(roll);
+  }
+
+  function doRoll(){
+    if (gameOver || pulsesUsed >= MAX_ROLLS) return;
+    actionRow.querySelectorAll('button').forEach(b => b.disabled = true);
+    if (pulsesUsed === 0){
+      resourceRow.querySelectorAll('.resource-btn').forEach(b => b.classList.add('locked'));
+      SFX.lock();
+    }
+    dieRed.classList.add('rolling');
+    dieBlue.classList.add('rolling');
+
+    let ticks = 0;
+    const spin = setInterval(() => {
+      renderDie(dieRed, 1 + Math.floor(Math.random()*6));
+      renderDie(dieBlue, 1 + Math.floor(Math.random()*6));
+      SFX.tick();
+      ticks++;
+      if (ticks > 6){
+        clearInterval(spin);
+        resolveRoll();
+      }
+    }, 60);
+  }
+
+  function resolveRoll(){
+    dieRed.classList.remove('rolling');
+    dieBlue.classList.remove('rolling');
+    SFX.settle();
+
+    const blue = 1 + Math.floor(Math.random()*6);
+    const red = 1 + Math.floor(Math.random()*6);
+    renderDie(dieRed, red);
+    renderDie(dieBlue, blue);
+
+    mathLine.innerHTML = 'Blue <span class="val-blue">' + blue + '</span> &middot; Red <span class="val-red">' + red +
+      '</span> &mdash; choose how to apply it.';
+
+    renderChoices(blue, red);
+  }
+
+  function renderChoices(blue, red){
+    actionRow.innerHTML = '';
+    const both = blue - red;
+
+    const blueBtn = document.createElement('button');
+    blueBtn.className = 'btn choice-blue';
+    blueBtn.textContent = 'Blue Only (' + (blue >= 0 ? '+' : '') + blue + ')';
+    blueBtn.addEventListener('click', () => applyChoice(blue, 'Blue only', blue));
+    actionRow.appendChild(blueBtn);
+
+    const redBtn = document.createElement('button');
+    redBtn.className = 'btn choice-red';
+    redBtn.textContent = 'Red Only (' + (-red) + ')';
+    redBtn.addEventListener('click', () => applyChoice(-red, 'Red only', -red));
+    actionRow.appendChild(redBtn);
+
+    const bothBtn = document.createElement('button');
+    bothBtn.className = 'btn choice-both';
+    bothBtn.textContent = 'Both (net ' + (both >= 0 ? '+' : '') + both + ')';
+    bothBtn.addEventListener('click', () => applyChoice(both, 'Both (net)', both));
+    actionRow.appendChild(bothBtn);
+
+    Array.from(actionRow.children).forEach(btn => {
+      btn.addEventListener('pointerenter', () => SFX.hover());
+    });
+  }
+
+  function applyChoice(delta, label, deltaLabel){
+    SFX.select();
+    total += delta;
+    pulsesUsed++;
+    updatePips();
+    updateGauge();
+
+    log('<span class="tag">Pulse ' + pulsesUsed + '/' + MAX_ROLLS + '</span> — applied ' + label + ' (' +
+      (deltaLabel >= 0 ? '+' : '') + deltaLabel + ') — running total <strong>' + (total >= 0 ? '+' : '') + total + '</strong>.');
+
+    if (pulsesUsed >= MAX_ROLLS){
+      endGame();
+    } else {
+      renderActions();
+    }
+  }
+
+  function endGame(){
+    gameOver = true;
+    actionRow.innerHTML = '';
+    const zone = zoneOf(total);
+    setTimeout(() => {
+      resultScreen.classList.remove('hidden');
+      if (zone === 'zero'){
+        SFX.win();
+        resultBanner.className = 'result-banner win';
+        resultBig.textContent = 'PERFECT BALANCE';
+        resultDetail.innerHTML = 'Tether steadied at exactly <strong>0</strong>. <strong>' + wager + '</strong> returned, doubled.';
+      } else if (zone === 'glancing'){
+        SFX.win();
+        resultBanner.className = 'result-banner partial';
+        resultBig.textContent = 'GLANCING SAVE';
+        resultDetail.innerHTML = 'Settled at <strong>' + (total >= 0 ? '+' : '') + total + '</strong> &mdash; close enough. <strong>' + wager + '</strong> returned, no bonus.';
+      } else {
+        SFX.fail();
+        const noise = Math.abs(total);
+        resultBanner.className = 'result-banner fail';
+        resultBig.textContent = 'HULL FRACTURE';
+        resultDetail.innerHTML = 'Ended at <strong>' + (total >= 0 ? '+' : '') + total + '</strong>, ' + noise + ' point' + (noise === 1 ? '' : 's') +
+          ' off zero. <strong>' + wager + '</strong> lost — <strong>+' + noise + ' Noise</strong>.';
+      }
+      resultScreen.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    }, 400);
+  }
+
+  function resetGame(){
+    wager = null;
+    total = 0;
+    pulsesUsed = 0;
+    gameOver = false;
+    resourceRow.querySelectorAll('.resource-btn').forEach(b => b.classList.remove('selected', 'locked'));
+    wagerLabel.textContent = 'No wager staked';
+    updatePips();
+    updateGauge();
+    updateGate();
+    renderDie(dieRed, 1);
+    renderDie(dieBlue, 1);
+    mathLine.textContent = 'Stake a resource to bring the tether online.';
+    logEl.innerHTML = '';
+    renderActions();
+    resultScreen.classList.add('hidden');
+  }
+
+  againBtn.addEventListener('click', resetGame);
+
+  resetGame();
+})();
+</script>
+
+</body>
+</html>
