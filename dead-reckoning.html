@@ -180,13 +180,19 @@
     background: rgba(255,255,255,0.03);
     cursor: pointer;
     transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
+    display: flex; align-items: center; justify-content: center;
   }
   .coord-cell:hover { border-color: var(--accent); }
   .coord-cell.zone-red-col { background: rgba(255,77,94,0.14); }
   .coord-cell.zone-blue-row { background: rgba(79,195,247,0.14); }
   .coord-cell.zone-red-col.zone-blue-row { background: rgba(185,138,255,0.14); }
+  .coord-cell.called { background: rgba(232,115,42,0.12); border-color: var(--orange); }
+  .cell-signal { width: 46%; height: 46%; }
+
   .coord-grid.locked .coord-cell { cursor: default; }
   .coord-grid.locked .coord-cell:hover { border-color: var(--border); }
+  .coord-grid.disabled { opacity: 0.3; pointer-events: none; }
+  .coord-grid.disabled .coord-cell { cursor: not-allowed; }
 
   .coord-caption {
     text-align: center; font-family: 'Share Tech Mono', monospace;
@@ -288,7 +294,7 @@
     <div><strong>Wager:</strong> Stake one resource before rolling. No resource = automatic failure.</div>
     <div><strong>Exact Win:</strong> Both zones match your call &mdash; wager returned, doubled.</div>
     <div><strong>Zone Win:</strong> Only the Red or only the Blue zone matches &mdash; wager returned.</div>
-    <div><strong>Miss:</strong> Neither zone matches &mdash; wager lost, +2 Noise, Creature +1.</div>
+    <div><strong>Miss:</strong> Neither zone matches &mdash; wager lost, +4 Noise, Creature +1.</div>
   </div>
 
   <div class="stake-row" id="resourceRow">
@@ -303,7 +309,7 @@
   <div class="coord-wrap">
     <div class="coord-grid" id="coordGrid"></div>
   </div>
-  <div class="coord-caption" id="coordCaption">Pick a zone below, then roll.</div>
+  <div class="coord-caption" id="coordCaption">Stake a resource to unlock the grid.</div>
 
   <div class="dice-stage">
     <div class="die-wrap">
@@ -355,7 +361,7 @@
 
   // Diagonal red/blue "X" split for the result cell — top & bottom wedges
   // red, left & right wedges blue, seams running corner-to-corner.
-  const RESULT_BG = 'conic-gradient(from -45deg, var(--red) 0deg 90deg, var(--blue) 90deg 180deg, var(--red) 180deg 270deg, var(--blue) 270deg 360deg)';
+  const RESULT_BG = 'conic-gradient(from -45deg, rgba(255,77,94,0.4) 0deg 90deg, rgba(79,195,247,0.4) 90deg 180deg, rgba(255,77,94,0.4) 180deg 270deg, rgba(79,195,247,0.4) 270deg 360deg)';
 
   let wager = null;
   let callCol = null; // red zone (1-3)
@@ -412,12 +418,19 @@
     });
   }
 
+  const SIGNAL_ICON = '<svg class="cell-signal" viewBox="0 0 24 24">' +
+    '<rect x="2" y="9" width="5" height="13" rx="1.5" fill="var(--orange)" opacity="0.6"/>' +
+    '<rect x="9.5" y="4" width="5" height="18" rx="1.5" fill="var(--orange)"/>' +
+    '<rect x="17" y="9" width="5" height="13" rx="1.5" fill="var(--orange)" opacity="0.6"/>' +
+    '</svg>';
+
   function clearCellStyles(){
     coordGrid.querySelectorAll('.coord-cell').forEach(c => {
-      c.classList.remove('zone-red-col', 'zone-blue-row');
+      c.classList.remove('zone-red-col', 'zone-blue-row', 'called');
       c.style.background = '';
       c.style.borderColor = '';
       c.style.boxShadow = '';
+      c.innerHTML = '';
     });
   }
 
@@ -430,8 +443,8 @@
       const col = parseInt(c.dataset.col, 10);
       const row = parseInt(c.dataset.row, 10);
       if (col === callCol && row === callRow){
-        c.style.background = 'rgba(232,115,42,0.35)';
-        c.style.borderColor = 'var(--orange)';
+        c.classList.add('called');
+        c.innerHTML = SIGNAL_ICON;
       }
     });
   }
@@ -444,7 +457,7 @@
       if (row === blueZone) c.classList.add('zone-blue-row');
       if (col === redZone && row === blueZone){
         c.style.background = RESULT_BG;
-        c.style.borderColor = '#fff';
+        c.style.borderColor = 'var(--violet)';
         if (col === callCol && row === callRow){
           c.style.boxShadow = '0 0 0 2px var(--orange) inset';
         }
@@ -456,8 +469,12 @@
     rollBtn.disabled = rolled || !wager || callCol === null || callRow === null;
   }
 
+  function updateGridLock(){
+    coordGrid.classList.toggle('disabled', !wager && !rolled);
+  }
+
   coordGrid.addEventListener('click', (e) => {
-    if (rolled) return;
+    if (rolled || !wager) return;
     const cell = e.target.closest('.coord-cell');
     if (!cell) return;
     callCol = parseInt(cell.dataset.col, 10);
@@ -476,6 +493,7 @@
     btn.classList.add('selected');
     wager = btn.dataset.resource;
     wagerLabel.textContent = 'Wager: ' + wager;
+    updateGridLock();
     updateRollBtn();
   });
 
@@ -537,7 +555,7 @@
       } else {
         resultBanner.className = 'result-banner fail';
         resultBig.textContent = 'MISSED THE MARK';
-        resultDetail.innerHTML = 'Neither axis matched your call. <strong>' + wager + '</strong> lost — <strong>+2 Noise</strong>, <strong>Creature +1</strong>.';
+        resultDetail.innerHTML = 'Neither axis matched your call. <strong>' + wager + '</strong> lost — <strong>+4 Noise</strong>, <strong>Creature +1</strong>.';
       }
       resultScreen.scrollIntoView({ behavior: 'smooth', block: 'end' });
     }, 500);
@@ -552,7 +570,8 @@
     wagerLabel.textContent = 'No wager staked';
     buildGrid();
     coordGrid.classList.remove('locked');
-    coordCaption.textContent = 'Pick a zone below, then roll.';
+    updateGridLock();
+    coordCaption.textContent = 'Stake a resource to unlock the grid.';
     renderDie(dieRed, 1);
     renderDie(dieBlue, 1);
     mathLine.textContent = 'One roll. Everything rides on it.';
