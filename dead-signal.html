@@ -479,11 +479,11 @@
     if (phase === 'stake'){
       if (!wager) return;
       mainBtn.disabled = true;
+      resourceRow.querySelectorAll('.resource-btn').forEach(b => b.classList.add('locked'));
       spinDice(establishSignal);
     } else if (phase === 'pulses'){
       if (gameOver || rollsUsed >= MAX_ROLLS) return;
       mainBtn.disabled = true;
-      resourceRow.querySelectorAll('.resource-btn').forEach(b => b.classList.add('locked'));
       spinDice(resolvePulse);
     }
   });
