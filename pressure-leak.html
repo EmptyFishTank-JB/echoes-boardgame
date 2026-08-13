@@ -94,7 +94,7 @@
   .panel::before {
     content: "";
     position: absolute; top: 0; left: 0; right: 0; height: 2px;
-    background: linear-gradient(90deg, var(--orange), var(--accent));
+    background: linear-gradient(90deg, var(--red), var(--blue));
     opacity: 0.7;
   }
 
@@ -316,12 +316,12 @@
 
   <div class="dice-stage">
     <div class="die-wrap">
-      <div class="die champion" id="dieChampion"></div>
-      <div class="die-label champion-label">Champion</div>
-    </div>
-    <div class="die-wrap">
       <div class="die opposing" id="dieOpposing"></div>
       <div class="die-label opposing-label">Opposing</div>
+    </div>
+    <div class="die-wrap">
+      <div class="die champion" id="dieChampion"></div>
+      <div class="die-label champion-label">Champion</div>
     </div>
   </div>
 

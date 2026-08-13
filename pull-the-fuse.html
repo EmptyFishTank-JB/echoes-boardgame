@@ -93,7 +93,7 @@
   .panel::before {
     content: "";
     position: absolute; top: 0; left: 0; right: 0; height: 2px;
-    background: linear-gradient(90deg, var(--orange), var(--accent));
+    background: linear-gradient(90deg, var(--red), var(--blue));
     opacity: 0.7;
   }
 
@@ -114,6 +114,7 @@
   .resource-btn .icon { font-size: 20px; }
   .resource-btn:hover { border-color: var(--accent); color: var(--accent); }
   .resource-btn.selected { border-color: var(--orange); background: rgba(232,115,42,0.12); color: var(--orange); }
+  .resource-btn.locked { pointer-events: none; opacity: 0.55; }
 
   .rules-mini {
     font-family: 'Share Tech Mono', monospace;
@@ -154,7 +155,9 @@
   .fuse-row {
     display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px;
     margin-bottom: 26px;
+    transition: opacity 0.2s;
   }
+  .fuse-row.disabled { opacity: 0.3; pointer-events: none; }
   .fuse {
     aspect-ratio: 1; border-radius: 4px;
     display: flex; align-items: center; justify-content: center;
@@ -291,63 +294,56 @@
 
 <div class="panel">
 
-  <!-- STAKE SCREEN -->
-  <div id="stakeScreen">
-    <div class="rules-mini">
-      <div><strong>Wager:</strong> Stake one resource before rolling. No resource = automatic failure.</div>
-      <div><strong>Win:</strong> All 6 fuses cut within 3 rolls &mdash; wager returned, doubled.</div>
-      <div><strong>System Surge:</strong> Rolling doubles cuts the matching fuse, plus lets you pick one more open fuse to shut.</div>
-      <div><strong>Fail:</strong> Rolls exhausted with fuses still open &mdash; wager lost, +1 Noise per open fuse.</div>
-    </div>
-    <div class="stake-row" id="resourceRow">
-      <div class="resource-btn" data-resource="Scrap"><span class="icon">&#9881;</span>Scrap</div>
-      <div class="resource-btn" data-resource="Salvage"><span class="icon">&#128230;</span>Salvage</div>
-      <div class="resource-btn" data-resource="Components"><span class="icon">&#128295;</span>Components</div>
-      <div class="resource-btn" data-resource="Data"><span class="icon">&#128190;</span>Data</div>
-    </div>
-    <button class="btn" id="stakeBtn" disabled>Stake &amp; Begin</button>
+  <div class="rules-mini">
+    <div><strong>Wager:</strong> Stake one resource before rolling. No resource = automatic failure.</div>
+    <div><strong>Win:</strong> All 6 fuses cut within 3 rolls &mdash; wager returned, doubled.</div>
+    <div><strong>System Surge:</strong> Rolling doubles cuts the matching fuse, plus lets you pick one more open fuse to shut.</div>
+    <div><strong>Fail:</strong> Rolls exhausted with fuses still open &mdash; wager lost, +1 Noise per open fuse.</div>
   </div>
 
-  <!-- GAME SCREEN -->
-  <div id="gameScreen" class="hidden">
-    <div class="status-bar">
-      <span class="wager" id="wagerLabel"></span>
-      <div class="pips" id="pips">
-        <div class="pip"></div><div class="pip"></div><div class="pip"></div>
-      </div>
+  <div class="stake-row" id="resourceRow">
+    <div class="resource-btn" data-resource="Scrap"><span class="icon">&#9881;</span>Scrap</div>
+    <div class="resource-btn" data-resource="Salvage"><span class="icon">&#128230;</span>Salvage</div>
+    <div class="resource-btn" data-resource="Components"><span class="icon">&#128295;</span>Components</div>
+    <div class="resource-btn" data-resource="Data"><span class="icon">&#128190;</span>Data</div>
+  </div>
+  <div class="status-bar">
+    <span class="wager" id="wagerLabel">No wager staked</span>
+    <div class="pips" id="pips">
+      <div class="pip"></div><div class="pip"></div><div class="pip"></div>
     </div>
+  </div>
 
-    <div class="fuse-row" id="fuseRow"></div>
+  <div class="fuse-row disabled" id="fuseRow"></div>
 
-    <div class="dice-stage">
-      <div class="die-wrap">
-        <div class="die red" id="dieRed"></div>
-        <div class="die-label">Red</div>
-      </div>
-      <div class="die-wrap">
-        <div class="die blue" id="dieBlue"></div>
-        <div class="die-label">Blue</div>
-      </div>
+  <div class="dice-stage">
+    <div class="die-wrap">
+      <div class="die red" id="dieRed"></div>
+      <div class="die-label">Red</div>
     </div>
+    <div class="die-wrap">
+      <div class="die blue" id="dieBlue"></div>
+      <div class="die-label">Blue</div>
+    </div>
+  </div>
 
-    <div class="math-line" id="mathLine">Roll to reveal Red, Blue, Sum, and Difference.</div>
+  <div class="math-line" id="mathLine">Stake a resource to unlock the fuse board.</div>
 
-    <div class="log" id="log"></div>
+  <div class="log" id="log"></div>
 
+  <div class="btn-row">
+    <button class="btn" id="rollBtn" disabled>Roll the Dice</button>
+  </div>
+
+  <!-- RESULT (appears below everything once rolls are spent) -->
+  <div id="resultScreen" class="hidden">
+    <div class="result-banner" id="resultBanner">
+      <div class="big" id="resultBig"></div>
+      <div class="result-detail" id="resultDetail"></div>
+    </div>
     <div class="btn-row">
-      <button class="btn" id="rollBtn">Roll the Dice</button>
-    </div>
-
-    <!-- RESULT (appears below roll info once rolls are spent) -->
-    <div id="resultScreen" class="hidden">
-      <div class="result-banner" id="resultBanner">
-        <div class="big" id="resultBig"></div>
-        <div class="result-detail" id="resultDetail"></div>
-      </div>
-      <div class="btn-row">
-        <button class="btn" id="againBtn">Run Again</button>
-        <button class="btn secondary" id="closeBtn" onclick="window.location.href='rules.html#mini-games'">Back to Echoes</button>
-      </div>
+      <button class="btn" id="againBtn">Run Again</button>
+      <button class="btn secondary" id="closeBtn" onclick="window.location.href='rules.html#mini-games'">Back to Echoes</button>
     </div>
   </div>
 
@@ -375,11 +371,8 @@
   let gameOver = false;
   let surgeActive = false;
 
-  const stakeScreen  = document.getElementById('stakeScreen');
-  const gameScreen   = document.getElementById('gameScreen');
   const resultScreen = document.getElementById('resultScreen');
   const resourceRow  = document.getElementById('resourceRow');
-  const stakeBtn     = document.getElementById('stakeBtn');
   const wagerLabel   = document.getElementById('wagerLabel');
   const pipsEl       = document.getElementById('pips');
   const fuseRow      = document.getElementById('fuseRow');
@@ -430,37 +423,24 @@
   }
 
   resourceRow.addEventListener('click', (e) => {
+    if (rollsUsed > 0 || gameOver) return;
     const btn = e.target.closest('.resource-btn');
     if (!btn) return;
     resourceRow.querySelectorAll('.resource-btn').forEach(b => b.classList.remove('selected'));
     btn.classList.add('selected');
     wager = btn.dataset.resource;
-    stakeBtn.disabled = false;
-  });
-
-  stakeBtn.addEventListener('click', () => {
-    NUMS.forEach(n => fuseOpen[n] = true);
-    rollsUsed = 0;
-    gameOver = false;
-    surgeActive = false;
-    fuseRow.classList.remove('surge-pick');
-    buildFuseRow();
-    updatePips();
     wagerLabel.textContent = 'Wager: ' + wager;
-    renderDie(dieRed, 1);
-    renderDie(dieBlue, 1);
+    fuseRow.classList.remove('disabled');
     mathLine.textContent = 'Roll to reveal Red, Blue, Sum, and Difference.';
-    logEl.innerHTML = '';
     rollBtn.disabled = false;
-    rollBtn.textContent = 'Roll the Dice';
-    stakeScreen.classList.add('hidden');
-    resultScreen.classList.add('hidden');
-    gameScreen.classList.remove('hidden');
   });
 
   rollBtn.addEventListener('click', () => {
-    if (gameOver || rollsUsed >= MAX_ROLLS) return;
+    if (gameOver || !wager || rollsUsed >= MAX_ROLLS) return;
     rollBtn.disabled = true;
+    if (rollsUsed === 0){
+      resourceRow.querySelectorAll('.resource-btn').forEach(b => b.classList.add('locked'));
+    }
     dieRed.classList.add('rolling');
     dieBlue.classList.add('rolling');
 
@@ -581,14 +561,30 @@
     }, 500);
   }
 
-  againBtn.addEventListener('click', () => {
+  function resetGame(){
     wager = null;
-    resourceRow.querySelectorAll('.resource-btn').forEach(b => b.classList.remove('selected'));
-    stakeBtn.disabled = true;
+    NUMS.forEach(n => fuseOpen[n] = true);
+    rollsUsed = 0;
+    gameOver = false;
+    surgeActive = false;
+    resourceRow.querySelectorAll('.resource-btn').forEach(b => b.classList.remove('selected', 'locked'));
+    wagerLabel.textContent = 'No wager staked';
+    fuseRow.classList.remove('surge-pick');
+    fuseRow.classList.add('disabled');
+    buildFuseRow();
+    updatePips();
+    renderDie(dieRed, 1);
+    renderDie(dieBlue, 1);
+    mathLine.textContent = 'Stake a resource to unlock the fuse board.';
+    logEl.innerHTML = '';
+    rollBtn.textContent = 'Roll the Dice';
+    rollBtn.disabled = true;
     resultScreen.classList.add('hidden');
-    gameScreen.classList.add('hidden');
-    stakeScreen.classList.remove('hidden');
-  });
+  }
+
+  againBtn.addEventListener('click', resetGame);
+
+  resetGame();
 })();
 </script>
 
