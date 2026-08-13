@@ -3314,6 +3314,24 @@
 
   loadFromStorage();
   loadLayoutSettings();
+
+  /* ── re-scroll to the URL's #hash once the page settles ──
+     loadFromStorage() can swap in a saved copy of the content, and web
+     fonts finishing late can reflow the page — both happen after the
+     browser's own initial jump-to-anchor, so a deep link like
+     rules.html#mini-games can land on the wrong section. Re-apply the
+     scroll once things have actually stabilized. */
+  if (location.hash){
+    const rescrollToHash = () => {
+      const target = document.querySelector(location.hash);
+      if (target) target.scrollIntoView();
+    };
+    requestAnimationFrame(() => requestAnimationFrame(rescrollToHash));
+    window.addEventListener('load', () => setTimeout(rescrollToHash, 50));
+    if (document.fonts && document.fonts.ready){
+      document.fonts.ready.then(() => setTimeout(rescrollToHash, 50));
+    }
+  }
 })();
 </script>
 </body>
