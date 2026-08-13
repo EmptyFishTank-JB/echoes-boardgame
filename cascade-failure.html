@@ -168,11 +168,12 @@
   .gauge-wrap.disabled { opacity: 0.3; }
   .gauge-segments {
     display: grid;
-    grid-template-columns: repeat(36, 1fr);
+    grid-template-columns: repeat(21, 1fr);
     gap: 1px;
     height: 22px;
   }
   .gauge-seg {
+    position: relative;
     background: rgba(255,255,255,0.05);
     border-radius: 1px;
     transition: background 0.2s;
@@ -180,7 +181,12 @@
   .gauge-seg.zone-orange.lit { background: var(--orange); }
   .gauge-seg.zone-blue.lit { background: var(--accent); }
   .gauge-seg.zone-green.lit { background: var(--good); }
-  .gauge-seg.zone-bust.lit {
+  /* Overflow past 21 overlays on top of the existing 21 bars, starting
+     from the leftmost bar again (bar 22 = bar 1, bar 23 = bar 2, ...). */
+  .gauge-seg.overlay::after {
+    content: "";
+    position: absolute; inset: 0;
+    border-radius: 1px;
     background: repeating-linear-gradient(135deg,
       var(--bad) 0px, var(--bad) 3px,
       #2a0a0d 3px, #2a0a0d 6px);
@@ -326,7 +332,7 @@
   <div class="gauge-wrap disabled" id="gaugeWrap">
     <div class="gauge-segments" id="gaugeSegments"></div>
   </div>
-  <div class="gauge-ticks"><span>0</span><span>18</span><span>21</span><span>36</span></div>
+  <div class="gauge-ticks"><span>0</span><span>18</span><span>21</span></div>
 
   <div class="total-row">
     <div><span class="total-value" id="totalValue">0</span> <span class="total-label">Total</span></div>
@@ -385,7 +391,8 @@
 
   const MAX_ROLLS = 3;
   const WIN_MIN = 18, WIN_MAX = 21;
-  const GAUGE_SEGMENTS = 36; // 3 rolls x 2 dice x 6 = highest possible total
+  const GAUGE_SEGMENTS = 21;
+  const FILL_STEP_MS = 90;
 
   let wager = null;
   let total = 0;
@@ -420,14 +427,13 @@
     }
   }
 
-  // One segment per point, 1-36. Below 18 = orange, 18-20 = blue, 21 = green,
-  // 22+ = red/slashed "burst" bars — each one past 21 that lights up shows
-  // how far over the limit the total went (25 = 4 lit burst bars, etc).
+  // 21 fixed bars: below 18 = orange, 18-20 = blue, 21 = green. Points past
+  // 21 don't add new bars — they overlay back onto the same 21, starting
+  // from bar 1 again (point 22 = bar 1, point 23 = bar 2, ...).
   function zoneClass(i){
     if (i < WIN_MIN) return 'zone-orange';
     if (i < WIN_MAX) return 'zone-blue';
-    if (i === WIN_MAX) return 'zone-green';
-    return 'zone-bust';
+    return 'zone-green';
   }
 
   function buildGaugeSegments(){
@@ -440,13 +446,41 @@
     }
   }
 
-  function updateGauge(){
+  // For point n (1-based, can exceed 21), find which bar lights up and
+  // whether it's a base fill or an overlay (wrapped past 21).
+  function pointToSegment(n){
+    if (n <= GAUGE_SEGMENTS) return { barIndex: n, overlay: false };
+    const overflow = n - GAUGE_SEGMENTS;
+    const barIndex = ((overflow - 1) % GAUGE_SEGMENTS) + 1;
+    return { barIndex, overlay: true };
+  }
+
+  function segByIndex(i){
+    return gaugeSegments.children[i - 1];
+  }
+
+  function resetGaugeVisual(){
+    gaugeSegments.querySelectorAll('.gauge-seg').forEach(seg => {
+      seg.classList.remove('lit', 'overlay');
+    });
     totalValue.textContent = total;
     onesValue.textContent = onesCount;
-    gaugeSegments.querySelectorAll('.gauge-seg').forEach(seg => {
-      const i = parseInt(seg.dataset.i, 10);
-      seg.classList.toggle('lit', total >= i);
-    });
+  }
+
+  // Animate the newly-crossed points (fromTotal, toTotal] one bar at a
+  // time, left to right, instead of updating the whole meter at once.
+  function animateGaugeFill(fromTotal, toTotal){
+    totalValue.textContent = toTotal;
+    onesValue.textContent = onesCount;
+    let step = 0;
+    for (let n = fromTotal + 1; n <= toTotal; n++){
+      const { barIndex, overlay } = pointToSegment(n);
+      const seg = segByIndex(barIndex);
+      setTimeout(() => {
+        if (seg) seg.classList.add(overlay ? 'overlay' : 'lit');
+      }, step * FILL_STEP_MS);
+      step++;
+    }
   }
 
   function updatePips(){
@@ -538,11 +572,12 @@
       resourceRow.querySelectorAll('.resource-btn').forEach(b => b.classList.add('locked'));
     }
     rollsUsed++;
+    const beforeTotal = total;
     total += red + blue;
     const onesThisRoll = (red === 1 ? 1 : 0) + (blue === 1 ? 1 : 0);
     onesCount += onesThisRoll;
     updatePips();
-    updateGauge();
+    animateGaugeFill(beforeTotal, total);
 
     mathLine.innerHTML = 'Roll ' + rollsUsed + '/' + MAX_ROLLS + ': Red <span class="val">' + red +
       '</span> + Blue <span class="val">' + blue + '</span> &rarr; total <span class="val">' + total + '</span>' +
@@ -602,7 +637,7 @@
     resourceRow.querySelectorAll('.resource-btn').forEach(b => b.classList.remove('selected', 'locked'));
     wagerLabel.textContent = 'No wager staked';
     buildGaugeSegments();
-    updateGauge();
+    resetGaugeVisual();
     updatePips();
     renderDie(dieRed, 1);
     renderDie(dieBlue, 1);
