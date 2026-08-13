@@ -375,6 +375,69 @@
 
 <script>
 (function(){
+  /* ── SOUND FX (adapted from terminal.html's synth engine) ── */
+  const SFX = (() => {
+    let ctx;
+    function getCtx(){
+      if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
+      if (ctx.state === 'suspended') ctx.resume();
+      return ctx;
+    }
+    const VOL = 0.18;
+    function noiseBurst(dur, filterType, freq, q, vol, envPow){
+      try {
+        const c = getCtx();
+        const buf = c.createBuffer(1, Math.floor(c.sampleRate*dur), c.sampleRate);
+        const d = buf.getChannelData(0);
+        for (let i=0;i<d.length;i++) d[i] = (Math.random()*2-1)*Math.pow(1-i/d.length, envPow||1);
+        const src = c.createBufferSource(); src.buffer = buf;
+        const flt = c.createBiquadFilter(); flt.type = filterType; flt.frequency.value = freq; if (q) flt.Q.value = q;
+        const gn = c.createGain();
+        gn.gain.setValueAtTime(vol, c.currentTime);
+        gn.gain.exponentialRampToValueAtTime(0.001, c.currentTime+dur);
+        src.connect(flt); flt.connect(gn); gn.connect(c.destination);
+        src.start(); src.stop(c.currentTime+dur);
+      } catch(e) {}
+    }
+    return {
+      tick(){ noiseBurst(0.025, 'bandpass', 3000+Math.random()*1000, 0.8, VOL, 1); },
+      settle(){ noiseBurst(0.055, 'lowpass', 800, null, VOL*1.2, 0.25); },
+      win(){
+        try {
+          const c = getCtx();
+          [660,880].forEach((f,i) => {
+            const osc = c.createOscillator(); osc.type='sine'; osc.frequency.value=f;
+            const gn = c.createGain();
+            const t = c.currentTime+i*0.09;
+            gn.gain.setValueAtTime(VOL*0.25, t);
+            gn.gain.exponentialRampToValueAtTime(0.001, t+0.08);
+            osc.connect(gn); gn.connect(c.destination);
+            osc.start(t); osc.stop(t+0.08);
+          });
+        } catch(e) {}
+      },
+      fail(){
+        try {
+          const c = getCtx();
+          [0, 0.08, 0.18].forEach((delay, i) => {
+            const t = c.currentTime+delay;
+            const vol = VOL*[0.9,0.35,0.12][i];
+            const dur = 0.07;
+            const buf = c.createBuffer(1, Math.floor(c.sampleRate*dur), c.sampleRate);
+            const d = buf.getChannelData(0);
+            for (let j=0;j<d.length;j++) d[j] = (Math.random()*2-1)*Math.pow(1-j/d.length, 1.8);
+            const bs = c.createBufferSource(); bs.buffer = buf;
+            const lo = c.createBiquadFilter(); lo.type='bandpass'; lo.frequency.value=320; lo.Q.value=0.9;
+            const gn = c.createGain();
+            gn.gain.setValueAtTime(vol, t); gn.gain.exponentialRampToValueAtTime(0.001, t+dur);
+            bs.connect(lo); lo.connect(gn); gn.connect(c.destination);
+            bs.start(t); bs.stop(t+dur);
+          });
+        } catch(e) {}
+      }
+    };
+  })();
+
   const DOTS = {
     1: [4],
     2: [0,8],
@@ -470,6 +533,7 @@
     const spin = setInterval(() => {
       renderDie(dieRed, 1 + Math.floor(Math.random()*6));
       renderDie(dieBlue, 1 + Math.floor(Math.random()*6));
+      SFX.tick();
       ticks++;
       if (ticks > 6){
         clearInterval(spin);
@@ -481,6 +545,7 @@
   function resolveRoll(){
     dieRed.classList.remove('rolling');
     dieBlue.classList.remove('rolling');
+    SFX.settle();
 
     const red = 1 + Math.floor(Math.random()*6);
     const blue = 1 + Math.floor(Math.random()*6);
@@ -569,10 +634,12 @@
     setTimeout(() => {
       resultScreen.classList.remove('hidden');
       if (won){
+        SFX.win();
         resultBanner.className = 'result-banner win';
         resultBig.textContent = 'ALL FUSES CUT';
         resultDetail.innerHTML = '<strong>' + wager + '</strong> returned, doubled, after ' + rollsUsed + ' roll' + (rollsUsed === 1 ? '' : 's') + '.';
       } else {
+        SFX.fail();
         const openList = NUMS.filter(n => fuseOpen[n]);
         resultBanner.className = 'result-banner fail';
         resultBig.textContent = 'ROLLS EXHAUSTED';
