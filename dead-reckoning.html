@@ -294,7 +294,7 @@
     <div><strong>Wager:</strong> Stake one resource before rolling. No resource = automatic failure.</div>
     <div><strong>Exact Win:</strong> Both zones match your call &mdash; wager returned, doubled.</div>
     <div><strong>Zone Win:</strong> Only the Red or only the Blue zone matches &mdash; wager returned.</div>
-    <div><strong>Miss:</strong> Neither zone matches &mdash; wager lost, +4 Noise, Creature +1.</div>
+    <div><strong>Miss:</strong> Neither zone matches &mdash; wager lost, +2 Noise.</div>
   </div>
 
   <div class="stake-row" id="resourceRow">
@@ -546,7 +546,7 @@
       } else {
         resultBanner.className = 'result-banner fail';
         resultBig.textContent = 'MISSED THE MARK';
-        resultDetail.innerHTML = 'Neither axis matched your call. <strong>' + wager + '</strong> lost — <strong>+4 Noise</strong>, <strong>Creature +1</strong>.';
+        resultDetail.innerHTML = 'Neither axis matched your call. <strong>' + wager + '</strong> lost — <strong>+2 Noise</strong>.';
       }
       resultScreen.scrollIntoView({ behavior: 'smooth', block: 'end' });
     }, 500);

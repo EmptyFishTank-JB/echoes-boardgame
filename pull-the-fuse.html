@@ -181,6 +181,17 @@
     0% { transform: scale(1.15); box-shadow: 0 0 18px rgba(255,77,94,0.6); }
     100% { transform: scale(1); box-shadow: none; }
   }
+  .fuse-row.surge-pick .fuse:not(.shut) {
+    cursor: pointer;
+    border-color: var(--orange);
+    background: rgba(232,115,42,0.12);
+    animation: surge-pulse 1s ease-in-out infinite;
+  }
+  @keyframes surge-pulse {
+    0%, 100% { box-shadow: 0 0 0 rgba(232,115,42,0); }
+    50% { box-shadow: 0 0 12px rgba(232,115,42,0.55); }
+  }
+  .math-line .surge { color: var(--orange); font-weight: 700; }
 
   .dice-stage {
     display: flex; align-items: center; justify-content: center; gap: 28px;
@@ -285,6 +296,7 @@
     <div class="rules-mini">
       <div><strong>Wager:</strong> Stake one resource before rolling. No resource = automatic failure.</div>
       <div><strong>Win:</strong> All 6 fuses cut within 3 rolls &mdash; wager returned, doubled.</div>
+      <div><strong>System Surge:</strong> Rolling doubles cuts the matching fuse, plus lets you pick one more open fuse to shut.</div>
       <div><strong>Fail:</strong> Rolls exhausted with fuses still open &mdash; wager lost, +1 Noise per open fuse.</div>
     </div>
     <div class="stake-row" id="resourceRow">
@@ -361,6 +373,7 @@
   let fuseOpen = {};
   let rollsUsed = 0;
   let gameOver = false;
+  let surgeActive = false;
 
   const stakeScreen  = document.getElementById('stakeScreen');
   const gameScreen   = document.getElementById('gameScreen');
@@ -429,6 +442,8 @@
     NUMS.forEach(n => fuseOpen[n] = true);
     rollsUsed = 0;
     gameOver = false;
+    surgeActive = false;
+    fuseRow.classList.remove('surge-pick');
     buildFuseRow();
     updatePips();
     wagerLabel.textContent = 'Wager: ' + wager;
@@ -502,6 +517,38 @@
       setTimeout(() => el.classList.remove('just-shut'), 500);
     });
 
+    const isDouble = (red === blue);
+    if (isDouble && openFuseCount() > 0){
+      beginSurge();
+    } else {
+      finishRoll();
+    }
+  }
+
+  // System Surge: rolling doubles lets the player shut one extra open
+  // fuse of their choice, on top of whatever the roll itself cut.
+  function beginSurge(){
+    surgeActive = true;
+    mathLine.innerHTML += ' <span class="surge">&mdash; System Surge! Pick one more fuse to shut.</span>';
+    log('<span class="tag">System Surge</span> — doubles rolled. Choose one more open fuse to shut.');
+    fuseRow.classList.add('surge-pick');
+  }
+
+  fuseRow.addEventListener('click', (e) => {
+    if (!surgeActive) return;
+    const cell = e.target.closest('.fuse');
+    if (!cell || cell.classList.contains('shut')) return;
+    const n = parseInt(cell.id.replace('fuse-', ''), 10);
+    fuseOpen[n] = false;
+    cell.classList.add('shut', 'just-shut');
+    setTimeout(() => cell.classList.remove('just-shut'), 500);
+    log('<span class="tag">Surge Pick</span> — shut fuse ' + n + '.');
+    surgeActive = false;
+    fuseRow.classList.remove('surge-pick');
+    finishRoll();
+  });
+
+  function finishRoll(){
     if (openFuseCount() === 0){
       endGame(true);
       return;

@@ -180,6 +180,7 @@
     transition: background 0.2s, border-color 0.2s;
   }
   .gauge-seg.zone-orange.lit { background: rgba(232,115,42,0.08); border-color: var(--orange); }
+  .gauge-seg.zone-violet.lit { background: rgba(185,138,255,0.08); border-color: var(--violet); }
   .gauge-seg.zone-blue.lit { background: rgba(79,195,247,0.08); border-color: var(--accent); }
   .gauge-seg.zone-green.lit { background: rgba(79,224,161,0.08); border-color: var(--good); }
   /* Overflow past 21 overlays on top of the existing 21 bars, starting
@@ -282,6 +283,7 @@
     font-size: clamp(24px, 5vw, 36px); margin-bottom: 10px;
   }
   .result-banner.win .big { color: var(--good); }
+  .result-banner.partial .big { color: var(--violet); }
   .result-banner.fail .big { color: var(--bad); }
   .result-detail {
     font-family: 'Share Tech Mono', monospace; font-size: 12px;
@@ -321,8 +323,9 @@
   <div class="rules-mini">
     <div><strong>Wager:</strong> Stake one resource before rolling. No resource = automatic failure.</div>
     <div><strong>Win:</strong> Bank 18&ndash;20 &mdash; wager doubled. Bank exactly 21 &mdash; wager tripled.</div>
+    <div><strong>Partial Win:</strong> Bank 14&ndash;17 &mdash; wager returned, no bonus.</div>
     <div><strong>Bust:</strong> Total exceeds 21 &mdash; wager lost, +3 Noise.</div>
-    <div><strong>Short:</strong> Bank (or run out of rolls) under 18 &mdash; wager lost, +3 Noise.</div>
+    <div><strong>Short:</strong> Run out of rolls under 14 &mdash; wager lost, +3 Noise.</div>
     <div><strong>Every Run:</strong> +1 Noise per &ldquo;1&rdquo; rolled, whether you win or lose.</div>
   </div>
 
@@ -334,11 +337,11 @@
   </div>
   <div class="status-bar"><span class="wager" id="wagerLabel">No wager staked</span></div>
 
-  <div class="gauge-section-label">// Running Total — Bank at 18&ndash;21, 21 Pays Triple</div>
+  <div class="gauge-section-label">// Running Total — Safe at 14+, Win at 18&ndash;21, 21 Pays Triple</div>
   <div class="gauge-wrap disabled" id="gaugeWrap">
     <div class="gauge-segments" id="gaugeSegments"></div>
   </div>
-  <div class="gauge-ticks"><span>0</span><span>18</span><span>21</span></div>
+  <div class="gauge-ticks"><span>0</span><span>14</span><span>18</span><span>21</span></div>
 
   <div class="total-row">
     <div><span class="total-value" id="totalValue">0</span> <span class="total-label">Total</span></div>
@@ -396,6 +399,7 @@
   };
 
   const MAX_ROLLS = 3;
+  const PARTIAL_MIN = 14;
   const WIN_MIN = 18, WIN_MAX = 21;
   const GAUGE_SEGMENTS = 21;
   const FILL_STEP_MS = 90;
@@ -433,11 +437,13 @@
     }
   }
 
-  // 21 fixed bars: below 18 = orange, 18-20 = blue, 21 = green. Points past
-  // 21 don't add new bars — they overlay back onto the same 21, starting
-  // from bar 1 again (point 22 = bar 1, point 23 = bar 2, ...).
+  // 21 fixed bars: below 14 = orange, 14-17 = violet (partial win), 18-20 =
+  // blue (full win), 21 = green (triple). Points past 21 don't add new
+  // bars — they overlay back onto the same 21, starting from bar 1 again
+  // (point 22 = bar 1, point 23 = bar 2, ...).
   function zoneClass(i){
-    if (i < WIN_MIN) return 'zone-orange';
+    if (i < PARTIAL_MIN) return 'zone-orange';
+    if (i < WIN_MIN) return 'zone-violet';
     if (i < WIN_MAX) return 'zone-blue';
     return 'zone-green';
   }
@@ -534,9 +540,11 @@
     } else {
       const bank = document.createElement('button');
       bank.className = 'btn good';
-      bank.textContent = total < WIN_MIN ? 'Bank It (needs ' + WIN_MIN + '+)' :
-        (total === WIN_MAX ? 'Bank It (21 — TRIPLE!)' : 'Bank It (' + total + ')');
-      bank.disabled = total < WIN_MIN;
+      bank.textContent = total < PARTIAL_MIN ? 'Bank It (needs ' + PARTIAL_MIN + '+)' :
+        total === WIN_MAX ? 'Bank It (21 — TRIPLE!)' :
+        total >= WIN_MIN ? 'Bank It (' + total + ')' :
+        'Bank It (' + total + ' — safe)';
+      bank.disabled = total < PARTIAL_MIN;
       bank.addEventListener('click', () => resolveEnd('banked'));
       actionRow.appendChild(bank);
 
@@ -607,7 +615,8 @@
     gameOver = true;
     actionRow.innerHTML = '';
     updateGate();
-    const won = total >= WIN_MIN && total <= WIN_MAX;
+    const fullWin = total >= WIN_MIN && total <= WIN_MAX;
+    const partialWin = total >= PARTIAL_MIN && total < WIN_MIN;
     const exact = total === WIN_MAX;
     // The reactor keeps a noise signature for every "1" rolled during the
     // run, win or lose — only the flat +3 penalty is fail-only.
@@ -616,14 +625,18 @@
       : '';
     setTimeout(() => {
       resultScreen.classList.remove('hidden');
-      if (won && exact){
+      if (fullWin && exact){
         resultBanner.className = 'result-banner win';
         resultBig.textContent = 'PERFECT CONTAINMENT';
         resultDetail.innerHTML = 'Banked at exactly <strong>21</strong>. <strong>' + wager + '</strong> returned, tripled.' + onesNoise;
-      } else if (won){
+      } else if (fullWin){
         resultBanner.className = 'result-banner win';
         resultBig.textContent = 'CASCADE CONTAINED';
         resultDetail.innerHTML = 'Banked at <strong>' + total + '</strong>. <strong>' + wager + '</strong> returned, doubled.' + onesNoise;
+      } else if (partialWin){
+        resultBanner.className = 'result-banner partial';
+        resultBig.textContent = 'STABILIZED';
+        resultDetail.innerHTML = 'Banked at <strong>' + total + '</strong> — a partial containment. <strong>' + wager + '</strong> returned, no bonus.' + onesNoise;
       } else if (reason === 'bust'){
         resultBanner.className = 'result-banner fail';
         resultBig.textContent = 'REACTOR OVERLOAD';
@@ -632,7 +645,7 @@
       } else {
         resultBanner.className = 'result-banner fail';
         resultBig.textContent = 'CONTAINMENT FAILED';
-        resultDetail.innerHTML = 'Stopped at <strong>' + total + '</strong> — short of 18. <strong>' + wager +
+        resultDetail.innerHTML = 'Stopped at <strong>' + total + '</strong> — short of ' + PARTIAL_MIN + '. <strong>' + wager +
           '</strong> lost — <strong>+3 Noise</strong>' + (onesCount > 0 ? ', plus' + onesNoise : '.');
       }
       resultScreen.scrollIntoView({ behavior: 'smooth', block: 'end' });
