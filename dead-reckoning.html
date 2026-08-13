@@ -288,9 +288,9 @@
   <div id="stakeScreen">
     <div class="rules-mini">
       <div><strong>Wager:</strong> Stake one resource before rolling. No resource = automatic failure.</div>
-      <div><strong>Win:</strong> Both zones match your call exactly &mdash; wager returned, doubled.</div>
-      <div><strong>Near Miss:</strong> One axis (Red or Blue) matches &mdash; wager lost, +2 Noise, Creature +1.</div>
-      <div><strong>Miss:</strong> Neither axis matches &mdash; wager lost, +4 Noise, Creature +1.</div>
+      <div><strong>Exact Win:</strong> Both zones match your call &mdash; wager returned, doubled.</div>
+      <div><strong>Zone Win:</strong> Only the Red or only the Blue zone matches &mdash; wager returned.</div>
+      <div><strong>Miss:</strong> Neither zone matches &mdash; wager lost, +4 Noise, Creature +1.</div>
     </div>
     <div class="stake-row" id="resourceRow">
       <div class="resource-btn" data-resource="Scrap"><span class="icon">&#9881;</span>Scrap</div>
@@ -429,14 +429,14 @@
     });
   }
 
+  /* Pre-roll: only the exact called cell is marked. Row/column don't light
+     up until after the roll, when they show the dice's actual outcome. */
   function paintSelection(){
     clearCellStyles();
     if (callCol === null || callRow === null) return;
     coordGrid.querySelectorAll('.coord-cell').forEach(c => {
       const col = parseInt(c.dataset.col, 10);
       const row = parseInt(c.dataset.row, 10);
-      if (col === callCol) c.classList.add('zone-red-col');
-      if (row === callRow) c.classList.add('zone-blue-row');
       if (col === callCol && row === callRow){
         c.style.background = 'rgba(232,115,42,0.35)';
         c.style.borderColor = 'var(--orange)';
@@ -557,9 +557,9 @@
         resultBig.textContent = 'DEAD ON';
         resultDetail.innerHTML = 'Exact zone match. <strong>' + wager + '</strong> returned, doubled.';
       } else if (hits === 1){
-        resultBanner.className = 'result-banner fail';
-        resultBig.textContent = 'NEAR MISS';
-        resultDetail.innerHTML = 'One axis matched your call. <strong>' + wager + '</strong> lost — <strong>+2 Noise</strong>, <strong>Creature +1</strong>.';
+        resultBanner.className = 'result-banner win';
+        resultBig.textContent = 'ZONE HIT';
+        resultDetail.innerHTML = 'One axis matched your call. <strong>' + wager + '</strong> returned.';
       } else {
         resultBanner.className = 'result-banner fail';
         resultBig.textContent = 'MISSED THE MARK';
