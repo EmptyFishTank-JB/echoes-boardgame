@@ -80,6 +80,12 @@ The player has a maximum of 3 rolls to satisfy their chosen Tier conditions. If 
 > | 2 | 1–2 | ~23.0% | +3 (quadrupled) | +5 |
 > | 1 | 1 only | ~8.1% | +5 (sextupled, "Jackpot") | +6 |
 >
+> **Under Consideration — Not Adopted:** Cesar proposed dropping the ceiling entirely. Instead of "Champion ≥ Opposing AND Champion ≤ ceiling," the chosen Tier would be *subtracted* from the Champion Die, and the modified result just needs to beat or match the Opposing Die: `Champion − Tier ≥ Opposing`. Ties go to the Champion in both versions.
+>
+> Checked the math: this produces the **identical win-probability curve**, Tier for Tier, as the ceiling version above — it's not a rebalance, purely a clarity change. The real difference is that every Champion roll matters under Cesar's version (a high roll is always good, it just might not clear the subtraction), where the ceiling version can make a Champion 6 an instant dead roll depending on the chosen Tier — likely the actual source of confusion both playtests flagged.
+>
+> One wrinkle if this gets adopted: Tier 6 can't literally subtract 6, since that would zero out the Champion Die on every roll and break the 1–6 theme. Tier 6 would stay a pure "beat or match Opposing, no subtraction" tier (equivalent to a subtraction of 0) — a deliberate exception to keep the numbering consistent, not an oversight.
+>
 > Adjust freely — these are a starting point, not a ruling.
 
 ---
