@@ -169,27 +169,32 @@
   .gauge-segments {
     display: grid;
     grid-template-columns: repeat(21, 1fr);
-    gap: 1px;
+    gap: 2px;
     height: 22px;
   }
   .gauge-seg {
     position: relative;
-    background: rgba(255,255,255,0.05);
-    border-radius: 1px;
-    transition: background 0.2s;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    transition: background 0.2s, border-color 0.2s;
   }
-  .gauge-seg.zone-orange.lit { background: var(--orange); }
-  .gauge-seg.zone-blue.lit { background: var(--accent); }
-  .gauge-seg.zone-green.lit { background: var(--good); }
+  .gauge-seg.zone-orange.lit { background: rgba(232,115,42,0.08); border-color: var(--orange); }
+  .gauge-seg.zone-blue.lit { background: rgba(79,195,247,0.08); border-color: var(--accent); }
+  .gauge-seg.zone-green.lit { background: rgba(79,224,161,0.08); border-color: var(--good); }
   /* Overflow past 21 overlays on top of the existing 21 bars, starting
      from the leftmost bar again (bar 22 = bar 1, bar 23 = bar 2, ...). */
+  .gauge-seg.overlay {
+    background: rgba(255,77,94,0.08);
+    border-color: var(--bad);
+  }
   .gauge-seg.overlay::after {
     content: "";
     position: absolute; inset: 0;
     border-radius: 1px;
     background: repeating-linear-gradient(135deg,
-      var(--bad) 0px, var(--bad) 3px,
-      #2a0a0d 3px, #2a0a0d 6px);
+      rgba(255,77,94,0.35) 0px, rgba(255,77,94,0.35) 3px,
+      transparent 3px, transparent 6px);
   }
   .gauge-ticks {
     display: flex; justify-content: space-between;
@@ -370,7 +375,7 @@
     </div>
     <div class="btn-row">
       <button class="btn" id="againBtn">Run Again</button>
-      <button class="btn secondary" id="closeBtn" onclick="window.location.href='index.html'">Back to Echoes</button>
+      <button class="btn secondary" id="closeBtn" onclick="window.location.href='rules.html#mini-games'">Back to Echoes</button>
     </div>
   </div>
 
