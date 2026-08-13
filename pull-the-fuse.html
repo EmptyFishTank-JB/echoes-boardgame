@@ -58,6 +58,14 @@
     color: var(--text-dim); text-decoration: none;
   }
   nav a:hover { color: var(--text); }
+  nav .sep {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: rgba(238,240,245,0.2);
+    letter-spacing: 0;
+    user-select: none;
+  }
+  .games-nav { margin-top: -14px; }
 
   header.title-block {
     z-index: 1;
@@ -279,10 +287,26 @@
 
 <nav>
   <a href="index.html">&larr; Echoes</a>
+  <span class="sep">//</span>
   <a href="rules.html">Rules &amp; Design</a>
+  <span class="sep">//</span>
   <a href="echo-events.html">Echo Events</a>
+  <span class="sep">//</span>
   <a href="assets.html">Assets</a>
+  <span class="sep">//</span>
   <a href="terminal.html">Terminal</a>
+</nav>
+
+<nav class="games-nav">
+  <a href="pull-the-fuse.html" style="color:var(--accent);">Pull the Fuse</a>
+  <span class="sep">//</span>
+  <a href="dead-reckoning.html">Dead Reckoning</a>
+  <span class="sep">//</span>
+  <a href="cascade-failure.html">Cascade Failure</a>
+  <span class="sep">//</span>
+  <a href="pressure-leak.html">Pressure Leak</a>
+  <span class="sep">//</span>
+  <a href="dead-signal.html">Dead Signal</a>
 </nav>
 
 <header class="title-block">
