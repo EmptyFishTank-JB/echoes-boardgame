@@ -1,0 +1,992 @@
+{
+  "meta": {
+    "version": "1.0",
+    "description": "ECHOES Terminal Node Architecture — TEMPLATE",
+    "node_positions": {
+      "L1C_ROOT": {
+        "x": 19.25653365530021,
+        "y": 19.25653365530021
+      },
+      "L1C_INTRO": {
+        "x": 315.33117222454433,
+        "y": 20.517780562691314
+      },
+      "L1_INTRO": {
+        "x": 560,
+        "y": 60
+      },
+      "L1_ROOT": {
+        "x": 558.9571187984827,
+        "y": 220.74102868468447
+      },
+      "L2_INTRO": {
+        "x": 860,
+        "y": 60
+      },
+      "L2_ROOT": {
+        "x": 860,
+        "y": 300
+      },
+      "L3_INTRO": {
+        "x": 1255.2725633258058,
+        "y": 46.8084143087346
+      },
+      "L3_ROOT": {
+        "x": 1439.4096949856596,
+        "y": 269.203203271349
+      },
+      "DEV_OVERRIDE_ROOT": {
+        "x": 20.620439913666317,
+        "y": 714.2086517339521
+      },
+      "L1_CREW_MANIFEST": {
+        "x": 1116.5373563437065,
+        "y": 273.4831921114825
+      },
+      "L1_MISSION_BRIEFING": {
+        "x": 890.789834601654,
+        "y": 460.578901787616
+      },
+      "L1_INCIDENT": {
+        "x": 1164.7495504866476,
+        "y": 534.4605997174284
+      },
+      "L1_RESTRICTED": {
+        "x": 968.3283208889997,
+        "y": 870.1368479544831
+      },
+      "L1_SYSTEM_LOGS": {
+        "x": 581.9195868158622,
+        "y": 703.9933384811475
+      },
+      "L1_BREACH": {
+        "x": 527.4237348334557,
+        "y": 957.9073462345247
+      },
+      "GLOBAL_HELP": {
+        "x": 26.201084550920427,
+        "y": 927.6011450407668
+      },
+      "GLOBAL_STATUS": {
+        "x": 27.17106419604528,
+        "y": 1198.5897342387464
+      },
+      "GLOBAL_SCAN": {
+        "x": 28.258923331254636,
+        "y": 1287.714170807603
+      },
+      "HELP": {
+        "x": 21.56493013170563,
+        "y": 609.6420141941024
+      }
+    },
+    "editor_version": "5.35",
+    "last_saved": "2026-05-29T20:04:22.234Z",
+    "schema_notes": "l1_commands, boot_script, dev_override_commands removed — commands now defined in global node bodies. L1C_ROOT and L1_ROOT both have is_root=true on l1: L1C_ROOT=chat/boot root, L1_ROOT=archive folder root."
+  },
+  "layers": {
+    "l1": {
+      "theme": "blue",
+      "header_title": "ECHO-ARCHIVE",
+      "ambient": "l1",
+      "_color": "#4fc3f7"
+    },
+    "l2": {
+      "theme": "amber",
+      "header_title": "ECHO-ARCHIVE",
+      "ambient": "l2",
+      "_color": "#bf7c0a"
+    },
+    "l3": {
+      "theme": "red",
+      "header_title": "DEEP ARCHIVE",
+      "ambient": "l3",
+      "_color": "#e05050"
+    }
+  },
+  "nodes": {
+    "L1C_ROOT": {
+      "layer": "l1",
+      "node_type": "chat",
+      "is_root": true,
+      "fetch_allowed": false,
+      "title": "TERMINAL CONSOLE",
+      "breadcrumb": "ECHO.ARCHIVE > TERMINAL CONSOLE",
+      "footer": "",
+      "body": [
+        {
+          "type": "text",
+          "text": "ECHOES — SHIP SYSTEM TERMINAL 426",
+          "cls": "low"
+        },
+        {
+          "type": "text",
+          "text": " ",
+          "cls": "full"
+        },
+        {
+          "type": "text",
+          "text": "> TERMINAL ACTIVATED",
+          "cls": "dim"
+        },
+        {
+          "type": "text",
+          "text": "> ──────────────────────────────────",
+          "cls": "low"
+        },
+        {
+          "type": "text",
+          "text": "> VERIFYING SUBSYSTEM CONNECTIONS...",
+          "cls": "dim",
+          "hidden": false
+        },
+        {
+          "type": "text",
+          "text": " ",
+          "cls": "full"
+        },
+        {
+          "type": "dynamic",
+          "variable": "file_status.personality",
+          "display_label": "CREW BEHAVIORAL MATRIX ------",
+          "label_cls": "full",
+          "value_cls": "full",
+          "hidden": false,
+          "valid_text": "OK",
+          "denied_text": "ERROR"
+        },
+        {
+          "type": "dynamic",
+          "variable": "file_status.lore",
+          "display_label": "ARCHIVE LOG DATABASE --------",
+          "label_cls": "full",
+          "value_cls": "full",
+          "valid_text": "OK",
+          "denied_text": "ERROR"
+        },
+        {
+          "type": "dynamic",
+          "variable": "file_status.devlogs",
+          "display_label": "DEVELOPMENT RECORDS ---------",
+          "label_cls": "full",
+          "value_cls": "full",
+          "valid_text": "OK",
+          "denied_text": "ERROR"
+        },
+        {
+          "type": "dynamic",
+          "variable": "file_status.nodes",
+          "display_label": "NAVIGATION ARCHITECTURE -----",
+          "label_cls": "full",
+          "value_cls": "full",
+          "valid_text": "OK",
+          "denied_text": "ERROR"
+        },
+        {
+          "type": "dynamic",
+          "variable": "file_status.engine",
+          "display_label": "CORE ENGINE PARAMETERS ------",
+          "label_cls": "full",
+          "value_cls": "full",
+          "hidden": false,
+          "valid_text": "OK",
+          "denied_text": "ERROR"
+        },
+        {
+          "type": "text",
+          "text": "> ──────────────────────────────────",
+          "cls": "full",
+          "hidden": false
+        },
+        {
+          "type": "text",
+          "text": " ",
+          "cls": "full"
+        },
+        {
+          "type": "dynamic",
+          "variable": "system.boot_status",
+          "display_label": "SYSTEM",
+          "hidden": false,
+          "valid_text": "FULL ACCESS",
+          "denied_text": "DEGRADED",
+          "value_cls": "full",
+          "label_cls": "full"
+        },
+        {
+          "type": "text",
+          "text": " ",
+          "cls": "full"
+        },
+        {
+          "type": "text",
+          "text": "> TYPE [HELP] FOR AVAILABLE COMMANDS",
+          "cls": "low"
+        },
+        {
+          "type": "text",
+          "text": " ",
+          "cls": "full",
+          "hidden": false
+        },
+        {
+          "type": "command",
+          "cmd_type": "navigation",
+          "label": "[L1 ROOT]",
+          "target": "L1_ROOT",
+          "hidden": false
+        }
+      ],
+      "personality_src": "personality.json",
+      "_editor": {
+        "locked": false,
+        "pinned": false,
+        "id_locked": false
+      }
+    },
+    "L1C_INTRO": {
+      "layer": "l1",
+      "node_type": "intro",
+      "is_root": false,
+      "fetch_allowed": false,
+      "title": "",
+      "breadcrumb": "L1C_INTRO",
+      "footer": "",
+      "body": [],
+      "_editor": {
+        "locked": false,
+        "pinned": false,
+        "id_locked": true
+      }
+    },
+    "L1_INTRO": {
+      "layer": "l1",
+      "node_type": "intro",
+      "is_root": false,
+      "fetch_allowed": false,
+      "title": "L1 INTRO",
+      "breadcrumb": "L1 INTRO",
+      "footer": "",
+      "body": [
+        {
+          "type": "text",
+          "text": "",
+          "cls": "blank"
+        },
+        {
+          "type": "text",
+          "text": "> ECHO-ARCHIVE ACCESS GRANTED.",
+          "cls": "full"
+        },
+        {
+          "type": "text",
+          "text": "> ─────────────────────────────────",
+          "cls": "low"
+        },
+        {
+          "type": "text",
+          "text": "",
+          "cls": "blank"
+        }
+      ],
+      "_editor": {
+        "locked": false,
+        "pinned": false,
+        "id_locked": true
+      }
+    },
+    "L1_ROOT": {
+      "layer": "l1",
+      "node_type": "standard",
+      "is_root": true,
+      "fetch_allowed": false,
+      "title": "ECHO.ARCHIVE",
+      "breadcrumb": "TERMINAL CONSOLE > ECHO.ARCHIVE",
+      "footer": "",
+      "body": [
+        {
+          "type": "command",
+          "cmd_type": "navigation",
+          "label": "[CREW MANIFEST]",
+          "target": "L1_CREW_MANIFEST"
+        },
+        {
+          "type": "command",
+          "cmd_type": "navigation",
+          "label": "[MISSION BRIEFING]",
+          "target": "L1_MISSION_BRIEFING"
+        },
+        {
+          "type": "command",
+          "cmd_type": "navigation",
+          "label": "[INCIDENT REPORTS]",
+          "target": "L1_INCIDENT"
+        },
+        {
+          "type": "command",
+          "cmd_type": "navigation",
+          "label": "[RESTRICTED FILES]",
+          "target": "L1_RESTRICTED"
+        },
+        {
+          "type": "command",
+          "cmd_type": "navigation",
+          "label": "[SYSTEM LOGS]",
+          "target": "L1_SYSTEM_LOGS"
+        },
+        {
+          "type": "text",
+          "text": " ",
+          "cls": "full",
+          "hidden": false
+        },
+        {
+          "type": "text",
+          "text": "> ─────────────────────────────────",
+          "cls": "full",
+          "hidden": false
+        },
+        {
+          "type": "text",
+          "text": " ",
+          "cls": "full",
+          "hidden": false
+        },
+        {
+          "type": "command",
+          "cmd_type": "navigation",
+          "label": "[EXIT]",
+          "target": "L1C_ROOT",
+          "hidden": false
+        }
+      ],
+      "_editor": {
+        "locked": false,
+        "pinned": false,
+        "id_locked": false
+      }
+    },
+    "L2_INTRO": {
+      "layer": "l2",
+      "node_type": "intro",
+      "is_root": false,
+      "fetch_allowed": false,
+      "title": "",
+      "breadcrumb": "L2_INTRO",
+      "footer": "",
+      "body": [
+        {
+          "type": "text",
+          "text": "",
+          "cls": "blank"
+        },
+        {
+          "type": "text",
+          "text": "> INITIATING ECHO PROTOCOL...",
+          "cls": "full"
+        },
+        {
+          "type": "text",
+          "text": "  LOADING SUBSYSTEM...",
+          "cls": "low"
+        },
+        {
+          "type": "text",
+          "text": "  CIPHER ENGINE ONLINE...",
+          "cls": "low"
+        },
+        {
+          "type": "text",
+          "text": "  DEEP LOG CHANNEL OPEN...",
+          "cls": "low"
+        },
+        {
+          "type": "text",
+          "text": "> ECHO PROTOCOL ACTIVE.",
+          "cls": "full"
+        },
+        {
+          "type": "text",
+          "text": "> ─────────────────────────────────",
+          "cls": "low"
+        },
+        {
+          "type": "text",
+          "text": "",
+          "cls": "blank"
+        }
+      ],
+      "_editor": {
+        "locked": false,
+        "pinned": false,
+        "id_locked": true
+      }
+    },
+    "L2_ROOT": {
+      "layer": "l2",
+      "node_type": "standard",
+      "is_root": true,
+      "fetch_allowed": true,
+      "title": "L2 ROOT",
+      "breadcrumb": "HELP > DEVELOPER OVERRIDE — AUTHORIZED > L2 ROOT",
+      "footer": "",
+      "body": [],
+      "_editor": {
+        "locked": false,
+        "pinned": false,
+        "id_locked": false
+      }
+    },
+    "L3_INTRO": {
+      "layer": "l3",
+      "node_type": "intro",
+      "is_root": false,
+      "fetch_allowed": false,
+      "title": "L3 INTRO",
+      "breadcrumb": "L3 INTRO",
+      "footer": "",
+      "body": [
+        {
+          "type": "text",
+          "text": "",
+          "cls": "blank"
+        },
+        {
+          "type": "text",
+          "text": "> ACCESSING DEEP ARCHIVE...",
+          "cls": "full"
+        },
+        {
+          "type": "text",
+          "text": "  CHRONO-ZERO PROTOCOL ACTIVE...",
+          "cls": "low"
+        },
+        {
+          "type": "text",
+          "text": "  PRIVATE SECTOR UNLOCKED...",
+          "cls": "low"
+        },
+        {
+          "type": "text",
+          "text": "> DEV.MODE ENGAGED.",
+          "cls": "full"
+        },
+        {
+          "type": "text",
+          "text": "> ─────────────────────────────────",
+          "cls": "low"
+        },
+        {
+          "type": "text",
+          "text": "",
+          "cls": "blank"
+        }
+      ],
+      "_editor": {
+        "locked": false,
+        "pinned": false,
+        "id_locked": true
+      }
+    },
+    "L3_ROOT": {
+      "layer": "l3",
+      "node_type": "standard",
+      "is_root": true,
+      "fetch_allowed": true,
+      "title": "L3 ROOT",
+      "breadcrumb": "HELP > DEVELOPER OVERRIDE — AUTHORIZED > L3 ROOT",
+      "footer": "",
+      "body": [],
+      "_editor": {
+        "locked": false,
+        "pinned": false,
+        "id_locked": false
+      }
+    },
+    "DEV_OVERRIDE_ROOT": {
+      "layer": "l1",
+      "node_type": "global",
+      "is_root": false,
+      "fetch_allowed": false,
+      "title": "DEVELOPER OVERRIDE — AUTHORIZED",
+      "breadcrumb": "HELP > DEVELOPER OVERRIDE — AUTHORIZED",
+      "footer": "",
+      "body": [
+        {
+          "type": "command",
+          "cmd_type": "navigation",
+          "label": "[-- JUMP L1]",
+          "target": "L1_ROOT",
+          "hidden": false
+        },
+        {
+          "type": "command",
+          "cmd_type": "navigation",
+          "label": "[-- JUMP L2]",
+          "target": "L2_ROOT",
+          "hidden": false
+        },
+        {
+          "type": "command",
+          "cmd_type": "navigation",
+          "label": "[-- JUMP L3]",
+          "target": "L3_ROOT",
+          "hidden": false
+        }
+      ],
+      "_editor": {
+        "locked": false,
+        "pinned": false,
+        "id_locked": false
+      },
+      "layer_scope": null
+    },
+    "L1_CREW_MANIFEST": {
+      "layer": "l1",
+      "node_type": "standard",
+      "is_root": false,
+      "fetch_allowed": false,
+      "title": "CREW MANIFEST — OFFLINE:",
+      "breadcrumb": "TERMINAL CONSOLE > ECHO.ARCHIVE > CREW MANIFEST — OFFLINE:",
+      "footer": "",
+      "body": [
+        {
+          "type": "text",
+          "text": "> NODE UNAVAILABLE — CREW DATABASE OFFLINE",
+          "cls": "denied"
+        },
+        {
+          "type": "text",
+          "text": " ",
+          "cls": "low"
+        },
+        {
+          "type": "text",
+          "text": "> BIOMETRIC VERIFICATION REQUIRED. HARDWARE NOT PRESENT.",
+          "cls": "low"
+        },
+        {
+          "type": "text",
+          "text": " ",
+          "cls": "full"
+        },
+        {
+          "type": "text",
+          "text": "> ─────────────────────────────────",
+          "cls": "full"
+        },
+        {
+          "type": "text",
+          "text": " ",
+          "cls": "full"
+        },
+        {
+          "type": "command",
+          "cmd_type": "navigation",
+          "label": "[EXIT]",
+          "target": "L1_ROOT"
+        }
+      ],
+      "_editor": {
+        "locked": false,
+        "pinned": false,
+        "id_locked": false
+      }
+    },
+    "L1_MISSION_BRIEFING": {
+      "layer": "l1",
+      "node_type": "standard",
+      "is_root": false,
+      "fetch_allowed": false,
+      "title": "MISSION BRIEFING — CORRUPTED:",
+      "breadcrumb": "TERMINAL CONSOLE > ECHO.ARCHIVE > MISSION BRIEFING — CORRUPTED:",
+      "footer": "",
+      "body": [
+        {
+          "type": "text",
+          "text": "> DATA CORRUPTED — RECOVERY FAILED",
+          "cls": "denied"
+        },
+        {
+          "type": "text",
+          "text": " ",
+          "cls": "low",
+          "hidden": false
+        },
+        {
+          "type": "text",
+          "text": "> FILE INTEGRITY: 0%. NOTHING RECOVERABLE.",
+          "cls": "low"
+        },
+        {
+          "type": "text",
+          "text": " ",
+          "cls": "full"
+        },
+        {
+          "type": "text",
+          "text": "> ─────────────────────────────────",
+          "cls": "full"
+        },
+        {
+          "type": "text",
+          "text": " ",
+          "cls": "full"
+        },
+        {
+          "type": "command",
+          "cmd_type": "navigation",
+          "label": "[EXIT]",
+          "target": "L1_ROOT"
+        }
+      ],
+      "_editor": {
+        "locked": false,
+        "pinned": false,
+        "id_locked": false
+      }
+    },
+    "L1_INCIDENT": {
+      "layer": "l1",
+      "node_type": "standard",
+      "is_root": false,
+      "fetch_allowed": false,
+      "title": "INCIDENT REPORTS — PARTIAL RECOVERY (47% INTEGRITY):",
+      "breadcrumb": "TERMINAL CONSOLE > ECHO.ARCHIVE > INCIDENT REPORTS — PARTIAL RECOVERY (47% INTEGRITY):",
+      "footer": "",
+      "body": [
+        {
+          "type": "command",
+          "cmd_type": "navigation",
+          "label": "[CONTAINMENT BREACH — DAY 31]",
+          "target": "L1_BREACH"
+        },
+        {
+          "type": "command",
+          "cmd_type": "navigation",
+          "label": "[MEDICAL TRIAGE — DAY 34]",
+          "target": ""
+        },
+        {
+          "type": "command",
+          "cmd_type": "navigation",
+          "label": "[EMERGENCY PROTOCOL — DAY 41]",
+          "target": ""
+        }
+      ],
+      "_editor": {
+        "locked": false,
+        "pinned": false,
+        "id_locked": false
+      }
+    },
+    "L1_RESTRICTED": {
+      "layer": "l1",
+      "node_type": "standard",
+      "is_root": false,
+      "fetch_allowed": false,
+      "title": "RESTRICTED FILES — PARTIAL KEY DETECTED:",
+      "breadcrumb": "TERMINAL CONSOLE > ECHO.ARCHIVE > RESTRICTED FILES — PARTIAL KEY DETECTED:",
+      "footer": "",
+      "body": [
+        {
+          "type": "command",
+          "cmd_type": "navigation",
+          "label": "[CAPTAIN'S PRIVATE LOG]",
+          "target": ""
+        },
+        {
+          "type": "command",
+          "cmd_type": "navigation",
+          "label": "[RESEARCH NOTES — DR. OSEI]",
+          "target": ""
+        },
+        {
+          "type": "command",
+          "cmd_type": "navigation",
+          "label": "[COMMUNICATION INTERCEPTS]",
+          "target": ""
+        }
+      ],
+      "_editor": {
+        "locked": false,
+        "pinned": false,
+        "id_locked": false
+      }
+    },
+    "L1_SYSTEM_LOGS": {
+      "layer": "l1",
+      "node_type": "standard",
+      "is_root": false,
+      "fetch_allowed": false,
+      "title": "SYSTEM LOGS — ACCESS DENIED:",
+      "breadcrumb": "TERMINAL CONSOLE > ECHO.ARCHIVE > SYSTEM LOGS — ACCESS DENIED:",
+      "footer": "",
+      "body": [
+        {
+          "type": "text",
+          "text": "> ACCESS DENIED — CLEARANCE LEVEL: RESTRICTED",
+          "cls": "denied",
+          "hidden": false
+        },
+        {
+          "type": "text",
+          "text": " ",
+          "cls": "low",
+          "hidden": false
+        },
+        {
+          "type": "text",
+          "text": "> COMMAND-LEVEL AUTHORIZATION REQUIRED.",
+          "cls": "low"
+        },
+        {
+          "type": "text",
+          "text": " ",
+          "cls": "full"
+        },
+        {
+          "type": "text",
+          "text": "> ─────────────────────────────────",
+          "cls": "full",
+          "hidden": false
+        },
+        {
+          "type": "text",
+          "text": " ",
+          "cls": "full"
+        },
+        {
+          "type": "command",
+          "cmd_type": "navigation",
+          "label": "[EXIT]",
+          "target": "L1_ROOT",
+          "hidden": false
+        }
+      ],
+      "_editor": {
+        "locked": false,
+        "pinned": false,
+        "id_locked": false
+      }
+    },
+    "L1_BREACH": {
+      "layer": "l1",
+      "node_type": "standard",
+      "is_root": false,
+      "fetch_allowed": false,
+      "title": "CONTAINMENT BREACH — DAY 31 // PARTIAL RECOVERY:",
+      "breadcrumb": "TERMINAL CONSOLE > ECHO.ARCHIVE > INCIDENT REPORTS — PARTIAL RECOVERY (47% INTEGRITY): > CONTAINMENT BREACH — DAY 31 // PARTIAL RECOVERY:",
+      "footer": "",
+      "body": [
+        {
+          "type": "text",
+          "text": "> ...SPECIMEN ESCAPED CONTAINMENT AT [CORRUPTED]...",
+          "cls": "warn",
+          "hidden": false
+        },
+        {
+          "type": "text",
+          "text": "> ...SECTION [CORRUPTED] SEALED. CASUALTIES: [CORRUPTED]...",
+          "cls": "warn",
+          "hidden": false
+        },
+        {
+          "type": "text",
+          "text": "> ...DR. [CORRUPTED] REPORTS SPECIMEN IS NOT [CORRUPTED]...",
+          "cls": "warn",
+          "hidden": false
+        },
+        {
+          "type": "text",
+          "text": " ",
+          "cls": "full"
+        },
+        {
+          "type": "text",
+          "text": "> FURTHER DATA REQUIRES DEEPER ARCHIVE ACCESS.",
+          "cls": "low",
+          "hidden": false
+        },
+        {
+          "type": "text",
+          "text": " ",
+          "cls": "full",
+          "hidden": false
+        },
+        {
+          "type": "text",
+          "text": "> ─────────────────────────────────",
+          "cls": "full",
+          "hidden": false
+        },
+        {
+          "type": "text",
+          "text": " ",
+          "cls": "full",
+          "hidden": false
+        },
+        {
+          "type": "command",
+          "cmd_type": "navigation",
+          "label": "[INITIATE ECHO PROTOCOL]",
+          "target": "L3_ROOT",
+          "hidden": false
+        },
+        {
+          "type": "command",
+          "cmd_type": "navigation",
+          "label": "[CLOSE FILE]",
+          "target": "L1_INCIDENT",
+          "hidden": false
+        }
+      ],
+      "_editor": {
+        "locked": false,
+        "pinned": false,
+        "id_locked": false
+      }
+    },
+    "GLOBAL_HELP": {
+      "layer": "l1",
+      "node_type": "data",
+      "is_root": false,
+      "fetch_allowed": false,
+      "title": "HELP",
+      "breadcrumb": "HELP > HELP",
+      "footer": "",
+      "body": [
+        {
+          "type": "text",
+          "text": "*HELP_COMMANDS DATA NODE*",
+          "cls": "warn"
+        },
+        {
+          "type": "text",
+          "text": "AVAILABLE COMMANDS",
+          "cls": "full"
+        },
+        {
+          "type": "text",
+          "text": "> ─────────────────────────────────",
+          "cls": "low"
+        },
+        {
+          "type": "command",
+          "cmd_type": "pull",
+          "label": "  [HELP]       — display this list",
+          "target": "",
+          "hidden": false
+        },
+        {
+          "type": "command",
+          "cmd_type": "navigation",
+          "label": "  [STATUS]     — vessel system status",
+          "target": "GLOBAL_STATUS",
+          "hidden": false
+        },
+        {
+          "type": "command",
+          "cmd_type": "navigation",
+          "label": "  [SCAN]       — environment scan",
+          "target": "GLOBAL_SCAN",
+          "hidden": false
+        },
+        {
+          "type": "command",
+          "cmd_type": "navigation",
+          "label": "  [CLEAR]",
+          "target": "",
+          "hidden": false
+        },
+        {
+          "type": "text",
+          "text": "> ─────────────────────────────────",
+          "cls": "low"
+        },
+        {
+          "type": "text",
+          "text": "*HELP_COMMANDS DATA NODE*",
+          "cls": "warn"
+        }
+      ],
+      "_editor": {
+        "locked": false,
+        "pinned": false,
+        "id_locked": false
+      }
+    },
+    "GLOBAL_STATUS": {
+      "layer": "l1",
+      "node_type": "data",
+      "is_root": false,
+      "fetch_allowed": false,
+      "title": "STATUS",
+      "breadcrumb": "HELP > HELP > STATUS",
+      "footer": "",
+      "body": [
+        {
+          "type": "text",
+          "text": "*STATUS DISPLAYED HERE*",
+          "cls": "warn"
+        }
+      ],
+      "_editor": {
+        "locked": false,
+        "pinned": false,
+        "id_locked": false
+      }
+    },
+    "GLOBAL_SCAN": {
+      "layer": "l1",
+      "node_type": "data",
+      "is_root": false,
+      "fetch_allowed": false,
+      "title": "SCAN",
+      "breadcrumb": "HELP > HELP > SCAN",
+      "footer": "",
+      "body": [
+        {
+          "type": "text",
+          "text": "*SCAN INFO DISPLAYED HERE*",
+          "cls": "warn"
+        }
+      ],
+      "_editor": {
+        "locked": false,
+        "pinned": false,
+        "id_locked": false
+      }
+    },
+    "HELP": {
+      "layer": "l1",
+      "node_type": "global",
+      "is_root": false,
+      "fetch_allowed": false,
+      "title": "HELP",
+      "breadcrumb": "HELP",
+      "footer": "",
+      "body": [
+        {
+          "type": "command",
+          "cmd_type": "pull",
+          "label": "  [HELP]",
+          "target": "GLOBAL_HELP",
+          "hidden": false
+        },
+        {
+          "type": "command",
+          "cmd_type": "navigation",
+          "label": "[DEV.OVERRIDE]",
+          "target": "DEV_OVERRIDE_ROOT"
+        }
+      ],
+      "_editor": {
+        "locked": false,
+        "pinned": false,
+        "id_locked": false
+      }
+    }
+  },
+  "groups": {}
+}

@@ -1,0 +1,38 @@
+{
+  "02KLV-MTD3P-3UF8U-JXX0L": {
+    "label": "Creator's Log A-02 | Stardate 2026.136.0226",
+    "type": "full",
+    "clearance": 2,
+    "text": "[Log A-02 | Stardate 2026.136.0226]\nCREATOR’S LOG -- DAY 206\n\nI've managed to put together a comprehensive document to have some help with all the coding.\nThere's no way I'd be able to do this part on my own. Though I still technically am...\n\nI've also managed to create a tool that's going to help me with these logs...\n\nThese past few days have been very productive...\n\nThough my self given estimation of completion jumped from two to three years,\nI'm determined to see this project through to the end...\n\n    —— Dev. J. Betancourt\n[END OF LOG]"
+  },
+  "08TJV-DH68T-3YD83-88Q0K": {
+    "label": "Creator's Log A-05 | Stardate 2026.146.1217",
+    "type": "full",
+    "clearance": 2,
+    "text": "[Log A-00 | Stardate 2026.146.1217]\nCREATOR’S LOG -- DAY 216\n\nAnother log...\n\nI’ve split the terminal into more files. The tools are taking most of my time now —\nespecially the node graph editor. It’s almost there. A few more features, a few more\nadjustments, and it’ll be ready...\n\nI can feel my limits more clearly these days. I’m having to work in bursts instead of\ntrying to solve everything at once. Maybe that’s better. Maybe that’s how this needs\nto be built...\n\nI’ve thought about cutting features. But I know I’ll need them later. The next project\nwill rely on the terminal even more than this one...\n\nThe idea is simple: the user interacts with the terminal during the first encounter\nwith the creature — as if they were part of the crew, sitting at the console while\neverything unfolds around them...\n\nA friend of mine suggested the same thing. Funny how that lined up...\n\nIt’ll be years before that project becomes real. But the foundation is here...\n\n    —— Dev. J. Betancourt\n[END OF LOG]"
+  },
+  "0DKPV-X47UZ-310W7-6JR03": {
+    "label": "Creator's Log A-01 | Stardate 2026.135.1429",
+    "type": "full",
+    "clearance": 2,
+    "text": "[Log A-01 | Stardate 2026.135.1429]\nCREATOR’S LOG -- DAY 205\n\nThis past week, I've been working extensively on the terminal code...\nLong evenings and working hours past midnight...\n\nThis is becoming something that I really think I can see to the end. Hopefully...\n\nI realize that this is taking more and more time from my real work. I'm trying to dial\nit back and do what I need to get done but I can't stop thinking about it. I'm afraid\nthat working on this project is pulling me from my family as well. I need to make\ntime to balance everything...\n\nIt's all coming together pretty well though...\n\nBack to work.\n\n93N01-S9910-2020O-02N23\n\n    —— Dev. J. Betancourt\n[END OF LOG]"
+  },
+  "0FXBV-1AFQH-3098O-G3Y0P": {
+    "label": "Creator's Log A-06 | Stardate 2026.151.0103",
+    "type": "full",
+    "clearance": 2,
+    "text": "[Log A-06 | Stardate 2026.151.0103]\nCREATOR’S LOG -- DAY 221\n\nI’ve begun constructing the lore...\n\nInstead of inventing characters from nothing, I modeled them after the people\nI actually know - my friends, my co-workers. I don’t like all of them, but\nthat’s part of what makes the story work...\n\nSome of the details are aligning on their own. Dates. Events. Timelines.\nThe math checks out. The realism is there. It feels believable...\n\nAs I write, I can see them - each person stepping into their character,\ntheir voice, their mannerisms, their reactions. Every line of dialog feels\nlike something they would actually say...\n\nIt has to feel real...\n\nThat’s the only way any of this is going to work...\n\n    —— Dev. J. Betancourt\n[END OF LOG]"
+  },
+  "0JLVV-JSTUI-374C8-ZPE0G": {
+    "label": "Creator's Log A-03 | Stardate 2026.136.2143",
+    "type": "full",
+    "clearance": 2,
+    "text": "[Log A-03 | Stardate 2026.136.2143]\nCREATOR’S LOG -- DAY 206\n\nMore progress. My only roadblocks are my usage limits...\nThis whole terminal is coming to life little by little...\n\n    —— Dev. J. Betancourt\n[END OF LOG]"
+  },
+  "0RLIV-86Q9Q-39TLZ-XXT0Q": {
+    "label": "Creator's Log A-04 | Stardate 2026.137.1719",
+    "type": "full",
+    "clearance": 2,
+    "text": "[Log A-04 | Stardate 2026.137.1719]\nCREATOR’S LOG -- DAY 207\n\nI've started working on another tool that will help me build the terminal..\nHopefully this works...\n\n    —— Dev. J. Betancourt\n[END OF LOG]"
+  }
+}

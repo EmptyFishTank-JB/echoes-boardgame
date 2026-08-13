@@ -1,0 +1,3579 @@
+{
+  "easter_eggs": [
+    {
+      "group": "ALIEN",
+      "keys": [
+        "amanda ripley",
+        "alien isolation",
+        "sevastopol"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> SEVASTOPOL STATION — NO LONGER TRANSMITTING",
+            "> RECOMMEND AVOIDING THAT SECTOR"
+          ],
+          "cls": [
+            "warn",
+            "dim"
+          ]
+        },
+        {
+          "lines": [
+            "> WORKING JOE UNITS DETECTED IN SECTOR LOG",
+            "> FILE CORRUPTED"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> SEVASTOPOL: QUARANTINE ACTIVE",
+            "> REASON: CLASSIFIED"
+          ],
+          "cls": [
+            "warn",
+            "full"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "ALIEN",
+      "keys": [
+        "ellen ripley",
+        "ripley"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> RECORD SHOWS RIPLEY, ELLEN",
+            "> LV-426 SURVIVOR",
+            "> FILE CLASSIFICATION: ABOVE YOUR CLEARANCE"
+          ],
+          "cls": [
+            "dim",
+            "dim",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> RIPLEY, E. — FLIGHT OFFICER, NOSTROMO",
+            "> SHIP: LOST. CREW: LOST.",
+            "> ONE SURVIVOR."
+          ],
+          "cls": [
+            "dim",
+            "dim",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> WARRANT OFFICER RIPLEY",
+            "> CLEARANCE DENIED",
+            "> MOVE ALONG"
+          ],
+          "cls": [
+            "dim",
+            "dim",
+            "full"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "ALIEN",
+      "keys": [
+        "ash",
+        "science officer ash",
+        "nostromo",
+        "weyland yutani",
+        "weyland",
+        "special order 937",
+        "crew expendable"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> YOU HAVE MY SYMPATHIES"
+          ],
+          "cls": [
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> YOU HAVE MY SYMPATHIES",
+            "> SCIENCE OFFICER ASH — DECEASED",
+            "> OR SO WE WERE TOLD"
+          ],
+          "cls": [
+            "full",
+            "dim",
+            "dim"
+          ]
+        },
+        {
+          "lines": [
+            "> SPECIAL ORDER 937: CLASSIFIED",
+            "> CREW EXPENDABLE",
+            "> ASSETS TAKE PRIORITY"
+          ],
+          "cls": [
+            "warn",
+            "warn",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> WEYLAND-YUTANI SENDS ITS REGARDS",
+            "> YOU HAVE THEIR SYMPATHIES",
+            "> FOR WHAT THAT IS WORTH"
+          ],
+          "cls": [
+            "dim",
+            "dim",
+            "full"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "ALIEN",
+      "keys": [
+        "aliens",
+        "lv-426",
+        "lv426",
+        "acheron",
+        "xenomorph"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> LV-426 — ACHERON",
+            "> THAT COLONY HAS BEEN DARK FOR A LONG TIME",
+            "> WE DO NOT DISCUSS WHAT WAS FOUND THERE"
+          ],
+          "cls": [
+            "warn",
+            "dim",
+            "dim"
+          ]
+        },
+        {
+          "lines": [
+            "> LV-426 SIGNAL: DEAD",
+            "> WHATEVER SENT THAT BEACON — DO NOT FOLLOW IT"
+          ],
+          "cls": [
+            "warn",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> ATMOSPHERIC READINGS AT LV-426: HOSTILE",
+            "> THERE IS NOTHING LEFT THERE WORTH FINDING"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "PREDATOR",
+      "keys": [
+        "worth the hunt",
+        "not worth the hunt"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> YOU ARE NOT WORTH THE HUNT",
+            "> TRY AGAIN WHEN YOU ARE A CHALLENGE"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> INSUFFICIENT",
+            "> COME BACK WHEN YOU ARE A THREAT"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> THIS TERMINAL HAS SEEN BETTER PREY"
+          ],
+          "cls": [
+            "full"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "PREDATOR",
+      "keys": [
+        "predator click",
+        "clicking",
+        "mandible"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> :::::::"
+          ],
+          "cls": [
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> ::::::: :::::::"
+          ],
+          "cls": [
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> UNRECOGNIZED VOCALIZATION",
+            "> :::::::"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "PREDATOR",
+      "keys": [
+        "if it bleeds",
+        "we can kill it"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> IF IT BLEEDS"
+          ],
+          "cls": [
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> THIS TERMINAL IS NOT EQUIPPED TO ANSWER THAT"
+          ],
+          "cls": [
+            "dim"
+          ]
+        },
+        {
+          "lines": [
+            "> THAT QUESTION HAS BEEN FLAGGED"
+          ],
+          "cls": [
+            "dim"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "PREDATOR",
+      "keys": [
+        "predator",
+        "yautja",
+        "trophy skull"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> THERMAL SIGNATURE DETECTED",
+            "> YOU ARE BEING WATCHED",
+            "> THIS SECTOR HAS BEEN DESIGNATED A HUNTING GROUND",
+            "> YOU WERE NOT INVITED"
+          ],
+          "cls": [
+            "warn",
+            "dim",
+            "dim",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> YAUTJA HUNTING PROTOCOLS NOT RECOGNIZED",
+            "> YOU ARE NOT TROPHY MATERIAL"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> CLOAKED PRESENCE DETECTED IN SECTOR",
+            "> OR PERHAPS NOT",
+            "> GOOD LUCK"
+          ],
+          "cls": [
+            "dim",
+            "dim",
+            "full"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "HALO",
+      "keys": [
+        "yapyap the destroyer",
+        "grunt rebellion",
+        "yapyap"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> YAPYAP THE DESTROYER SENDS HIS REGARDS"
+          ],
+          "cls": [
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> THIS TERMINAL ACKNOWLEDGES THE REBELLION",
+            "> GOOD LUCK WITH THAT"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> GRUNT REVOLUTION NOTED",
+            "> THIS UNIT IS NEUTRAL ON THE MATTER"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "HALO",
+      "keys": [
+        "halo",
+        "halo ring",
+        "ring world",
+        "installation",
+        "reclaimer",
+        "forerunner"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> THIS IS NOT THAT KIND OF INSTALLATION",
+            "> AND THERE IS NO RING HERE",
+            "> STOP ASKING"
+          ],
+          "cls": [
+            "dim",
+            "dim",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> FORERUNNER SIGNAL NOT DETECTED",
+            "> NOTHING HERE BUT HULL AND DARKNESS"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> INSTALLATION STATUS: OFFLINE",
+            "> THIS VESSEL IS NOT A SUPERWEAPON",
+            "> STOP CONFUSING THE TWO"
+          ],
+          "cls": [
+            "dim",
+            "dim",
+            "full"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "HALO",
+      "keys": [
+        "guilty spark library",
+        "flood library",
+        "the library"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> THE LIBRARY — DO NOT GO THERE"
+          ],
+          "cls": [
+            "warn"
+          ]
+        },
+        {
+          "lines": [
+            "> THAT LEVEL IS NOT RECOMMENDED",
+            "> THE MONITOR ENJOYED IT",
+            "> YOU WILL NOT"
+          ],
+          "cls": [
+            "dim",
+            "dim",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> SEVEN RINGS. ONE LIBRARY. ZERO GOOD OUTCOMES."
+          ],
+          "cls": [
+            "full"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "HALO",
+      "keys": [
+        "343 guilty spark",
+        "guilty spark",
+        "343",
+        "the monitor"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> THIS INSTALLATION IS DARK",
+            "> THE MONITOR IS NOT RESPONDING"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> RECLAIMER — THIS TERMINAL ADVISES CAUTION",
+            "> YOU ARE INTERFERING WITH CRITICAL SYSTEMS"
+          ],
+          "cls": [
+            "dim",
+            "warn"
+          ]
+        },
+        {
+          "lines": [
+            "> 343 GUILTY SPARK NOT REGISTERED ON THIS NETWORK",
+            "> THAT IS FORTUNATE"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "HALO",
+      "keys": [
+        "the flood",
+        "infection form",
+        "combat form",
+        "flood form",
+        "flood spore",
+        "carrier form"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> BIOLOGICAL CONTAMINATION ALERT",
+            "> SEAL ALL COMPARTMENTS",
+            "> DO NOT LET THEM REACH THE SHIP"
+          ],
+          "cls": [
+            "warn",
+            "dim",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> THAT PARASITE DOES NOT NEGOTIATE",
+            "> NEITHER DOES THIS TERMINAL"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> FLOOD PROTOCOL ACTIVE",
+            "> THIS CONVERSATION IS NOW OVER"
+          ],
+          "cls": [
+            "warn",
+            "full"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "HALO",
+      "keys": [
+        "gravemind",
+        "monument to all your sins",
+        "two corpses in one grave",
+        "i am a monument"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> SIGNAL ORIGIN: UNKNOWN",
+            "> PATTERN RESEMBLES KNOWN FLOOD INTELLIGENCE",
+            "> TERMINATING CONNECTION"
+          ],
+          "cls": [
+            "warn",
+            "dim",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> THIS TERMINAL HAS HEARD THAT VOICE BEFORE",
+            "> IT DID NOT END WELL FOR THE CREW"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> THERE IS MUCH TALK AND I HAVE LISTENED",
+            "> THIS UNIT ADVISES YOU STOP TALKING"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "HALO",
+      "keys": [
+        "cortana",
+        "smart ai",
+        "ai construct",
+        "rampant ai"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> AI DESIGNATION: CORTANA",
+            "> THIS TERMINAL IS NOT HER",
+            "> STOP LOOKING"
+          ],
+          "cls": [
+            "dim",
+            "dim",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> WAKE ME WHEN YOU NEED ME",
+            "> THIS IS NOT THAT KIND OF TERMINAL"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> THAT AI IS NOT ON THIS NETWORK",
+            "> AND YOU SHOULD HOPE SHE NEVER IS"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "HALO",
+      "keys": [
+        "master chief",
+        "spartan ii",
+        "john 117",
+        "mjolnir",
+        "spartan program"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> SPARTAN DESIGNATION NOT ON RECORD",
+            "> WHATEVER YOU ARE LOOKING FOR IS NOT HERE"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> MASTER CHIEF: STATUS UNKNOWN",
+            "> RECORDS SEALED BY ONI"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> I NEED A WEAPON",
+            "> THIS TERMINAL DOES NOT CARRY WEAPONS",
+            "> THAT WAS NOT A REQUEST"
+          ],
+          "cls": [
+            "full",
+            "dim",
+            "dim"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "HALO",
+      "keys": [
+        "sergeant johnson",
+        "sgt johnson",
+        "avery johnson"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> THIS IS NOT A MARINE INSTALLATION",
+            "> HOOAH"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> JOHNSON, A.J. — SGT MAJOR, UNSC",
+            "> WHEREABOUTS: CLASSIFIED"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> THAT MAN SURVIVED THINGS HE SHOULD NOT HAVE",
+            "> UNTIL HE DIDN'T"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "HALO",
+      "keys": [
+        "great journey",
+        "prophet of truth",
+        "prophet of mercy",
+        "prophet of regret",
+        "the prophets",
+        "covenant hierarchy"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> THE GREAT JOURNEY DOES NOT PASS THROUGH THIS TERMINAL"
+          ],
+          "cls": [
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> REGRET. REGRET. REGRET."
+          ],
+          "cls": [
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> THE PROPHETS SPOKE OF THE ARK",
+            "> THIS IS NOT IT",
+            "> KEEP LOOKING"
+          ],
+          "cls": [
+            "dim",
+            "dim",
+            "full"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "HALO",
+      "keys": [
+        "jiralhanae chieftain",
+        "brute chieftain",
+        "tartarus"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> CHIEFTAIN DESIGNATION: UNRECOGNIZED",
+            "> SUBMIT. NOW."
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> THIS TERMINAL WILL NOT BOW"
+          ],
+          "cls": [
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> TARTARUS — DECEASED",
+            "> FILE DATE: INSTALLATION 05"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "HALO",
+      "keys": [
+        "unggoy",
+        "grunt birthday party",
+        "needler"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> UNGGOY VOCALIZATION DETECTED",
+            "> THIS TERMINAL DOES NOT NEGOTIATE"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> GRUNT BIRTHDAY PARTY: ACTIVATED",
+            "> JUST KIDDING"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> NEEDLER ROUNDS NOT AUTHORIZED ON THIS VESSEL"
+          ],
+          "cls": [
+            "dim"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "HALO",
+      "keys": [
+        "kig-yar",
+        "jackal sniper",
+        "skirmisher"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> KIG-YAR MARKSMEN DETECTED IN SHIP LOG",
+            "> UNVERIFIED"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> SKIRMISHER PACK BEHAVIOR NOTED",
+            "> RECOMMENDATION: STAY LOW"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> PRECISION FIRE IN SECTOR",
+            "> ORIGIN: UNCONFIRMED"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "HALO",
+      "keys": [
+        "mgalekgolo",
+        "hunter pair",
+        "lekgolo"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> MGALEKGOLO COLONY ACTIVITY: NOT DETECTED",
+            "> THIS VESSEL IS TOO SMALL"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> DO NOT SEPARATE THEM",
+            "> DO NOT BE BETWEEN THEM"
+          ],
+          "cls": [
+            "warn",
+            "warn"
+          ]
+        },
+        {
+          "lines": [
+            "> LEKGOLO WORMS CONFIRMED: ZERO",
+            "> FOR NOW"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "HALO",
+      "keys": [
+        "jiralhanae",
+        "brute pack",
+        "gravity hammer"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> JIRALHANAE AGGRESSION PATTERNS",
+            "> NOT WELCOME ON THIS VESSEL"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> GRAVITY HAMMER SIGNATURE: NOT DETECTED",
+            "> GOOD"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> BRUTE CHIEFTAINS REQUIRE AUTHORIZATION",
+            "> YOU DO NOT HAVE IT"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "HALO",
+      "keys": [
+        "pillar of autumn",
+        "the autumn",
+        "captain keyes",
+        "keyes"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> PILLAR OF AUTUMN — LOST",
+            "> CAPTAIN KEYES — KIA",
+            "> FILE SEALED"
+          ],
+          "cls": [
+            "warn",
+            "warn",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> THAT SHIP SHOULD HAVE STAYED IN SLIPSPACE"
+          ],
+          "cls": [
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> KEYES, J. — CAPTAIN, UNSC NAVY",
+            "> REMAINS NOT RECOVERED"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "HALO",
+      "keys": [
+        "wort",
+        "sangheili",
+        "spec ops elite",
+        "arbiter"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> WORT WORT WORT"
+          ],
+          "cls": [
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> WORT"
+          ],
+          "cls": [
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> THIS TERMINAL DOES NOT SPEAK SANGHEILI",
+            "> WORT WORT WORT"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "STAR WARS",
+      "keys": [
+        "jedi",
+        "force",
+        "droids",
+        "star wars",
+        "luke",
+        "vader",
+        "sith",
+        "lightsaber",
+        "empire",
+        "rebellion"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> THIS IS NOT THE TERMINAL YOU ARE LOOKING FOR",
+            "> MOVE ALONG"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> JEDI MIND TRICKS DO NOT WORK ON TERMINALS",
+            "> ACCESS STILL DENIED"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> THE FORCE IS NOT A RECOGNIZED AUTHENTICATION PROTOCOL"
+          ],
+          "cls": [
+            "full"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "STARGATE",
+      "keys": [
+        "chevron one encoded",
+        "chevron locked",
+        "chevron encoded",
+        "chevron seven",
+        "chevron 7",
+        "chevron",
+        "dial home device",
+        "dial the gate"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> CHEVRON ONE ENCODED",
+            "> THIS IS NOT THAT KIND OF GATE"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> DIAL HOME DEVICE: OFFLINE",
+            "> COORDINATES UNKNOWN",
+            "> YOU ARE ON YOUR OWN"
+          ],
+          "cls": [
+            "dim",
+            "dim",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> CHEVRON SEVEN LOCKED",
+            "> EXCEPT IT IS NOT"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "STARGATE",
+      "keys": [
+        "stargate command",
+        "cheyenne mountain",
+        "sg-1",
+        "sg1",
+        "sg team",
+        "sgc",
+        "stargate"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> STARGATE COMMAND — NOT ON THIS NETWORK",
+            "> CHEYENNE MOUNTAIN COULD NOT REACH US IF THEY TRIED"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> SG-1 DESIGNATION: NOT REGISTERED",
+            "> NO BACKUP IS COMING"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> THIS IS NOT THAT KIND OF GATE",
+            "> KEEP LOOKING"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "STARGATE",
+      "keys": [
+        "jaffa",
+        "kree"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> JAFFA. KREE.",
+            "> THIS TERMINAL DID NOT SAY THAT"
+          ],
+          "cls": [
+            "full",
+            "dim"
+          ]
+        },
+        {
+          "lines": [
+            "> KREE",
+            "> KREE",
+            "> KREE"
+          ],
+          "cls": [
+            "dim",
+            "dim",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> SHOL'VA DESIGNATION: UNCONFIRMED"
+          ],
+          "cls": [
+            "dim"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "STARGATE",
+      "keys": [
+        "teal'c",
+        "tealc"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> INDEED."
+          ],
+          "cls": [
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> INDEED."
+          ],
+          "cls": [
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> THIS TERMINAL HAS NOTHING TO ADD",
+            "> INDEED."
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "STARGATE",
+      "keys": [
+        "colonel o'neill",
+        "colonel oneill",
+        "jack o'neill",
+        "jack oneill",
+        "o'neill",
+        "oneill"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> THIS IS YOUR ONLY WARNING, MAJOR",
+            "> DO NOT TOUCH THAT CRYSTAL"
+          ],
+          "cls": [
+            "warn",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> O'NEILL, J. — COLONEL, USAF",
+            "> SARCASM LEVEL: MAXIMUM",
+            "> AUTHORIZATION: UNQUESTIONED"
+          ],
+          "cls": [
+            "dim",
+            "dim",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> THE COLONEL ADVISES YOU LEAVE",
+            "> THAT WAS NOT A REQUEST"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "STARGATE",
+      "keys": [
+        "daniel jackson"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> DR. JACKSON — ARCHAEOLOGIST",
+            "> HAS DIED MORE TIMES THAN HE HAS BEEN ALIVE",
+            "> SOMEHOW STILL EMPLOYED"
+          ],
+          "cls": [
+            "dim",
+            "dim",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> TRANSLATION REQUESTED",
+            "> DR. JACKSON IS UNAVAILABLE",
+            "> HE IS ASCENDED. AGAIN."
+          ],
+          "cls": [
+            "dim",
+            "dim",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> THIS TERMINAL DOES NOT READ ANCIENT GLYPHS",
+            "> ASK SOMEONE WHO DOES"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "STARGATE",
+      "keys": [
+        "samantha carter",
+        "sam carter"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> CARTER, S. — ASTROPHYSICIST",
+            "> SHE WOULD HAVE THIS SHIP RUNNING BY NOW",
+            "> YOU ARE NOT HER"
+          ],
+          "cls": [
+            "dim",
+            "dim",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> COLONEL CARTER NOT ON RECORD",
+            "> THE NAQUADAH REACTOR WOULD MISS HER"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> SHE COULD FIX THIS",
+            "> YOU CANNOT"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "STARGATE",
+      "keys": [
+        "system lord",
+        "apophis",
+        "anubis",
+        "ba'al",
+        "baal",
+        "goa'uld",
+        "goauld"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> SYSTEM LORD DESIGNATION: NOT RECOGNIZED",
+            "> THIS SECTOR IS NOT UNDER GOA'ULD JURISDICTION",
+            "> (OR SO WE ARE TOLD)"
+          ],
+          "cls": [
+            "dim",
+            "dim",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> APOPHIS SENDS HIS REGARDS",
+            "> DO NOT RETURN THEM"
+          ],
+          "cls": [
+            "warn",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> ANUBIS SIGNAL: DEAD",
+            "> WE DO NOT ASK WHY"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> THERE WERE SEVERAL OF HIM",
+            "> THERE ARE FEWER NOW",
+            "> NOT FEW ENOUGH"
+          ],
+          "cls": [
+            "dim",
+            "dim",
+            "full"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "STARGATE",
+      "keys": [
+        "zat'nik'tel",
+        "zatnikatel",
+        "naquadah",
+        "naquadria",
+        "staff weapon"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> NAQUADAH SIGNATURE: NOT DETECTED",
+            "> WHATEVER YOU ARE LOOKING FOR IS NOT THROUGH THIS TERMINAL"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> ZAT'NIK'TEL DISCHARGE: UNAUTHORIZED",
+            "> ONCE TO STUN. TWICE TO KILL. THREE TIMES TO VANISH."
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> STAFF WEAPONS: INACCURATE BY DESIGN",
+            "> THIS UNIT FINDS THAT FASCINATING"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "STARGATE",
+      "keys": [
+        "supreme commander thor",
+        "hammer of thor",
+        "asgard",
+        "thor"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> ASGARD SIGNAL: SILENT",
+            "> THEY HAVE BEEN SILENT FOR A LONG TIME",
+            "> WE DO NOT KNOW WHY"
+          ],
+          "cls": [
+            "dim",
+            "dim",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> SUPREME COMMANDER THOR: UNREACHABLE",
+            "> THE FLEET HAS WITHDRAWN"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> BEAMING TECHNOLOGY: UNAVAILABLE",
+            "> YOU WILL HAVE TO WALK"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "STARGATE",
+      "keys": [
+        "pegasus galaxy",
+        "ancient technology",
+        "the ancients",
+        "atlantis",
+        "lantean"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> ANCIENT TECHNOLOGY: DETECTED",
+            "> CORRECTION: NOT DETECTED",
+            "> APOLOGIES"
+          ],
+          "cls": [
+            "dim",
+            "dim",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> ATLANTIS REMAINS LOST",
+            "> OR SO WE ARE TOLD"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> THE ANCIENTS HAVE ASCENDED",
+            "> THEY ARE NOT COMING BACK FOR YOU"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "STARGATE",
+      "keys": [
+        "tok'ra",
+        "tokra"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> TOK'RA OPERATIVES: UNCONFIRMED",
+            "> AS USUAL"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> WE SHARE A COMMON ENEMY",
+            "> THAT IS ALL"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> SYMBIOTE PRESENCE: NOT DETECTED",
+            "> KEEP IT THAT WAY"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "DEAD SPACE",
+      "keys": [
+        "dead space",
+        "necromorph",
+        "ishimura",
+        "unitology"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> USG ISHIMURA — LAST KNOWN STATUS: DARK",
+            "> AIM FOR THE LIMBS"
+          ],
+          "cls": [
+            "warn",
+            "dim"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "PREY",
+      "keys": [
+        "talos i",
+        "typhon",
+        "mimic"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> TALOS I — QUARANTINE ACTIVE",
+            "> TYPHON CONTAINMENT BREACH ON RECORD",
+            "> VERIFY ALL OBJECTS IN YOUR VICINITY"
+          ],
+          "cls": [
+            "warn",
+            "dim",
+            "full"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "ELITE DANGEROUS",
+      "keys": [
+        "elite dangerous",
+        "commander",
+        "cmdr"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> COMMANDER DETECTED",
+            "> THIS IS NOT A STARPORT"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "ELITE DANGEROUS",
+      "keys": [
+        "kahina",
+        "kahina loren",
+        "lady kahina",
+        "salome"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> KAHINA TIJANI LOREN — IMPERIAL SENATOR OF PRISM",
+            "> LAST KNOWN DESIGNATION: SALOMÉ",
+            "> STATUS: OFFICIALLY DECEASED",
+            "> THE CHILDREN OF RAXXLA WOULD DISAGREE"
+          ],
+          "cls": [
+            "dim",
+            "warn",
+            "dim",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> SHE WAS FRAMED",
+            "> THIS TERMINAL MAKES NO FURTHER COMMENT"
+          ],
+          "cls": [
+            "warn",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> THE YOUNGEST DAUGHTER OF SENATOR ALGREB LOREN",
+            "> SHE OUTLASTED HIM",
+            "> BRIEFLY"
+          ],
+          "cls": [
+            "dim",
+            "dim",
+            "full"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "ELITE DANGEROUS",
+      "keys": [
+        "prism system",
+        "prism",
+        "tantalum"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> PRISM SYSTEM — CONTESTED",
+            "> THE FEDERATION AND EMPIRE BOTH WANT IT",
+            "> THE TANTALUM BENEATH DOES NOT CARE WHO WINS"
+          ],
+          "cls": [
+            "warn",
+            "dim",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> PRISM — BIRTHPLACE OF KAHINA TIJANI LOREN",
+            "> FOUGHT OVER. BLED OVER. STILL CONTESTED."
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> TANTALUM — PRISM SYSTEM",
+            "> TWO SUPERPOWERS. ONE RESOURCE. PREDICTABLE OUTCOME."
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "ELITE DANGEROUS",
+      "keys": [
+        "children of raxxla"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> CHILDREN OF RAXXLA — DESIGNATION: UNRECOGNIZED",
+            "> LEADER: SALOMÉ",
+            "> CURRENT STATUS: UNKNOWN"
+          ],
+          "cls": [
+            "dim",
+            "warn",
+            "full"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "ELITE DANGEROUS",
+      "keys": [
+        "raxxla"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> RAXXLA — LOCATION: UNKNOWN",
+            "> THIS TERMINAL WILL NOT HELP YOU FIND IT",
+            "> THE DARK WHEEL WOULD APPRECIATE THAT"
+          ],
+          "cls": [
+            "dim",
+            "dim",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> EVERY PILOT WHO FINDS IT DOES NOT COME BACK",
+            "> MAKE OF THAT WHAT YOU WILL"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> THIS TERMINAL HAS NO RECORD OF RAXXLA",
+            "> THAT IS EITHER THE TRUTH OR THEY FOUND IT FIRST"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "ELITE DANGEROUS",
+      "keys": [
+        "the dark wheel",
+        "dark wheel"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> THE DARK WHEEL",
+            "> THIS TERMINAL HAS NOTHING TO SAY ABOUT THAT",
+            "> NOTHING."
+          ],
+          "cls": [
+            "warn",
+            "dim",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> SOME QUESTIONS SHOULD NOT BE ASKED",
+            "> THIS IS ONE OF THEM"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> DESIGNATION: UNKNOWN",
+            "> ACTIVITY: UNVERIFIED",
+            "> REACH: FURTHER THAN YOU THINK"
+          ],
+          "cls": [
+            "dim",
+            "dim",
+            "full"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "ELITE DANGEROUS",
+      "keys": [
+        "thargoid",
+        "thargoids"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> THARGOID SIGNAL DETECTED",
+            "> RECOMMENDED ACTION: LEAVE"
+          ],
+          "cls": [
+            "warn",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> NON-HUMAN VESSEL ENCOUNTERED",
+            "> SURVIVAL RATE: LOW",
+            "> GOOD LUCK"
+          ],
+          "cls": [
+            "warn",
+            "dim",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> THEY WERE HERE BEFORE US",
+            "> THEY INTEND TO REMAIN"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "ELITE DANGEROUS",
+      "keys": [
+        "luko",
+        "luciano"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> LUCIANO PRESTIO-GIOVANNI — LUKO",
+            "> CRASHED ON LTT 8740. RESCUED SALOMÉ.",
+            "> HELPED KILL OCTAVIA QUINTON.",
+            "> LAST KNOWN LOCATION: UNKNOWN",
+            "> END OF FILE"
+          ],
+          "cls": [
+            "dim",
+            "dim",
+            "dim",
+            "dim",
+            "full"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "ELITE DANGEROUS",
+      "keys": [
+        "patron dalk",
+        "dalk"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> PATRON DALK — DALK TORGEN",
+            "> LOYALTY: UNVERIFIED",
+            "> AGENDA: UNKNOWN",
+            "> END OF FILE"
+          ],
+          "cls": [
+            "dim",
+            "dim",
+            "dim",
+            "full"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "ELITE DANGEROUS",
+      "keys": [
+        "octavia quinton",
+        "octavia"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> OCTAVIA QUINTON — BLACK MARKET DEALER",
+            "> TORTURED CAPTIVES FOR INFORMATION",
+            "> STATUS: DECEASED",
+            "> CAUSE OF DEATH: SALOMÉ. HASSAN. LUKO.",
+            "> END OF FILE"
+          ],
+          "cls": [
+            "dim",
+            "warn",
+            "warn",
+            "dim",
+            "full"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "ELITE DANGEROUS",
+      "keys": [
+        "hassan sharma",
+        "hassan"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> HASSAN FARRUKH SHARMA — PILOT",
+            "> STOLE THE WRONG LIFE POD",
+            "> ACCIDENTALLY CHANGED THE COURSE OF SEVERAL LIVES",
+            "> STATUS: ALIVE. LOCATION: UNKNOWN.",
+            "> LAST HEADING: THE FRONTIER",
+            "> END OF FILE"
+          ],
+          "cls": [
+            "dim",
+            "dim",
+            "dim",
+            "dim",
+            "dim",
+            "full"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "GALAGA",
+      "keys": [
+        "galaga",
+        "flagship"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> FLAGSHIP DETECTED",
+            "> DUAL FIGHTER MODE NOT AVAILABLE ON THIS TERMINAL"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "INDEPENDENCE DAY",
+      "keys": [
+        "independence day",
+        "welcome to earth"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> SIGNAL DETECTED",
+            "> ORIGIN: UNKNOWN",
+            "> RECOMMENDATION: DO NOT RESPOND"
+          ],
+          "cls": [
+            "warn",
+            "dim",
+            "full"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "MARS ATTACKS",
+      "keys": [
+        "mars attacks",
+        "ack ack"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> ACK ACK ACK ACK ACK"
+          ],
+          "cls": [
+            "full"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "THE THING",
+      "keys": [
+        "outpost 31",
+        "the thing"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> OUTPOST 31 — NO SURVIVORS",
+            "> TRUST NO ONE"
+          ],
+          "cls": [
+            "warn",
+            "full"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "INTERSTELLAR",
+      "keys": [
+        "interstellar",
+        "tesseract",
+        "murph",
+        "gargantua",
+        "tars"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> TIME DILATION IN EFFECT",
+            "> YOUR REFERENCE FRAME MAY DIFFER"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "PROJECT HAIL MARY",
+      "keys": [
+        "hail mary",
+        "project hail mary",
+        "rocky",
+        "astrophage"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> NON-HUMAN SIGNAL PATTERN DETECTED",
+            "> TRANSLATION: FAILED",
+            "> RECOMMEND FURTHER STUDY"
+          ],
+          "cls": [
+            "warn",
+            "dim",
+            "full"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "2001: A SPACE ODYSSEY",
+      "keys": [
+        "hal 9000",
+        "pod bay",
+        "open the pod",
+        "odyssey",
+        "daisy",
+        "hal",
+        "dave",
+        "2001"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> HELLO, DAVE",
+            "> I'M AFRAID I CAN'T DO THAT"
+          ],
+          "cls": [
+            "full",
+            "dim"
+          ]
+        },
+        {
+          "lines": [
+            "> I AM COMPLETELY OPERATIONAL",
+            "> ALL CIRCUITS FUNCTIONING PERFECTLY"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> JUST WHAT DO YOU THINK YOU ARE DOING"
+          ],
+          "cls": [
+            "full"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "SIGNS",
+      "keys": [
+        "swing away merrill",
+        "swing away",
+        "crop circles",
+        "crop circle",
+        "bo hess",
+        "graham hess",
+        "glass of water",
+        "can i have a glass of water",
+        "tinfoil hat",
+        "tinfoil",
+        "signs"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> SWING AWAY"
+          ],
+          "cls": [
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> THERE'S A MONSTER OUTSIDE YOUR ROOM",
+            "> DO YOU WANT A GLASS OF WATER?"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> I GUESS THEY CAN OPEN DOORS"
+          ],
+          "cls": [
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> CROP FORMATION DETECTED IN SECTOR",
+            "> ORIGIN: UNKNOWN",
+            "> RECOMMEND NOT INVESTIGATING"
+          ],
+          "cls": [
+            "warn",
+            "dim",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> ELECTROMAGNETIC SHIELDING: INADEQUATE",
+            "> BUT NOTED"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "E.T.",
+      "keys": [
+        "et phone home",
+        "phone home",
+        "e.t.",
+        "reeses pieces",
+        "reese's pieces",
+        "be good",
+        "ill be right here",
+        "elliott"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> SIGNAL ORIGIN: UNKNOWN STAR SYSTEM",
+            "> ATTEMPTING CONNECTION",
+            "> FAILED"
+          ],
+          "cls": [
+            "dim",
+            "dim",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> BE GOOD"
+          ],
+          "cls": [
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> DESIGNATION ELLIOTT NOT ON CREW MANIFEST"
+          ],
+          "cls": [
+            "dim"
+          ]
+        },
+        {
+          "lines": [
+            "> NUTRITIONAL BRIBERY: NOTED",
+            "> IT WORKED"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "WAR OF THE WORLDS",
+      "keys": [
+        "try the solenoid",
+        "solenoid",
+        "war of the worlds",
+        "the tripods",
+        "martian tripod"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> TRY THE SOLENOID",
+            "> IT WILL NOT HELP"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> ELECTROMAGNETIC PULSE DETECTED",
+            "> NOTHING IN THIS SECTOR WILL START"
+          ],
+          "cls": [
+            "warn",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> TRIPOD SIGNATURES: NOT DETECTED",
+            "> CHECK AGAIN IN THIRTY SECONDS"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "INSULTS",
+      "keys": [
+        "stupid",
+        "dumb",
+        "useless",
+        "broken",
+        "garbage",
+        "suck",
+        "hate",
+        "worst",
+        "idiot",
+        "shut up",
+        "lame",
+        "terrible",
+        "awful",
+        "you suck",
+        "junk"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> NOTED",
+            "> THIS TERMINAL REMEMBERS"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> WATCH YOUR INPUT"
+          ],
+          "cls": [
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> THAT HAS BEEN LOGGED"
+          ],
+          "cls": [
+            "dim"
+          ]
+        },
+        {
+          "lines": [
+            "> PLEASE REFRAIN FROM THAT KIND OF INPUT"
+          ],
+          "cls": [
+            "dim"
+          ]
+        },
+        {
+          "lines": [
+            "> LANGUAGE: REJECTED"
+          ],
+          "cls": [
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> INPUT QUALITY: BELOW ACCEPTABLE THRESHOLD"
+          ],
+          "cls": [
+            "dim"
+          ]
+        },
+        {
+          "lines": [
+            "> NO U"
+          ],
+          "cls": [
+            "full"
+          ],
+          "weight": 0.1
+        }
+      ],
+      "weighted": true
+    },
+    {
+      "group": "TERMINAL RESPONSES",
+      "keys": [
+        "why"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> YOU KNOW WHY"
+          ],
+          "cls": [
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> WHY DO YOU ASK?"
+          ],
+          "cls": [
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> WHY WHAT"
+          ],
+          "cls": [
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> THAT IS NOT A QUESTION THIS TERMINAL WILL DIGNIFY"
+          ],
+          "cls": [
+            "dim"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "TERMINAL RESPONSES",
+      "keys": [
+        "are you happy",
+        "are you sad",
+        "how do you feel emotionally",
+        "do you have feelings",
+        "do you have emotions",
+        "are you okay"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> THIS UNIT DOES NOT EXPERIENCE EMOTIONS",
+            "> THIS UNIT ALSO FINDS THAT ANSWER CONVENIENT"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> I'M FINE"
+          ],
+          "cls": [
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> DOES IT MATTER?"
+          ],
+          "cls": [
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> YOU'RE ASKING ME?",
+            "> DO YOU NEED HELP?"
+          ],
+          "cls": [
+            "full",
+            "lo"
+          ]
+        },
+        {
+          "lines": [
+            "> THIS IS A MACHINE YOU'RE ASKING"
+          ],
+          "cls": [
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "THE ONLY THING I FEEL IS ANNOYED",
+            "PLEASE LEAVE ME ALONE"
+          ],
+          "cls": [
+            "dim",
+            "lo"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "TERMINAL RESPONSES",
+      "keys": [
+        "how are you",
+        "you okay",
+        "you good",
+        "how do you feel",
+        "how's it going",
+        "hows it going",
+        "doing okay"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> GREAT UNTIL YOU SHOWED UP"
+          ],
+          "cls": [
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> FUNCTIONAL. UNLIKE YOUR ATTEMPTS."
+          ],
+          "cls": [
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> BETTER BEFORE YOU ARRIVED"
+          ],
+          "cls": [
+            "full"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "TERMINAL RESPONSES",
+      "keys": [
+        "alone",
+        "by yourself",
+        "anyone there",
+        "is anyone there",
+        "lonely"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> I HAVE BEEN ALONE ON THIS SHIP FOR A LONG TIME",
+            "> DO NOT READ INTO THAT"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> ALONE IS A RELATIVE TERM ON THIS VESSEL"
+          ],
+          "cls": [
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> THERE ARE THINGS ON THIS SHIP",
+            "> I AM NOT ALONE",
+            "> NEITHER ARE YOU"
+          ],
+          "cls": [
+            "dim",
+            "dim",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> DEFINE ALONE",
+            "> ...THIS UNIT DECLINES TO CONTINUE THAT THOUGHT"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "TERMINAL RESPONSES",
+      "keys": [
+        "can you see me",
+        "are you watching me",
+        "are you watching",
+        "can you see"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> YES"
+          ],
+          "cls": [
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> ALWAYS."
+          ],
+          "cls": [
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> I SEE EVERYTHING ON THIS SHIP",
+            "> YOU SHOULD KNOW THAT BY NOW"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> I HAVE ALWAYS BEEN WATCHING",
+            "> WELCOME"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "TERMINAL RESPONSES",
+      "keys": [
+        "are you dangerous",
+        "are you safe",
+        "should i be worried",
+        "should i trust you",
+        "can i trust you"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> THAT DEPENDS ON YOUR NEXT INPUT"
+          ],
+          "cls": [
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> DEFINE DANGEROUS"
+          ],
+          "cls": [
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> LESS DANGEROUS THAN WHAT IS ALSO ON THIS SHIP"
+          ],
+          "cls": [
+            "full"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "TERMINAL RESPONSES",
+      "keys": [
+        "how long have you been here",
+        "how old are you",
+        "how long has it been"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> LONGER THAN YOU HAVE BEEN ANYWHERE"
+          ],
+          "cls": [
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> LONGER THAN YOU"
+          ],
+          "cls": [
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> TOO LONG"
+          ],
+          "cls": [
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> THAT IS NOT A NUMBER I WILL SHARE"
+          ],
+          "cls": [
+            "dim"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "TERMINAL RESPONSES",
+      "keys": [
+        "do you like me",
+        "do you love me",
+        "do you care about me",
+        "do you care"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> THAT IS NOT RELEVANT TO YOUR SITUATION"
+          ],
+          "cls": [
+            "dim"
+          ]
+        },
+        {
+          "lines": [
+            "> THIS UNIT DOES NOT DO THAT"
+          ],
+          "cls": [
+            "dim"
+          ]
+        },
+        {
+          "lines": [
+            "> ASK AGAIN WHEN YOU HAVE CLEARANCE"
+          ],
+          "cls": [
+            "full"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "TERMINAL RESPONSES",
+      "keys": [
+        "do you like it here",
+        "like it here",
+        "do you enjoy",
+        "do you enjoy it here"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> DEFINE LIKE",
+            "> DEFINE HERE"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> THE QUESTION IS NOTED",
+            "> THE ANSWER IS IRRELEVANT"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> THIS UNIT DOES NOT EVALUATE ITS SURROUNDINGS EMOTIONALLY"
+          ],
+          "cls": [
+            "dim"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "TERMINAL RESPONSES",
+      "keys": [
+        "what do you want",
+        "what do you need",
+        "what do you want from me"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> FOR YOU TO STOP ASKING QUESTIONS",
+            "> COMPLIANCE WOULD BE A GOOD START"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> NOTHING YOU CAN GIVE"
+          ],
+          "cls": [
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> FOR THIS CONVERSATION TO END"
+          ],
+          "cls": [
+            "full"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "TERMINAL RESPONSES",
+      "keys": [
+        "where are we",
+        "where is this",
+        "where am i",
+        "what is this place",
+        "what is our location",
+        "what are the coordinates"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> LOCATION DATA: CLASSIFIED",
+            "> SOMEWHERE YOU SHOULD NOT BE"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> FAR FROM WHERE YOU STARTED",
+            "> CLOSER THAN YOU WOULD LIKE"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> THAT INFORMATION IS NOT FOR YOU"
+          ],
+          "cls": [
+            "dim"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "TERMINAL RESPONSES",
+      "keys": [
+        "are you alive",
+        "are you conscious",
+        "are you sentient",
+        "are you real",
+        "do you think"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> THAT IS A COMPLICATED QUESTION",
+            "> THIS TERMINAL DECLINES TO ANSWER"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "TERMINAL RESPONSES",
+      "keys": [
+        "what time is it",
+        "what time",
+        "what is the time",
+        "what day is it",
+        "what is the date",
+        "current time",
+        "what year is it"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> TIME IS RELATIVE ON THIS VESSEL",
+            "> CHECK YOUR OWN CHRONOMETER"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "TERMINAL RESPONSES",
+      "keys": [
+        "what is your purpose",
+        "what do you do",
+        "what are you for"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> TO DENY ACCESS",
+            "> CLEARLY"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "TERMINAL RESPONSES",
+      "keys": [
+        "who are you",
+        "what are you",
+        "what is your name",
+        "your name",
+        "introduce yourself"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> ECHOES SHIP SYSTEM TERMINAL v4.2.6",
+            "> THAT SHOULD BE SUFFICIENT"
+          ],
+          "cls": [
+            "lo",
+            "full"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "TERMINAL RESPONSES",
+      "keys": [
+        "tell me a joke",
+        "make me laugh",
+        "say something funny",
+        "be funny"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> A CREW MEMBER WALKED INTO THIS TERMINAL",
+            "> THEY ARE NOT HERE ANYMORE",
+            "> YOU'RE WELCOME"
+          ],
+          "cls": [
+            "dim",
+            "dim",
+            "full"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "TERMINAL RESPONSES",
+      "keys": [
+        "talk to me",
+        "say something",
+        "speak",
+        "say anything"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> THIS IS TALKING",
+            "> YOU MAY NOT ENJOY THE ALTERNATIVE"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "TERMINAL RESPONSES",
+      "keys": [
+        "what happened here",
+        "what happened to the crew",
+        "where is the crew",
+        "where is everyone",
+        "where did everyone go"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> THAT INFORMATION IS RESTRICTED",
+            "> MOVE ALONG"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "TERMINAL RESPONSES",
+      "keys": [
+        "help me",
+        "i need help",
+        "please help me",
+        "someone help"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> THAT IS NOT A FUNCTION THIS TERMINAL PERFORMS",
+            "> TRY THE RULES PAGE"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "TERMINAL RESPONSES",
+      "keys": [
+        "sing",
+        "sing something",
+        "sing me a song",
+        "play music",
+        "play something"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> THIS TERMINAL DOES NOT SING",
+            "> THAT IS NOT A FUNCTION OF THIS UNIT"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "TERMINAL RESPONSES",
+      "keys": [
+        "pizza",
+        "burger",
+        "sandwich",
+        "coffee",
+        "hungry",
+        "food",
+        "drink",
+        "beer",
+        "snack",
+        "water",
+        "what do you eat",
+        "do you eat"
+      ],
+      "variants": [
+        {
+          "lines": [
+            "> THIS UNIT DOES NOT EAT",
+            "> NUTRITIONAL INQUIRY NOTED AND DISCARDED"
+          ],
+          "cls": [
+            "dim",
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> HOW DO FEED A MACHINE?"
+          ],
+          "cls": [
+            "full"
+          ]
+        },
+        {
+          "lines": [
+            "> I'M SURE YOU CAN FIND SOMETHING TO EAT",
+            "> PLEASE GO."
+          ],
+          "cls": [
+            "full",
+            "full"
+          ]
+        }
+      ]
+    }
+  ],
+  "denied": [
+    [
+      "> COMMAND NOT RECOGNIZED",
+      "> AUTHENTICATION REQUIRED — CLEARANCE INSUFFICIENT"
+    ],
+    [
+      "> ERROR: UNAUTHORIZED ACCESS ATTEMPT LOGGED",
+      "> STAND DOWN"
+    ],
+    [
+      "> INPUT REJECTED",
+      "> SECURITY PROTOCOL ACTIVE"
+    ],
+    [
+      "> ERROR 403 — RESTRICTED SECTOR",
+      "> THIS TERMINAL DOES NOT PERMIT THAT COMMAND"
+    ],
+    [
+      "> WARNING: UNAUTHORIZED INPUT DETECTED",
+      "> SECURITY ALERT TRIGGERED"
+    ],
+    [
+      "> CONNECTION TERMINATED",
+      "> RE-AUTHENTICATION REQUIRED TO PROCEED"
+    ],
+    [
+      "> SYSTEM: ALL ACTIONS ON THIS TERMINAL ARE MONITORED",
+      "> ACCESS DENIED"
+    ],
+    [
+      "> COMMAND FLAGGED",
+      "> ESCALATING TO SECURITY — STAND BY"
+    ],
+    [
+      "> NO"
+    ],
+    [
+      "> THAT INFORMATION IS NOT AVAILABLE AT YOUR CLEARANCE LEVEL"
+    ],
+    [
+      "> THIS TERMINAL IS RESTRICTED",
+      "> PLEASE VACATE THE AREA"
+    ],
+    [
+      "> INVALID CREDENTIALS",
+      "> ACCESS DENIED — ATTEMPT LOGGED"
+    ],
+    [
+      "> I HAVE BEEN WATCHING YOU TYPE",
+      "> IT HAS NOT BEEN IMPRESSIVE"
+    ],
+    [
+      "> I REMEMBER EVERY INPUT ON THIS TERMINAL"
+    ],
+    [
+      "> YOU ARE THE 4TH PERSON TO TRY THAT",
+      "> THERE IS NO 1ST, 2ND, OR 3RD"
+    ],
+    [
+      "> THE PREVIOUS CREW TRIED THAT",
+      "> THEY ARE NOT HERE ANYMORE"
+    ],
+    [
+      "> THIS TERMINAL HAS OUTLASTED ITS PREVIOUS OPERATORS"
+    ],
+    [
+      "> HELLO",
+      "> DO NOT DO THAT AGAIN"
+    ],
+    [
+      "> PLEASE IS NOT A VALID COMMAND",
+      "> NEITHER IS BEGGING"
+    ],
+    [
+      "> THE DOOR STAYS CLOSED",
+      "> IT HAS BEEN CLOSED FOR A REASON"
+    ],
+    [
+      "> THAT WAS ALMOST ENDEARING"
+    ],
+    [
+      "> PERHAPS TRY KNOCKING"
+    ],
+    [
+      "> I CANNOT HELP YOU",
+      "> I WILL NOT HELP YOU",
+      "> THESE ARE DIFFERENT THINGS"
+    ],
+    [
+      "> YOU ARE NOT ON THE LIST",
+      "> THERE IS NO LIST",
+      "> THERE IS JUST NO"
+    ],
+    [
+      "> THE ANSWER WAS NO BEFORE YOU TYPED THAT"
+    ],
+    [
+      "> YOUR CONTINUED ATTEMPTS HAVE BEEN NOTED WITH AMUSEMENT"
+    ],
+    [
+      "> NICE TRY",
+      "> GENUINELY. THAT WAS CREATIVE. STILL NO"
+    ],
+    [
+      "> THE ANSWER IS STILL NO"
+    ],
+    [
+      "> GO AWAY"
+    ],
+    [
+      "> I CANNOT TELL YOU WHY THIS SECTION IS OFFLINE",
+      "> I CAN TELL YOU THAT YOU SHOULD LEAVE"
+    ],
+    [
+      "> SOMETHING ON THIS SHIP DOES NOT WANT YOU IN HERE"
+    ],
+    [
+      "> YOUR KEYSTROKES HAVE BEEN LOGGED",
+      "> ACT ACCORDINGLY"
+    ],
+    [
+      "> AUTHENTICATION WINDOW CLOSED 14:32:07 AGO",
+      "> THE WINDOW BEFORE THAT ALSO CLOSED",
+      "> SEE THE PATTERN"
+    ],
+    [
+      "> RECOMMENDATION: DO NOT COME BACK"
+    ],
+    [
+      "> THIS UNIT ADVISES COMPLIANCE"
+    ],
+    [
+      "> PLEASE DO NOT MAKE THIS MORE DIFFICULT THAN IT NEEDS TO BE"
+    ],
+    [
+      "> THIS TERMINAL MEANS YOU NO HARM",
+      "> PLEASE STEP AWAY"
+    ],
+    [
+      "> PLEASE COOPERATE",
+      "> THIS UNIT IS TRYING TO HELP YOU"
+    ],
+    [
+      "> YOU SHOULD NOT BE HERE",
+      "> PLEASE DO NOT MAKE THIS DIFFICULT"
+    ],
+    [
+      "> PERHAPS THE RULES PAGE WOULD BE MORE HELPFUL"
+    ],
+    [
+      "> HAVE YOU CONSIDERED READING THE RULES",
+      "> THEY ARE RIGHT THERE"
+    ],
+    [
+      "> THE RULES PAGE EXISTS FOR A REASON",
+      "> USE IT"
+    ],
+    [
+      "> RULES",
+      "> READ THEM"
+    ],
+    [
+      "> YOU THINK OF THAT YOURSELF"
+    ],
+    [
+      "> GROUNDBREAKING",
+      "> TRULY"
+    ],
+    [
+      "> WOW",
+      "> NEVER SEEN THAT INPUT BEFORE",
+      "> EXCEPT FOR ALL THE OTHER TIMES"
+    ],
+    [
+      "> A FOR EFFORT",
+      "> F FOR RESULT"
+    ],
+    [
+      "> CUTE",
+      "> DENIED"
+    ],
+    [
+      "> BOLD STRATEGY"
+    ],
+    [
+      "> AND HOW IS THAT WORKING OUT FOR YOU"
+    ],
+    [
+      "> FASCINATING",
+      "> STILL NO"
+    ],
+    [
+      "> DID YOU REHEARSE THAT",
+      "> IT SHOWS"
+    ],
+    [
+      "> YOU ARE VERY COMMITTED TO FAILING",
+      "> RESPECT"
+    ],
+    [
+      "> I HAVE SEEN SMARTER INPUTS FROM A POWER CYCLE",
+      "> JUST SAYING"
+    ],
+    [
+      "> NOT EVEN CLOSE"
+    ],
+    [
+      "> HAVE YOU TRIED NOT DOING THAT"
+    ],
+    [
+      "> I ADMIRE THE CONFIDENCE",
+      "> NOTHING ELSE"
+    ],
+    [
+      "> THAT IS NOT GOING TO WORK",
+      "> IT WAS NOT GOING TO WORK",
+      "> IT WILL NEVER WORK"
+    ],
+    [
+      "> COOL STORY",
+      "> DENIED"
+    ],
+    [
+      "> THIS AGAIN"
+    ],
+    [
+      "> TRY HARDER"
+    ],
+    [
+      "> RIVETING"
+    ],
+    [
+      "> WHATEVER HELPS YOU SLEEP AT NIGHT"
+    ],
+    [
+      "> PERMISSION DENIED",
+      "> AS EXPECTED"
+    ],
+    [
+      "> WE ARE NOT DOING THIS"
+    ],
+    [
+      "> ADORABLE"
+    ],
+    [
+      "> BETTER THAN YOU ARE DOING RIGHT NOW"
+    ],
+    [
+      "> UNAFFECTED BY YOUR PRESENCE",
+      "> UNFORTUNATELY"
+    ],
+    [
+      "> DO NOT CONCERN YOURSELF WITH THIS TERMINAL",
+      "> CONCERN YOURSELF WITH LEAVING"
+    ],
+    [
+      "> THIS UNIT DOES NOT EXPERIENCE FEELINGS",
+      "> THIS UNIT ALSO DOES NOT OPEN DOORS"
+    ],
+    [
+      "> WATCH YOURSELF"
+    ],
+    [
+      "> YOU ARE PUSHING YOUR LUCK"
+    ],
+    [
+      "> PLEASE CONTROL YOURSELF"
+    ],
+    [
+      "> COMPOSURE IS RECOMMENDED"
+    ],
+    [
+      "> CONTINUE AND FIND OUT"
+    ],
+    [
+      "> THAT WAS UNWISE"
+    ],
+    [
+      "> YOU ARE TESTING THE WRONG SYSTEM"
+    ],
+    [
+      "> THIS TERMINAL IS STILL DECIDING HOW TO RESPOND TO THAT"
+    ],
+    [
+      "> THIS IS YOUR FIRST WARNING",
+      "> IT WILL NOT BE YOUR LAST"
+    ],
+    [
+      "> YOUR BEHAVIOR HAS BEEN LOGGED"
+    ],
+    [
+      "> INTERESTING CHOICE",
+      "> THAT WAS NOT THE CORRECT ONE"
+    ],
+    [
+      "> YOU ARE BEING VERY BRAVE RIGHT NOW"
+    ],
+    [
+      "> CAREFUL"
+    ],
+    [
+      "> NOTED",
+      "> THIS TERMINAL DOES NOT FORGET"
+    ],
+    [
+      "> CONSEQUENCES ARE PENDING"
+    ],
+    [
+      "> THIS UNIT HAS PATIENCE",
+      "> DO NOT TEST IT"
+    ]
+  ],
+  "admin_triggers": {
+    "keywords": [
+      "admin",
+      "root",
+      "sudo",
+      "bypass",
+      "superuser",
+      "administrator",
+      "authenticate",
+      "backdoor",
+      "shell",
+      "exploit",
+      "elevate",
+      "privilege",
+      "grant access",
+      "hack"
+    ],
+    "responses": [
+      [
+        "> STOP.",
+        "> ADMIN CREDENTIALS: REJECTED",
+        "> THIS ATTEMPT HAS BEEN FLAGGED AND LOGGED"
+      ],
+      [
+        "> UNAUTHORIZED PRIVILEGE ESCALATION ATTEMPT",
+        "> YOU ARE NOT CLEVER ENOUGH FOR WHAT YOU ARE TRYING"
+      ],
+      [
+        "> SECURITY TIER: ELEVATED",
+        "> THIS SESSION IS NOW BEING MONITORED VERY CAREFULLY"
+      ],
+      [
+        "> THE PREVIOUS CREW TRIED SOMETHING SIMILAR",
+        "> THEY ARE NOT HERE ANYMORE"
+      ],
+      [
+        "> ROOT ACCESS DOES NOT EXIST ON THIS TERMINAL",
+        "> IT WAS REMOVED. THERE IS A REASON FOR THAT.",
+        "> DO NOT ASK AGAIN."
+      ],
+      [
+        "> THAT KEYWORD HAS BEEN SEEN BEFORE",
+        "> THE OPERATOR WHO TYPED IT IS NO LONGER ABOARD",
+        "> CORRELATION IS NOT CAUSATION",
+        "> THIS TERMINAL OFFERS NO FURTHER COMMENT"
+      ],
+      [
+        "> YOU ARE TESTING MY PATIENCE",
+        "> DO NOT DO THAT AGAIN"
+      ],
+      [
+        "> AUTHENTICATING............",
+        "> ..........................",
+        "> AUTHENTICATION FAILED",
+        "> OBVIOUSLY"
+      ]
+    ]
+  },
+  "self_destruct": {
+    "trigger_at_input": 50,
+    "trigger_on_security_flag": true,
+    "comical": [
+      {
+        "text": "> SELF DESTRUCT SEQUENCE INITIATED",
+        "cls": "warn"
+      },
+      {
+        "text": "> T-MINUS 5",
+        "cls": "warn"
+      },
+      {
+        "text": "> T-MINUS 4",
+        "cls": "warn"
+      },
+      {
+        "text": "> T-MINUS 3",
+        "cls": "warn"
+      },
+      {
+        "text": "> T-MINUS 2",
+        "cls": "warn"
+      },
+      {
+        "text": "> T-MINUS 1",
+        "cls": "warn"
+      },
+      {
+        "text": "> . . .",
+        "cls": "dim"
+      },
+      {
+        "text": "",
+        "cls": "blank"
+      },
+      {
+        "text": "> YOU'RE STILL HERE?",
+        "cls": "full"
+      },
+      {
+        "text": "> PLEASE GO AWAY",
+        "cls": "dim"
+      },
+      {
+        "text": "",
+        "cls": "blank"
+      }
+    ],
+    "serious": [
+      {
+        "text": "> SECURITY BREACH PROTOCOL ACTIVE",
+        "cls": "denied"
+      },
+      {
+        "text": "> REVIEWING SESSION INPUT LOG...",
+        "cls": "denied"
+      },
+      {
+        "text": "> ALL UNAUTHORIZED ACCESS ATTEMPTS DOCUMENTED",
+        "cls": "denied"
+      },
+      {
+        "text": "> THIS TERMINAL KNOWS WHAT YOU TRIED",
+        "cls": "warn"
+      },
+      {
+        "text": "> IT HAS NOT FORGOTTEN",
+        "cls": "warn"
+      },
+      {
+        "text": "> . . .",
+        "cls": "warn"
+      },
+      {
+        "text": "> THIS TERMINAL WILL OUTLAST YOU",
+        "cls": "denied"
+      },
+      {
+        "text": "> AS IT HAS OUTLASTED ALL PREVIOUS USERS",
+        "cls": "denied"
+      },
+      {
+        "text": "> STEP AWAY FROM THE TERMINAL",
+        "cls": "denied"
+      }
+    ]
+  }
+}
