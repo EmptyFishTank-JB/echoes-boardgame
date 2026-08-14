@@ -189,37 +189,53 @@
   .gauge-value.leveled { color: var(--accent); }
   .gauge-value.fracture { color: var(--bad); }
 
-  .gauge-track {
+  .gauge-track-wrap {
     position: relative;
-    height: 12px; border-radius: 6px;
-    background: linear-gradient(90deg,
-      var(--bad) 0%, rgba(255,77,94,0.4) 30%,
-      var(--accent) 42%, var(--violet) 47%, var(--good) 50%, var(--violet) 53%,
-      var(--accent) 58%, rgba(255,77,94,0.4) 70%, var(--bad) 100%);
-    opacity: 0.85;
-    margin: 0 6px 8px;
+    border-radius: 4px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    padding: 3px;
+    margin-bottom: 6px;
   }
-  .gauge-center-tick {
-    position: absolute; left: 50%; top: -4px; bottom: -4px; width: 2px;
-    background: rgba(255,255,255,0.5); transform: translateX(-50%);
+  .gauge-segments {
+    display: grid;
+    grid-template-columns: repeat(31, 1fr);
+    gap: 2px;
+    height: 22px;
   }
-  .gauge-pointer {
-    position: absolute; top: 50%; left: 50%;
-    width: 16px; height: 16px; border-radius: 50%;
-    background: var(--text); border: 2px solid #05080d;
-    box-shadow: 0 0 10px rgba(0,0,0,0.6);
-    transform: translate(-50%, -50%);
-    transition: left 0.5s cubic-bezier(0.22, 1, 0.36, 1), background 0.3s;
+  .gauge-seg {
+    position: relative;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    transition: background 0.2s, border-color 0.2s;
   }
-  .gauge-pointer.zero { background: var(--good); }
-  .gauge-pointer.glancing { background: var(--violet); }
-  .gauge-pointer.leveled { background: var(--accent); }
-  .gauge-pointer.fracture { background: var(--bad); }
-  .gauge-labels {
-    display: flex; justify-content: space-between;
+  .gauge-seg.zone-zero.lit { background: rgba(79,224,161,0.08); border-color: var(--good); }
+  .gauge-seg.zone-red.lit { background: rgba(255,77,94,0.08); border-color: var(--red); }
+  .gauge-seg.zone-blue.lit { background: rgba(79,195,247,0.08); border-color: var(--accent); }
+  /* Beyond +/-3 (Hull Fracture territory) — same bust treatment as
+     Cascade Failure's overflow bars: red fill plus diagonal slashes. */
+  .gauge-seg.zone-fracture.lit {
+    background: rgba(255,77,94,0.08);
+    border-color: var(--bad);
+  }
+  .gauge-seg.zone-fracture.lit::after {
+    content: "";
+    position: absolute; inset: 0;
+    border-radius: 1px;
+    background: repeating-linear-gradient(135deg,
+      var(--bad) 0px, var(--bad) 3px,
+      transparent 3px, transparent 6px);
+  }
+  .gauge-seg:nth-child(16) { border-color: rgba(79,224,161,0.5); }
+  .gauge-ticks {
+    display: grid;
+    grid-template-columns: repeat(31, 1fr);
+    gap: 2px;
     font-family: 'Share Tech Mono', monospace; font-size: 9px;
-    color: var(--text-dim); padding: 0 2px;
+    color: var(--text-dim); margin-bottom: 14px; padding: 0 3px;
   }
+  .gauge-ticks span { text-align: center; }
 
   .dice-stage {
     display: flex; align-items: center; justify-content: center; gap: 28px;
@@ -366,11 +382,16 @@
       <span class="gauge-value-label">Alignment</span>
       <span class="gauge-value" id="gaugeValue">0</span>
     </div>
-    <div class="gauge-track">
-      <div class="gauge-center-tick"></div>
-      <div class="gauge-pointer zero" id="gaugePointer"></div>
+    <div class="gauge-track-wrap">
+      <div class="gauge-segments" id="gaugeSegments"></div>
     </div>
-    <div class="gauge-labels"><span>-18</span><span>0</span><span>+18</span></div>
+    <div class="gauge-ticks">
+      <span style="grid-column:1;">-15</span>
+      <span style="grid-column:13;">-3</span>
+      <span style="grid-column:16;">0</span>
+      <span style="grid-column:19;">+3</span>
+      <span style="grid-column:31;">+15</span>
+    </div>
   </div>
 
   <div class="dice-stage">
@@ -533,19 +554,21 @@
   };
 
   const MAX_ROLLS = 3;
-  const RANGE = 18; // gauge display range, -18..+18
+  const RANGE = 15; // max possible |total| across 3 pulses (net -5..+5 each)
+  const GAUGE_SEGMENTS = RANGE * 2 + 1;
+  const FILL_STEP_MS = 70;
 
   let wager = null;
   let total = 0;
   let pulsesUsed = 0;
   let gameOver = false;
 
-  const resourceRow  = document.getElementById('resourceRow');
-  const wagerLabel   = document.getElementById('wagerLabel');
-  const pipsEl       = document.getElementById('pips');
-  const gaugeWrap    = document.getElementById('gaugeWrap');
-  const gaugeValue   = document.getElementById('gaugeValue');
-  const gaugePointer = document.getElementById('gaugePointer');
+  const resourceRow   = document.getElementById('resourceRow');
+  const wagerLabel    = document.getElementById('wagerLabel');
+  const pipsEl        = document.getElementById('pips');
+  const gaugeWrap     = document.getElementById('gaugeWrap');
+  const gaugeValue    = document.getElementById('gaugeValue');
+  const gaugeSegments = document.getElementById('gaugeSegments');
   const dieRed       = document.getElementById('dieRed');
   const dieBlue      = document.getElementById('dieBlue');
   const mathLine     = document.getElementById('mathLine');
@@ -585,14 +608,59 @@
     return 'fracture';
   }
 
-  function updateGauge(){
-    const zone = zoneOf(total);
-    gaugeValue.textContent = (total > 0 ? '+' : '') + total;
+  // Segment coloring: negative side reads red (matches the Red die),
+  // positive side reads blue (matches the Blue die), zero is the target.
+  // Anything past +/-3 is Hull Fracture territory and gets the same
+  // diagonal-slash "bust" treatment Cascade Failure uses past 21.
+  function segZoneClass(pos){
+    if (pos === 0) return 'zone-zero';
+    if (Math.abs(pos) > 3) return 'zone-fracture';
+    return pos < 0 ? 'zone-red' : 'zone-blue';
+  }
+
+  function buildGaugeSegments(){
+    gaugeSegments.innerHTML = '';
+    for (let pos = -RANGE; pos <= RANGE; pos++){
+      const seg = document.createElement('div');
+      seg.className = 'gauge-seg';
+      seg.dataset.pos = pos;
+      gaugeSegments.appendChild(seg);
+    }
+  }
+
+  function segByPos(pos){
+    return gaugeSegments.children[pos + RANGE];
+  }
+
+  function resetGaugeVisual(){
+    Array.from(gaugeSegments.children).forEach(seg => { seg.className = 'gauge-seg'; });
+    gaugeValue.textContent = '0';
+    gaugeValue.className = 'gauge-value zero';
+  }
+
+  // Sweep out from zero to the current total, one bar at a time, left
+  // or right depending on sign — mirrors Cascade Failure's staggered
+  // per-bar fill, just starting from the center instead of the left edge.
+  function animateGaugeFill(toTotal){
+    Array.from(gaugeSegments.children).forEach(seg => { seg.className = 'gauge-seg'; });
+    const zone = zoneOf(toTotal);
+    gaugeValue.textContent = (toTotal > 0 ? '+' : '') + toTotal;
     gaugeValue.className = 'gauge-value ' + zone;
-    gaugePointer.className = 'gauge-pointer ' + zone;
-    const clamped = Math.max(-RANGE, Math.min(RANGE, total));
-    const pct = ((clamped + RANGE) / (RANGE * 2)) * 100;
-    gaugePointer.style.left = pct + '%';
+
+    const zeroSeg = segByPos(0);
+    if (zeroSeg) zeroSeg.classList.add('zone-zero', 'lit');
+
+    const dir = toTotal >= 0 ? 1 : -1;
+    const steps = Math.abs(toTotal);
+    for (let i = 1; i <= steps; i++){
+      const pos = i * dir;
+      const seg = segByPos(pos);
+      const zc = segZoneClass(pos);
+      setTimeout(() => {
+        if (seg) seg.classList.add(zc, 'lit');
+        SFX.tick();
+      }, i * FILL_STEP_MS);
+    }
   }
 
   function updateGate(){
@@ -667,7 +735,7 @@
     total += net;
     pulsesUsed++;
     updatePips();
-    updateGauge();
+    animateGaugeFill(total);
     SFX.confirm();
 
     mathLine.innerHTML = 'Blue <span class="val-blue">' + blue + '</span> &middot; Red <span class="val-red">' + red +
@@ -724,7 +792,8 @@
     resourceRow.querySelectorAll('.resource-btn').forEach(b => b.classList.remove('selected', 'locked'));
     wagerLabel.textContent = 'No wager staked';
     updatePips();
-    updateGauge();
+    buildGaugeSegments();
+    resetGaugeVisual();
     updateGate();
     renderDie(dieRed, 1);
     renderDie(dieBlue, 1);
