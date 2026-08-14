@@ -158,10 +158,6 @@
     border: 1px solid var(--border);
   }
   .btn.secondary:hover:not(:disabled) { color: var(--text); border-color: var(--text-dim); }
-  .btn.choice-blue { background: var(--blue); }
-  .btn.choice-red { background: var(--red); color: #eef0f5; }
-  .btn.choice-both { background: var(--orange); }
-
   .status-bar {
     display: flex; justify-content: center; align-items: center;
     font-family: 'Share Tech Mono', monospace; font-size: 11px;
@@ -190,15 +186,16 @@
   }
   .gauge-value.zero { color: var(--good); }
   .gauge-value.glancing { color: var(--violet); }
+  .gauge-value.leveled { color: var(--accent); }
   .gauge-value.fracture { color: var(--bad); }
 
   .gauge-track {
     position: relative;
     height: 12px; border-radius: 6px;
     background: linear-gradient(90deg,
-      var(--bad) 0%, rgba(255,77,94,0.35) 22%,
-      var(--violet) 44%, var(--good) 50%, var(--violet) 56%,
-      rgba(255,77,94,0.35) 78%, var(--bad) 100%);
+      var(--bad) 0%, rgba(255,77,94,0.4) 30%,
+      var(--accent) 42%, var(--violet) 47%, var(--good) 50%, var(--violet) 53%,
+      var(--accent) 58%, rgba(255,77,94,0.4) 70%, var(--bad) 100%);
     opacity: 0.85;
     margin: 0 6px 8px;
   }
@@ -216,6 +213,7 @@
   }
   .gauge-pointer.zero { background: var(--good); }
   .gauge-pointer.glancing { background: var(--violet); }
+  .gauge-pointer.leveled { background: var(--accent); }
   .gauge-pointer.fracture { background: var(--bad); }
   .gauge-labels {
     display: flex; justify-content: space-between;
@@ -271,8 +269,6 @@
   .log div span.tag { color: var(--accent); }
 
   .btn-row { display: flex; gap: 10px; }
-  .choice-row { display: flex; gap: 8px; flex-wrap: wrap; }
-  .choice-row .btn { flex: 1; min-width: 150px; }
 
   /* ── RESULT ── */
   #resultScreen {
@@ -289,6 +285,7 @@
   }
   .result-banner.win .big { color: var(--good); }
   .result-banner.partial .big { color: var(--violet); }
+  .result-banner.neutral .big { color: var(--accent); }
   .result-banner.fail .big { color: var(--bad); }
   .result-detail {
     font-family: 'Share Tech Mono', monospace; font-size: 12px;
@@ -340,16 +337,16 @@
 <header class="title-block">
   <div class="eyebrow">// Echo Event 06 — Balance Control</div>
   <h1>Core Stabilization</h1>
-  <p class="subtitle">The gravity tether is out of alignment, violently swinging the ship's center of mass. Counter-steer the system back to true neutral before the stress tears the bulkhead apart.</p>
+  <p class="subtitle">The gravity tether is out of alignment, violently swinging the ship's center of mass. Ride out three pulses of correction and hope the tether settles near true neutral before the stress tears the bulkhead apart.</p>
 </header>
 
 <div class="panel">
 
   <div class="rules-mini">
     <div><strong>Wager:</strong> Stake one resource before rolling. No resource = automatic failure.</div>
-    <div><strong>Each Pulse:</strong> Roll both dice, then apply Blue only, Red only, or both (net) to the running total. At least one die must be applied.</div>
-    <div><strong>Perfect Balance (0):</strong> Wager returned, doubled. <strong>Glancing Save (&plusmn;1):</strong> Wager returned, no bonus.</div>
-    <div><strong>Hull Fracture:</strong> Beyond &plusmn;1 after 3 Pulses &mdash; wager lost, +1 Noise per point away from zero.</div>
+    <div><strong>Each Pulse:</strong> Roll both dice. The net (Blue &minus; Red) applies to the running total automatically &mdash; no choice, just the dice.</div>
+    <div><strong>Perfect Balance (0):</strong> Wager doubled. <strong>Glancing Save (&plusmn;1):</strong> Wager returned, no bonus. <strong>Leveled Out (&plusmn;2):</strong> Wager lost, no Noise.</div>
+    <div><strong>Hull Fracture (&plusmn;3 or beyond):</strong> Wager lost, +1 Noise per point away from zero.</div>
   </div>
 
   <div class="stake-row" id="resourceRow">
@@ -584,6 +581,7 @@
   function zoneOf(t){
     if (t === 0) return 'zero';
     if (Math.abs(t) === 1) return 'glancing';
+    if (Math.abs(t) === 2) return 'leveled';
     return 'fracture';
   }
 
@@ -665,48 +663,18 @@
     renderDie(dieRed, red);
     renderDie(dieBlue, blue);
 
-    mathLine.innerHTML = 'Blue <span class="val-blue">' + blue + '</span> &middot; Red <span class="val-red">' + red +
-      '</span> &mdash; choose how to apply it.';
-
-    renderChoices(blue, red);
-  }
-
-  function renderChoices(blue, red){
-    actionRow.innerHTML = '';
-    const both = blue - red;
-
-    const blueBtn = document.createElement('button');
-    blueBtn.className = 'btn choice-blue';
-    blueBtn.textContent = 'Blue Only (' + (blue >= 0 ? '+' : '') + blue + ')';
-    blueBtn.addEventListener('click', () => applyChoice(blue, 'Blue only', blue));
-    actionRow.appendChild(blueBtn);
-
-    const redBtn = document.createElement('button');
-    redBtn.className = 'btn choice-red';
-    redBtn.textContent = 'Red Only (' + (-red) + ')';
-    redBtn.addEventListener('click', () => applyChoice(-red, 'Red only', -red));
-    actionRow.appendChild(redBtn);
-
-    const bothBtn = document.createElement('button');
-    bothBtn.className = 'btn choice-both';
-    bothBtn.textContent = 'Both (net ' + (both >= 0 ? '+' : '') + both + ')';
-    bothBtn.addEventListener('click', () => applyChoice(both, 'Both (net)', both));
-    actionRow.appendChild(bothBtn);
-
-    Array.from(actionRow.children).forEach(btn => {
-      btn.addEventListener('pointerenter', () => SFX.hover());
-    });
-  }
-
-  function applyChoice(delta, label, deltaLabel){
-    SFX.select();
-    total += delta;
+    const net = blue - red;
+    total += net;
     pulsesUsed++;
     updatePips();
     updateGauge();
+    SFX.confirm();
 
-    log('<span class="tag">Pulse ' + pulsesUsed + '/' + MAX_ROLLS + '</span> — applied ' + label + ' (' +
-      (deltaLabel >= 0 ? '+' : '') + deltaLabel + ') — running total <strong>' + (total >= 0 ? '+' : '') + total + '</strong>.');
+    mathLine.innerHTML = 'Blue <span class="val-blue">' + blue + '</span> &middot; Red <span class="val-red">' + red +
+      '</span> &mdash; net <span class="val">' + (net >= 0 ? '+' : '') + net + '</span> applied.';
+
+    log('<span class="tag">Pulse ' + pulsesUsed + '/' + MAX_ROLLS + '</span> — Blue ' + blue + ', Red ' + red +
+      ' — net ' + (net >= 0 ? '+' : '') + net + ' — running total <strong>' + (total >= 0 ? '+' : '') + total + '</strong>.');
 
     if (pulsesUsed >= MAX_ROLLS){
       endGame();
@@ -731,6 +699,11 @@
         resultBanner.className = 'result-banner partial';
         resultBig.textContent = 'GLANCING SAVE';
         resultDetail.innerHTML = 'Settled at <strong>' + (total >= 0 ? '+' : '') + total + '</strong> &mdash; close enough. <strong>' + wager + '</strong> returned, no bonus.';
+      } else if (zone === 'leveled'){
+        SFX.confirm();
+        resultBanner.className = 'result-banner neutral';
+        resultBig.textContent = 'LEVELED OUT';
+        resultDetail.innerHTML = 'Settled at <strong>' + (total >= 0 ? '+' : '') + total + '</strong> &mdash; outside safe range. <strong>' + wager + '</strong> lost, mitigating the disaster. No Noise generated.';
       } else {
         SFX.fail();
         const noise = Math.abs(total);
