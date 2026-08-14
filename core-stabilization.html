@@ -199,38 +199,46 @@
   }
   .gauge-segments {
     display: grid;
-    grid-template-columns: repeat(31, 1fr);
+    grid-template-columns: repeat(13, 1fr);
     gap: 2px;
     height: 22px;
   }
+  /* Every bar carries its zone tint all the time — dim by default,
+     the live position brightens with .current. Nothing ever resets
+     to blank; the highlighted bar just slides between positions. */
   .gauge-seg {
     position: relative;
-    background: rgba(255,255,255,0.04);
-    border: 1px solid var(--border);
     border-radius: 2px;
-    transition: background 0.2s, border-color 0.2s;
+    transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
   }
-  .gauge-seg.zone-zero.lit { background: rgba(79,224,161,0.08); border-color: var(--good); }
-  .gauge-seg.zone-red.lit { background: rgba(255,77,94,0.08); border-color: var(--red); }
-  .gauge-seg.zone-blue.lit { background: rgba(79,195,247,0.08); border-color: var(--accent); }
+  .gauge-seg.zone-zero { background: rgba(79,224,161,0.07); border: 1px solid rgba(79,224,161,0.3); }
+  .gauge-seg.zone-zero.current { background: rgba(79,224,161,0.28); border-color: var(--good); box-shadow: 0 0 8px rgba(79,224,161,0.55); }
+
+  .gauge-seg.zone-red { background: rgba(255,77,94,0.07); border: 1px solid rgba(255,77,94,0.3); }
+  .gauge-seg.zone-red.current { background: rgba(255,77,94,0.28); border-color: var(--red); box-shadow: 0 0 8px rgba(255,77,94,0.55); }
+
+  .gauge-seg.zone-blue { background: rgba(79,195,247,0.07); border: 1px solid rgba(79,195,247,0.3); }
+  .gauge-seg.zone-blue.current { background: rgba(79,195,247,0.28); border-color: var(--accent); box-shadow: 0 0 8px rgba(79,195,247,0.55); }
+
   /* Beyond +/-3 (Hull Fracture territory) — same bust treatment as
-     Cascade Failure's overflow bars: red fill plus diagonal slashes. */
-  .gauge-seg.zone-fracture.lit {
-    background: rgba(255,77,94,0.08);
-    border-color: var(--bad);
-  }
-  .gauge-seg.zone-fracture.lit::after {
+     Cascade Failure's overflow bars, but orange instead of red so the
+     "danger" stripe reads distinct from the Red die's own red. */
+  .gauge-seg.zone-fracture { background: rgba(232,115,42,0.07); border: 1px solid rgba(232,115,42,0.3); }
+  .gauge-seg.zone-fracture::after {
     content: "";
     position: absolute; inset: 0;
     border-radius: 1px;
+    opacity: 0.4;
     background: repeating-linear-gradient(135deg,
-      var(--bad) 0px, var(--bad) 3px,
+      var(--orange) 0px, var(--orange) 3px,
       transparent 3px, transparent 6px);
   }
-  .gauge-seg:nth-child(16) { border-color: rgba(79,224,161,0.5); }
+  .gauge-seg.zone-fracture.current { background: rgba(232,115,42,0.28); border-color: var(--orange); box-shadow: 0 0 8px rgba(232,115,42,0.55); }
+  .gauge-seg.zone-fracture.current::after { opacity: 1; }
+
   .gauge-ticks {
     display: grid;
-    grid-template-columns: repeat(31, 1fr);
+    grid-template-columns: repeat(13, 1fr);
     gap: 2px;
     font-family: 'Share Tech Mono', monospace; font-size: 9px;
     color: var(--text-dim); margin-bottom: 14px; padding: 0 3px;
@@ -386,11 +394,11 @@
       <div class="gauge-segments" id="gaugeSegments"></div>
     </div>
     <div class="gauge-ticks">
-      <span style="grid-column:1;">-15</span>
-      <span style="grid-column:13;">-3</span>
-      <span style="grid-column:16;">0</span>
-      <span style="grid-column:19;">+3</span>
-      <span style="grid-column:31;">+15</span>
+      <span style="grid-column:1;">-6</span>
+      <span style="grid-column:4;">-3</span>
+      <span style="grid-column:7;">0</span>
+      <span style="grid-column:10;">+3</span>
+      <span style="grid-column:13;">+6</span>
     </div>
   </div>
 
@@ -554,7 +562,7 @@
   };
 
   const MAX_ROLLS = 3;
-  const RANGE = 15; // max possible |total| across 3 pulses (net -5..+5 each)
+  const RANGE = 6; // hard cap — the tether can't be pushed past +/-6
   const GAUGE_SEGMENTS = RANGE * 2 + 1;
   const FILL_STEP_MS = 70;
 
@@ -618,11 +626,14 @@
     return pos < 0 ? 'zone-red' : 'zone-blue';
   }
 
+  // Every bar gets its zone tint permanently at build time — the track
+  // never goes blank. Only the .current modifier (added/removed as the
+  // live position moves) changes afterward.
   function buildGaugeSegments(){
     gaugeSegments.innerHTML = '';
     for (let pos = -RANGE; pos <= RANGE; pos++){
       const seg = document.createElement('div');
-      seg.className = 'gauge-seg';
+      seg.className = 'gauge-seg ' + segZoneClass(pos);
       seg.dataset.pos = pos;
       gaugeSegments.appendChild(seg);
     }
@@ -633,34 +644,42 @@
   }
 
   function resetGaugeVisual(){
-    Array.from(gaugeSegments.children).forEach(seg => { seg.className = 'gauge-seg'; });
+    Array.from(gaugeSegments.children).forEach(seg => seg.classList.remove('current'));
+    const zeroSeg = segByPos(0);
+    if (zeroSeg) zeroSeg.classList.add('current');
     gaugeValue.textContent = '0';
     gaugeValue.className = 'gauge-value zero';
   }
 
-  // Sweep out from zero to the current total, one bar at a time, left
-  // or right depending on sign — mirrors Cascade Failure's staggered
-  // per-bar fill, just starting from the center instead of the left edge.
-  function animateGaugeFill(toTotal){
-    Array.from(gaugeSegments.children).forEach(seg => { seg.className = 'gauge-seg'; });
-    const zone = zoneOf(toTotal);
-    gaugeValue.textContent = (toTotal > 0 ? '+' : '') + toTotal;
+  // Slides the live-position highlight from fromPos to toPos one bar at
+  // a time, instead of clearing the track and refilling from zero. If
+  // the roll was fully absorbed by the +/-6 cap (fromPos === toPos), it
+  // just gives a soft tick with no movement.
+  function moveGaugeTo(fromPos, toPos){
+    const zone = zoneOf(toPos);
+    gaugeValue.textContent = (toPos > 0 ? '+' : '') + toPos;
     gaugeValue.className = 'gauge-value ' + zone;
 
-    const zeroSeg = segByPos(0);
-    if (zeroSeg) zeroSeg.classList.add('zone-zero', 'lit');
-
-    const dir = toTotal >= 0 ? 1 : -1;
-    const steps = Math.abs(toTotal);
-    for (let i = 1; i <= steps; i++){
-      const pos = i * dir;
-      const seg = segByPos(pos);
-      const zc = segZoneClass(pos);
-      setTimeout(() => {
-        if (seg) seg.classList.add(zc, 'lit');
-        SFX.tick();
-      }, i * FILL_STEP_MS);
+    const dir = toPos > fromPos ? 1 : (toPos < fromPos ? -1 : 0);
+    if (dir === 0){
+      SFX.tick();
+      return;
     }
+    let pos = fromPos;
+    function step(){
+      const curSeg = segByPos(pos);
+      if (curSeg) curSeg.classList.remove('current');
+      pos += dir;
+      const nextSeg = segByPos(pos);
+      if (nextSeg) nextSeg.classList.add('current');
+      if (pos === toPos){
+        SFX.confirm();
+      } else {
+        SFX.tick();
+        setTimeout(step, FILL_STEP_MS);
+      }
+    }
+    step();
   }
 
   function updateGate(){
@@ -732,17 +751,21 @@
     renderDie(dieBlue, blue);
 
     const net = blue - red;
-    total += net;
+    const prevTotal = total;
+    const uncapped = total + net;
+    total = Math.max(-RANGE, Math.min(RANGE, uncapped));
+    const wasCapped = uncapped !== total;
     pulsesUsed++;
     updatePips();
-    animateGaugeFill(total);
-    SFX.confirm();
+    moveGaugeTo(prevTotal, total);
 
     mathLine.innerHTML = 'Blue <span class="val-blue">' + blue + '</span> &middot; Red <span class="val-red">' + red +
-      '</span> &mdash; net <span class="val">' + (net >= 0 ? '+' : '') + net + '</span> applied.';
+      '</span> &mdash; net <span class="val">' + (net >= 0 ? '+' : '') + net + '</span> applied' +
+      (wasCapped ? ' <span class="val">(capped at &plusmn;' + RANGE + ')</span>' : '') + '.';
 
     log('<span class="tag">Pulse ' + pulsesUsed + '/' + MAX_ROLLS + '</span> — Blue ' + blue + ', Red ' + red +
-      ' — net ' + (net >= 0 ? '+' : '') + net + ' — running total <strong>' + (total >= 0 ? '+' : '') + total + '</strong>.');
+      ' — net ' + (net >= 0 ? '+' : '') + net + (wasCapped ? ' (capped)' : '') +
+      ' — running total <strong>' + (total >= 0 ? '+' : '') + total + '</strong>.');
 
     if (pulsesUsed >= MAX_ROLLS){
       endGame();
