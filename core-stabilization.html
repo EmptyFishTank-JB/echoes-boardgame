@@ -186,7 +186,8 @@
   }
   .gauge-value.zero { color: var(--good); }
   .gauge-value.glancing { color: var(--violet); }
-  .gauge-value.leveled { color: var(--accent); }
+  .gauge-value.steadied { color: var(--accent); }
+  .gauge-value.leveled { color: var(--orange); }
   .gauge-value.fracture { color: var(--bad); }
 
   .gauge-track-wrap {
@@ -195,7 +196,7 @@
     background: rgba(255,255,255,0.04);
     border: 1px solid var(--border);
     padding: 3px;
-    margin-bottom: 6px;
+    margin: 10px 0 14px;
   }
   .gauge-segments {
     display: grid;
@@ -211,30 +212,49 @@
     border-radius: 2px;
     transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
   }
-  .gauge-seg.zone-zero { background: rgba(79,224,161,0.07); border: 1px solid rgba(79,224,161,0.3); }
+  .gauge-seg.zone-zero {
+    background: rgba(79,224,161,0.07); border: 1px solid rgba(79,224,161,0.3);
+  }
   .gauge-seg.zone-zero.current { background: rgba(79,224,161,0.28); border-color: var(--good); box-shadow: 0 0 8px rgba(79,224,161,0.55); }
+  /* Reticle marking the target — always visible, not just when live. */
+  .gauge-seg.zone-zero::before,
+  .gauge-seg.zone-zero::after {
+    content: ""; position: absolute; left: 50%; width: 0; height: 0;
+    border-left: 4px solid transparent; border-right: 4px solid transparent;
+    transform: translateX(-50%);
+  }
+  .gauge-seg.zone-zero::before { top: -8px; border-top: 5px solid var(--good); }
+  .gauge-seg.zone-zero::after { bottom: -8px; border-bottom: 5px solid var(--good); }
 
-  .gauge-seg.zone-red { background: rgba(255,77,94,0.07); border: 1px solid rgba(255,77,94,0.3); }
+  /* Red/blue shades get a little more saturated the further from zero
+     (shade-1 = +/-1, shade-2 = +/-2) — reads as "further from safe." */
+  .gauge-seg.zone-red.shade-1 { background: rgba(255,77,94,0.06); border: 1px solid rgba(255,77,94,0.25); }
+  .gauge-seg.zone-red.shade-2 { background: rgba(255,77,94,0.15); border: 1px solid rgba(255,77,94,0.42); }
+  .gauge-seg.zone-blue.shade-1 { background: rgba(79,195,247,0.06); border: 1px solid rgba(79,195,247,0.25); }
+  .gauge-seg.zone-blue.shade-2 { background: rgba(79,195,247,0.15); border: 1px solid rgba(79,195,247,0.42); }
   .gauge-seg.zone-red.current { background: rgba(255,77,94,0.28); border-color: var(--red); box-shadow: 0 0 8px rgba(255,77,94,0.55); }
-
-  .gauge-seg.zone-blue { background: rgba(79,195,247,0.07); border: 1px solid rgba(79,195,247,0.3); }
   .gauge-seg.zone-blue.current { background: rgba(79,195,247,0.28); border-color: var(--accent); box-shadow: 0 0 8px rgba(79,195,247,0.55); }
 
-  /* Beyond +/-3 (Hull Fracture territory) — same bust treatment as
-     Cascade Failure's overflow bars, but orange instead of red so the
-     "danger" stripe reads distinct from the Red die's own red. */
-  .gauge-seg.zone-fracture { background: rgba(232,115,42,0.07); border: 1px solid rgba(232,115,42,0.3); }
+  /* +/-3 and beyond (Hull Fracture territory) — same bust treatment as
+     Cascade Failure's overflow bars, but grey by default and orange
+     only once the current value actually lands there. */
+  .gauge-seg.zone-fracture { background: rgba(255,255,255,0.04); border: 1px solid var(--border); }
   .gauge-seg.zone-fracture::after {
     content: "";
     position: absolute; inset: 0;
     border-radius: 1px;
     opacity: 0.4;
     background: repeating-linear-gradient(135deg,
-      var(--orange) 0px, var(--orange) 3px,
+      rgba(238,240,245,0.3) 0px, rgba(238,240,245,0.3) 3px,
       transparent 3px, transparent 6px);
   }
   .gauge-seg.zone-fracture.current { background: rgba(232,115,42,0.28); border-color: var(--orange); box-shadow: 0 0 8px rgba(232,115,42,0.55); }
-  .gauge-seg.zone-fracture.current::after { opacity: 1; }
+  .gauge-seg.zone-fracture.current::after {
+    opacity: 1;
+    background: repeating-linear-gradient(135deg,
+      var(--orange) 0px, var(--orange) 3px,
+      transparent 3px, transparent 6px);
+  }
 
   .gauge-ticks {
     display: grid;
@@ -369,8 +389,8 @@
   <div class="rules-mini">
     <div><strong>Wager:</strong> Stake one resource before rolling. No resource = automatic failure.</div>
     <div><strong>Each Pulse:</strong> Roll both dice. The net (Blue &minus; Red) applies to the running total automatically &mdash; no choice, just the dice.</div>
-    <div><strong>Perfect Balance (0):</strong> Wager doubled. <strong>Glancing Save (&plusmn;1):</strong> Wager returned, no bonus. <strong>Leveled Out (&plusmn;2):</strong> Wager lost, no Noise.</div>
-    <div><strong>Hull Fracture (&plusmn;3 or beyond):</strong> Wager lost, +1 Noise per point away from zero.</div>
+    <div><strong>Perfect Balance (0):</strong> Wager tripled. <strong>Glancing Save (&plusmn;1):</strong> Wager doubled. <strong>Steadied (&plusmn;2):</strong> Wager returned, no bonus.</div>
+    <div><strong>Leveled Out (&plusmn;3):</strong> Wager lost, no Noise. <strong>Hull Fracture (&plusmn;4 or beyond):</strong> Wager lost, +1 Noise per point away from zero.</div>
   </div>
 
   <div class="stake-row" id="resourceRow">
@@ -612,18 +632,20 @@
   function zoneOf(t){
     if (t === 0) return 'zero';
     if (Math.abs(t) === 1) return 'glancing';
-    if (Math.abs(t) === 2) return 'leveled';
+    if (Math.abs(t) === 2) return 'steadied';
+    if (Math.abs(t) === 3) return 'leveled';
     return 'fracture';
   }
 
   // Segment coloring: negative side reads red (matches the Red die),
   // positive side reads blue (matches the Blue die), zero is the target.
-  // Anything past +/-3 is Hull Fracture territory and gets the same
-  // diagonal-slash "bust" treatment Cascade Failure uses past 21.
+  // +/-3 and beyond is Hull Fracture territory and gets the diagonal-
+  // slash "bust" treatment (grey by default, orange once the value is
+  // actually there).
   function segZoneClass(pos){
     if (pos === 0) return 'zone-zero';
-    if (Math.abs(pos) > 3) return 'zone-fracture';
-    return pos < 0 ? 'zone-red' : 'zone-blue';
+    if (Math.abs(pos) >= 3) return 'zone-fracture';
+    return (pos < 0 ? 'zone-red' : 'zone-blue') + ' shade-' + Math.abs(pos);
   }
 
   // Every bar gets its zone tint permanently at build time — the track
@@ -784,12 +806,17 @@
         SFX.win();
         resultBanner.className = 'result-banner win';
         resultBig.textContent = 'PERFECT BALANCE';
-        resultDetail.innerHTML = 'Tether steadied at exactly <strong>0</strong>. <strong>' + wager + '</strong> returned, doubled.';
+        resultDetail.innerHTML = 'Tether steadied at exactly <strong>0</strong>. <strong>' + wager + '</strong> returned, tripled.';
       } else if (zone === 'glancing'){
         SFX.win();
-        resultBanner.className = 'result-banner partial';
+        resultBanner.className = 'result-banner win';
         resultBig.textContent = 'GLANCING SAVE';
-        resultDetail.innerHTML = 'Settled at <strong>' + (total >= 0 ? '+' : '') + total + '</strong> &mdash; close enough. <strong>' + wager + '</strong> returned, no bonus.';
+        resultDetail.innerHTML = 'Settled at <strong>' + (total >= 0 ? '+' : '') + total + '</strong> &mdash; close enough. <strong>' + wager + '</strong> returned, doubled.';
+      } else if (zone === 'steadied'){
+        SFX.win();
+        resultBanner.className = 'result-banner partial';
+        resultBig.textContent = 'STEADIED';
+        resultDetail.innerHTML = 'Settled at <strong>' + (total >= 0 ? '+' : '') + total + '</strong>. <strong>' + wager + '</strong> returned, no bonus.';
       } else if (zone === 'leveled'){
         SFX.confirm();
         resultBanner.className = 'result-banner neutral';
