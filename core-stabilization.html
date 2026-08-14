@@ -184,11 +184,14 @@
     font-family: 'Share Tech Mono', monospace; font-size: 22px; font-weight: 700;
     color: var(--text); transition: color 0.3s;
   }
-  .gauge-value.zero { color: var(--good); }
-  .gauge-value.glancing { color: var(--violet); }
-  .gauge-value.steadied { color: var(--accent); }
-  .gauge-value.leveled { color: var(--orange); }
-  .gauge-value.fracture { color: var(--bad); }
+  /* Green fades out with distance from zero (0 = brightest) through
+     +/-3; +/-4 and beyond is a flat, unshaded red — no gradient, since
+     that's already Hull Fracture territory. */
+  .gauge-value.mag-0 { color: #4fe0a1; }
+  .gauge-value.mag-1 { color: rgba(79,224,161,0.82); }
+  .gauge-value.mag-2 { color: rgba(79,224,161,0.6); }
+  .gauge-value.mag-3 { color: rgba(79,224,161,0.4); }
+  .gauge-value.mag-fail { color: var(--bad); }
 
   .gauge-track-wrap {
     position: relative;
@@ -679,12 +682,20 @@
     return gaugeSegments.children[pos + RANGE];
   }
 
+  // Value readout color: green fading out from 0 through +/-3, flat
+  // red from +/-4 on (Hull Fracture) — independent of the win/lose
+  // zone naming, which still drives the result screen separately.
+  function valueMagClass(t){
+    const mag = Math.abs(t);
+    return mag <= 3 ? 'mag-' + mag : 'mag-fail';
+  }
+
   function resetGaugeVisual(){
     Array.from(gaugeSegments.children).forEach(seg => seg.classList.remove('current'));
     const zeroSeg = segByPos(0);
     if (zeroSeg) zeroSeg.classList.add('current');
     gaugeValue.textContent = '0';
-    gaugeValue.className = 'gauge-value zero';
+    gaugeValue.className = 'gauge-value mag-0';
   }
 
   // Slides the live-position highlight from fromPos to toPos one bar at
@@ -692,9 +703,8 @@
   // the roll was fully absorbed by the +/-6 cap (fromPos === toPos), it
   // just gives a soft tick with no movement.
   function moveGaugeTo(fromPos, toPos){
-    const zone = zoneOf(toPos);
     gaugeValue.textContent = (toPos > 0 ? '+' : '') + toPos;
-    gaugeValue.className = 'gauge-value ' + zone;
+    gaugeValue.className = 'gauge-value ' + valueMagClass(toPos);
 
     const dir = toPos > fromPos ? 1 : (toPos < fromPos ? -1 : 0);
     if (dir === 0){
