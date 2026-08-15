@@ -142,10 +142,10 @@
     border-color: var(--orange);
     background: linear-gradient(150deg, #fff3e9, #ffdcb8);
   }
-  .die-inner { position: absolute; inset: 0; }
-  .die-wrap.dead .die-inner {
-    clip-path: url(#pentagonClipInner);
-    background: linear-gradient(150deg, #4a4a4d, #38383b);
+  /* Void: the whole face dims (not just an inset layer) — lightly, so
+     the icon and face outline both stay easy to read. */
+  .die-wrap.dead .die::before {
+    background: linear-gradient(150deg, #d3d6dc, #bcc0c8);
   }
   .die img {
     position: relative;
@@ -154,7 +154,7 @@
     margin-top: 10%;
     transition: opacity 0.15s;
   }
-  .die-wrap.dead .die img { opacity: 0.35; }
+  .die-wrap.dead .die img { opacity: 0.55; }
   .die-wrap.unrolled img { opacity: 0.18; }
   .die-status {
     font-family: 'Share Tech Mono', monospace; font-size: 9px;
@@ -179,14 +179,17 @@
   /* Landed-but-not-yet-locked: the die's own border thickens (doubled)
      and pulses color to flag it satisfies an open requirement — most
      visible along the pentagon's flat bottom edge. Green = direct
-     match, violet = Wild eligible. */
+     match, violet = Wild eligible. Uses filter:drop-shadow (not
+     box-shadow) for the glow, since box-shadow ignores clip-path and
+     would otherwise glow around the die's square bounding box instead
+     of its pentagon outline. */
   @keyframes pulseDirect {
-    0%,100% { box-shadow: 0 0 4px rgba(79,224,161,0.25); border-color: rgba(79,224,161,0.5); }
-    50% { box-shadow: 0 0 16px rgba(79,224,161,0.95); border-color: var(--good); }
+    0%,100% { filter: drop-shadow(0 0 3px rgba(79,224,161,0.35)); border-color: rgba(79,224,161,0.5); }
+    50% { filter: drop-shadow(0 0 8px rgba(79,224,161,0.95)); border-color: var(--good); }
   }
   @keyframes pulseWild {
-    0%,100% { box-shadow: 0 0 4px rgba(185,138,255,0.25); border-color: rgba(185,138,255,0.5); }
-    50% { box-shadow: 0 0 16px rgba(185,138,255,0.95); border-color: var(--violet); }
+    0%,100% { filter: drop-shadow(0 0 3px rgba(185,138,255,0.35)); border-color: rgba(185,138,255,0.5); }
+    50% { filter: drop-shadow(0 0 8px rgba(185,138,255,0.95)); border-color: var(--violet); }
   }
   .die-wrap.match-direct .die::before { border-width: 4px; animation: pulseDirect 1s ease-in-out infinite; }
   .die-wrap.match-wild .die::before { border-width: 4px; animation: pulseWild 1s ease-in-out infinite; }
@@ -196,14 +199,14 @@
     border-width: 4px;
     border-color: var(--good);
     background: linear-gradient(150deg, #e9fff5, #baf5da);
-    box-shadow: 0 0 10px rgba(79,224,161,0.5);
+    filter: drop-shadow(0 0 5px rgba(79,224,161,0.6));
     animation: none;
   }
   .die-wrap.locked.assigned-wild .die::before {
     border-width: 4px;
     border-color: var(--violet);
     background: linear-gradient(150deg, #f5edff, #ddc2ff);
-    box-shadow: 0 0 10px rgba(185,138,255,0.5);
+    filter: drop-shadow(0 0 5px rgba(185,138,255,0.6));
     animation: none;
   }
 
@@ -260,13 +263,13 @@
     border-width: 4px;
     border-color: var(--good);
     background: linear-gradient(150deg, #e9fff5, #baf5da);
-    box-shadow: 0 0 10px rgba(79,224,161,0.5);
+    filter: drop-shadow(0 0 5px rgba(79,224,161,0.6));
   }
   .req-die-wrap.fulfilled-wild .die::before {
     border-width: 4px;
     border-color: var(--violet);
     background: linear-gradient(150deg, #f5edff, #ddc2ff);
-    box-shadow: 0 0 10px rgba(185,138,255,0.5);
+    filter: drop-shadow(0 0 5px rgba(185,138,255,0.6));
   }
   .req-die-wrap.fulfilled-direct .die-status { color: var(--good); }
   .req-die-wrap.fulfilled-wild .die-status { color: var(--violet); }
@@ -367,11 +370,6 @@
   <defs>
     <clipPath id="pentagonClip" clipPathUnits="userSpaceOnUse">
       <path d="M 7.95 36.71 L 48.05 6.07 Q 56.00 0.00 63.95 6.07 L 104.05 36.71 Q 112.00 42.78 109.15 52.37 L 94.25 102.42 Q 91.39 112.00 81.39 112.00 L 30.61 112.00 Q 20.61 112.00 17.75 102.42 L 2.85 52.37 Q 0.00 42.78 7.95 36.71 Z" />
-    </clipPath>
-    <!-- Inset ~7px inward from pentagonClip, same rounding — used to
-         create a striped "ring" border effect on dead (Void) dice. -->
-    <clipPath id="pentagonClipInner" clipPathUnits="userSpaceOnUse">
-      <path d="M 14.66 40.24 L 49.16 13.88 Q 56.00 8.65 62.84 13.88 L 97.34 40.24 Q 104.17 45.46 101.72 53.70 L 88.90 96.76 Q 86.45 105.00 77.84 105.00 L 34.16 105.00 Q 25.55 105.00 23.10 96.76 L 10.28 53.70 Q 7.83 45.46 14.66 40.24 Z" />
     </clipPath>
   </defs>
 </svg>
@@ -659,9 +657,6 @@
     wrap.className = 'die-wrap unrolled';
     const die = document.createElement('div');
     die.className = 'die';
-    const inner = document.createElement('div');
-    inner.className = 'die-inner';
-    die.appendChild(inner);
     const img = document.createElement('img');
     img.src = FACES[0].file;
     img.alt = '';
