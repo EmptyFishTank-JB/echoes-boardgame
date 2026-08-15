@@ -221,6 +221,13 @@
   }
   .status-value { font-size: 18px; font-weight: 700; color: var(--orange); }
   .status-value.zero { color: var(--text-dim); }
+  .status-value.pending { color: var(--text-dim); }
+  .status-tag {
+    font-size: 9px; letter-spacing: 0.14em;
+    padding: 2px 6px; border-radius: 2px; border: 1px solid var(--border);
+    color: var(--text-dim);
+  }
+  .status-tag.final { color: var(--orange); border-color: var(--orange); }
 
   .history-label {
     font-family: 'Share Tech Mono', monospace; font-size: 10px;
@@ -283,14 +290,15 @@
   <div class="rules-mini">
     <div><strong>Void:</strong> kills that die for the rest of the check — locked out automatically, can't be re-rolled or kept.</div>
     <div><strong>Wild:</strong> counts as Tech, DNA, Tools, or either Hazard face.</div>
-    <div><strong>Noise / Noise Spike:</strong> +1 / +2 Noise each, tallied live from whatever's currently showing.</div>
+    <div><strong>Noise / Noise Spike:</strong> +1 / +2 Noise each, only from the final roll of the check &mdash; reroll them away on a later roll and they don't count.</div>
   </div>
 
   <div class="dice-stage" id="diceStage"></div>
 
   <div class="status-row">
-    <span class="status-label">Noise generated</span>
+    <span class="status-label">Noise</span>
     <span class="status-value" id="noiseValue">0</span>
+    <span class="status-tag" id="noiseTag"></span>
   </div>
 
   <div class="btn-row">
@@ -372,6 +380,7 @@
   const resetBtn = document.getElementById('resetBtn');
   const logEl = document.getElementById('log');
   const noiseValueEl = document.getElementById('noiseValue');
+  const noiseTagEl = document.getElementById('noiseTag');
 
   let rollsUsed = 0;
   let dirtySinceReset = false; // true once a roll has happened since the last logged reset
@@ -416,15 +425,30 @@
     }
   }
 
-  function updateNoise(){
+  // The check is over once no rolls remain, or nothing's left to roll
+  // (everything is locked or dead) — whichever happens first.
+  function checkConcluded(){
+    return rollsUsed >= MAX_ROLLS || (rollsUsed > 0 && dice.every(d => d.locked || d.dead));
+  }
+
+  function currentNoise(){
     let total = 0;
     dice.forEach(d => {
       if (d.dead || !d.face) return;
       if (d.face.name === 'Noise') total += 1;
       if (d.face.name === 'Noise Spike') total += 2;
     });
+    return total;
+  }
+
+  function updateNoise(){
+    const total = currentNoise();
+    const concluded = checkConcluded();
     noiseValueEl.textContent = total;
-    noiseValueEl.classList.toggle('zero', total === 0);
+    noiseValueEl.classList.toggle('zero', total === 0 && concluded);
+    noiseValueEl.classList.toggle('pending', !concluded);
+    noiseTagEl.textContent = rollsUsed === 0 ? '' : (concluded ? 'APPLIED' : 'PENDING — MAY STILL CHANGE');
+    noiseTagEl.classList.toggle('final', concluded && rollsUsed > 0);
   }
 
   function updateSelectable(){
@@ -444,6 +468,8 @@
     d.locked = !d.locked;
     SFX.select();
     renderDieState(d);
+    updateNoise();
+    updateRollBtn();
   }
 
   function updateRollBtn(){
@@ -504,7 +530,10 @@
       const label = d.face ? d.face.name : '&mdash;';
       return d.locked ? '<span class="locked">' + label + '</span>' : label;
     }).join(', ');
-    log('<span class="tag">Roll ' + rollsUsed + '/' + MAX_ROLLS + '</span> &mdash; ' + summary);
+    const noiseNote = checkConcluded()
+      ? ' &mdash; <span class="locked">Noise Applied: ' + currentNoise() + '</span>'
+      : '';
+    log('<span class="tag">Roll ' + rollsUsed + '/' + MAX_ROLLS + '</span> &mdash; ' + summary + noiseNote);
   }
 
   function resetAll(){
