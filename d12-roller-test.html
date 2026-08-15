@@ -119,26 +119,56 @@
     margin: 6px 0 26px;
   }
   .die-wrap { text-align: center; width: 108px; }
+  .die-wrap.selectable .die { cursor: pointer; }
   .die {
     width: 112px; height: 112px;
     display: flex; align-items: center; justify-content: center;
     position: relative;
     filter: drop-shadow(0 4px 10px rgba(0,0,0,0.6));
+    transition: filter 0.15s;
   }
+  .die-wrap.selectable .die:hover { filter: drop-shadow(0 4px 10px rgba(0,0,0,0.6)) brightness(1.06); }
   .die::before {
     content: "";
     position: absolute; inset: 0;
-    clip-path: polygon(50% 0%, 100% 38.2%, 81.6% 100%, 18.4% 100%, 0% 38.2%);
+    clip-path: url(#pentagonClip);
     background: linear-gradient(150deg, #f4f6f9, #d9dee6);
-    border: 1px solid rgba(0,0,0,0.18);
+    border: 2px solid rgba(0,0,0,0.18);
     box-sizing: border-box;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .die-wrap.locked .die::before {
+    border-color: var(--orange);
+    background: linear-gradient(150deg, #fff3e9, #ffdcb8);
+  }
+  .die-wrap.dead .die::before {
+    border-color: var(--red);
+    background: linear-gradient(150deg, #4a4a4d, #38383b);
   }
   .die img {
     position: relative;
-    width: 46%; height: 46%;
+    width: 60%; height: 60%;
     display: block;
-    margin-top: 12%;
+    margin-top: 10%;
+    transition: opacity 0.15s;
   }
+  .die-wrap.dead .die img { opacity: 0.35; }
+  .die-wrap.unrolled img { opacity: 0.18; }
+  .die-wrap.dead .die::after {
+    content: "\2715";
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    padding-top: 10%;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 34px; font-weight: 700; color: var(--red);
+  }
+  .die-status {
+    font-family: 'Share Tech Mono', monospace; font-size: 9px;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    margin-top: 2px; min-height: 12px;
+  }
+  .die-wrap.locked .die-status { color: var(--orange); }
+  .die-wrap.dead .die-status { color: var(--red); }
   .die.rolling { animation: shake 0.5s ease infinite; }
   @keyframes shake {
     0%,100% { transform: rotate(0deg); }
@@ -168,14 +198,46 @@
   }
   .btn:hover:not(:disabled) { filter: brightness(1.15); transform: translateY(-1px); }
   .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn.secondary {
+    background: transparent; color: var(--text-dim);
+    border: 1px solid var(--border);
+  }
+  .btn.secondary:hover:not(:disabled) { color: var(--text); border-color: var(--text-dim); }
+  .btn-row { display: flex; gap: 10px; }
+
+  .rules-mini {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px; line-height: 1.9; color: var(--text-dim);
+    border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+    padding: 14px 0; margin: 4px 0 20px;
+  }
+  .rules-mini strong { color: var(--text); }
+
+  .status-row {
+    display: flex; justify-content: center; align-items: baseline; gap: 8px;
+    font-family: 'Share Tech Mono', monospace; font-size: 11px;
+    letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-dim);
+    margin-bottom: 18px;
+  }
+  .status-value { font-size: 18px; font-weight: 700; color: var(--orange); }
+  .status-value.zero { color: var(--text-dim); }
+
+  .history-label {
+    font-family: 'Share Tech Mono', monospace; font-size: 10px;
+    letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-dim);
+    margin-top: 22px;
+  }
+  .history-note { color: rgba(238,240,245,0.25); text-transform: none; letter-spacing: 0; }
 
   .log {
     font-family: 'Share Tech Mono', monospace; font-size: 11px;
     color: var(--text-dim); line-height: 1.9;
-    border-top: 1px solid var(--border);
-    padding-top: 12px; margin-top: 20px;
+    padding-top: 8px;
   }
   .log div span.tag { color: var(--accent); }
+  .log div span.tag.reset { color: var(--text-dim); }
+  .log div span.void { color: var(--red); }
+  .log div span.locked { color: var(--orange); }
 
   footer {
     z-index: 1;
@@ -187,6 +249,14 @@
 </style>
 </head>
 <body>
+
+<svg width="0" height="0" style="position:absolute;">
+  <defs>
+    <clipPath id="pentagonClip" clipPathUnits="userSpaceOnUse">
+      <path d="M 7.95 36.71 L 48.05 6.07 Q 56.00 0.00 63.95 6.07 L 104.05 36.71 Q 112.00 42.78 109.15 52.37 L 94.25 102.42 Q 91.39 112.00 81.39 112.00 L 30.61 112.00 Q 20.61 112.00 17.75 102.42 L 2.85 52.37 Q 0.00 42.78 7.95 36.71 Z" />
+    </clipPath>
+  </defs>
+</svg>
 
 <nav>
   <a href="index.html">&larr; Echoes</a>
@@ -200,20 +270,35 @@
   <a href="terminal.html">Terminal</a>
 </nav>
 
-<div class="test-banner">// Dice Prototype — 5x D12 rolling simulation, no game rules attached yet</div>
+<div class="test-banner">// Dice Prototype — Skill Check pool (Ship-Captain-Crew style), no game rules attached yet</div>
 
 <header class="title-block">
   <div class="eyebrow">// Dice Test Rig</div>
-  <h1>5x D12 Roller</h1>
-  <p class="subtitle">Rolls five 12-sided dice at once using the printed face set — Tools, Tech, DNA, Biohazard, Hazard, Noise, Noise Spike, Wild, Void.</p>
+  <h1>5x D12 Skill Check</h1>
+  <p class="subtitle">Up to 3 rolls. Click a die between rolls to keep it; the Roll button only re-rolls whatever's still unlocked.</p>
 </header>
 
 <div class="panel">
 
+  <div class="rules-mini">
+    <div><strong>Void:</strong> kills that die for the rest of the check — locked out automatically, can't be re-rolled or kept.</div>
+    <div><strong>Wild:</strong> counts as Tech, DNA, Tools, or either Hazard face.</div>
+    <div><strong>Noise / Noise Spike:</strong> +1 / +2 Noise each, tallied live from whatever's currently showing.</div>
+  </div>
+
   <div class="dice-stage" id="diceStage"></div>
 
-  <button class="btn" id="rollBtn">Roll 5x D12</button>
+  <div class="status-row">
+    <span class="status-label">Noise generated</span>
+    <span class="status-value" id="noiseValue">0</span>
+  </div>
 
+  <div class="btn-row">
+    <button class="btn" id="rollBtn">Roll 5x D12</button>
+    <button class="btn secondary" id="resetBtn">Reset</button>
+  </div>
+
+  <div class="history-label">History <span class="history-note">(last 10)</span></div>
   <div class="log" id="log"></div>
 
 </div>
@@ -278,16 +363,23 @@
     { file: 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcKICAgdmlld0JveD0iMC43OTg3OTE1OTY4ODk0OTU5IDAuMzkwMzU1MjM4OTE0NDg5NzUgMC4xNDY4NTMzNjgyODIzMTgxMyAwLjE0Njg1MzM2ODI4MjMxODEzIgogICB3aWR0aD0iMWluIgogICBoZWlnaHQ9IjEuMDAwMDAwMWluIgogICB2ZXJzaW9uPSIxLjEiCiAgIGlkPSJzdmcyNDUiCiAgIHNvZGlwb2RpOmRvY25hbWU9ImQxMl9Xb3JraW5nLnN2ZyIKICAgaW5rc2NhcGU6ZXhwb3J0LXhkcGk9IjEyMDAiCiAgIGlua3NjYXBlOmV4cG9ydC15ZHBpPSIxMjAwIgogICBpbmtzY2FwZTp2ZXJzaW9uPSIxLjQgKDg2YThhZDcsIDIwMjQtMTAtMTEpIgogICB4bWw6c3BhY2U9InByZXNlcnZlIgogICB4bWxuczppbmtzY2FwZT0iaHR0cDovL3d3dy5pbmtzY2FwZS5vcmcvbmFtZXNwYWNlcy9pbmtzY2FwZSIKICAgeG1sbnM6c29kaXBvZGk9Imh0dHA6Ly9zb2RpcG9kaS5zb3VyY2Vmb3JnZS5uZXQvRFREL3NvZGlwb2RpLTAuZHRkIgogICB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIKICAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICB4bWxuczpzdmc9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48cGF0aAogICAgICAgZD0iTSAzMDIuNjcgMTk2LjMwIEMgMzExLjEwIDIwMC4xOSAzMTcuOTIgMjA2LjA3IDMyNC4zNSAyMTIuNjUgQyAzMzguMDcgMjI2LjYzIDM1Mi4xMSAyNDAuMzEgMzY1LjYwIDI1NC41MSBDIDM3My40MiAyNjMuMzMgMzgyLjE4IDI3MS4xOSAzOTAuMDAgMjc5Ljk5IEMgNDAxLjgzIDI5Mi41MCA0MTQuMjQgMzA0LjQzIDQyNS45NiAzMTcuMDMgQyA0NTIuODUgMzQ0LjE5IDQ3OS42MSAzNzEuMzUgNTA2LjM2IDM5OC42NCBDIDUwOC44NCA0MDAuOTQgNTEyLjM3IDQwNC4zNSA1MTYuMDMgNDAzLjg1IEMgNTE5LjMwIDQwMy42MCA1MjEuMTUgNDAxLjUwIDUyMy4zOCAzOTkuMzkgQyA1MzIuNDIgMzkwLjA5IDU0MS42MSAzODAuOTQgNTUwLjcyIDM3MS43MiBDIDU4MS4zNSAzNDEuMzAgNjExLjM3IDMxMC40MSA2NDEuNzUgMjc5Ljc2IEMgNjYyLjkxIDI1OC41NSA2ODMuNzYgMjM3LjE2IDcwNC44NSAyMTUuODggQyA3MTAuMDcgMjEwLjMwIDcxNS4yMiAyMDQuODkgNzIxLjY4IDIwMC43MSBDIDcyOS4xNiAxOTUuNTcgNzM4LjE1IDE5Mi41NiA3NDcuMDEgMTkwLjg3IEMgNzU1LjQ0IDE4OS4wNSA3NjQuNzcgMTkwLjczIDc3Mi45NCAxOTMuMTIgQyA3OTAuMDIgMTk4LjYwIDgwNC4xNiAyMTEuNjEgODEyLjk4IDIyNy4wMiBDIDgxOS45OSAyMzkuOTggODIyLjMxIDI1NS42MCA4MTkuMTkgMjcwLjAxIEMgODE2Ljg5IDI4MC45MSA4MTEuNjkgMjkxLjgxIDgwMy41NiAyOTkuNTYgQyA3ODQuMDQgMzE5LjcwIDc2NC4wNSAzMzkuNDEgNzQ0LjYzIDM1OS42NCBDIDcxNy45NyAzODYuNjYgNjkxLjMyIDQxMy42NSA2NjUuMTAgNDQxLjA5IEMgNjUxLjYwIDQ1NC45MyA2MzguNDggNDY5LjEyIDYyNC44OCA0ODIuODggQyA2MjAuMjEgNDg4LjEwIDYxMy41MSA0OTMuNDUgNjEwLjk2IDUwMC4wNyBDIDYwOC42NSA1MDUuNzAgNjA5LjkxIDUxMS43NyA2MTMuMzggNTE2LjYwIEMgNjE5LjE4IDUyNC4wNCA2MjUuOTggNTMwLjA0IDYzMi4wOSA1MzYuOTQgQyA2NDEuNjQgNTQ3LjM4IDY1MS45NSA1NTcuMDggNjYxLjM3IDU2Ny42MyBDIDY3My45OCA1ODAuNjYgNjg2Ljg2IDU5My40MiA2OTkuNDEgNjA2LjUzIEMgNzE2LjY2IDYyNC4zMSA3MzQuMjQgNjQxLjc1IDc1MS40MyA2NTkuNTggQyA3NjIuNTYgNjcxLjEwIDc3NC4wMiA2ODIuMzIgNzg1LjE0IDY5My44NiBDIDc5MS45MCA3MDAuODEgNzk4Ljk0IDcwNy4zOCA4MDUuMjMgNzE0Ljc4IEMgODIwLjgxIDczMi44MSA4MjQuODAgNzYwLjA1IDgxNi4wNiA3ODIuMDcgQyA4MTAuNDMgNzk2LjM2IDc5OS4yOCA4MDkuMzEgNzg2LjA1IDgxNy4wOSBDIDc3Ny4yNSA4MjIuNjMgNzY3LjI1IDgyNC45NSA3NTcuMDAgODI1Ljg5IEMgNzUxLjE4IDgyNi40MSA3NDUuNjMgODI1LjM5IDczOS45NyA4MjQuMTIgQyA3MjguNTggODIxLjU3IDcxOC4zOSA4MTQuOTggNzEwLjQ3IDgwNi41NCBDIDY5Mi45NyA3ODcuMzggNjc0Ljg5IDc2OC43OCA2NTcuMTcgNzQ5Ljg0IEMgNjUyLjYzIDc0NS4wMyA2NDcuODUgNzQwLjQ5IDY0My40MyA3MzUuNTcgQyA2MzUuMTUgNzI2LjUyIDYyNi4zMiA3MTguMDEgNjE4LjE1IDcwOC44NiBDIDYwOS41NiA3MDAuMTEgNjAxLjE0IDY5MS4xOSA1OTIuNjggNjgyLjMxIEMgNTg2LjQyIDY3Ni4yMyA1ODAuNjMgNjY5LjczIDU3NC42MCA2NjMuNDIgQyA1NTcuMzIgNjQ1Ljc2IDU0MC42MSA2MjguMzkgNTIzLjM1IDYxMC42NyBDIDUyMS4yOSA2MDguNzQgNTE4LjkyIDYwNy42NiA1MTYuMDcgNjA3LjYxIEMgNTEwLjg0IDYwNy43NSA1MDcuNzQgNjExLjk5IDUwNC4zNyA2MTUuMzcgQyA0NzguNDMgNjQyLjA3IDQ1Mi40NSA2NjguODkgNDI2LjM4IDY5NS40NSBDIDQxOS42NiA3MDIuNzEgNDEyLjc3IDcwOS43OSA0MDUuODcgNzE2Ljg3IEMgMzkzLjEyIDczMC43OCAzNzkuNTMgNzQzLjg3IDM2Ni43MSA3NTcuNzEgQyAzNTYuODEgNzY3LjQ5IDM0Ny42NyA3NzcuOTkgMzM3LjczIDc4Ny43MyBDIDMzMC41NyA3OTQuOTEgMzIzLjUwIDgwMi4xNyAzMTYuMzYgODA5LjM2IEMgMzA2LjAwIDgxOS43OCAyOTEuNjUgODI1LjY2IDI3Ny4wMCA4MjYuMDUgQyAyNzAuNjcgODI1LjkxIDI2NC4yMiA4MjQuNjUgMjU4LjE3IDgyMi44MyBDIDIzMi4xMiA4MTQuMjIgMjExLjgwIDc4OC42OSAyMTAuOTQgNzYxLjAwIEMgMjEwLjIyIDc0Ni45MCAyMTQuMDAgNzMyLjY1IDIyMi4wMiA3MjAuOTkgQyAyMjguNDggNzExLjM1IDIzNy45NCA3MDMuMzQgMjQ1LjgxIDY5NC44MiBDIDI3NC41MyA2NjUuODggMzAyLjYyIDYzNi4yOSAzMzEuMjEgNjA3LjIxIEMgMzQyLjY5IDU5NS42OSAzNTMuNjkgNTgzLjcwIDM2NS4yMyA1NzIuMjMgQyAzODAuMTIgNTU2Ljg0IDM5NS4xMiA1NDEuMzkgNDEwLjA5IDUyNi4wOSBDIDQxMi42NCA1MjMuMzAgNDE1LjIyIDUyMC41MSA0MTcuNjkgNTE3LjY2IEMgNDIxLjkzIDUxMi43NSA0MjMuMjYgNTA1LjI2IDQyMC42NiA0OTkuMjcgQyA0MTguOTMgNDk0LjYxIDQxNC40NCA0OTAuODUgNDExLjIyIDQ4Ny4wNSBDIDQwMi4yOSA0NzcuNjMgMzkyLjk0IDQ2OC42MCAzODQuMTEgNDU5LjA4IEMgMzU5LjkxIDQzNC4xOCAzMzUuMzAgNDA5Ljc1IDMxMC45OSAzODUuMDEgQyAyOTYuMDAgMzY5LjY2IDI4MC43OCAzNTQuNTMgMjY1LjgzIDMzOS4xNCBDIDI1Mi44NSAzMjYuNDYgMjQwLjYzIDMxMy4wNCAyMjcuNzEgMzAwLjMwIEMgMjE2LjAyIDI4OC42NSAyMTAuNDIgMjcyLjM1IDIxMC43NSAyNTYuMDAgQyAyMTAuNjEgMjM5LjQwIDIxNy41NyAyMjMuODEgMjI4LjY3IDIxMS42NyBDIDIzOC4xMyAyMDEuNzggMjUwLjQwIDE5NC43NSAyNjMuNzIgMTkxLjYxIEMgMjc2LjQ5IDE4OC4xOSAyOTAuODUgMTkwLjc4IDMwMi42NyAxOTYuMzAgWiBNIDUxMS42NCA1MDcuMjkgQyA1MDMuOTkgNTE0Ljc4IDQ5Ni44MiA1MjIuNzAgNDg5LjI0IDUzMC4yNCBDIDQ2Ny42NyA1NTIuMzQgNDQ1Ljk0IDU3NC4zMSA0MjQuNjQgNTk2LjY1IEMgNDA1Ljg3IDYxNi4wMCAzODcuMjAgNjM1LjEwIDM2OC4zNyA2NTQuMzggQyAzNTMuMTIgNjcwLjQ1IDMzNy40MSA2ODYuMDcgMzIxLjk2IDcwMS45NiBDIDMwNy44MSA3MTYuNzggMjkzLjI5IDczMS4yOSAyNzguNzEgNzQ1LjY5IEMgMjc2LjU0IDc0Ny43OSAyNzUuODMgNzUwLjQwIDI3NC43OCA3NTMuMTMgQyAyNzYuMTkgNzU0Ljc3IDI3Ni43NCA3NTYuNTMgMjc5LjAzIDc1Ny4wOCBDIDI4MS4xNyA3NTcuOTYgMjgzLjUzIDc1NS4yOCAyODQuOTcgNzUzLjk4IEMgMjk0LjMxIDc0NC41OCAzMDMuNjEgNzM1LjE1IDMxMy4xMCA3MjUuODkgQyAzMzYuMDkgNzAyLjM3IDM1OS41MiA2NzkuMDMgMzgyLjI3IDY1NS4yOCBDIDM5Ny45NiA2MzkuNjIgNDEzLjQzIDYyMy43NiA0MjguNzkgNjA3Ljc5IEMgNDUyLjkxIDU4My4yMiA0NzYuODcgNTU4LjU5IDUwMS4wOSA1MzQuMDkgQyA1MDcuMDAgNTI4LjEzIDUxMi4zMSA1MjEuNzIgNTE4Ljg2IDUxNi40MCBDIDU0MS43OSA1NDAuNzAgNTY1LjAwIDU2NC43NiA1ODguMjMgNTg4Ljc3IEMgNTk3LjE0IDU5Ny41NSA2MDUuNTEgNjA2LjgyIDYxNC4yOCA2MTUuNzMgQyA2MjIuMTEgNjIzLjkxIDYyOS42OSA2MzIuMjkgNjM3Ljc3IDY0MC4yMyBDIDY3MS42OSA2NzUuMjMgNzA1LjkwIDcxMC4xOCA3NDAuMjIgNzQ0Ljc4IEMgNzQ0LjcyIDc0OS4xNiA3NDguNjQgNzU0LjU4IDc1NC4yMCA3NTcuMjggQyA3NTYuNzkgNzU0LjkyIDc1OC44OSA3NTMuMDIgNzU3LjY0IDc0OS4xOSBDIDc1NS4zMiA3NDQuMjQgNzUwLjU2IDc0MC4xMSA3NDYuODIgNzM2LjE5IEMgNzE3LjkyIDcwNi4xNCA2ODguMzMgNjc2LjY0IDY1OS42NCA2NDYuMzggQyA2NDMuNDUgNjI5LjkwIDYyNy41OCA2MTMuMDggNjExLjI5IDU5Ni43MSBDIDYwMC40OSA1ODQuODYgNTg4Ljk1IDU3My43MiA1NzguMDcgNTYxLjk0IEMgNTY4LjAwIDU1MS42NiA1NTguMjYgNTQxLjA3IDU0OC4yOCA1MzAuNzIgQyA1NDAuMzcgNTIyLjg2IDUzMy4yMyA1MTQuMzMgNTI1LjEwIDUwNi42OCBDIDU1MS45OSA0NzkuNzAgNTc4LjQ4IDQ1Mi4zNSA2MDUuMjcgNDI1LjI3IEMgNjE4LjAwIDQxMi4zNCA2MzAuOTAgMzk5LjU2IDY0My40NSAzODYuNDUgQyA2NzQuNDUgMzU1LjA3IDcwNS4xMyAzMjMuNDkgNzM1LjczIDI5MS43MiBDIDc0My4yOSAyODMuNzEgNzUxLjgyIDI3Ni4xNyA3NTguMjUgMjY3LjIwIEMgNzU3LjY1IDI2NS4yOCA3NTcuNDIgMjYyLjU1IDc1NS44NyAyNjEuMTQgQyA3NTQuNjYgMjU5LjYzIDc1Mi4yNyAyNTkuNjcgNzUwLjgyIDI2MC43OSBDIDc0OC4zNiAyNjIuNTMgNzQ2LjI4IDI2NS4wMCA3NDQuMjAgMjY3LjE3IEMgNzMwLjk1IDI4MC44OSA3MTcuNTcgMjk0LjYwIDcwNC4yMCAzMDguMTkgQyA2OTcuMDIgMzE1LjY3IDY4OS41NyAzMjIuODYgNjgyLjYxIDMzMC41NSBDIDY3OC4zOSAzMzQuNjkgNjc0LjE4IDMzOC44MSA2NzAuMTkgMzQzLjE5IEMgNjQ2LjU1IDM2Ny4yMiA2MjMuMDUgMzkxLjMzIDU5OS40MiA0MTUuNDMgQyA1ODIuMjIgNDMzLjUzIDU2NC40OSA0NTEuMTcgNTQ3LjIwIDQ2OS4xOSBDIDUzNy4zMyA0NzkuMTIgNTI3LjU4IDQ4OS4xNyA1MTcuNjUgNDk5LjAzIEMgNTAxLjUwIDQ4MS45NyA0ODUuMjUgNDY0Ljk4IDQ2OC44MiA0NDguMTggQyA0NDUuMTQgNDIzLjIyIDQyMC41MyAzOTkuMTMgMzk2LjQzIDM3NC41NyBDIDM1OS4zOSAzMzYuNjYgMzIxLjU5IDI5OS4zNSAyODQuMjcgMjYxLjcxIEMgMjgxLjgwIDI1OC42MSAyNzYuMzkgMjYwLjA2IDI3NS44NSAyNjMuOTkgQyAyNzQuODcgMjY3Ljk0IDI3OC43MiAyNzEuMjggMjgxLjAxIDI3NC4wMCBDIDI5MS4zNiAyODQuOTkgMzAyLjAxIDI5NS43MSAzMTIuNjIgMzA2LjQ1IEMgMzE3LjgyIDMxMS44OSAzMjIuOTMgMzE3LjQxIDMyOC4zMiAzMjIuNjggQyAzNTIuMDUgMzQ2LjYyIDM3NS45MiAzNzAuNDEgMzk5LjYzIDM5NC4zOCBDIDQyMi45NyA0MTcuNzAgNDQ1LjgwIDQ0MS41NCA0NjkuMjQgNDY0Ljc3IEMgNDgzLjI0IDQ3OS4wNiA0OTcuMzIgNDkzLjMwIDUxMS42NCA1MDcuMjkgWiIKICAgICAgIGlkPSJwMS03IiAvPjwvZGVmcz48ZwogICAgIGlkPSJnMSIKICAgICB0cmFuc2Zvcm09Im1hdHJpeCgxLjQ4MDE4NTRlLTQsMCwwLDEuNDgwMTg1NGUtNCwwLjc5NTg4OTMxLDAuMzg4NTc5NTgpIgogICAgIGlua3NjYXBlOmxhYmVsPSIxMiBWT0lEXzEiCiAgICAgc3R5bGU9ImRpc3BsYXk6aW5saW5lO2ZpbGw6bm9uZTtmaWxsLW9wYWNpdHk6MTtzdHJva2U6IzAwMDAwMDtzdHJva2Utd2lkdGg6MjcuMDIzNjQxNzc7c3Ryb2tlLWRhc2hhcnJheTpub25lO3N0cm9rZS1vcGFjaXR5OjE7c3Ryb2tlLWxpbmVqb2luOnJvdW5kO3N0cm9rZS1saW5lY2FwOnJvdW5kIj48dXNlCiAgICAgICBmaWxsPSIjMmEyZTFkIgogICAgICAgeGxpbms6aHJlZj0iI3AxLTciCiAgICAgICBpZD0idXNlNSIKICAgICAgIHN0eWxlPSJkaXNwbGF5OmlubGluZTtmaWxsOm5vbmU7ZmlsbC1vcGFjaXR5OjE7c3Ryb2tlOiMwMDAwMDA7c3Ryb2tlLXdpZHRoOjI3LjAyMzY0MTc3O3N0cm9rZS1kYXNoYXJyYXk6bm9uZTtzdHJva2Utb3BhY2l0eToxO3N0cm9rZS1saW5lam9pbjpyb3VuZDtzdHJva2UtbGluZWNhcDpyb3VuZCIKICAgICAgIHRyYW5zZm9ybT0idHJhbnNsYXRlKDEuNjg4OTc3NmUtNSwyLjI1MTk3MDJlLTUpIiAvPjwvZz48L3N2Zz4=', name: 'Void' },
   ];
   const DIE_COUNT = 5;
+  const MAX_ROLLS = 3;
   const MAX_TICKS = 8;
+  const HISTORY_LIMIT = 10;
 
   const diceStage = document.getElementById('diceStage');
   const rollBtn = document.getElementById('rollBtn');
+  const resetBtn = document.getElementById('resetBtn');
   const logEl = document.getElementById('log');
+  const noiseValueEl = document.getElementById('noiseValue');
+
+  let rollsUsed = 0;
+  let dirtySinceReset = false; // true once a roll has happened since the last logged reset
 
   const dice = [];
   for (let i = 0; i < DIE_COUNT; i++){
     const wrap = document.createElement('div');
-    wrap.className = 'die-wrap';
+    wrap.className = 'die-wrap unrolled';
     const die = document.createElement('div');
     die.className = 'die';
     const img = document.createElement('img');
@@ -299,59 +391,149 @@
     label.textContent = 'D12 — ' + (i + 1);
     const faceName = document.createElement('div');
     faceName.className = 'die-face-name';
+    const statusEl = document.createElement('div');
+    statusEl.className = 'die-status';
     wrap.appendChild(die);
     wrap.appendChild(label);
     wrap.appendChild(faceName);
+    wrap.appendChild(statusEl);
     diceStage.appendChild(wrap);
-    dice.push({ die, img, faceName });
+    const entry = { wrap, die, img, faceName, statusEl, face: null, locked: false, dead: false };
+    wrap.addEventListener('click', () => toggleLock(entry));
+    dice.push(entry);
   }
 
   function randomFace(){
     return FACES[Math.floor(Math.random() * FACES.length)];
   }
 
-  function log(msg){
+  function log(html){
     const line = document.createElement('div');
-    line.innerHTML = msg;
-    logEl.appendChild(line);
-    logEl.scrollTop = logEl.scrollHeight;
+    line.innerHTML = html;
+    logEl.insertBefore(line, logEl.firstChild);
+    while (logEl.children.length > HISTORY_LIMIT){
+      logEl.removeChild(logEl.lastChild);
+    }
+  }
+
+  function updateNoise(){
+    let total = 0;
+    dice.forEach(d => {
+      if (d.dead || !d.face) return;
+      if (d.face.name === 'Noise') total += 1;
+      if (d.face.name === 'Noise Spike') total += 2;
+    });
+    noiseValueEl.textContent = total;
+    noiseValueEl.classList.toggle('zero', total === 0);
+  }
+
+  function updateSelectable(){
+    const canToggle = rollsUsed > 0 && rollsUsed < MAX_ROLLS;
+    dice.forEach(d => d.wrap.classList.toggle('selectable', canToggle && !d.dead));
+  }
+
+  function renderDieState(d){
+    d.wrap.classList.toggle('locked', d.locked && !d.dead);
+    d.wrap.classList.toggle('dead', d.dead);
+    d.statusEl.textContent = d.dead ? 'VOID — DEAD' : (d.locked ? 'LOCKED' : '');
+  }
+
+  function toggleLock(d){
+    if (d.dead) return;
+    if (rollsUsed === 0 || rollsUsed >= MAX_ROLLS) return;
+    d.locked = !d.locked;
+    SFX.select();
+    renderDieState(d);
+  }
+
+  function updateRollBtn(){
+    const remaining = MAX_ROLLS - rollsUsed;
+    rollBtn.textContent = rollsUsed === 0 ? 'Roll 5x D12' : 'Roll Again (' + remaining + ' left)';
+    const anyActive = dice.some(d => !d.locked && !d.dead);
+    rollBtn.disabled = remaining <= 0 || !anyActive;
   }
 
   function roll(){
+    if (rollsUsed >= MAX_ROLLS) return;
+    const active = dice.filter(d => !d.locked && !d.dead);
+    if (active.length === 0) return;
     rollBtn.disabled = true;
+    resetBtn.disabled = true;
     SFX.select();
-    dice.forEach(d => {
+    active.forEach(d => {
+      d.wrap.classList.remove('unrolled');
       d.die.classList.add('rolling');
       d.faceName.textContent = '';
     });
 
     let ticks = 0;
     const spin = setInterval(() => {
-      dice.forEach(d => { d.img.src = randomFace().file; });
+      active.forEach(d => { d.img.src = randomFace().file; });
       SFX.tick();
       ticks++;
       if (ticks > MAX_TICKS){
         clearInterval(spin);
-        settle();
+        settle(active);
       }
     }, 70);
   }
 
-  function settle(){
-    dice.forEach(d => d.die.classList.remove('rolling'));
+  function settle(active){
+    active.forEach(d => d.die.classList.remove('rolling'));
     SFX.settle();
-    const results = dice.map(d => randomFace());
-    results.forEach((face, i) => {
-      dice[i].img.src = face.file;
-      dice[i].faceName.textContent = face.name;
+    active.forEach(d => {
+      const face = randomFace();
+      d.face = face;
+      d.img.src = face.file;
+      d.faceName.textContent = face.name;
+      if (face.name === 'Void'){
+        d.dead = true;
+        d.locked = false;
+      }
+      renderDieState(d);
     });
-    rollBtn.disabled = false;
-    log('<span class="tag">Roll</span> — ' + results.map(f => f.name).join(', '));
+    rollsUsed++;
+    dirtySinceReset = true;
+    updateNoise();
+    updateSelectable();
+    updateRollBtn();
+    resetBtn.disabled = false;
+
+    const summary = dice.map(d => {
+      if (d.dead) return '<span class="void">VOID</span>';
+      const label = d.face ? d.face.name : '&mdash;';
+      return d.locked ? '<span class="locked">' + label + '</span>' : label;
+    }).join(', ');
+    log('<span class="tag">Roll ' + rollsUsed + '/' + MAX_ROLLS + '</span> &mdash; ' + summary);
+  }
+
+  function resetAll(){
+    dice.forEach(d => {
+      d.face = null;
+      d.locked = false;
+      d.dead = false;
+      d.img.src = FACES[0].file;
+      d.faceName.textContent = '';
+      d.wrap.classList.add('unrolled');
+      renderDieState(d);
+    });
+    rollsUsed = 0;
+    updateNoise();
+    updateSelectable();
+    updateRollBtn();
+    SFX.select();
+    if (dirtySinceReset){
+      log('<span class="tag reset">Reset</span>');
+      dirtySinceReset = false;
+    }
   }
 
   rollBtn.addEventListener('click', roll);
+  resetBtn.addEventListener('click', resetAll);
+  updateRollBtn();
 })();
 </script>
+
 
 </body>
 </html>
