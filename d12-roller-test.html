@@ -16,6 +16,7 @@
     --red:        #ff4d5e;
     --blue:       #4fc3f7;
     --good:       #4fe0a1;
+    --violet:     #b98aff;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body {
@@ -180,6 +181,90 @@
     60% { transform: rotate(-5deg); }
     80% { transform: rotate(4deg); }
   }
+
+  /* Landed-but-not-yet-locked: pulses to flag it satisfies an open
+     requirement. Green = direct match, violet = Wild eligible. */
+  @keyframes pulseDirect {
+    0%,100% { box-shadow: 0 0 4px rgba(79,224,161,0.25); border-color: rgba(79,224,161,0.5); }
+    50% { box-shadow: 0 0 16px rgba(79,224,161,0.95); border-color: var(--good); }
+  }
+  @keyframes pulseWild {
+    0%,100% { box-shadow: 0 0 4px rgba(185,138,255,0.25); border-color: rgba(185,138,255,0.5); }
+    50% { box-shadow: 0 0 16px rgba(185,138,255,0.95); border-color: var(--violet); }
+  }
+  .die-wrap.match-direct .die::before { animation: pulseDirect 1s ease-in-out infinite; }
+  .die-wrap.match-wild .die::before { animation: pulseWild 1s ease-in-out infinite; }
+
+  /* Locked AND assigned to a requirement: steady glow, no more pulse. */
+  .die-wrap.locked.assigned-direct .die::before {
+    border-color: var(--good);
+    background: linear-gradient(150deg, #e9fff5, #baf5da);
+    box-shadow: 0 0 10px rgba(79,224,161,0.5);
+    animation: none;
+  }
+  .die-wrap.locked.assigned-wild .die::before {
+    border-color: var(--violet);
+    background: linear-gradient(150deg, #f5edff, #ddc2ff);
+    box-shadow: 0 0 10px rgba(185,138,255,0.5);
+    animation: none;
+  }
+
+  /* Brief flash on matched-but-unlocked dice when a re-roll is about
+     to consume them, shown while the Roll button is armed for confirm. */
+  @keyframes flashWarn {
+    0%,100% { filter: drop-shadow(0 4px 10px rgba(0,0,0,0.6)) brightness(1); }
+    25%,75% { filter: drop-shadow(0 4px 10px rgba(0,0,0,0.6)) brightness(1.9); }
+    50% { filter: drop-shadow(0 4px 10px rgba(0,0,0,0.6)) brightness(1); }
+  }
+  .die.flash-warn { animation: flashWarn 0.5s ease-in-out 2; }
+
+  /* ── REQUIRED FACES SELECTOR ── */
+  .required-label {
+    text-align: center;
+    font-family: 'Share Tech Mono', monospace; font-size: 10px;
+    letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-dim);
+    margin-bottom: 10px;
+  }
+  .required-hint { text-transform: none; letter-spacing: 0; color: rgba(238,240,245,0.3); }
+  .required-stage {
+    display: flex; align-items: flex-start; justify-content: center;
+    gap: 10px; flex-wrap: wrap;
+    margin-bottom: 22px;
+  }
+  .required-stage.locked-in .req-die-wrap { cursor: default; }
+  .req-die-wrap {
+    width: 64px; height: 64px; position: relative;
+    text-align: center; cursor: pointer;
+  }
+  .req-die-scale {
+    position: absolute; top: 0; left: 0;
+    width: 112px; height: 112px;
+    transform: scale(0.5714286);
+    transform-origin: top left;
+  }
+  .req-die-wrap .die-status { position: absolute; top: 68px; left: 50%; transform: translateX(-50%); width: 90px; }
+  .req-die-wrap:hover .req-die-scale .die { filter: drop-shadow(0 4px 10px rgba(0,0,0,0.6)) brightness(1.08); }
+  .req-die-wrap.blank .die img { opacity: 0; }
+  .req-die-wrap.blank .req-die-scale::after {
+    content: "NONE";
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    padding-top: 8%;
+    font-family: 'Share Tech Mono', monospace; font-size: 20px; font-weight: 700;
+    color: var(--text-dim); letter-spacing: 0.1em;
+  }
+  .req-die-wrap.fulfilled-direct .die::before {
+    border-color: var(--good);
+    background: linear-gradient(150deg, #e9fff5, #baf5da);
+    box-shadow: 0 0 10px rgba(79,224,161,0.5);
+  }
+  .req-die-wrap.fulfilled-wild .die::before {
+    border-color: var(--violet);
+    background: linear-gradient(150deg, #f5edff, #ddc2ff);
+    box-shadow: 0 0 10px rgba(185,138,255,0.5);
+  }
+  .req-die-wrap.fulfilled-direct .die-status { color: var(--good); }
+  .req-die-wrap.fulfilled-wild .die-status { color: var(--violet); }
   .die-label {
     font-family: 'Share Tech Mono', monospace; font-size: 10px;
     letter-spacing: 0.16em; text-transform: uppercase; margin-top: 8px;
@@ -216,6 +301,9 @@
   }
   .btn.secondary.danger {
     background: rgba(255,77,94,0.12); color: var(--red); border-color: var(--red);
+  }
+  .btn.danger {
+    background: var(--red); color: #1a0507;
   }
 
   .rules-mini {
@@ -300,7 +388,7 @@
 <header class="title-block">
   <div class="eyebrow">// Dice Test Rig</div>
   <h1>5x D12 Skill Check</h1>
-  <p class="subtitle">Up to 3 rolls. Click a die between rolls to keep it; the Roll button only re-rolls whatever's still unlocked.</p>
+  <p class="subtitle">Up to 3 rolls. Pick the faces this check needs, then roll — click a die between rolls to keep it; the Roll button only re-rolls whatever's still unlocked.</p>
 </header>
 
 <div class="panel">
@@ -310,6 +398,9 @@
     <div><strong>Wild:</strong> counts as Tech, Bio, Tools, or either Hazard face.</div>
     <div><strong>Noise / Noise Spike:</strong> +1 / +2 Noise each, only from the final roll of the check &mdash; reroll them away on a later roll and they don't count.</div>
   </div>
+
+  <div class="required-label">Required Faces <span class="required-hint">(click to cycle — locks in once you roll)</span></div>
+  <div class="required-stage" id="requiredStage"></div>
 
   <div class="dice-stage" id="diceStage"></div>
 
@@ -395,6 +486,13 @@
   const MAX_TICKS = 8;
   const HISTORY_LIMIT = 10;
 
+  const REQUIRED_CATEGORIES = ['Tech', 'Tools', 'Bio', 'Contamination', 'Hazard'];
+
+  function faceForName(name){
+    return FACES.find(f => f.name === name);
+  }
+
+  const requiredStage = document.getElementById('requiredStage');
   const diceStage = document.getElementById('diceStage');
   const rollBtn = document.getElementById('rollBtn');
   const resetBtn = document.getElementById('resetBtn');
@@ -408,6 +506,102 @@
   let dirtySinceReset = false; // true once a roll has happened since the last logged reset
   let resetPending = false;    // Reset armed, waiting on a confirming second click
   let resetPendingTimer = null;
+  let rollPending = false;     // Roll Again armed, waiting on a confirming second click (only when live matches are at risk)
+  let rollPendingTimer = null;
+  let requirementsLocked = false;
+
+  const requiredSlots = [];
+  for (let i = 0; i < DIE_COUNT; i++){
+    const wrap = document.createElement('div');
+    wrap.className = 'req-die-wrap blank';
+    const scale = document.createElement('div');
+    scale.className = 'req-die-scale';
+    const die = document.createElement('div');
+    die.className = 'die';
+    const img = document.createElement('img');
+    img.src = FACES[0].file;
+    img.alt = '';
+    die.appendChild(img);
+    scale.appendChild(die);
+    const statusEl = document.createElement('div');
+    statusEl.className = 'die-status';
+    wrap.appendChild(scale);
+    wrap.appendChild(statusEl);
+    requiredStage.appendChild(wrap);
+    const slot = { name: null, fulfilledBy: null, wrap, img, statusEl };
+    wrap.addEventListener('click', () => cycleRequiredSlot(i));
+    requiredSlots.push(slot);
+  }
+
+  function cycleRequiredSlot(i){
+    if (requirementsLocked) return;
+    const slot = requiredSlots[i];
+    const idx = slot.name === null ? -1 : REQUIRED_CATEGORIES.indexOf(slot.name);
+    slot.name = idx + 1 >= REQUIRED_CATEGORIES.length ? null : REQUIRED_CATEGORIES[idx + 1];
+    SFX.select();
+    renderRequiredSlot(i);
+  }
+
+  function renderRequiredSlot(i){
+    const slot = requiredSlots[i];
+    const blank = slot.name === null;
+    slot.wrap.classList.toggle('blank', blank);
+    slot.wrap.classList.toggle('fulfilled-direct', slot.fulfilledBy === 'direct');
+    slot.wrap.classList.toggle('fulfilled-wild', slot.fulfilledBy === 'wild');
+    slot.img.src = blank ? FACES[0].file : faceForName(slot.name).file;
+    if (blank) slot.statusEl.textContent = '';
+    else if (slot.fulfilledBy === 'direct') slot.statusEl.textContent = 'MATCHED';
+    else if (slot.fulfilledBy === 'wild') slot.statusEl.textContent = 'WILD';
+    else slot.statusEl.textContent = slot.name.toUpperCase();
+  }
+
+  function lockRequirements(){
+    requirementsLocked = true;
+    requiredStage.classList.add('locked-in');
+  }
+
+  function unlockRequirements(){
+    requirementsLocked = false;
+    requiredStage.classList.remove('locked-in');
+  }
+
+  function findOpenSlotIndex(name){
+    return requiredSlots.findIndex(s => s.name === name && s.fulfilledBy === null);
+  }
+
+  function anyOpenSlot(){
+    return requiredSlots.some(s => s.name !== null && s.fulfilledBy === null);
+  }
+
+  function recomputeMatches(){
+    dice.forEach(d => {
+      d.matchType = null;
+      if (d.dead || d.locked || !d.face) return;
+      if (findOpenSlotIndex(d.face.name) !== -1) d.matchType = 'direct';
+      else if (d.face.name === 'Wild' && anyOpenSlot()) d.matchType = 'wild';
+    });
+    dice.forEach(renderDieState);
+  }
+
+  function assignDieToSlot(d){
+    if (!d.face) return;
+    let slotIdx = -1;
+    if (d.matchType === 'direct') slotIdx = findOpenSlotIndex(d.face.name);
+    else if (d.matchType === 'wild') slotIdx = requiredSlots.findIndex(s => s.name !== null && s.fulfilledBy === null);
+    if (slotIdx === -1) return;
+    requiredSlots[slotIdx].fulfilledBy = d.matchType;
+    d.assignedSlot = slotIdx;
+    d.assignedType = d.matchType;
+    renderRequiredSlot(slotIdx);
+  }
+
+  function clearDieAssignment(d){
+    if (d.assignedSlot == null) return;
+    requiredSlots[d.assignedSlot].fulfilledBy = null;
+    renderRequiredSlot(d.assignedSlot);
+    d.assignedSlot = null;
+    d.assignedType = null;
+  }
 
   const dice = [];
   for (let i = 0; i < DIE_COUNT; i++){
@@ -434,7 +628,7 @@
     wrap.appendChild(faceName);
     wrap.appendChild(statusEl);
     diceStage.appendChild(wrap);
-    const entry = { wrap, die, img, faceName, statusEl, face: null, locked: false, dead: false };
+    const entry = { wrap, die, img, faceName, statusEl, face: null, locked: false, dead: false, matchType: null, assignedSlot: null, assignedType: null };
     wrap.addEventListener('click', () => toggleLock(entry));
     dice.push(entry);
   }
@@ -486,20 +680,38 @@
   function renderDieState(d){
     d.wrap.classList.toggle('locked', d.locked && !d.dead);
     d.wrap.classList.toggle('dead', d.dead);
-    d.statusEl.textContent = d.dead ? 'VOID — DEAD' : (d.locked ? 'LOCKED' : '');
+    d.wrap.classList.toggle('match-direct', !d.locked && !d.dead && d.matchType === 'direct');
+    d.wrap.classList.toggle('match-wild', !d.locked && !d.dead && d.matchType === 'wild');
+    d.wrap.classList.toggle('assigned-direct', d.locked && d.assignedType === 'direct');
+    d.wrap.classList.toggle('assigned-wild', d.locked && d.assignedType === 'wild');
+    let status = '';
+    if (d.dead) status = 'VOID — DEAD';
+    else if (d.locked && d.assignedType) status = d.assignedType === 'wild' ? 'WILD — LOCKED' : 'MATCHED — LOCKED';
+    else if (d.locked) status = 'LOCKED';
+    else if (d.matchType === 'direct') status = 'REQUIRED FACE';
+    else if (d.matchType === 'wild') status = 'WILD AVAILABLE';
+    d.statusEl.textContent = status;
   }
 
   function toggleLock(d){
     if (d.dead) return;
     if (rollsUsed === 0 || rollsUsed >= MAX_ROLLS) return;
     d.locked = !d.locked;
+    if (d.locked) assignDieToSlot(d);
+    else clearDieAssignment(d);
     SFX.select();
-    renderDieState(d);
+    disarmRollConfirm();
+    recomputeMatches();
     updateNoise();
     updateRollBtn();
   }
 
+  function hasAtRiskMatches(){
+    return dice.some(d => !d.dead && !d.locked && (d.matchType === 'direct' || d.matchType === 'wild'));
+  }
+
   function updateRollBtn(){
+    if (rollPending) return;
     const remaining = MAX_ROLLS - rollsUsed;
     rollBtn.textContent = rollsUsed === 0 ? 'Roll 5x D12' : 'Roll Again (' + remaining + ' left)';
     const anyActive = dice.some(d => !d.locked && !d.dead);
@@ -543,10 +755,11 @@
         d.dead = true;
         d.locked = false;
       }
-      renderDieState(d);
     });
     rollsUsed++;
     dirtySinceReset = true;
+    if (rollsUsed === 1) lockRequirements();
+    recomputeMatches();
     updateNoise();
     updateSelectable();
     updateRollBtn();
@@ -578,10 +791,35 @@
     resetPendingTimer = setTimeout(disarmResetConfirm, 3500);
   }
 
+  function disarmRollConfirm(){
+    if (!rollPending) return;
+    rollPending = false;
+    clearTimeout(rollPendingTimer);
+    rollBtn.classList.remove('danger');
+    updateRollBtn();
+  }
+
+  function armRollConfirm(){
+    rollPending = true;
+    rollBtn.textContent = 'Confirm Roll?';
+    rollBtn.classList.add('danger');
+    dice.forEach(d => {
+      if (!d.dead && !d.locked && (d.matchType === 'direct' || d.matchType === 'wild')){
+        d.die.classList.remove('flash-warn');
+        void d.die.offsetWidth;
+        d.die.classList.add('flash-warn');
+      }
+    });
+    clearTimeout(rollPendingTimer);
+    rollPendingTimer = setTimeout(disarmRollConfirm, 3500);
+  }
+
   function snapshotState(){
     return {
       rollsUsed,
-      dice: dice.map(d => ({ face: d.face, locked: d.locked, dead: d.dead }))
+      requirementsLocked,
+      requiredSlots: requiredSlots.map(s => ({ name: s.name, fulfilledBy: s.fulfilledBy })),
+      dice: dice.map(d => ({ face: d.face, locked: d.locked, dead: d.dead, assignedSlot: d.assignedSlot, assignedType: d.assignedType }))
     };
   }
 
@@ -591,12 +829,23 @@
       d.face = s.face;
       d.locked = s.locked;
       d.dead = s.dead;
+      d.assignedSlot = s.assignedSlot;
+      d.assignedType = s.assignedType;
       d.wrap.classList.toggle('unrolled', !s.face);
       d.img.src = s.face ? s.face.file : FACES[0].file;
       d.faceName.textContent = s.face ? s.face.name : '';
-      renderDieState(d);
     });
+    requiredSlots.forEach((slot, i) => {
+      const s = snap.requiredSlots[i];
+      slot.name = s.name;
+      slot.fulfilledBy = s.fulfilledBy;
+      renderRequiredSlot(i);
+    });
+    requirementsLocked = snap.requirementsLocked;
+    requiredStage.classList.toggle('locked-in', requirementsLocked);
     rollsUsed = snap.rollsUsed;
+    disarmRollConfirm();
+    recomputeMatches();
     updateNoise();
     updateSelectable();
     updateRollBtn();
@@ -624,12 +873,22 @@
       d.face = null;
       d.locked = false;
       d.dead = false;
+      d.matchType = null;
+      d.assignedSlot = null;
+      d.assignedType = null;
       d.img.src = FACES[0].file;
       d.faceName.textContent = '';
       d.wrap.classList.add('unrolled');
       renderDieState(d);
     });
+    requiredSlots.forEach((slot, i) => {
+      slot.name = null;
+      slot.fulfilledBy = null;
+      renderRequiredSlot(i);
+    });
+    unlockRequirements();
     rollsUsed = 0;
+    disarmRollConfirm();
     updateNoise();
     updateSelectable();
     updateRollBtn();
@@ -662,6 +921,11 @@
 
   rollBtn.addEventListener('click', () => {
     disarmResetConfirm();
+    if (rollsUsed > 0 && !rollPending && hasAtRiskMatches()){
+      armRollConfirm();
+      return;
+    }
+    disarmRollConfirm();
     roll();
   });
   resetBtn.addEventListener('click', () => {
