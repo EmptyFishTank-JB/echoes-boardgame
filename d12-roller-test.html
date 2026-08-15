@@ -136,10 +136,9 @@
     background: linear-gradient(150deg, #f4f6f9, #d9dee6);
     border: 2px solid rgba(0,0,0,0.18);
     box-sizing: border-box;
-    transition: border-color 0.15s, border-width 0.15s, background 0.15s;
+    transition: background 0.15s;
   }
   .die-wrap.locked .die::before {
-    border-color: var(--orange);
     background: linear-gradient(150deg, #fff3e9, #ffdcb8);
   }
   /* Void: the whole face dims (not just an inset layer) — lightly, so
@@ -156,6 +155,31 @@
   }
   .die-wrap.dead .die img { opacity: 0.55; }
   .die-wrap.unrolled img { opacity: 0.18; }
+  /* State indicator: a small "chip" anchored to the bottom-center of the
+     die, glowing via filter:drop-shadow (not box-shadow, which ignores
+     clip-path and would bleed onto the corners). Every state — default
+     grey, locked orange, matched green/violet, Void's transparent red —
+     uses the exact same size/blur, differing only in color. */
+  .die::after {
+    content: "";
+    position: absolute;
+    left: 50%; bottom: 7px;
+    width: 34px; height: 5px;
+    transform: translateX(-50%);
+    transform-origin: bottom center;
+    border-radius: 1px;
+    background: rgba(0,0,0,0.3);
+    filter: drop-shadow(0 0 5px rgba(0,0,0,0.35));
+    transition: background 0.15s, filter 0.15s;
+  }
+  .die-wrap.locked .die::after {
+    background: var(--orange);
+    filter: drop-shadow(0 0 5px rgba(232,115,42,0.65));
+  }
+  .die-wrap.dead .die::after {
+    background: rgba(255,77,94,0.4);
+    filter: drop-shadow(0 0 5px rgba(255,77,94,0.4));
+  }
   .die-status {
     font-family: 'Share Tech Mono', monospace; font-size: 9px;
     letter-spacing: 0.14em; text-transform: uppercase;
@@ -176,37 +200,36 @@
     80% { transform: rotate(4deg); }
   }
 
-  /* Landed-but-not-yet-locked: the die's own border thickens (doubled)
-     and pulses color to flag it satisfies an open requirement — most
-     visible along the pentagon's flat bottom edge. Green = direct
-     match, violet = Wild eligible. Uses filter:drop-shadow (not
-     box-shadow) for the glow, since box-shadow ignores clip-path and
-     would otherwise glow around the die's square bounding box instead
-     of its pentagon outline. */
+  /* Landed-but-not-yet-locked: the bottom chip pulses color to flag it
+     satisfies an open requirement. Green = direct match, violet = Wild
+     eligible. Same chip size/blur as every other state — only the
+     background and glow color change. */
   @keyframes pulseDirect {
-    0%,100% { filter: drop-shadow(0 0 3px rgba(79,224,161,0.35)); border-color: rgba(79,224,161,0.5); }
-    50% { filter: drop-shadow(0 0 8px rgba(79,224,161,0.95)); border-color: var(--good); }
+    0%,100% { background: rgba(79,224,161,0.5); filter: drop-shadow(0 0 4px rgba(79,224,161,0.4)); }
+    50% { background: var(--good); filter: drop-shadow(0 0 8px rgba(79,224,161,0.95)); }
   }
   @keyframes pulseWild {
-    0%,100% { filter: drop-shadow(0 0 3px rgba(185,138,255,0.35)); border-color: rgba(185,138,255,0.5); }
-    50% { filter: drop-shadow(0 0 8px rgba(185,138,255,0.95)); border-color: var(--violet); }
+    0%,100% { background: rgba(185,138,255,0.5); filter: drop-shadow(0 0 4px rgba(185,138,255,0.4)); }
+    50% { background: var(--violet); filter: drop-shadow(0 0 8px rgba(185,138,255,0.95)); }
   }
-  .die-wrap.match-direct .die::before { border-width: 4px; animation: pulseDirect 1s ease-in-out infinite; }
-  .die-wrap.match-wild .die::before { border-width: 4px; animation: pulseWild 1s ease-in-out infinite; }
+  .die-wrap.match-direct .die::after { animation: pulseDirect 1s ease-in-out infinite; }
+  .die-wrap.match-wild .die::after { animation: pulseWild 1s ease-in-out infinite; }
 
-  /* Locked AND assigned to a requirement: steady thick border, no more pulse. */
+  /* Locked AND assigned to a requirement: steady chip glow, no more pulse. */
   .die-wrap.locked.assigned-direct .die::before {
-    border-width: 4px;
-    border-color: var(--good);
     background: linear-gradient(150deg, #e9fff5, #baf5da);
-    filter: drop-shadow(0 0 5px rgba(79,224,161,0.6));
+  }
+  .die-wrap.locked.assigned-direct .die::after {
+    background: var(--good);
+    filter: drop-shadow(0 0 5px rgba(79,224,161,0.65));
     animation: none;
   }
   .die-wrap.locked.assigned-wild .die::before {
-    border-width: 4px;
-    border-color: var(--violet);
     background: linear-gradient(150deg, #f5edff, #ddc2ff);
-    filter: drop-shadow(0 0 5px rgba(185,138,255,0.6));
+  }
+  .die-wrap.locked.assigned-wild .die::after {
+    background: var(--violet);
+    filter: drop-shadow(0 0 5px rgba(185,138,255,0.65));
     animation: none;
   }
 
@@ -260,16 +283,18 @@
     color: var(--text-dim); letter-spacing: 0.1em;
   }
   .req-die-wrap.fulfilled-direct .die::before {
-    border-width: 4px;
-    border-color: var(--good);
     background: linear-gradient(150deg, #e9fff5, #baf5da);
-    filter: drop-shadow(0 0 5px rgba(79,224,161,0.6));
+  }
+  .req-die-wrap.fulfilled-direct .die::after {
+    background: var(--good);
+    filter: drop-shadow(0 0 5px rgba(79,224,161,0.65));
   }
   .req-die-wrap.fulfilled-wild .die::before {
-    border-width: 4px;
-    border-color: var(--violet);
     background: linear-gradient(150deg, #f5edff, #ddc2ff);
-    filter: drop-shadow(0 0 5px rgba(185,138,255,0.6));
+  }
+  .req-die-wrap.fulfilled-wild .die::after {
+    background: var(--violet);
+    filter: drop-shadow(0 0 5px rgba(185,138,255,0.65));
   }
   .req-die-wrap.fulfilled-direct .die-status { color: var(--good); }
   .req-die-wrap.fulfilled-wild .die-status { color: var(--violet); }
