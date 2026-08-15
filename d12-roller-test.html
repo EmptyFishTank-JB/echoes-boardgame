@@ -136,11 +136,25 @@
     background: linear-gradient(150deg, #f4f6f9, #d9dee6);
     border: 2px solid rgba(0,0,0,0.18);
     box-sizing: border-box;
-    transition: border-color 0.15s, background 0.15s;
+    transition: border-color 0.15s, border-width 0.15s, background 0.15s;
   }
   .die-wrap.locked .die::before {
     border-color: var(--orange);
     background: linear-gradient(150deg, #fff3e9, #ffdcb8);
+  }
+  /* Dead (Void) dice: the outer pentagon becomes a red diagonal
+     hazard-stripe ring, with the original dimmed face sitting inset
+     on top of it via .die-inner so the icon stays visible but dark. */
+  .die-wrap.dead .die::before {
+    border: none;
+    background: repeating-linear-gradient(135deg,
+      var(--red) 0px, var(--red) 9px,
+      #2c2c2e 9px, #2c2c2e 18px);
+  }
+  .die-inner { position: absolute; inset: 0; }
+  .die-wrap.dead .die-inner {
+    clip-path: url(#pentagonClipInner);
+    background: linear-gradient(150deg, #4a4a4d, #38383b);
   }
   .die img {
     position: relative;
@@ -149,6 +163,7 @@
     margin-top: 10%;
     transition: opacity 0.15s;
   }
+  .die-wrap.dead .die img { opacity: 0.35; }
   .die-wrap.unrolled img { opacity: 0.18; }
   .die-status {
     font-family: 'Share Tech Mono', monospace; font-size: 9px;
@@ -170,64 +185,40 @@
     80% { transform: rotate(4deg); }
   }
 
-  /* Colored underline strip beneath a die's bottom edge — flags a
-     required-face match without touching the face/border itself.
-     Green = direct match, violet = Wild eligible, dashed red = Void. */
-  .die::after {
-    content: "";
-    position: absolute;
-    left: 50%; bottom: -10px;
-    width: 46%; height: 6px;
-    transform: translateX(-50%);
-    border-radius: 2px;
-    background: transparent;
-    opacity: 0;
-    transition: opacity 0.15s;
+  /* Landed-but-not-yet-locked: the die's own border thickens (doubled)
+     and pulses color to flag it satisfies an open requirement — most
+     visible along the pentagon's flat bottom edge. Green = direct
+     match, violet = Wild eligible. */
+  @keyframes pulseDirect {
+    0%,100% { box-shadow: 0 0 4px rgba(79,224,161,0.25); border-color: rgba(79,224,161,0.5); }
+    50% { box-shadow: 0 0 16px rgba(79,224,161,0.95); border-color: var(--good); }
   }
-  @keyframes underlinePulseGood {
-    0%,100% { opacity: 0.45; box-shadow: 0 0 4px rgba(79,224,161,0.4); }
-    50% { opacity: 1; box-shadow: 0 0 14px rgba(79,224,161,0.95); }
+  @keyframes pulseWild {
+    0%,100% { box-shadow: 0 0 4px rgba(185,138,255,0.25); border-color: rgba(185,138,255,0.5); }
+    50% { box-shadow: 0 0 16px rgba(185,138,255,0.95); border-color: var(--violet); }
   }
-  @keyframes underlinePulseViolet {
-    0%,100% { opacity: 0.45; box-shadow: 0 0 4px rgba(185,138,255,0.4); }
-    50% { opacity: 1; box-shadow: 0 0 14px rgba(185,138,255,0.95); }
-  }
-  .die-wrap.match-direct .die::after {
-    background: var(--good);
-    opacity: 1;
-    animation: underlinePulseGood 1s ease-in-out infinite;
-  }
-  .die-wrap.match-wild .die::after {
-    background: var(--violet);
-    opacity: 1;
-    animation: underlinePulseViolet 1s ease-in-out infinite;
-  }
-  /* Locked AND assigned to a requirement: steady underline, no more pulse. */
-  .die-wrap.locked.assigned-direct .die::after {
-    background: var(--good);
-    opacity: 1;
-    box-shadow: 0 0 10px rgba(79,224,161,0.85);
+  .die-wrap.match-direct .die::before { border-width: 4px; animation: pulseDirect 1s ease-in-out infinite; }
+  .die-wrap.match-wild .die::before { border-width: 4px; animation: pulseWild 1s ease-in-out infinite; }
+
+  /* Locked AND assigned to a requirement: steady thick border, no more pulse. */
+  .die-wrap.locked.assigned-direct .die::before {
+    border-width: 4px;
+    border-color: var(--good);
+    background: linear-gradient(150deg, #e9fff5, #baf5da);
+    box-shadow: 0 0 10px rgba(79,224,161,0.5);
     animation: none;
   }
-  .die-wrap.locked.assigned-wild .die::after {
-    background: var(--violet);
-    opacity: 1;
-    box-shadow: 0 0 10px rgba(185,138,255,0.85);
+  .die-wrap.locked.assigned-wild .die::before {
+    border-width: 4px;
+    border-color: var(--violet);
+    background: linear-gradient(150deg, #f5edff, #ddc2ff);
+    box-shadow: 0 0 10px rgba(185,138,255,0.5);
     animation: none;
-  }
-  /* Void: face stays fully normal, only a dashed red/transparent
-     underline (same treatment as a match) marks it dead. */
-  .die-wrap.dead .die::after {
-    background: repeating-linear-gradient(90deg,
-      var(--red) 0px, var(--red) 6px,
-      transparent 6px, transparent 12px);
-    opacity: 1;
-    box-shadow: 0 0 8px rgba(255,77,94,0.55);
   }
 
   /* Brief flash on matched-but-unlocked dice when a re-roll is about
      to consume them, shown while the Roll button is armed for confirm.
-     The face itself flashes toward the die's underline color. */
+     The face itself flashes toward the die's border color. */
   @keyframes flashGood {
     0%,100% { background: linear-gradient(150deg, #f4f6f9, #d9dee6); }
     50% { background: var(--good); }
@@ -274,15 +265,17 @@
     font-family: 'Share Tech Mono', monospace; font-size: 20px; font-weight: 700;
     color: var(--text-dim); letter-spacing: 0.1em;
   }
-  .req-die-wrap.fulfilled-direct .die::after {
-    background: var(--good);
-    opacity: 1;
-    box-shadow: 0 0 10px rgba(79,224,161,0.85);
+  .req-die-wrap.fulfilled-direct .die::before {
+    border-width: 4px;
+    border-color: var(--good);
+    background: linear-gradient(150deg, #e9fff5, #baf5da);
+    box-shadow: 0 0 10px rgba(79,224,161,0.5);
   }
-  .req-die-wrap.fulfilled-wild .die::after {
-    background: var(--violet);
-    opacity: 1;
-    box-shadow: 0 0 10px rgba(185,138,255,0.85);
+  .req-die-wrap.fulfilled-wild .die::before {
+    border-width: 4px;
+    border-color: var(--violet);
+    background: linear-gradient(150deg, #f5edff, #ddc2ff);
+    box-shadow: 0 0 10px rgba(185,138,255,0.5);
   }
   .req-die-wrap.fulfilled-direct .die-status { color: var(--good); }
   .req-die-wrap.fulfilled-wild .die-status { color: var(--violet); }
@@ -383,6 +376,11 @@
   <defs>
     <clipPath id="pentagonClip" clipPathUnits="userSpaceOnUse">
       <path d="M 7.95 36.71 L 48.05 6.07 Q 56.00 0.00 63.95 6.07 L 104.05 36.71 Q 112.00 42.78 109.15 52.37 L 94.25 102.42 Q 91.39 112.00 81.39 112.00 L 30.61 112.00 Q 20.61 112.00 17.75 102.42 L 2.85 52.37 Q 0.00 42.78 7.95 36.71 Z" />
+    </clipPath>
+    <!-- Inset ~7px inward from pentagonClip, same rounding — used to
+         create a striped "ring" border effect on dead (Void) dice. -->
+    <clipPath id="pentagonClipInner" clipPathUnits="userSpaceOnUse">
+      <path d="M 14.66 40.24 L 49.16 13.88 Q 56.00 8.65 62.84 13.88 L 97.34 40.24 Q 104.17 45.46 101.72 53.70 L 88.90 96.76 Q 86.45 105.00 77.84 105.00 L 34.16 105.00 Q 25.55 105.00 23.10 96.76 L 10.28 53.70 Q 7.83 45.46 14.66 40.24 Z" />
     </clipPath>
   </defs>
 </svg>
@@ -670,6 +668,9 @@
     wrap.className = 'die-wrap unrolled';
     const die = document.createElement('div');
     die.className = 'die';
+    const inner = document.createElement('div');
+    inner.className = 'die-inner';
+    die.appendChild(inner);
     const img = document.createElement('img');
     img.src = FACES[0].file;
     img.alt = '';
