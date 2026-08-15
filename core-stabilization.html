@@ -272,6 +272,13 @@
       var(--orange) 0px, var(--orange) 3px,
       transparent 3px, transparent 6px);
   }
+  /* A roll that overshoots the +/-6 cap flashes the pinned edge bar,
+     so the cap reads as an event even without reading the log text. */
+  @keyframes capFlash {
+    0%, 100% { box-shadow: 0 0 8px rgba(232,115,42,0.55); filter: brightness(1); }
+    50% { box-shadow: 0 0 20px 4px rgba(232,115,42,1); filter: brightness(1.5); }
+  }
+  .gauge-seg.cap-flash { animation: capFlash 0.4s ease-in-out 2; }
 
   .gauge-ticks {
     display: grid;
@@ -585,6 +592,36 @@
           osc.connect(gn); gn.connect(c.destination);
           osc.start(); osc.stop(c.currentTime+0.09);
         } catch(e) {}
+      },
+      // Plays where the gauge lands each pulse: a clean descending note
+      // for 0/1/2/3 (0 = highest, brightest pitch), and a dissonant
+      // detune buzz for Hull Fracture territory (+/-4 and beyond).
+      tierChime(mag){
+        if (mag >= 4){
+          try {
+            const c = getCtx();
+            const gn = c.createGain(); gn.connect(c.destination);
+            gn.gain.setValueAtTime(VOL*0.5, c.currentTime);
+            gn.gain.exponentialRampToValueAtTime(0.001, c.currentTime+0.22);
+            [110,116].forEach((freq) => {
+              const osc = c.createOscillator(); osc.type='sawtooth'; osc.frequency.value=freq;
+              osc.connect(gn);
+              osc.start(); osc.stop(c.currentTime+0.22);
+            });
+          } catch(e) {}
+          return;
+        }
+        try {
+          const c = getCtx();
+          const freqs = [880, 659, 523, 392];
+          const osc = c.createOscillator(); osc.type='triangle'; osc.frequency.value = freqs[mag];
+          const gn = c.createGain();
+          gn.gain.setValueAtTime(0, c.currentTime);
+          gn.gain.linearRampToValueAtTime(VOL*0.4, c.currentTime+0.015);
+          gn.gain.exponentialRampToValueAtTime(0.001, c.currentTime+0.22);
+          osc.connect(gn); gn.connect(c.destination);
+          osc.start(); osc.stop(c.currentTime+0.22);
+        } catch(e) {}
       }
     };
   })();
@@ -698,17 +735,32 @@
     gaugeValue.className = 'gauge-value mag-0';
   }
 
+  function flashCap(pos){
+    const seg = segByPos(pos);
+    if (!seg) return;
+    seg.classList.remove('cap-flash');
+    void seg.offsetWidth; // restart the animation if it's still running
+    seg.classList.add('cap-flash');
+    setTimeout(() => seg.classList.remove('cap-flash'), 800);
+  }
+
   // Slides the live-position highlight from fromPos to toPos one bar at
   // a time, instead of clearing the track and refilling from zero. If
   // the roll was fully absorbed by the +/-6 cap (fromPos === toPos), it
-  // just gives a soft tick with no movement.
-  function moveGaugeTo(fromPos, toPos){
+  // just gives a soft tick with no movement — unless the roll itself
+  // hit the cap, in which case the pinned edge bar flashes to say so.
+  function moveGaugeTo(fromPos, toPos, wasCapped){
     gaugeValue.textContent = (toPos > 0 ? '+' : '') + toPos;
     gaugeValue.className = 'gauge-value ' + valueMagClass(toPos);
 
     const dir = toPos > fromPos ? 1 : (toPos < fromPos ? -1 : 0);
     if (dir === 0){
-      SFX.tick();
+      if (wasCapped){
+        SFX.tierChime(Math.abs(toPos));
+        flashCap(toPos);
+      } else {
+        SFX.tick();
+      }
       return;
     }
     let pos = fromPos;
@@ -719,7 +771,8 @@
       const nextSeg = segByPos(pos);
       if (nextSeg) nextSeg.classList.add('current');
       if (pos === toPos){
-        SFX.confirm();
+        SFX.tierChime(Math.abs(toPos));
+        if (wasCapped) flashCap(toPos);
       } else {
         SFX.tick();
         setTimeout(step, FILL_STEP_MS);
@@ -803,7 +856,7 @@
     const wasCapped = uncapped !== total;
     pulsesUsed++;
     updatePips();
-    moveGaugeTo(prevTotal, total);
+    moveGaugeTo(prevTotal, total, wasCapped);
 
     mathLine.innerHTML = 'Blue <span class="val-blue">' + blue + '</span> &middot; Red <span class="val-red">' + red +
       '</span> &mdash; net <span class="val">' + (net >= 0 ? '+' : '') + net + '</span> applied' +
