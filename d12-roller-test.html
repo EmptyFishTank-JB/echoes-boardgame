@@ -143,7 +143,7 @@
   }
   .die-wrap.dead .die::before {
     border-color: var(--red);
-    background: linear-gradient(150deg, #4a4a4d, #38383b);
+    background: linear-gradient(150deg, #f4f6f9, #d9dee6);
   }
   .die img {
     position: relative;
@@ -152,15 +152,19 @@
     margin-top: 10%;
     transition: opacity 0.15s;
   }
-  .die-wrap.dead .die img { opacity: 0.35; }
+  .die-wrap.dead .die img { opacity: 0.6; }
   .die-wrap.unrolled img { opacity: 0.18; }
+  /* Same diagonal-slash "bust" treatment as Cascade Failure / Core
+     Stabilization's fracture zone, clipped to the pentagon so the
+     actual face icon stays visible underneath. */
   .die-wrap.dead .die::after {
-    content: "\2715";
+    content: "";
     position: absolute; inset: 0;
-    display: flex; align-items: center; justify-content: center;
-    padding-top: 10%;
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 34px; font-weight: 700; color: var(--red);
+    clip-path: url(#pentagonClip);
+    background: repeating-linear-gradient(135deg,
+      var(--red) 0px, var(--red) 6px,
+      transparent 6px, transparent 12px);
+    opacity: 0.8;
   }
   .die-status {
     font-family: 'Share Tech Mono', monospace; font-size: 9px;
@@ -203,7 +207,17 @@
     border: 1px solid var(--border);
   }
   .btn.secondary:hover:not(:disabled) { color: var(--text); border-color: var(--text-dim); }
-  .btn-row { display: flex; gap: 10px; }
+  .btn-row { display: flex; gap: 10px; align-items: stretch; }
+  .btn-row .btn:not(.small) { flex: 1; }
+  .btn.small {
+    flex: 0 0 auto;
+    width: auto;
+    padding: 14px 18px;
+    font-size: 11px;
+  }
+  .btn.secondary.danger {
+    background: rgba(255,77,94,0.12); color: var(--red); border-color: var(--red);
+  }
 
   .rules-mini {
     font-family: 'Share Tech Mono', monospace;
@@ -304,6 +318,7 @@
   <div class="btn-row">
     <button class="btn" id="rollBtn">Roll 5x D12</button>
     <button class="btn secondary" id="resetBtn">Reset</button>
+    <button class="btn secondary small" id="undoBtn" disabled>Undo</button>
   </div>
 
   <div class="history-label">History <span class="history-note">(last 10)</span></div>
@@ -378,12 +393,16 @@
   const diceStage = document.getElementById('diceStage');
   const rollBtn = document.getElementById('rollBtn');
   const resetBtn = document.getElementById('resetBtn');
+  const undoBtn = document.getElementById('undoBtn');
   const logEl = document.getElementById('log');
   const noiseValueEl = document.getElementById('noiseValue');
   const noiseTagEl = document.getElementById('noiseTag');
 
   let rollsUsed = 0;
   let dirtySinceReset = false; // true once a roll has happened since the last logged reset
+  let resetPending = false;    // Reset armed, waiting on a confirming second click
+  let resetPendingTimer = null;
+  let undoSnapshot = null;     // dice/rollsUsed state from right before the last reset
 
   const dice = [];
   for (let i = 0; i < DIE_COUNT; i++){
@@ -536,7 +555,29 @@
     log('<span class="tag">Roll ' + rollsUsed + '/' + MAX_ROLLS + '</span> &mdash; ' + summary + noiseNote);
   }
 
-  function resetAll(){
+  function disarmResetConfirm(){
+    resetPending = false;
+    clearTimeout(resetPendingTimer);
+    resetBtn.textContent = 'Reset';
+    resetBtn.classList.remove('danger');
+  }
+
+  function armResetConfirm(){
+    resetPending = true;
+    resetBtn.textContent = 'Confirm Reset?';
+    resetBtn.classList.add('danger');
+    clearTimeout(resetPendingTimer);
+    resetPendingTimer = setTimeout(disarmResetConfirm, 3500);
+  }
+
+  function performReset(){
+    if (dirtySinceReset){
+      undoSnapshot = {
+        rollsUsed,
+        dice: dice.map(d => ({ face: d.face, locked: d.locked, dead: d.dead }))
+      };
+      undoBtn.disabled = false;
+    }
     dice.forEach(d => {
       d.face = null;
       d.locked = false;
@@ -557,8 +598,46 @@
     }
   }
 
-  rollBtn.addEventListener('click', roll);
-  resetBtn.addEventListener('click', resetAll);
+  function undoReset(){
+    if (!undoSnapshot) return;
+    const snap = undoSnapshot;
+    dice.forEach((d, i) => {
+      const s = snap.dice[i];
+      d.face = s.face;
+      d.locked = s.locked;
+      d.dead = s.dead;
+      d.wrap.classList.toggle('unrolled', !s.face);
+      d.img.src = s.face ? s.face.file : FACES[0].file;
+      d.faceName.textContent = s.face ? s.face.name : '';
+      renderDieState(d);
+    });
+    rollsUsed = snap.rollsUsed;
+    dirtySinceReset = true;
+    undoSnapshot = null;
+    undoBtn.disabled = true;
+    updateNoise();
+    updateSelectable();
+    updateRollBtn();
+    SFX.select();
+    log('<span class="tag">Undo</span> &mdash; restored the roll before the last reset');
+  }
+
+  rollBtn.addEventListener('click', () => {
+    disarmResetConfirm();
+    roll();
+  });
+  resetBtn.addEventListener('click', () => {
+    if (!resetPending){
+      armResetConfirm();
+      return;
+    }
+    disarmResetConfirm();
+    performReset();
+  });
+  undoBtn.addEventListener('click', () => {
+    disarmResetConfirm();
+    undoReset();
+  });
   updateRollBtn();
 })();
 </script>
