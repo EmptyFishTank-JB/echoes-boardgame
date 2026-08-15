@@ -142,15 +142,6 @@
     border-color: var(--orange);
     background: linear-gradient(150deg, #fff3e9, #ffdcb8);
   }
-  /* Dead (Void) dice: the outer pentagon becomes a red diagonal
-     hazard-stripe ring, with the original dimmed face sitting inset
-     on top of it via .die-inner so the icon stays visible but dark. */
-  .die-wrap.dead .die::before {
-    border: none;
-    background: repeating-linear-gradient(135deg,
-      var(--red) 0px, var(--red) 9px,
-      #2c2c2e 9px, #2c2c2e 18px);
-  }
   .die-inner { position: absolute; inset: 0; }
   .die-wrap.dead .die-inner {
     clip-path: url(#pentagonClipInner);
