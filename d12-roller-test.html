@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+CiAgPHJlY3QgeD0iNSIgeT0iNiIgd2lkdGg9IjYiIGhlaWdodD0iMTAiIHJ4PSIxIiBmaWxsPSIjZTg3MzJhIiBvcGFjaXR5PSIwLjkiLz4KICA8cmVjdCB4PSIxMyIgeT0iMiIgd2lkdGg9IjYiIGhlaWdodD0iMTQiIHJ4PSIxIiBmaWxsPSIjZTg3MzJhIi8+CiAgPHJlY3QgeD0iMjEiIHk9IjYiIHdpZHRoPSI2IiBoZWlnaHQ9IjEwIiByeD0iMSIgZmlsbD0iI2U4NzMyYSIgb3BhY2l0eT0iMC45Ii8+CiAgPHJlY3QgeD0iMSIgeT0iMTciIHdpZHRoPSIxMyIgaGVpZ2h0PSIxMyIgcng9IjIuNSIgZmlsbD0iI2Q4MWYyZiIvPgogIDxjaXJjbGUgY3g9IjQuMyIgY3k9IjIwLjMiIHI9IjEuMyIgZmlsbD0iI2ZmZiIvPgogIDxjaXJjbGUgY3g9IjcuNSIgY3k9IjIzLjUiIHI9IjEuMyIgZmlsbD0iI2ZmZiIvPgogIDxjaXJjbGUgY3g9IjEwLjciIGN5PSIyNi43IiByPSIxLjMiIGZpbGw9IiNmZmYiLz4KICA8cmVjdCB4PSIxOCIgeT0iMTciIHdpZHRoPSIxMyIgaGVpZ2h0PSIxMyIgcng9IjIuNSIgZmlsbD0iIzFjOGZjNyIvPgogIDxjaXJjbGUgY3g9IjI3LjciIGN5PSIyMC4zIiByPSIxLjMiIGZpbGw9IiNmZmYiLz4KICA8Y2lyY2xlIGN4PSIyMS4zIiBjeT0iMjYuNyIgcj0iMS4zIiBmaWxsPSIjZmZmIi8+Cjwvc3ZnPgo=">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ECHOES // D12 Roller Test</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --text:       #eef0f5;
+    --text-dim:   rgba(238,240,245,0.45);
+    --accent:     #4fc3f7;
+    --orange:     #e8732a;
+    --border:     rgba(238,240,245,0.12);
+    --red:        #ff4d5e;
+    --blue:       #4fc3f7;
+    --good:       #4fe0a1;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: 100%; min-height: 100%;
+    background: #050709;
+    font-family: 'Barlow Condensed', sans-serif;
+    color: var(--text);
+  }
+  body {
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 0%, rgba(79,195,247,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse 70% 50% at 50% 100%, rgba(232,115,42,0.06) 0%, transparent 60%),
+      linear-gradient(160deg, #030508 0%, #070b12 45%, #05080d 100%);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 28px 20px 60px;
+  }
+  body::before {
+    content: "";
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background: repeating-linear-gradient(0deg,
+      rgba(255,255,255,0.05) 0px, rgba(255,255,255,0.05) 1px,
+      transparent 1px, transparent 4px);
+    mix-blend-mode: overlay;
+  }
+
+  nav {
+    width: 100%; max-width: 760px;
+    display: flex; align-items: center; justify-content: center;
+    gap: 22px; flex-wrap: wrap;
+    padding: 4px 4px 22px;
+    z-index: 1;
+  }
+  nav a {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--text-dim); text-decoration: none;
+  }
+  nav a:hover { color: var(--text); }
+  nav .sep {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: rgba(238,240,245,0.2);
+    letter-spacing: 0;
+    user-select: none;
+  }
+
+  .test-banner {
+    width: 100%; max-width: 760px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--orange); text-align: center;
+    border: 1px dashed rgba(232,115,42,0.4);
+    background: rgba(232,115,42,0.06);
+    padding: 8px 14px; margin-bottom: 18px; z-index: 1;
+  }
+
+  header.title-block {
+    z-index: 1;
+    text-align: center;
+    margin-bottom: 22px;
+  }
+  .eyebrow {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px; letter-spacing: 0.28em; text-transform: uppercase;
+    color: var(--accent); opacity: 0.8; margin-bottom: 8px;
+  }
+  h1 {
+    font-weight: 900; letter-spacing: 0.04em; text-transform: uppercase;
+    font-size: clamp(28px, 5vw, 44px);
+    line-height: 0.95;
+  }
+  .subtitle {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px; color: var(--text-dim); letter-spacing: 0.05em;
+    margin-top: 10px; max-width: 560px; line-height: 1.7;
+  }
+
+  .panel {
+    z-index: 1;
+    width: 100%; max-width: 760px;
+    background: rgba(15,18,24,0.72);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    backdrop-filter: blur(6px);
+    padding: 28px;
+    position: relative;
+  }
+  .panel::before {
+    content: "";
+    position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, var(--orange), var(--accent));
+    opacity: 0.7;
+  }
+
+  .dice-stage {
+    display: flex; align-items: flex-start; justify-content: center;
+    gap: 16px; flex-wrap: wrap;
+    margin: 6px 0 26px;
+  }
+  .die-wrap { text-align: center; width: 108px; }
+  .die {
+    width: 108px; height: 108px; border-radius: 12px;
+    background: linear-gradient(150deg, #f4f6f9, #d9dee6);
+    border: 1px solid rgba(0,0,0,0.15);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.6);
+    display: flex; align-items: center; justify-content: center;
+    padding: 18px;
+    position: relative;
+    overflow: hidden;
+  }
+  .die img { width: 100%; height: 100%; display: block; }
+  .die.rolling { animation: shake 0.5s ease infinite; }
+  @keyframes shake {
+    0%,100% { transform: rotate(0deg); }
+    20% { transform: rotate(-9deg); }
+    40% { transform: rotate(7deg); }
+    60% { transform: rotate(-5deg); }
+    80% { transform: rotate(4deg); }
+  }
+  .die-label {
+    font-family: 'Share Tech Mono', monospace; font-size: 10px;
+    letter-spacing: 0.16em; text-transform: uppercase; margin-top: 8px;
+    color: var(--text-dim);
+  }
+  .die-face-name {
+    font-family: 'Share Tech Mono', monospace; font-size: 11px;
+    letter-spacing: 0.08em; margin-top: 3px;
+    color: var(--accent); min-height: 14px;
+  }
+
+  .btn {
+    display: block; width: 100%;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px; letter-spacing: 0.16em; text-transform: uppercase;
+    color: #05080d; background: var(--accent);
+    border: none; border-radius: 3px; padding: 14px;
+    cursor: pointer; transition: 0.15s; font-weight: 700;
+  }
+  .btn:hover:not(:disabled) { filter: brightness(1.15); transform: translateY(-1px); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .log {
+    font-family: 'Share Tech Mono', monospace; font-size: 11px;
+    color: var(--text-dim); line-height: 1.9;
+    border-top: 1px solid var(--border);
+    padding-top: 12px; margin-top: 20px;
+  }
+  .log div span.tag { color: var(--accent); }
+
+  footer {
+    z-index: 1;
+    margin-top: 26px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase;
+    color: rgba(238,240,245,0.25);
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html">&larr; Echoes</a>
+  <span class="sep">//</span>
+  <a href="rules.html">Rules &amp; Design</a>
+  <span class="sep">//</span>
+  <a href="echo-events.html">Echo Events</a>
+  <span class="sep">//</span>
+  <a href="assets.html">Assets</a>
+  <span class="sep">//</span>
+  <a href="terminal.html">Terminal</a>
+</nav>
+
+<div class="test-banner">// Dice Prototype — 5x D12 rolling simulation, no game rules attached yet</div>
+
+<header class="title-block">
+  <div class="eyebrow">// Dice Test Rig</div>
+  <h1>5x D12 Roller</h1>
+  <p class="subtitle">Rolls five 12-sided dice at once using the printed face set — Tools, Tech, DNA, Biohazard, Hazard, Noise, Noise Spike, Wild, Void.</p>
+</header>
+
+<div class="panel">
+
+  <div class="dice-stage" id="diceStage"></div>
+
+  <button class="btn" id="rollBtn">Roll 5x D12</button>
+
+  <div class="log" id="log"></div>
+
+</div>
+
+<footer>ECHOES · EmptyFishTank-JB · Dice Prototype</footer>
+
+<script>
+(function(){
+  /* ── SOUND FX (adapted from terminal.html's synth engine) ── */
+  const SFX = (() => {
+    let ctx;
+    function getCtx(){
+      if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
+      if (ctx.state === 'suspended') ctx.resume();
+      return ctx;
+    }
+    const VOL = 0.18;
+    function noiseBurst(dur, filterType, freq, q, vol, envPow){
+      try {
+        const c = getCtx();
+        const buf = c.createBuffer(1, Math.floor(c.sampleRate*dur), c.sampleRate);
+        const d = buf.getChannelData(0);
+        for (let i=0;i<d.length;i++) d[i] = (Math.random()*2-1)*Math.pow(1-i/d.length, envPow||1);
+        const src = c.createBufferSource(); src.buffer = buf;
+        const flt = c.createBiquadFilter(); flt.type = filterType; flt.frequency.value = freq; if (q) flt.Q.value = q;
+        const gn = c.createGain();
+        gn.gain.setValueAtTime(vol, c.currentTime);
+        gn.gain.exponentialRampToValueAtTime(0.001, c.currentTime+dur);
+        src.connect(flt); flt.connect(gn); gn.connect(c.destination);
+        src.start(); src.stop(c.currentTime+dur);
+      } catch(e) {}
+    }
+    return {
+      tick(){ noiseBurst(0.025, 'bandpass', 3000+Math.random()*1000, 0.8, VOL, 1); },
+      settle(){ noiseBurst(0.055, 'lowpass', 800, null, VOL*1.2, 0.25); },
+      select(){
+        try {
+          const c = getCtx();
+          const osc = c.createOscillator(); osc.type='triangle'; osc.frequency.value=260;
+          const gn = c.createGain();
+          gn.gain.setValueAtTime(VOL*0.6, c.currentTime);
+          gn.gain.exponentialRampToValueAtTime(0.001, c.currentTime+0.045);
+          osc.connect(gn); gn.connect(c.destination);
+          osc.start(); osc.stop(c.currentTime+0.045);
+        } catch(e) {}
+      }
+    };
+  })();
+
+  const FACES = [
+    { file: 'assets/d12-faces/01-tools.svg',       name: 'Tools' },
+    { file: 'assets/d12-faces/02-tools.svg',       name: 'Tools' },
+    { file: 'assets/d12-faces/03-tech.svg',        name: 'Tech' },
+    { file: 'assets/d12-faces/04-tech.svg',        name: 'Tech' },
+    { file: 'assets/d12-faces/05-dna.svg',         name: 'DNA' },
+    { file: 'assets/d12-faces/06-dna.svg',         name: 'DNA' },
+    { file: 'assets/d12-faces/07-biohazard.svg',   name: 'Biohazard' },
+    { file: 'assets/d12-faces/08-hazard.svg',       name: 'Hazard' },
+    { file: 'assets/d12-faces/09-noise.svg',       name: 'Noise' },
+    { file: 'assets/d12-faces/10-noise-spike.svg', name: 'Noise Spike' },
+    { file: 'assets/d12-faces/11-wild.svg',        name: 'Wild' },
+    { file: 'assets/d12-faces/12-void.svg',        name: 'Void' },
+  ];
+  const DIE_COUNT = 5;
+  const MAX_TICKS = 8;
+
+  const diceStage = document.getElementById('diceStage');
+  const rollBtn = document.getElementById('rollBtn');
+  const logEl = document.getElementById('log');
+
+  const dice = [];
+  for (let i = 0; i < DIE_COUNT; i++){
+    const wrap = document.createElement('div');
+    wrap.className = 'die-wrap';
+    const die = document.createElement('div');
+    die.className = 'die';
+    const img = document.createElement('img');
+    img.src = FACES[0].file;
+    img.alt = '';
+    die.appendChild(img);
+    const label = document.createElement('div');
+    label.className = 'die-label';
+    label.textContent = 'D12 — ' + (i + 1);
+    const faceName = document.createElement('div');
+    faceName.className = 'die-face-name';
+    wrap.appendChild(die);
+    wrap.appendChild(label);
+    wrap.appendChild(faceName);
+    diceStage.appendChild(wrap);
+    dice.push({ die, img, faceName });
+  }
+
+  function randomFace(){
+    return FACES[Math.floor(Math.random() * FACES.length)];
+  }
+
+  function log(msg){
+    const line = document.createElement('div');
+    line.innerHTML = msg;
+    logEl.appendChild(line);
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+
+  function roll(){
+    rollBtn.disabled = true;
+    SFX.select();
+    dice.forEach(d => {
+      d.die.classList.add('rolling');
+      d.faceName.textContent = '';
+    });
+
+    let ticks = 0;
+    const spin = setInterval(() => {
+      dice.forEach(d => { d.img.src = randomFace().file; });
+      SFX.tick();
+      ticks++;
+      if (ticks > MAX_TICKS){
+        clearInterval(spin);
+        settle();
+      }
+    }, 70);
+  }
+
+  function settle(){
+    dice.forEach(d => d.die.classList.remove('rolling'));
+    SFX.settle();
+    const results = dice.map(d => randomFace());
+    results.forEach((face, i) => {
+      dice[i].img.src = face.file;
+      dice[i].faceName.textContent = face.name;
+    });
+    rollBtn.disabled = false;
+    log('<span class="tag">Roll</span> — ' + results.map(f => f.name).join(', '));
+  }
+
+  rollBtn.addEventListener('click', roll);
+})();
+</script>
+
+</body>
+</html>
