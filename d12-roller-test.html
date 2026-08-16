@@ -336,6 +336,22 @@
     background: var(--red); color: #1a0507;
   }
 
+  .result-banner {
+    text-align: center; padding: 16px 0 6px;
+  }
+  .result-banner .big {
+    font-weight: 900; letter-spacing: 0.05em; text-transform: uppercase;
+    font-size: clamp(24px, 5vw, 34px); margin-bottom: 8px;
+  }
+  .result-banner.win .big { color: var(--good); }
+  .result-banner.fail .big { color: var(--red); }
+  .result-detail {
+    font-family: 'Share Tech Mono', monospace; font-size: 12px;
+    color: var(--text-dim); line-height: 1.8;
+  }
+  .result-detail strong { color: var(--text); }
+  .hidden { display: none !important; }
+
   .rules-mini {
     font-family: 'Share Tech Mono', monospace;
     font-size: 11px; line-height: 1.9; color: var(--text-dim);
@@ -376,6 +392,7 @@
   .log div span.tag.reset { color: var(--text-dim); }
   .log div span.void { color: var(--red); }
   .log div span.locked { color: var(--orange); }
+  .log div span.win { color: var(--good); }
 
   footer {
     z-index: 1;
@@ -440,6 +457,15 @@
     <button class="btn secondary" id="resetBtn">Reset</button>
     <button class="btn secondary small" id="undoBtn" disabled>Undo</button>
     <button class="btn secondary small" id="redoBtn" disabled>Redo</button>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn secondary" id="endCheckBtn" disabled>End Check</button>
+  </div>
+
+  <div class="result-banner hidden" id="resultBanner">
+    <div class="big" id="resultBig"></div>
+    <div class="result-detail" id="resultDetail"></div>
   </div>
 
   <div class="history-label">History <span class="history-note">(last 10)</span></div>
@@ -523,6 +549,10 @@
   const resetBtn = document.getElementById('resetBtn');
   const undoBtn = document.getElementById('undoBtn');
   const redoBtn = document.getElementById('redoBtn');
+  const endCheckBtn = document.getElementById('endCheckBtn');
+  const resultBanner = document.getElementById('resultBanner');
+  const resultBig = document.getElementById('resultBig');
+  const resultDetail = document.getElementById('resultDetail');
   const logEl = document.getElementById('log');
   const noiseValueEl = document.getElementById('noiseValue');
   const noiseTagEl = document.getElementById('noiseTag');
@@ -534,6 +564,9 @@
   let rollPending = false;     // Roll Again armed, waiting on a confirming second click (only when live matches are at risk)
   let rollPendingTimer = null;
   let requirementsLocked = false;
+  let checkEnded = false;      // true once End Check has been confirmed — locks rolling/locking, shows the result banner
+  let endCheckPending = false; // End Check armed, waiting on a confirming second click
+  let endCheckPendingTimer = null;
 
   const requiredSlots = [];
   for (let i = 0; i < DIE_COUNT; i++){
@@ -716,7 +749,7 @@
   // The check is over once no rolls remain, or nothing's left to roll
   // (everything is locked or dead) — whichever happens first.
   function checkConcluded(){
-    return rollsUsed >= MAX_ROLLS || (rollsUsed > 0 && dice.every(d => d.locked || d.dead));
+    return checkEnded || rollsUsed >= MAX_ROLLS || (rollsUsed > 0 && dice.every(d => d.locked || d.dead));
   }
 
   function currentNoise(){
@@ -740,7 +773,7 @@
   }
 
   function updateSelectable(){
-    const canToggle = rollsUsed > 0 && rollsUsed < MAX_ROLLS;
+    const canToggle = rollsUsed > 0 && !checkEnded;
     dice.forEach(d => d.wrap.classList.toggle('selectable', canToggle && !d.dead));
   }
 
@@ -765,7 +798,7 @@
 
   function toggleLock(d){
     if (d.dead) return;
-    if (rollsUsed === 0 || rollsUsed >= MAX_ROLLS) return;
+    if (rollsUsed === 0 || checkEnded) return;
     d.locked = !d.locked;
     if (d.locked){
       // Wild dice are left unassigned on lock — the player picks a
@@ -776,9 +809,11 @@
     }
     SFX.select();
     disarmRollConfirm();
+    disarmEndCheckConfirm();
     recomputeMatches();
     updateNoise();
     updateRollBtn();
+    updateEndCheckBtn();
   }
 
   function hasAtRiskMatches(){
@@ -790,11 +825,16 @@
     const remaining = MAX_ROLLS - rollsUsed;
     rollBtn.textContent = rollsUsed === 0 ? 'Roll 5x D12' : 'Roll Again (' + remaining + ' left)';
     const anyActive = dice.some(d => !d.locked && !d.dead);
-    rollBtn.disabled = remaining <= 0 || !anyActive;
+    rollBtn.disabled = remaining <= 0 || !anyActive || checkEnded;
+  }
+
+  function updateEndCheckBtn(){
+    if (endCheckPending) return;
+    endCheckBtn.disabled = rollsUsed === 0 || checkEnded;
   }
 
   function roll(){
-    if (rollsUsed >= MAX_ROLLS) return;
+    if (rollsUsed >= MAX_ROLLS || checkEnded) return;
     const active = dice.filter(d => !d.locked && !d.dead);
     if (active.length === 0) return;
     rollBtn.disabled = true;
@@ -838,6 +878,7 @@
     updateNoise();
     updateSelectable();
     updateRollBtn();
+    updateEndCheckBtn();
     resetBtn.disabled = false;
 
     const summary = dice.map(d => {
@@ -889,10 +930,66 @@
     rollPendingTimer = setTimeout(disarmRollConfirm, 3500);
   }
 
+  function disarmEndCheckConfirm(){
+    if (!endCheckPending) return;
+    endCheckPending = false;
+    clearTimeout(endCheckPendingTimer);
+    endCheckBtn.textContent = 'End Check';
+    endCheckBtn.classList.remove('danger');
+  }
+
+  function armEndCheckConfirm(){
+    endCheckPending = true;
+    endCheckBtn.textContent = 'Confirm End?';
+    endCheckBtn.classList.add('danger');
+    clearTimeout(endCheckPendingTimer);
+    endCheckPendingTimer = setTimeout(disarmEndCheckConfirm, 3500);
+  }
+
+  // Only required-face slots that actually have a category picked count
+  // toward success — blank slots are simply not part of the check.
+  function evaluateCheck(){
+    const required = requiredSlots.filter(s => s.name !== null);
+    const met = required.filter(s => s.fulfilledBy !== null);
+    const missed = required.filter(s => s.fulfilledBy === null);
+    return { required, met, missed, success: missed.length === 0 };
+  }
+
+  function renderResultBanner(){
+    if (!checkEnded){
+      resultBanner.className = 'result-banner hidden';
+      return;
+    }
+    const { required, met, missed, success } = evaluateCheck();
+    resultBanner.className = 'result-banner ' + (success ? 'win' : 'fail');
+    resultBig.textContent = success ? 'Success' : 'Failure';
+    if (required.length === 0){
+      resultDetail.textContent = 'No required faces were set for this check.';
+    } else {
+      resultDetail.innerHTML = '<strong>' + met.length + ' / ' + required.length + '</strong> required faces met' +
+        (missed.length ? ' &mdash; missing: <strong>' + missed.map(s => s.name).join(', ') + '</strong>' : '');
+    }
+  }
+
+  function performEndCheck(){
+    checkEnded = true;
+    disarmRollConfirm();
+    updateSelectable();
+    updateRollBtn();
+    updateEndCheckBtn();
+    renderResultBanner();
+    SFX.select();
+    const { required, met, success } = evaluateCheck();
+    log('<span class="tag">Check Ended</span> &mdash; ' +
+      (success ? '<span class="win">SUCCESS</span>' : '<span class="void">FAILURE</span>') +
+      ' (' + met.length + '/' + required.length + ' required faces met)');
+  }
+
   function snapshotState(){
     return {
       rollsUsed,
       requirementsLocked,
+      checkEnded,
       requiredSlots: requiredSlots.map(s => ({ name: s.name, fulfilledBy: s.fulfilledBy })),
       dice: dice.map(d => ({ face: d.face, locked: d.locked, dead: d.dead, matchType: d.matchType, assignedSlot: d.assignedSlot, assignedType: d.assignedType }))
     };
@@ -920,11 +1017,15 @@
     requirementsLocked = snap.requirementsLocked;
     requiredStage.classList.toggle('locked-in', requirementsLocked);
     rollsUsed = snap.rollsUsed;
+    checkEnded = snap.checkEnded;
     disarmRollConfirm();
+    disarmEndCheckConfirm();
     recomputeMatches();
     updateNoise();
     updateSelectable();
     updateRollBtn();
+    updateEndCheckBtn();
+    renderResultBanner();
   }
 
   // Unlimited undo/redo, scoped to Reset actions only — a safety net for
@@ -964,10 +1065,14 @@
     });
     unlockRequirements();
     rollsUsed = 0;
+    checkEnded = false;
     disarmRollConfirm();
+    disarmEndCheckConfirm();
     updateNoise();
     updateSelectable();
     updateRollBtn();
+    updateEndCheckBtn();
+    renderResultBanner();
     SFX.select();
     if (dirtySinceReset){
       log('<span class="tag reset">Reset</span>');
@@ -997,6 +1102,7 @@
 
   rollBtn.addEventListener('click', () => {
     disarmResetConfirm();
+    disarmEndCheckConfirm();
     if (rollsUsed > 0 && !rollPending && hasAtRiskMatches()){
       armRollConfirm();
       return;
@@ -1005,6 +1111,7 @@
     roll();
   });
   resetBtn.addEventListener('click', () => {
+    disarmEndCheckConfirm();
     if (!resetPending){
       armResetConfirm();
       return;
@@ -1014,14 +1121,27 @@
   });
   undoBtn.addEventListener('click', () => {
     disarmResetConfirm();
+    disarmEndCheckConfirm();
     undoAction();
   });
   redoBtn.addEventListener('click', () => {
     disarmResetConfirm();
+    disarmEndCheckConfirm();
     redoAction();
+  });
+  endCheckBtn.addEventListener('click', () => {
+    disarmResetConfirm();
+    disarmRollConfirm();
+    if (!endCheckPending){
+      armEndCheckConfirm();
+      return;
+    }
+    disarmEndCheckConfirm();
+    performEndCheck();
   });
   updateRollBtn();
   updateUndoRedoButtons();
+  updateEndCheckBtn();
 })();
 </script>
 
