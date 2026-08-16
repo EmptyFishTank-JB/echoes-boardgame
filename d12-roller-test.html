@@ -155,26 +155,32 @@
   }
   .die-wrap.dead .die img { opacity: 0.55; }
   .die-wrap.unrolled img { opacity: 0.18; }
-  /* State indicator: a flat bar flush with the die's bottom edge,
-     spanning edge-to-edge of the pentagon's flat bottom side. Every
-     state — default grey, locked orange, matched green/violet, Void's
-     transparent red — uses the exact same size, differing only in color. */
+  /* State indicator: a flat band across the die's bottom edge. It's
+     drawn as a bottom-anchored gradient on a full-size, pentagon-clipped
+     layer (matching .die::before exactly) rather than a small separate
+     rectangle — that way its ends automatically follow the pentagon's
+     true silhouette (including the rounded corners) and never overhang
+     past the visible face. Every state — default grey, locked orange,
+     matched green/violet, Void's transparent red — uses the same band
+     height, differing only in color. */
   .die::after {
     content: "";
-    position: absolute;
-    left: 50%; bottom: 0;
-    width: 46%; height: 5px;
-    transform: translateX(-50%);
-    transform-origin: bottom center;
-    border-radius: 1px;
-    background: rgba(0,0,0,0.3);
+    position: absolute; inset: 0;
+    clip-path: url(#pentagonClip);
+    background: linear-gradient(to top,
+      rgba(0,0,0,0.3) 0px, rgba(0,0,0,0.3) 8px,
+      transparent 8px, transparent 100%);
     transition: background 0.15s;
   }
   .die-wrap.locked .die::after {
-    background: var(--orange);
+    background: linear-gradient(to top,
+      var(--orange) 0px, var(--orange) 8px,
+      transparent 8px, transparent 100%);
   }
   .die-wrap.dead .die::after {
-    background: rgba(255,77,94,0.4);
+    background: linear-gradient(to top,
+      rgba(255,77,94,0.4) 0px, rgba(255,77,94,0.4) 8px,
+      transparent 8px, transparent 100%);
   }
   .die-status {
     font-family: 'Share Tech Mono', monospace; font-size: 9px;
@@ -201,12 +207,12 @@
      eligible. Same chip size/blur as every other state — only the
      background and glow color change. */
   @keyframes pulseDirect {
-    0%,100% { background: rgba(79,224,161,0.5); }
-    50% { background: var(--good); }
+    0%,100% { background: linear-gradient(to top, rgba(79,224,161,0.5) 0px, rgba(79,224,161,0.5) 8px, transparent 8px, transparent 100%); }
+    50% { background: linear-gradient(to top, var(--good) 0px, var(--good) 8px, transparent 8px, transparent 100%); }
   }
   @keyframes pulseWild {
-    0%,100% { background: rgba(185,138,255,0.5); }
-    50% { background: var(--violet); }
+    0%,100% { background: linear-gradient(to top, rgba(185,138,255,0.5) 0px, rgba(185,138,255,0.5) 8px, transparent 8px, transparent 100%); }
+    50% { background: linear-gradient(to top, var(--violet) 0px, var(--violet) 8px, transparent 8px, transparent 100%); }
   }
   .die-wrap.match-direct .die::after { animation: pulseDirect 1s ease-in-out infinite; }
   .die-wrap.match-wild .die::after { animation: pulseWild 1s ease-in-out infinite; }
@@ -216,14 +222,14 @@
     background: linear-gradient(150deg, #e9fff5, #baf5da);
   }
   .die-wrap.locked.assigned-direct .die::after {
-    background: var(--good);
+    background: linear-gradient(to top, var(--good) 0px, var(--good) 8px, transparent 8px, transparent 100%);
     animation: none;
   }
   .die-wrap.locked.assigned-wild .die::before {
     background: linear-gradient(150deg, #f5edff, #ddc2ff);
   }
   .die-wrap.locked.assigned-wild .die::after {
-    background: var(--violet);
+    background: linear-gradient(to top, var(--violet) 0px, var(--violet) 8px, transparent 8px, transparent 100%);
     animation: none;
   }
 
@@ -280,13 +286,13 @@
     background: linear-gradient(150deg, #e9fff5, #baf5da);
   }
   .req-die-wrap.fulfilled-direct .die::after {
-    background: var(--good);
+    background: linear-gradient(to top, var(--good) 0px, var(--good) 8px, transparent 8px, transparent 100%);
   }
   .req-die-wrap.fulfilled-wild .die::before {
     background: linear-gradient(150deg, #f5edff, #ddc2ff);
   }
   .req-die-wrap.fulfilled-wild .die::after {
-    background: var(--violet);
+    background: linear-gradient(to top, var(--violet) 0px, var(--violet) 8px, transparent 8px, transparent 100%);
   }
   .req-die-wrap.fulfilled-direct .die-status { color: var(--good); }
   .req-die-wrap.fulfilled-wild .die-status { color: var(--violet); }
