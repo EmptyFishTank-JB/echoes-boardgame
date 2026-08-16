@@ -405,6 +405,18 @@
   .log div span.locked { color: var(--orange); }
   .log div span.win { color: var(--good); }
 
+  .experiments {
+    margin-top: 22px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+    font-family: 'Share Tech Mono', monospace; font-size: 10px;
+    letter-spacing: 0.15em; text-transform: uppercase; color: var(--text-dim);
+    text-align: center;
+  }
+  .experiments a { color: var(--accent); text-decoration: none; }
+  .experiments a:hover { text-decoration: underline; }
+  .experiments .sep { color: rgba(238,240,245,0.2); }
+
   footer {
     z-index: 1;
     margin-top: 26px;
@@ -479,6 +491,15 @@
 
   <div class="history-label">History <span class="history-note">(last 10)</span></div>
   <div class="log" id="log"></div>
+
+  <div class="experiments">
+    Visual Experiments —
+    <a href="d12-roller.html">Standard</a>
+    <span class="sep">·</span>
+    <a href="d12-roller-slots.html">Slot Reels</a>
+    <span class="sep">·</span>
+    <a href="d12-roller-popper-toss.html">Popper Toss</a>
+  </div>
 
 </div>
 

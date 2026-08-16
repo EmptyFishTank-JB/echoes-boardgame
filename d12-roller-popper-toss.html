@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+CiAgPHJlY3QgeD0iNSIgeT0iNiIgd2lkdGg9IjYiIGhlaWdodD0iMTAiIHJ4PSIxIiBmaWxsPSIjZTg3MzJhIiBvcGFjaXR5PSIwLjkiLz4KICA8cmVjdCB4PSIxMyIgeT0iMiIgd2lkdGg9IjYiIGhlaWdodD0iMTQiIHJ4PSIxIiBmaWxsPSIjZTg3MzJhIi8+CiAgPHJlY3QgeD0iMjEiIHk9IjYiIHdpZHRoPSI2IiBoZWlnaHQ9IjEwIiByeD0iMSIgZmlsbD0iI2U4NzMyYSIgb3BhY2l0eT0iMC45Ii8+CiAgPHJlY3QgeD0iMSIgeT0iMTciIHdpZHRoPSIxMyIgaGVpZ2h0PSIxMyIgcng9IjIuNSIgZmlsbD0iI2Q4MWYyZiIvPgogIDxjaXJjbGUgY3g9IjQuMyIgY3k9IjIwLjMiIHI9IjEuMyIgZmlsbD0iI2ZmZiIvPgogIDxjaXJjbGUgY3g9IjcuNSIgY3k9IjIzLjUiIHI9IjEuMyIgZmlsbD0iI2ZmZiIvPgogIDxjaXJjbGUgY3g9IjEwLjciIGN5PSIyNi43IiByPSIxLjMiIGZpbGw9IiNmZmYiLz4KICA8cmVjdCB4PSIxOCIgeT0iMTciIHdpZHRoPSIxMyIgaGVpZ2h0PSIxMyIgcng9IjIuNSIgZmlsbD0iIzFjOGZjNyIvPgogIDxjaXJjbGUgY3g9IjI3LjciIGN5PSIyMC4zIiByPSIxLjMiIGZpbGw9IiNmZmYiLz4KICA8Y2lyY2xlIGN4PSIyMS4zIiBjeT0iMjYuNyIgcj0iMS4zIiBmaWxsPSIjZmZmIi8+Cjwvc3ZnPgo=">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ECHOES // D12 Roller (Slots)</title>
+<title>ECHOES // D12 Roller (Popper Toss)</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -104,26 +104,48 @@
     opacity: 0.7;
   }
 
+  /* A flat, top-down "tray" the dice get tossed around in — no dome,
+     no glass sheen, just a bounded frame. Each .die-wrap is positioned
+     absolutely within it (JS-computed, grid-cell based so dice never
+     land on top of each other) and translated/rotated on toss. */
   .dice-stage {
-    display: flex; align-items: flex-start; justify-content: center;
-    gap: 16px; flex-wrap: wrap;
+    position: relative;
+    width: 100%;
+    height: 380px;
     margin: 6px 0 26px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: rgba(255,255,255,0.015);
+    box-shadow: inset 0 0 26px rgba(0,0,0,0.45);
+    /* Deliberately NOT overflow:hidden — dice pop up above the tray's
+       rim mid-toss before falling back in, so the motion needs room to
+       breathe above the frame instead of getting clipped at its edge. */
   }
-  .die-wrap { text-align: center; width: 108px; }
+  .die-wrap {
+    position: absolute; left: 0; top: 0;
+    text-align: center; width: 108px;
+  }
   .die-wrap.selectable .die { cursor: pointer; }
+  /* Rotation lives on this inner wrapper, separate from the .die-wrap's
+     own translate — so the toss position and the "landed at an angle"
+     tilt can animate independently without fighting over `transform`.
+     Both are driven by the Web Animations API in JS (a plain CSS
+     transition can't express the up-then-down pop arc), so neither
+     gets a CSS `transition` here. */
+  .die-spin {
+    display: inline-block;
+  }
   .die {
     width: 112px; height: 112px;
     display: flex; align-items: center; justify-content: center;
     position: relative;
-    clip-path: url(#pentagonClip);
-    overflow: hidden;
     filter: drop-shadow(0 4px 10px rgba(0,0,0,0.6));
-    transition: filter 0.15s;
   }
   .die-wrap.selectable .die:hover { filter: drop-shadow(0 4px 10px rgba(0,0,0,0.6)) brightness(1.06); }
   .die::before {
     content: "";
     position: absolute; inset: 0;
+    clip-path: url(#pentagonClip);
     background: linear-gradient(150deg, #f4f6f9, #d9dee6);
     border: 2px solid rgba(0,0,0,0.18);
     box-sizing: border-box;
@@ -145,25 +167,6 @@
     transition: opacity 0.15s;
   }
   .die-wrap.unrolled img { opacity: 0.18; }
-  /* Slot-reel spin: a tall vertical strip of face icons behind the same
-     pentagon window, scrolled upward to land on the pre-decided result.
-     Purely a reveal animation — the face was already chosen before the
-     reel starts moving, so nothing about the spin affects the outcome. */
-  .reel-track {
-    position: absolute; left: 0; top: 0; width: 100%;
-    display: flex; flex-direction: column;
-    will-change: transform;
-  }
-  .reel-item {
-    width: 100%; height: 112px; flex: 0 0 112px;
-    display: flex; align-items: center; justify-content: center;
-    position: relative;
-  }
-  .reel-item img {
-    width: 60%; height: 60%;
-    display: block;
-    margin-top: 10%;
-  }
   /* State indicator: a flat band across the die's bottom edge. It's
      drawn as a bottom-anchored gradient on a full-size, pentagon-clipped
      layer (matching .die::before exactly) rather than a small separate
@@ -267,7 +270,7 @@
   .required-stage {
     display: flex; align-items: flex-start; justify-content: center;
     gap: 10px; flex-wrap: wrap;
-    margin-bottom: 22px;
+    margin-bottom: 40px;
   }
   .required-stage.locked-in .req-die-wrap { cursor: default; }
   .req-die-wrap {
@@ -448,9 +451,9 @@
 </nav>
 
 <header class="title-block">
-  <div class="eyebrow">// Dice Engine — Visual Experiment: Slot Reels</div>
+  <div class="eyebrow">// Dice Engine — Visual Experiment: Popper Toss</div>
   <h1>5x D12 Skill Check</h1>
-  <p class="subtitle">Same rules and odds as the standard roller — this version just reveals each roll as a spinning slot reel instead of a flicker. Up to 3 rolls. Pick the faces this check needs, then roll — click a die between rolls to keep it; the Roll button only re-rolls whatever's still unlocked.</p>
+  <p class="subtitle">Same rules and odds as the standard roller — dice actually pop up off the tray and fall back down to a random, non-overlapping spot instead of sliding across it. Up to 3 rolls. Pick the faces this check needs, then roll — click a die between rolls to keep it; the Roll button only re-rolls whatever's still unlocked.</p>
 </header>
 
 <div class="panel">
@@ -495,9 +498,9 @@
     Visual Experiments —
     <a href="d12-roller.html">Standard</a>
     <span class="sep">·</span>
-    <a href="d12-roller-popper.html">Popper Tray</a>
+    <a href="d12-roller-slots.html">Slot Reels</a>
     <span class="sep">·</span>
-    <a href="d12-roller-popper-toss.html">Popper Toss</a>
+    <a href="d12-roller-popper.html">Popper Tray</a>
   </div>
 
 </div>
@@ -563,6 +566,7 @@
   ];
   const DIE_COUNT = 5;
   const MAX_ROLLS = 3;
+  const MAX_TICKS = 8;
   const HISTORY_LIMIT = 10;
 
   const REQUIRED_CATEGORIES = ['Tech', 'Tools', 'DNA', 'Biohazard', 'Hazard'];
@@ -738,12 +742,15 @@
   for (let i = 0; i < DIE_COUNT; i++){
     const wrap = document.createElement('div');
     wrap.className = 'die-wrap unrolled';
+    const spin = document.createElement('div');
+    spin.className = 'die-spin';
     const die = document.createElement('div');
     die.className = 'die';
     const img = document.createElement('img');
     img.src = FACES[0].file;
     img.alt = '';
     die.appendChild(img);
+    spin.appendChild(die);
     const label = document.createElement('div');
     label.className = 'die-label';
     label.textContent = 'D12 — ' + (i + 1);
@@ -751,12 +758,12 @@
     faceName.className = 'die-face-name';
     const statusEl = document.createElement('div');
     statusEl.className = 'die-status';
-    wrap.appendChild(die);
+    wrap.appendChild(spin);
     wrap.appendChild(label);
     wrap.appendChild(faceName);
     wrap.appendChild(statusEl);
     diceStage.appendChild(wrap);
-    const entry = { wrap, die, img, faceName, statusEl, face: null, locked: false, dead: false, matchType: null, assignedSlot: null, assignedType: null, reelTrack: null };
+    const entry = { wrap, spin, die, img, faceName, statusEl, face: null, locked: false, dead: false, matchType: null, assignedSlot: null, assignedType: null, cellIndex: null, curX: null, curY: null, curRot: null, wrapAnim: null, spinAnim: null, dieAnim: null };
     wrap.addEventListener('click', () => toggleLock(entry));
     dice.push(entry);
   }
@@ -764,6 +771,112 @@
   function randomFace(){
     return FACES[Math.floor(Math.random() * FACES.length)];
   }
+
+  // ── TOSS PLACEMENT ── flat top-down tray, dice land in a shuffled
+  // grid cell (with a little random jitter + tilt) so they never
+  // overlap. Position/rotation are purely cosmetic, not game state.
+  // Unlike the plain popper, the move itself is a pop-up-then-land arc
+  // (Web Animations API — a CSS transition can't express a mid-path
+  // peak) instead of a straight slide across the tray.
+  const GRID_COLS = 3;
+  const GRID_ROWS = 2;
+  const DIE_FOOTPRINT_W = 108;
+  const DIE_FOOTPRINT_H = 175;
+  const POP_HEIGHT = 48;
+  const TOSS_DURATION_MS = 620;
+
+  function cellRect(index, frameW, frameH){
+    const col = index % GRID_COLS;
+    const row = Math.floor(index / GRID_COLS);
+    const cellW = frameW / GRID_COLS;
+    const cellH = frameH / GRID_ROWS;
+    return { x: col * cellW, y: row * cellH, w: cellW, h: cellH };
+  }
+
+  function placeInCell(d, cellIndex, animate){
+    const frameW = diceStage.clientWidth;
+    const frameH = diceStage.clientHeight;
+    const cell = cellRect(cellIndex, frameW, frameH);
+    const jitterX = Math.max(0, cell.w - DIE_FOOTPRINT_W);
+    const jitterY = Math.max(0, cell.h - DIE_FOOTPRINT_H);
+    const x = cell.x + Math.random() * jitterX;
+    const y = cell.y + Math.random() * jitterY;
+    const rot = Math.random() * 30 - 15;
+    d.cellIndex = cellIndex;
+
+    if (!animate){
+      if (d.wrapAnim){ try { d.wrapAnim.cancel(); } catch(e){} d.wrapAnim = null; }
+      if (d.spinAnim){ try { d.spinAnim.cancel(); } catch(e){} d.spinAnim = null; }
+      if (d.dieAnim){ try { d.dieAnim.cancel(); } catch(e){} d.dieAnim = null; }
+      d.wrap.style.transform = 'translate(' + x + 'px,' + y + 'px)';
+      d.spin.style.transform = 'rotate(' + rot + 'deg)';
+      d.curX = x; d.curY = y; d.curRot = rot;
+      return;
+    }
+
+    const startX = d.curX != null ? d.curX : x;
+    const startY = d.curY != null ? d.curY : y;
+    const startRot = d.curRot != null ? d.curRot : rot;
+    const peakX = (startX + x) / 2;
+    const peakY = Math.min(startY, y) - POP_HEIGHT;
+    const peakRot = startRot + (rot - startRot) * 0.5 + (Math.random() * 50 - 25);
+    const easing = 'cubic-bezier(0.33,0,0.2,1)';
+
+    const wrapAnim = d.wrap.animate([
+      { transform: 'translate(' + startX + 'px,' + startY + 'px) scale(1)' },
+      { transform: 'translate(' + peakX + 'px,' + peakY + 'px) scale(1.1)', offset: 0.45 },
+      { transform: 'translate(' + x + 'px,' + y + 'px) scale(1)' }
+    ], { duration: TOSS_DURATION_MS, easing, fill: 'forwards' });
+    const spinAnim = d.spin.animate([
+      { transform: 'rotate(' + startRot + 'deg)' },
+      { transform: 'rotate(' + peakRot + 'deg)', offset: 0.45 },
+      { transform: 'rotate(' + rot + 'deg)' }
+    ], { duration: TOSS_DURATION_MS, easing, fill: 'forwards' });
+    // A bigger, softer drop-shadow at the peak sells the "lifted off the
+    // tray" height cue — reverted (not committed) on landing so hover
+    // brightness still works normally afterward.
+    const dieAnim = d.die.animate([
+      { filter: 'drop-shadow(0 4px 10px rgba(0,0,0,0.6))' },
+      { filter: 'drop-shadow(0 26px 22px rgba(0,0,0,0.5))', offset: 0.45 },
+      { filter: 'drop-shadow(0 4px 10px rgba(0,0,0,0.6))' }
+    ], { duration: TOSS_DURATION_MS, easing, fill: 'forwards' });
+
+    d.wrapAnim = wrapAnim;
+    d.spinAnim = spinAnim;
+    d.dieAnim = dieAnim;
+    wrapAnim.finished.then(() => {
+      try { wrapAnim.commitStyles(); wrapAnim.cancel(); } catch(e){}
+    }).catch(() => {});
+    spinAnim.finished.then(() => {
+      try { spinAnim.commitStyles(); spinAnim.cancel(); } catch(e){}
+    }).catch(() => {});
+    dieAnim.finished.then(() => {
+      try { dieAnim.cancel(); } catch(e){}
+    }).catch(() => {});
+
+    d.curX = x; d.curY = y; d.curRot = rot;
+  }
+
+  // Tosses only the dice actually being rolled — locked/dead dice stay
+  // put, and the ones in motion avoid every cell already occupied.
+  function tossActive(active){
+    const activeSet = new Set(active);
+    const used = new Set(dice.filter(d => d.cellIndex !== null && !activeSet.has(d)).map(d => d.cellIndex));
+    const allCells = [];
+    for (let i = 0; i < GRID_COLS * GRID_ROWS; i++) allCells.push(i);
+    active.forEach(d => {
+      const free = allCells.filter(c => !used.has(c));
+      const pool = free.length ? free : allCells;
+      const pick = pool[Math.floor(Math.random() * pool.length)];
+      used.add(pick);
+      placeInCell(d, pick, true);
+    });
+  }
+
+  function placeAllHome(){
+    dice.forEach((d, i) => placeInCell(d, i % (GRID_COLS * GRID_ROWS), false));
+  }
+  placeAllHome();
 
   function log(html){
     const line = document.createElement('div');
@@ -861,38 +974,6 @@
     endCheckBtn.disabled = rollsUsed === 0 || checkEnded;
   }
 
-  const REEL_ITEM_H = 112;
-  const REEL_COSMETIC_COUNT = 14;
-  const REEL_BASE_MS = 900;
-  const REEL_STAGGER_MS = 150;
-
-  // Builds a tall strip of random "passing" faces capped with the real
-  // (already-decided) result as the last item, then slides it into view.
-  function buildReel(d, finalFace){
-    if (d.reelTrack) d.reelTrack.remove();
-    const track = document.createElement('div');
-    track.className = 'reel-track';
-    for (let i = 0; i < REEL_COSMETIC_COUNT; i++){
-      const item = document.createElement('div');
-      item.className = 'reel-item';
-      const img = document.createElement('img');
-      img.src = randomFace().file;
-      img.alt = '';
-      item.appendChild(img);
-      track.appendChild(item);
-    }
-    const finalItem = document.createElement('div');
-    finalItem.className = 'reel-item';
-    const finalImg = document.createElement('img');
-    finalImg.src = finalFace.file;
-    finalImg.alt = '';
-    finalItem.appendChild(finalImg);
-    track.appendChild(finalItem);
-    d.die.appendChild(track);
-    d.reelTrack = track;
-    d.img.style.display = 'none';
-  }
-
   function roll(){
     if (rollsUsed >= MAX_ROLLS || checkEnded) return;
     const active = dice.filter(d => !d.locked && !d.dead);
@@ -900,44 +981,28 @@
     rollBtn.disabled = true;
     resetBtn.disabled = true;
     SFX.select();
-
-    // The outcome is decided right now, before any reel moves — the spin
-    // is only a reveal, never a chance for stop-timing to change the odds.
-    const results = active.map(d => ({ d, face: randomFace() }));
-
-    results.forEach(r => {
-      r.d.wrap.classList.remove('unrolled');
-      r.d.faceName.textContent = '';
-      buildReel(r.d, r.face);
-      r.d.reelTrack.style.transition = 'none';
-      r.d.reelTrack.style.transform = 'translateY(0)';
+    active.forEach(d => {
+      d.wrap.classList.remove('unrolled');
+      d.faceName.textContent = '';
     });
-    // Force a reflow so the transition set below actually animates from 0.
-    void diceStage.offsetHeight;
+    tossActive(active);
 
-    const totalItems = REEL_COSMETIC_COUNT + 1;
-    const finalOffset = (totalItems - 1) * REEL_ITEM_H;
-    results.forEach((r, i) => {
-      const duration = REEL_BASE_MS + i * REEL_STAGGER_MS;
-      r.d.reelTrack.style.transition = 'transform ' + duration + 'ms cubic-bezier(0.13,0.72,0.2,1)';
-      r.d.reelTrack.style.transform = 'translateY(-' + finalOffset + 'px)';
-      const tickTimer = setInterval(() => SFX.tick(), 90);
-      setTimeout(() => { clearInterval(tickTimer); SFX.settle(); }, duration);
-    });
-
-    const maxDuration = REEL_BASE_MS + (results.length - 1) * REEL_STAGGER_MS;
-    setTimeout(() => settle(results), maxDuration + 60);
+    let ticks = 0;
+    const spin = setInterval(() => {
+      active.forEach(d => { d.img.src = randomFace().file; });
+      SFX.tick();
+      ticks++;
+      if (ticks > MAX_TICKS){
+        clearInterval(spin);
+        settle(active);
+      }
+    }, 70);
   }
 
-  function settle(results){
-    results.forEach(r => {
-      const d = r.d;
-      if (d.reelTrack){ d.reelTrack.remove(); d.reelTrack = null; }
-      d.img.style.display = '';
-    });
-    results.forEach(r => {
-      const d = r.d;
-      const face = r.face;
+  function settle(active){
+    SFX.settle();
+    active.forEach(d => {
+      const face = randomFace();
       d.face = face;
       d.img.src = face.file;
       d.faceName.textContent = face.name;
@@ -1101,6 +1166,28 @@
     updateRollBtn();
     updateEndCheckBtn();
     renderResultBanner();
+    placeSnapshotLayout();
+  }
+
+  // Restores a collision-free tray layout after Undo/Redo — rolled dice
+  // get a random cell, still-unrolled dice go back to their home cell.
+  function placeSnapshotLayout(){
+    const usedCells = new Set();
+    const allCells = [];
+    for (let i = 0; i < GRID_COLS * GRID_ROWS; i++) allCells.push(i);
+    dice.forEach((d, i) => {
+      if (d.face){
+        const free = allCells.filter(c => !usedCells.has(c));
+        const pool = free.length ? free : allCells;
+        const pick = pool[Math.floor(Math.random() * pool.length)];
+        usedCells.add(pick);
+        placeInCell(d, pick, false);
+      } else {
+        const home = i % allCells.length;
+        usedCells.add(home);
+        placeInCell(d, home, false);
+      }
+    });
   }
 
   // Unlimited undo/redo, scoped to Reset actions only — a safety net for
@@ -1148,6 +1235,7 @@
     updateRollBtn();
     updateEndCheckBtn();
     renderResultBanner();
+    placeAllHome();
     SFX.select();
     if (dirtySinceReset){
       log('<span class="tag reset">Reset</span>');
