@@ -141,10 +141,10 @@
   .die-wrap.locked .die::before {
     background: linear-gradient(150deg, #fff3e9, #ffdcb8);
   }
-  /* Void: the whole face dims (not just an inset layer) — lightly, so
-     the icon and face outline both stay easy to read. */
+  /* Void: the face dims via a semi-transparent black wash over the
+     normal fill — the icon itself stays fully black/undimmed. */
   .die-wrap.dead .die::before {
-    background: linear-gradient(150deg, #d3d6dc, #bcc0c8);
+    background: rgba(0,0,0,0.5);
   }
   .die img {
     position: relative;
@@ -153,7 +153,6 @@
     margin-top: 10%;
     transition: opacity 0.15s;
   }
-  .die-wrap.dead .die img { opacity: 0.55; }
   .die-wrap.unrolled img { opacity: 0.18; }
   /* State indicator: a flat band across the die's bottom edge. It's
      drawn as a bottom-anchored gradient on a full-size, pentagon-clipped
