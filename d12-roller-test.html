@@ -155,30 +155,26 @@
   }
   .die-wrap.dead .die img { opacity: 0.55; }
   .die-wrap.unrolled img { opacity: 0.18; }
-  /* State indicator: a small "chip" anchored to the bottom-center of the
-     die, glowing via filter:drop-shadow (not box-shadow, which ignores
-     clip-path and would bleed onto the corners). Every state — default
-     grey, locked orange, matched green/violet, Void's transparent red —
-     uses the exact same size/blur, differing only in color. */
+  /* State indicator: a flat bar flush with the die's bottom edge,
+     spanning edge-to-edge of the pentagon's flat bottom side. Every
+     state — default grey, locked orange, matched green/violet, Void's
+     transparent red — uses the exact same size, differing only in color. */
   .die::after {
     content: "";
     position: absolute;
-    left: 50%; bottom: 7px;
-    width: 34px; height: 5px;
+    left: 50%; bottom: 0;
+    width: 46%; height: 5px;
     transform: translateX(-50%);
     transform-origin: bottom center;
     border-radius: 1px;
     background: rgba(0,0,0,0.3);
-    filter: drop-shadow(0 0 5px rgba(0,0,0,0.35));
-    transition: background 0.15s, filter 0.15s;
+    transition: background 0.15s;
   }
   .die-wrap.locked .die::after {
     background: var(--orange);
-    filter: drop-shadow(0 0 5px rgba(232,115,42,0.65));
   }
   .die-wrap.dead .die::after {
     background: rgba(255,77,94,0.4);
-    filter: drop-shadow(0 0 5px rgba(255,77,94,0.4));
   }
   .die-status {
     font-family: 'Share Tech Mono', monospace; font-size: 9px;
@@ -205,23 +201,22 @@
      eligible. Same chip size/blur as every other state — only the
      background and glow color change. */
   @keyframes pulseDirect {
-    0%,100% { background: rgba(79,224,161,0.5); filter: drop-shadow(0 0 4px rgba(79,224,161,0.4)); }
-    50% { background: var(--good); filter: drop-shadow(0 0 8px rgba(79,224,161,0.95)); }
+    0%,100% { background: rgba(79,224,161,0.5); }
+    50% { background: var(--good); }
   }
   @keyframes pulseWild {
-    0%,100% { background: rgba(185,138,255,0.5); filter: drop-shadow(0 0 4px rgba(185,138,255,0.4)); }
-    50% { background: var(--violet); filter: drop-shadow(0 0 8px rgba(185,138,255,0.95)); }
+    0%,100% { background: rgba(185,138,255,0.5); }
+    50% { background: var(--violet); }
   }
   .die-wrap.match-direct .die::after { animation: pulseDirect 1s ease-in-out infinite; }
   .die-wrap.match-wild .die::after { animation: pulseWild 1s ease-in-out infinite; }
 
-  /* Locked AND assigned to a requirement: steady chip glow, no more pulse. */
+  /* Locked AND assigned to a requirement: steady chip color, no more pulse. */
   .die-wrap.locked.assigned-direct .die::before {
     background: linear-gradient(150deg, #e9fff5, #baf5da);
   }
   .die-wrap.locked.assigned-direct .die::after {
     background: var(--good);
-    filter: drop-shadow(0 0 5px rgba(79,224,161,0.65));
     animation: none;
   }
   .die-wrap.locked.assigned-wild .die::before {
@@ -229,7 +224,6 @@
   }
   .die-wrap.locked.assigned-wild .die::after {
     background: var(--violet);
-    filter: drop-shadow(0 0 5px rgba(185,138,255,0.65));
     animation: none;
   }
 
@@ -287,14 +281,12 @@
   }
   .req-die-wrap.fulfilled-direct .die::after {
     background: var(--good);
-    filter: drop-shadow(0 0 5px rgba(79,224,161,0.65));
   }
   .req-die-wrap.fulfilled-wild .die::before {
     background: linear-gradient(150deg, #f5edff, #ddc2ff);
   }
   .req-die-wrap.fulfilled-wild .die::after {
     background: var(--violet);
-    filter: drop-shadow(0 0 5px rgba(185,138,255,0.65));
   }
   .req-die-wrap.fulfilled-direct .die-status { color: var(--good); }
   .req-die-wrap.fulfilled-wild .die-status { color: var(--violet); }
