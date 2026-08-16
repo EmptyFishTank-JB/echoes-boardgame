@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+CiAgPHJlY3QgeD0iNSIgeT0iNiIgd2lkdGg9IjYiIGhlaWdodD0iMTAiIHJ4PSIxIiBmaWxsPSIjZTg3MzJhIiBvcGFjaXR5PSIwLjkiLz4KICA8cmVjdCB4PSIxMyIgeT0iMiIgd2lkdGg9IjYiIGhlaWdodD0iMTQiIHJ4PSIxIiBmaWxsPSIjZTg3MzJhIi8+CiAgPHJlY3QgeD0iMjEiIHk9IjYiIHdpZHRoPSI2IiBoZWlnaHQ9IjEwIiByeD0iMSIgZmlsbD0iI2U4NzMyYSIgb3BhY2l0eT0iMC45Ii8+CiAgPHJlY3QgeD0iMSIgeT0iMTciIHdpZHRoPSIxMyIgaGVpZ2h0PSIxMyIgcng9IjIuNSIgZmlsbD0iI2Q4MWYyZiIvPgogIDxjaXJjbGUgY3g9IjQuMyIgY3k9IjIwLjMiIHI9IjEuMyIgZmlsbD0iI2ZmZiIvPgogIDxjaXJjbGUgY3g9IjcuNSIgY3k9IjIzLjUiIHI9IjEuMyIgZmlsbD0iI2ZmZiIvPgogIDxjaXJjbGUgY3g9IjEwLjciIGN5PSIyNi43IiByPSIxLjMiIGZpbGw9IiNmZmYiLz4KICA8cmVjdCB4PSIxOCIgeT0iMTciIHdpZHRoPSIxMyIgaGVpZ2h0PSIxMyIgcng9IjIuNSIgZmlsbD0iIzFjOGZjNyIvPgogIDxjaXJjbGUgY3g9IjI3LjciIGN5PSIyMC4zIiByPSIxLjMiIGZpbGw9IiNmZmYiLz4KICA8Y2lyY2xlIGN4PSIyMS4zIiBjeT0iMjYuNyIgcj0iMS4zIiBmaWxsPSIjZmZmIi8+Cjwvc3ZnPgo=">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ECHOES // D12 Roller</title>
+<title>ECHOES // D12 Roller (Signal Decode)</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -144,6 +144,36 @@
     transition: opacity 0.15s;
   }
   .die-wrap.unrolled img { opacity: 0.18; }
+  /* Signal-decode overlay: a scanline texture (opacity/position driven
+     per-tick from JS, so it flickers instead of looping smoothly) plus
+     a moving scan-sweep bar, both only visible while a die is actively
+     "decoding" — faded out as the roll locks onto its real result. */
+  .die-glitch {
+    position: absolute; inset: 0;
+    clip-path: url(#pentagonClip);
+    pointer-events: none;
+    opacity: 0;
+    background: repeating-linear-gradient(0deg,
+      rgba(79,195,247,0.4) 0px, rgba(79,195,247,0.4) 1px,
+      transparent 1px, transparent 3px);
+    mix-blend-mode: screen;
+  }
+  .die-glitch::after {
+    content: "";
+    position: absolute; left: 0; right: 0; height: 8px;
+    top: -10%;
+    background: linear-gradient(180deg, transparent, rgba(79,195,247,0.95), transparent);
+    opacity: 0;
+  }
+  .die-wrap.decoding .die-glitch::after {
+    opacity: 1;
+    animation: scanSweep 0.45s linear infinite;
+  }
+  @keyframes scanSweep {
+    0% { top: -10%; }
+    100% { top: 110%; }
+  }
+  .die-wrap.decoding .die-status { color: var(--accent); }
   /* State indicator: a flat band across the die's bottom edge. It's
      drawn as a bottom-anchored gradient on a full-size, pentagon-clipped
      layer (matching .die::before exactly) rather than a small separate
@@ -428,9 +458,9 @@
 </nav>
 
 <header class="title-block">
-  <div class="eyebrow">// Dice Engine</div>
+  <div class="eyebrow">// Dice Engine — Visual Experiment: Signal Decode</div>
   <h1>5x D12 Skill Check</h1>
-  <p class="subtitle">Up to 3 rolls. Pick the faces this check needs, then roll — click a die between rolls to keep it; the Roll button only re-rolls whatever's still unlocked.</p>
+  <p class="subtitle">Same rules and odds as the standard roller — each roll reads as a signal locking on: a decaying scramble, scanline flicker, and chromatic glitch that clears as the result resolves. Up to 3 rolls. Pick the faces this check needs, then roll — click a die between rolls to keep it; the Roll button only re-rolls whatever's still unlocked.</p>
 </header>
 
 <div class="panel">
@@ -473,13 +503,13 @@
 
   <div class="experiments">
     Visual Experiments —
+    <a href="d12-roller.html">Standard</a>
+    <span class="sep">·</span>
     <a href="d12-roller-slots.html">Slot Reels</a>
     <span class="sep">·</span>
     <a href="d12-roller-popper.html">Popper Tray</a>
     <span class="sep">·</span>
     <a href="d12-roller-popper-toss.html">Popper Toss</a>
-    <span class="sep">·</span>
-    <a href="d12-roller-signal.html">Signal Decode</a>
   </div>
 
 </div>
@@ -545,7 +575,6 @@
   ];
   const DIE_COUNT = 5;
   const MAX_ROLLS = 3;
-  const MAX_TICKS = 8;
   const HISTORY_LIMIT = 10;
 
   const REQUIRED_CATEGORIES = ['Tech', 'Tools', 'DNA', 'Biohazard', 'Hazard'];
@@ -727,6 +756,9 @@
     img.src = FACES[0].file;
     img.alt = '';
     die.appendChild(img);
+    const glitch = document.createElement('div');
+    glitch.className = 'die-glitch';
+    die.appendChild(glitch);
     const label = document.createElement('div');
     label.className = 'die-label';
     label.textContent = 'D12 — ' + (i + 1);
@@ -739,7 +771,7 @@
     wrap.appendChild(faceName);
     wrap.appendChild(statusEl);
     diceStage.appendChild(wrap);
-    const entry = { wrap, die, img, faceName, statusEl, face: null, locked: false, dead: false, matchType: null, assignedSlot: null, assignedType: null };
+    const entry = { wrap, die, img, glitch, faceName, statusEl, face: null, locked: false, dead: false, matchType: null, assignedSlot: null, assignedType: null };
     wrap.addEventListener('click', () => toggleLock(entry));
     dice.push(entry);
   }
@@ -844,6 +876,11 @@
     endCheckBtn.disabled = rollsUsed === 0 || checkEnded;
   }
 
+  // Decaying tick schedule (fast -> slow) instead of a constant-speed
+  // flicker — reads as a signal "converging" on a result rather than a
+  // mechanical spin.
+  const DECODE_TICKS = [45, 55, 67, 82, 100, 122, 149, 182, 222, 260];
+
   function roll(){
     if (rollsUsed >= MAX_ROLLS || checkEnded) return;
     const active = dice.filter(d => !d.locked && !d.dead);
@@ -853,24 +890,38 @@
     SFX.select();
     active.forEach(d => {
       d.wrap.classList.remove('unrolled');
-      d.die.classList.add('rolling');
+      d.wrap.classList.add('decoding');
       d.faceName.textContent = '';
+      d.statusEl.textContent = 'DECODING';
     });
+    decodeTick(active, 0);
+  }
 
-    let ticks = 0;
-    const spin = setInterval(() => {
-      active.forEach(d => { d.img.src = randomFace().file; });
-      SFX.tick();
-      ticks++;
-      if (ticks > MAX_TICKS){
-        clearInterval(spin);
-        settle(active);
-      }
-    }, 70);
+  function decodeTick(active, step){
+    const progress = step / (DECODE_TICKS.length - 1);
+    active.forEach(d => {
+      d.img.src = randomFace().file;
+      const aberration = 3 * (1 - progress);
+      d.img.style.filter = aberration > 0.05
+        ? 'drop-shadow(' + aberration + 'px 0 0 rgba(255,70,70,0.55)) drop-shadow(-' + aberration + 'px 0 0 rgba(70,220,255,0.55))'
+        : 'none';
+      d.glitch.style.opacity = Math.max(0, (0.85 - progress * 0.9) * (0.5 + Math.random() * 0.5));
+      d.glitch.style.backgroundPositionY = (Math.random() * 20) + 'px';
+    });
+    SFX.tick();
+    if (step < DECODE_TICKS.length - 1){
+      setTimeout(() => decodeTick(active, step + 1), DECODE_TICKS[step]);
+    } else {
+      setTimeout(() => settle(active), DECODE_TICKS[step]);
+    }
   }
 
   function settle(active){
-    active.forEach(d => d.die.classList.remove('rolling'));
+    active.forEach(d => {
+      d.wrap.classList.remove('decoding');
+      d.img.style.filter = '';
+      d.glitch.style.opacity = 0;
+    });
     SFX.settle();
     active.forEach(d => {
       const face = randomFace();
