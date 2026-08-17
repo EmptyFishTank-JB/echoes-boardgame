@@ -179,7 +179,7 @@
     padding-left: var(--layout-nav-reserve-l);
     padding-right: var(--layout-nav-reserve-r);
     min-height: calc(100vh - 200px);
-    padding-bottom: 56px;
+    padding-bottom: 72px;
   }
 
   /* ── SIDEBAR NAV ── */
@@ -596,6 +596,12 @@
     color: var(--text-dim);
     letter-spacing: 0.1em;
     margin: 0 auto;
+  }
+
+  .footer-meta {
+    font-size: 9px;
+    opacity: 0.6;
+    margin-top: 2px;
   }
 
   footer span { color: var(--accent); }
@@ -1051,6 +1057,7 @@
 
 <footer>
   <p>ECHOES · <span>EmptyFishTank-JB</span> · In Development · All content subject to change</p>
+  <p class="footer-meta">Updated 2026-08-17 15:15 UTC &middot; STARDATE <span id="stardate">&mdash;</span></p>
 </footer>
 
 <script>
@@ -1197,6 +1204,26 @@
   });
   window.addEventListener('load', updateNavLayout);
   updateNavLayout();
+})();
+</script>
+
+<script>
+(function(){
+  var stardateEl = document.getElementById('stardate');
+  if (!stardateEl) return;
+  function pad(n, len){ return String(n).padStart(len, '0'); }
+  function updateStardate(){
+    var now = new Date();
+    var year = now.getUTCFullYear();
+    var start = Date.UTC(year, 0, 1);
+    var day = Math.floor((now.getTime() - start) / 86400000) + 1;
+    var hh = pad(now.getUTCHours(), 2);
+    var mm = pad(now.getUTCMinutes(), 2);
+    var ss = pad(now.getUTCSeconds(), 2);
+    stardateEl.textContent = year + '.' + pad(day, 3) + '.' + hh + mm + ss;
+  }
+  updateStardate();
+  setInterval(updateStardate, 1000);
 })();
 </script>
 </body>

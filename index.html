@@ -311,6 +311,8 @@
 
   footer span.accent { color: rgba(79,195,247,0.5); }
 
+  .footer-meta { opacity: 0.6; }
+
   /* ── RESPONSIVE ── */
   @media (max-width: 600px) {
     nav { padding: 18px 24px; }
@@ -397,7 +399,7 @@
 
 <!-- ══ FOOTER ════════════════════════════════════════════════════ -->
 <footer>
-  <span>ECHOES · EmptyFishTank-JB · In Development</span>
+  <span>ECHOES · EmptyFishTank-JB · In Development <span class="footer-meta">&middot; Updated 2026-08-17 15:15 UTC &middot; STARDATE <span id="stardate">&mdash;</span></span></span>
   <span class="accent right">// All content subject to change</span>
 </footer>
 
@@ -517,5 +519,25 @@
 })();
 </script>
 
+
+<script>
+(function(){
+  var stardateEl = document.getElementById('stardate');
+  if (!stardateEl) return;
+  function pad(n, len){ return String(n).padStart(len, '0'); }
+  function updateStardate(){
+    var now = new Date();
+    var year = now.getUTCFullYear();
+    var start = Date.UTC(year, 0, 1);
+    var day = Math.floor((now.getTime() - start) / 86400000) + 1;
+    var hh = pad(now.getUTCHours(), 2);
+    var mm = pad(now.getUTCMinutes(), 2);
+    var ss = pad(now.getUTCSeconds(), 2);
+    stardateEl.textContent = year + '.' + pad(day, 3) + '.' + hh + mm + ss;
+  }
+  updateStardate();
+  setInterval(updateStardate, 1000);
+})();
+</script>
 </body>
 </html>
