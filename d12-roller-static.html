@@ -144,18 +144,22 @@
     transition: opacity 0.15s;
   }
   .die-wrap.unrolled img { opacity: 0.18; }
-  /* No-signal static: covers the ENTIRE die (fill, chip, icon — not
-     just the icon) at full opacity, so fading it out reveals the whole
-     die at once. Rendered at low internal resolution and scaled up
-     with pixelated image-rendering for a chunky TV-snow look. */
+  /* No-signal static: a distorted audio-waveform readout, deliberately
+     NOT clipped to the pentagon — it's a wider rectangle that bleeds
+     out over the surrounding page background as well as the die, so
+     the pentagon reads as something crystallizing INTO VIEW as the
+     signal collapses, not just a face fading in under a mask. Shrinks
+     and fades together on reveal; the reverse on a re-roll's fizz-out. */
   .die-static {
-    position: absolute; inset: 0;
-    width: 100%; height: 100%;
-    clip-path: url(#pentagonClip);
+    position: absolute;
+    left: 50%; top: 50%;
+    width: 150px; height: 130px;
+    border-radius: 5px;
     z-index: 5;
-    image-rendering: pixelated;
     pointer-events: none;
     opacity: 1;
+    transform: translate(-50%,-50%) scale(1);
+    transition: opacity 0.2s ease-out, transform 0.2s ease-out;
   }
   /* State indicator: a flat band across the die's bottom edge. It's
      drawn as a bottom-anchored gradient on a full-size, pentagon-clipped
@@ -455,7 +459,7 @@
 <header class="title-block">
   <div class="eyebrow">// Dice Engine — Visual Experiment: Static Signal</div>
   <h1>5x D12 Skill Check</h1>
-  <p class="subtitle">Same rules and odds as the standard roller — the whole die is fuzzy no-signal static until a roll clears it into a real face, and fizzes back to static the moment it's rerolled. Up to 3 rolls. Pick the faces this check needs, then roll — click a die between rolls to keep it; the Roll button only re-rolls whatever's still unlocked.</p>
+  <p class="subtitle">Same rules and odds as the standard roller — each die is a distorted audio-signal readout, wider than the pentagon itself, until a roll clears it and the die's actual shape resolves into view. Fizzes back to signal noise the moment it's rerolled. Up to 3 rolls. Pick the faces this check needs, then roll — click a die between rolls to keep it; the Roll button only re-rolls whatever's still unlocked.</p>
 </header>
 
 <div class="panel">
@@ -755,8 +759,8 @@
     die.appendChild(img);
     const staticCanvas = document.createElement('canvas');
     staticCanvas.className = 'die-static';
-    staticCanvas.width = 56;
-    staticCanvas.height = 56;
+    staticCanvas.width = 150;
+    staticCanvas.height = 130;
     die.appendChild(staticCanvas);
     const label = document.createElement('div');
     label.className = 'die-label';
@@ -785,19 +789,46 @@
   // color to read as a signal rather than plain black-and-white static.
   // It sits above the entire die (fill, chip, icon) via z-index, so
   // fading it out reveals the whole die at once, not just the icon.
+  // Distorted audio-waveform readout — a jittery oscilloscope trace
+  // rather than TV-snow pixel noise, redrawn from scratch each tick.
   function drawStatic(canvas){
     const ctx = canvas.getContext('2d');
     const w = canvas.width, h = canvas.height;
-    const imgData = ctx.createImageData(w, h);
-    const data = imgData.data;
-    for (let i = 0; i < data.length; i += 4){
-      const v = Math.random() * 255 | 0;
-      data[i] = v * 0.55;
-      data[i + 1] = v * 0.78;
-      data[i + 2] = v;
-      data[i + 3] = 255;
+    const midY = h / 2;
+    const segments = 22;
+
+    ctx.fillStyle = 'rgba(3,8,12,0.94)';
+    ctx.fillRect(0, 0, w, h);
+
+    // faint reference line, like a scope's center axis
+    ctx.strokeStyle = 'rgba(79,195,247,0.18)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, midY);
+    ctx.lineTo(w, midY);
+    ctx.stroke();
+
+    // secondary, dimmer/wider trace behind the main one for depth
+    ctx.strokeStyle = 'rgba(185,138,255,0.4)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    for (let i = 0; i <= segments; i++){
+      const x = (i / segments) * w;
+      const y = midY + (Math.random() - 0.5) * h * 0.5;
+      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
     }
-    ctx.putImageData(imgData, 0, 0);
+    ctx.stroke();
+
+    // main, brighter distorted trace
+    ctx.strokeStyle = 'rgba(120,215,255,0.95)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    for (let i = 0; i <= segments; i++){
+      const x = (i / segments) * w;
+      const y = midY + (Math.random() - 0.5) * h * 0.85;
+      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
   }
 
   function startStatic(d){
@@ -817,9 +848,11 @@
     if (showStatic){
       startStatic(d);
       d.staticCanvas.style.opacity = '1';
+      d.staticCanvas.style.transform = 'translate(-50%,-50%) scale(1)';
     } else {
       stopStatic(d);
       d.staticCanvas.style.opacity = '0';
+      d.staticCanvas.style.transform = 'translate(-50%,-50%) scale(0.55)';
     }
     void d.staticCanvas.offsetWidth;
     d.staticCanvas.style.transition = '';
@@ -951,9 +984,11 @@
       startStatic(d);
       if (wasUnrolled[i]){
         d.staticCanvas.style.opacity = '1';
+        d.staticCanvas.style.transform = 'translate(-50%,-50%) scale(1)';
       } else {
-        d.staticCanvas.style.transition = 'opacity ' + FIZZ_OUT_MS + 'ms linear';
+        d.staticCanvas.style.transition = 'opacity ' + FIZZ_OUT_MS + 'ms linear, transform ' + FIZZ_OUT_MS + 'ms ease-in';
         d.staticCanvas.style.opacity = '1';
+        d.staticCanvas.style.transform = 'translate(-50%,-50%) scale(1)';
       }
     });
 
@@ -980,8 +1015,9 @@
     });
     SFX.settle();
     results.forEach(r => {
-      r.d.staticCanvas.style.transition = 'opacity ' + REVEAL_MS + 'ms ease-out';
+      r.d.staticCanvas.style.transition = 'opacity ' + REVEAL_MS + 'ms ease-out, transform ' + REVEAL_MS + 'ms ease-out';
       r.d.staticCanvas.style.opacity = '0';
+      r.d.staticCanvas.style.transform = 'translate(-50%,-50%) scale(0.55)';
     });
     setTimeout(() => {
       results.forEach(r => stopStatic(r.d));
