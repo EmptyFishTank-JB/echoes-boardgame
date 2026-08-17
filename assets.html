@@ -30,6 +30,22 @@
     --mono: 'Share Tech Mono', monospace;
     --head: 'Barlow Condensed', sans-serif;
     --body: 'Barlow', sans-serif;
+
+    /* ── page layout controls ──
+       main/header-inner share max-width + margins so they are always aligned;
+       nav is fixed and JS-positioned flush against main's edge (updateNavLayout()),
+       reserve-l/r only gain a nonzero value when the viewport is too narrow for
+       nav to fit beside main without overlapping it. ── */
+    --layout-nav-left: 0;
+    --layout-nav-right: auto;
+    --layout-nav-width: 240px;
+    --layout-nav-reserve-l: 0px;
+    --layout-nav-reserve-r: 0px;
+    --layout-main-maxw: 1100px;
+    --layout-main-margin-left: auto;
+    --layout-main-margin-right: auto;
+    --layout-pad-l: 48px;
+    --layout-pad-r: 48px;
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -68,7 +84,7 @@
   /* ── HEADER ── */
   header {
     position: relative;
-    padding: 80px 40px 60px;
+    padding: 80px var(--layout-nav-reserve-r) 60px var(--layout-nav-reserve-l);
     border-bottom: 1px solid var(--border);
     overflow: hidden;
     background: rgba(10,12,15,0.88);
@@ -85,8 +101,11 @@
   }
 
   .header-inner {
-    max-width: 1100px;
-    margin: 0 auto;
+    max-width: var(--layout-main-maxw);
+    margin-left: var(--layout-main-margin-left);
+    margin-right: var(--layout-main-margin-right);
+    padding-left: var(--layout-pad-l);
+    padding-right: var(--layout-pad-r);
     position: relative;
   }
 
@@ -157,12 +176,8 @@
 
   /* ── LAYOUT ── */
   .container {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 0 40px;
-    display: grid;
-    grid-template-columns: 240px 1fr;
-    gap: 0;
+    padding-left: var(--layout-nav-reserve-l);
+    padding-right: var(--layout-nav-reserve-r);
     height: calc(100vh - 56px);
     padding-bottom: 0;
     overflow: hidden;
@@ -170,14 +185,18 @@
 
   /* ── SIDEBAR NAV ── */
   nav {
-    position: sticky;
+    position: fixed;
     top: 0;
+    left: var(--layout-nav-left);
+    right: var(--layout-nav-right);
+    width: var(--layout-nav-width);
     height: 100vh;
     overflow-y: auto;
     padding: 40px 24px 40px 16px;
     border-right: 1px solid var(--border);
     scrollbar-width: none;
     background: rgba(10,12,15,0.92);
+    z-index: 10;
   }
 
   nav::-webkit-scrollbar { display: none; }
@@ -240,11 +259,15 @@
 
   /* ── MAIN CONTENT ── */
   main {
-    padding: 24px 0 24px 48px;
+    max-width: var(--layout-main-maxw);
+    margin-left: var(--layout-main-margin-left);
+    margin-right: var(--layout-main-margin-right);
+    padding: 24px var(--layout-pad-r) 24px var(--layout-pad-l);
     background: rgba(10,12,15,0.88);
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    height: 100%;
   }
 
   /* ── SECTIONS ── */
@@ -582,14 +605,50 @@
 
   footer span { color: var(--accent); }
 
+  /* ── DRAWER TOGGLE (bookmarks nav, small screens) ── */
+  .drawer-toggle {
+    display: none;
+    position: fixed;
+    top: 16px; left: 16px;
+    z-index: 210;
+    width: 42px; height: 42px;
+    align-items: center; justify-content: center;
+    gap: 4px;
+    background: rgba(10,12,15,0.92);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    cursor: pointer;
+    padding: 0;
+  }
+  .drawer-toggle:hover { border-color: var(--accent); }
+  .drawer-toggle .signal-icon { margin-bottom: 0; }
+  .drawer-backdrop {
+    display: none;
+    position: fixed; inset: 0;
+    z-index: 190;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(2px);
+    opacity: 0;
+    transition: opacity 0.25s ease;
+  }
+  body.drawer-open .drawer-backdrop { display: block; opacity: 1; }
+
   /* ── RESPONSIVE ── */
   @media (max-width: 768px) {
     footer { position: static; padding: 24px; }
-    .container { grid-template-columns: 1fr; padding-bottom: 0; min-height: 100vh; }
-    nav { display: none; }
-    main { padding: 24px 0; min-height: 100vh; }
+    .container { padding: 0 24px; padding-bottom: 0; min-height: 100vh; }
+    .drawer-toggle { display: flex; }
+    nav {
+      left: 0; right: auto;
+      width: 82vw; max-width: 320px;
+      transform: translateX(-100%);
+      transition: transform 0.25s ease;
+      z-index: 200;
+    }
+    body.drawer-open nav { transform: translateX(0); box-shadow: 8px 0 24px rgba(0,0,0,0.5); }
+    main { max-width: 100%; margin-left: 0; margin-right: 0; padding: 24px 0; min-height: 100vh; }
     header { padding: 48px 24px 40px; }
-    .container { padding: 0 24px; }
+    .header-inner { max-width: 100%; margin-left: 0; margin-right: 0; padding-left: 0; padding-right: 0; }
   }
 
   /* ── LOGO ENGINE ── */
@@ -756,6 +815,14 @@
 
 <div id="scanlines"></div>
 
+<button class="drawer-toggle" id="drawerToggle" aria-label="Open navigation" aria-expanded="false" aria-controls="siteNav">
+  <div class="signal-icon">
+    <div class="signal-bar"></div>
+    <div class="signal-bar"></div>
+    <div class="signal-bar"></div>
+  </div>
+</button>
+
 <header>
   <div class="header-inner">
     <div class="signal-icon">
@@ -798,7 +865,9 @@
 
 <div class="container">
 
-  <nav>
+  <div class="drawer-backdrop" id="drawerBackdrop"></div>
+
+  <nav id="siteNav">
     <div class="nav-label">// Pages</div>
     <a href="index.html">← Home</a>
     <a href="rules.html">Rules &amp; Design</a>
@@ -1606,9 +1675,9 @@ termInput.addEventListener('keydown', async function(e) {
   { keys: ['prey','talos i','typhon','mimic'], lines: ['> TALOS I — QUARANTINE ACTIVE','> TYPHON CONTAINMENT BREACH ON RECORD','> VERIFY ALL OBJECTS IN YOUR VICINITY'], cls: ['warn','dim','full'] }
 ];
     return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">'
-      +'<g opacity="'+o[0].toFixed(3)+'"><rect x="-1" y="4" width="8" height="22" rx="2" fill="#E8732A" opacity="0.6"/><rect x="0" y="5" width="6" height="20" rx="1" fill="#E8732A"/></g>'
-      +'<g opacity="'+o[1].toFixed(3)+'"><rect x="11" y="-1" width="8" height="32" rx="2" fill="#E8732A" opacity="0.6"/><rect x="12" y="0" width="6" height="30" rx="1" fill="#E8732A"/></g>'
-      +'<g opacity="'+o[2].toFixed(3)+'"><rect x="23" y="5" width="8" height="20" rx="2" fill="#E8732A" opacity="0.6"/><rect x="24" y="6" width="6" height="18" rx="1" fill="#E8732A"/></g>'
+      +'<g opacity="'+o[0].toFixed(3)+'"><rect x="-1" y="9" width="8" height="12" rx="2" fill="#E8732A" opacity="0.6"/><rect x="0" y="10" width="6" height="10" rx="1" fill="#E8732A"/></g>'
+      +'<g opacity="'+o[1].toFixed(3)+'"><rect x="11" y="3" width="8" height="24" rx="2" fill="#E8732A" opacity="0.6"/><rect x="12" y="4" width="6" height="22" rx="1" fill="#E8732A"/></g>'
+      +'<g opacity="'+o[2].toFixed(3)+'"><rect x="23" y="9" width="8" height="12" rx="2" fill="#E8732A" opacity="0.6"/><rect x="24" y="10" width="6" height="10" rx="1" fill="#E8732A"/></g>'
       +'</svg>';
   }
   setInterval(function() {
@@ -1619,6 +1688,69 @@ termInput.addEventListener('keydown', async function(e) {
 // ── START ────────────────────────────────────────────────────────────────────
 runScript();
 
+</script>
+
+<script>
+(function(){
+  const toggle = document.getElementById('drawerToggle');
+  const backdrop = document.getElementById('drawerBackdrop');
+  const nav = document.getElementById('siteNav');
+  if (!toggle || !backdrop || !nav) return;
+
+  function openDrawer(){
+    document.body.classList.add('drawer-open');
+    toggle.setAttribute('aria-expanded', 'true');
+  }
+  function closeDrawer(){
+    document.body.classList.remove('drawer-open');
+    toggle.setAttribute('aria-expanded', 'false');
+  }
+
+  toggle.addEventListener('click', () => {
+    document.body.classList.contains('drawer-open') ? closeDrawer() : openDrawer();
+  });
+  backdrop.addEventListener('click', closeDrawer);
+  nav.addEventListener('click', (e) => {
+    if (e.target.tagName === 'A') closeDrawer();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeDrawer();
+  });
+})();
+</script>
+
+<script>
+(function(){
+  /* ── nav positioning: attaches nav flush against main's rendered edge,
+     without main ever reserving space for it — main and header-inner stay
+     centered/aligned purely by their own maxw+margin. Only when the viewport
+     is too narrow for nav to fit in main's natural side margin does this add
+     just enough reserve padding to .container so nav can't overlap the text. ── */
+  function updateNavLayout(){
+    const nav = document.querySelector('nav');
+    const main = document.querySelector('main');
+    if(!nav || !main) return;
+    const root = document.documentElement.style;
+    root.setProperty('--layout-nav-reserve-l','0px');
+    root.setProperty('--layout-nav-reserve-r','0px');
+    if(window.innerWidth <= 768) return; // mobile: nav hidden, main full-width
+    const navWidth = nav.getBoundingClientRect().width
+      || parseInt(getComputedStyle(document.documentElement).getPropertyValue('--layout-nav-width'), 10) || 240;
+    let mainRect = main.getBoundingClientRect();
+    if(mainRect.left < navWidth) root.setProperty('--layout-nav-reserve-l', navWidth + 'px');
+    mainRect = main.getBoundingClientRect();
+    nav.style.left = (mainRect.left - navWidth) + 'px';
+    nav.style.right = 'auto';
+  }
+
+  let navLayoutResizeRaf = null;
+  window.addEventListener('resize', function(){
+    if(navLayoutResizeRaf) return;
+    navLayoutResizeRaf = requestAnimationFrame(function(){ navLayoutResizeRaf = null; updateNavLayout(); });
+  });
+  window.addEventListener('load', updateNavLayout);
+  updateNavLayout();
+})();
 </script>
 </body>
 </html>
