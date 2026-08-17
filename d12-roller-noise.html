@@ -531,8 +531,7 @@
     var day = Math.floor((now.getTime() - start) / 86400000) + 1;
     var hh = pad(now.getUTCHours(), 2);
     var mm = pad(now.getUTCMinutes(), 2);
-    var ss = pad(now.getUTCSeconds(), 2);
-    stardateEl.textContent = year + '.' + pad(day, 3) + '.' + hh + mm + ss;
+    stardateEl.textContent = year + '.' + pad(day, 3) + '.' + hh + mm;
   }
   updateStardate();
   setInterval(updateStardate, 1000);
