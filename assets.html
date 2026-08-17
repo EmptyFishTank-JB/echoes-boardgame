@@ -105,9 +105,15 @@
     margin-right: var(--layout-main-margin-right);
     padding-left: var(--layout-pad-l);
     padding-right: var(--layout-pad-r);
-    padding-bottom: 24px;
-    border-bottom: 1px solid var(--border);
     position: relative;
+  }
+  /* A plain child, not a border on .header-inner itself — a border renders
+     outside the element's own padding, but .section's border-bottom sits
+     inside main's padding (main pads itself, .section is just a plain
+     child). This mirrors that same relationship so both lines line up. */
+  .header-rule {
+    margin-top: 24px;
+    border-bottom: 1px solid var(--border);
   }
 
   .signal-icon {
@@ -869,6 +875,7 @@
       <div class="meta-tag"><span>//</span> 1–5 Players · Cooperative · Survival Horror</div>
       <div class="status-badge">● IN DEVELOPMENT</div>
     </div>
+    <div class="header-rule"></div>
   </div>
 </header>
 
