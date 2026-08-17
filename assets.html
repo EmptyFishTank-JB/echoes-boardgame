@@ -84,7 +84,7 @@
   /* ── HEADER ── */
   header {
     position: relative;
-    padding: 80px var(--layout-nav-reserve-r) 60px var(--layout-nav-reserve-l);
+    padding: 48px var(--layout-nav-reserve-r) 60px var(--layout-nav-reserve-l);
     border-bottom: 1px solid var(--border);
     overflow: hidden;
     background: rgba(10,12,15,0.88);
@@ -178,7 +178,7 @@
   .container {
     padding-left: var(--layout-nav-reserve-l);
     padding-right: var(--layout-nav-reserve-r);
-    height: calc(100vh - 72px);
+    height: calc(100vh - 54px);
     padding-bottom: 0;
     overflow: hidden;
   }
@@ -589,7 +589,7 @@
     right: 0;
     z-index: 50;
     border-top: 1px solid var(--border);
-    padding: 14px 40px;
+    padding: 12px 40px;
     text-align: center;
     background: rgba(10,12,15,0.96);
     backdrop-filter: blur(6px);
@@ -597,16 +597,18 @@
 
   footer p {
     font-family: var(--mono);
-    font-size: 11px;
+    font-size: 10px;
     color: var(--text-dim);
     letter-spacing: 0.1em;
     margin: 0 auto;
+    line-height: 1.2;
   }
 
   .footer-meta {
-    font-size: 9px;
+    font-size: 8px;
     opacity: 0.6;
-    margin-top: 2px;
+    margin-top: 0;
+    line-height: 1.2;
   }
 
   footer span { color: var(--accent); }
@@ -901,7 +903,7 @@
 
 <footer>
   <p>ECHOES · <span>EmptyFishTank-JB</span> · In Development · All content subject to change</p>
-  <p class="footer-meta">Updated 2026-08-17 12:49 CDT &middot; STARDATE <span id="stardate">&mdash;</span></p>
+  <p class="footer-meta">Updated 2026-08-17 12:49 CDT &middot; Commit <span id="commitInfo">&mdash;</span> &middot; STARDATE <span id="stardate">&mdash;</span></p>
 </footer>
 
 <script>
@@ -1784,6 +1786,24 @@ runScript();
   }
   updateStardate();
   setInterval(updateStardate, 1000);
+})();
+</script>
+
+<script>
+(function(){
+  var el = document.getElementById('commitInfo');
+  if (!el) return;
+  fetch('https://api.github.com/repos/EmptyFishTank-JB/echoes-boardgame/commits?path=assets.html&per_page=1')
+    .then(function(r){ if (!r.ok) throw new Error('bad response'); return r.json(); })
+    .then(function(data){
+      if (!data || !data.length) throw new Error('no commits');
+      var c = data[0];
+      var sha = c.sha.slice(0, 7);
+      var date = c.commit && c.commit.committer && c.commit.committer.date;
+      var dateStr = date ? date.slice(0, 10) : '';
+      el.textContent = sha + (dateStr ? ' (' + dateStr + ')' : '');
+    })
+    .catch(function(){ el.textContent = 'unavailable'; });
 })();
 </script>
 </body>

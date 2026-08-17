@@ -280,11 +280,13 @@
     font-family: 'Share Tech Mono', monospace;
     font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase;
     color: rgba(238,240,245,0.25);
+    line-height: 1;
   }
   .footer-meta {
-    margin-top: 4px;
-    font-size: 9px;
+    margin-top: 1px;
+    font-size: 8px;
     opacity: 0.6;
+    line-height: 1;
   }
 </style>
 </head>
@@ -377,7 +379,7 @@
 </div>
 
 <footer>ECHOES · EmptyFishTank-JB · Echo Event Mini-Game
-  <div class="footer-meta">Updated 2026-08-17 12:49 CDT &middot; STARDATE <span id="stardate">&mdash;</span></div>
+  <div class="footer-meta">Updated 2026-08-17 12:49 CDT &middot; Commit <span id="commitInfo">&mdash;</span> &middot; STARDATE <span id="stardate">&mdash;</span></div>
 </footer>
 
 <script>
@@ -811,6 +813,24 @@
   }
   updateStardate();
   setInterval(updateStardate, 1000);
+})();
+</script>
+
+<script>
+(function(){
+  var el = document.getElementById('commitInfo');
+  if (!el) return;
+  fetch('https://api.github.com/repos/EmptyFishTank-JB/echoes-boardgame/commits?path=pull-the-fuse.html&per_page=1')
+    .then(function(r){ if (!r.ok) throw new Error('bad response'); return r.json(); })
+    .then(function(data){
+      if (!data || !data.length) throw new Error('no commits');
+      var c = data[0];
+      var sha = c.sha.slice(0, 7);
+      var date = c.commit && c.commit.committer && c.commit.committer.date;
+      var dateStr = date ? date.slice(0, 10) : '';
+      el.textContent = sha + (dateStr ? ' (' + dateStr + ')' : '');
+    })
+    .catch(function(){ el.textContent = 'unavailable'; });
 })();
 </script>
 </body>
