@@ -379,7 +379,7 @@
 </div>
 
 <footer>ECHOES · EmptyFishTank-JB · Echo Event Mini-Game
-  <div class="footer-meta">Updated 2026-08-17 12:49 CDT &middot; Commit <span id="commitInfo">&mdash;</span> &middot; STARDATE <span id="stardate">&mdash;</span></div>
+  <div class="footer-meta">Updated <span id="updatedInfo">&mdash;</span> &middot; Commit <span id="commitInfo">&mdash;</span> &middot; STARDATE <span id="stardate">&mdash;</span></div>
 </footer>
 
 <script>
@@ -818,8 +818,21 @@
 
 <script>
 (function(){
-  var el = document.getElementById('commitInfo');
-  if (!el) return;
+  var elCommit = document.getElementById('commitInfo');
+  var elUpdated = document.getElementById('updatedInfo');
+  if (!elCommit && !elUpdated) return;
+  function formatCentral(isoDate){
+    var d = new Date(isoDate);
+    var dateFmt = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Chicago', year:'numeric', month:'2-digit', day:'2-digit' });
+    var timeFmt = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Chicago', hour:'2-digit', minute:'2-digit', hour12:false });
+    var tzFmt = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Chicago', timeZoneName: 'short' });
+    var dateStr = dateFmt.format(d);
+    var hh = timeFmt.formatToParts(d).find(function(p){ return p.type === 'hour'; }).value;
+    if (hh === '24') hh = '00';
+    var mm = timeFmt.formatToParts(d).find(function(p){ return p.type === 'minute'; }).value;
+    var tzName = tzFmt.formatToParts(d).find(function(p){ return p.type === 'timeZoneName'; }).value;
+    return dateStr + ' ' + hh + ':' + mm + ' ' + tzName;
+  }
   fetch('https://api.github.com/repos/EmptyFishTank-JB/echoes-boardgame/commits?path=pull-the-fuse.html&per_page=1')
     .then(function(r){ if (!r.ok) throw new Error('bad response'); return r.json(); })
     .then(function(data){
@@ -827,10 +840,13 @@
       var c = data[0];
       var sha = c.sha.slice(0, 7);
       var date = c.commit && c.commit.committer && c.commit.committer.date;
-      var dateStr = date ? date.slice(0, 10) : '';
-      el.textContent = sha + (dateStr ? ' (' + dateStr + ')' : '');
+      if (elCommit) elCommit.textContent = sha;
+      if (elUpdated) elUpdated.textContent = date ? formatCentral(date) : 'unknown';
     })
-    .catch(function(){ el.textContent = 'unavailable'; });
+    .catch(function(){
+      if (elCommit) elCommit.textContent = 'unavailable';
+      if (elUpdated) elUpdated.textContent = 'unavailable';
+    });
 })();
 </script>
 </body>
