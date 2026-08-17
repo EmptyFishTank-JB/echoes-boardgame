@@ -116,6 +116,14 @@ body::after{content:"";position:fixed;inset:-50%;z-index:2;pointer-events:none;
 .t-line.denied{color:var(--theme-denied);}
 .t-line.user  {color:var(--theme-user);}
 .t-line.blank {color:transparent;min-height:1.9em;}
+/* Multi-color segments within one line (subsystem check lines) */
+.t-line .seg-full{color:var(--theme-full);}
+.t-line .seg-dim{color:var(--theme-dim);}
+.t-line .seg-low,.t-line .seg-lo{color:var(--theme-lo);}
+.t-line .seg-warn{color:var(--theme-warn);}
+.t-line .seg-denied{color:var(--theme-denied);}
+.t-line .seg-ok{color:#4fe0a1;}
+.t-line .seg-commit{color:var(--theme-warn);text-shadow:0 0 7px rgba(232,115,42,0.6);}
 /* Invert highlight */
 .t-line.inverted{background:var(--theme-full)!important;color:#000!important;
   padding-left:4px;padding-right:4px;display:inline-block;
@@ -337,7 +345,8 @@ async function typeLine(el,text){
 async function printInstant(lines){
   for(var i=0;i<lines.length;i++){
     var el=addLine(lines[i].cls||'full',true);
-    if(lines[i].text){el.textContent=lines[i].text;playLineStatic();}
+    if(lines[i].parts){renderDynLine(el,lines[i]);playLineStatic();}
+    else if(lines[i].text){el.textContent=lines[i].text;playLineStatic();}
     await sleep(40);
   }
 }
@@ -345,7 +354,10 @@ async function printInstant(lines){
 async function printTyped(lines){
   for(var i=0;i<lines.length;i++){
     var el=addLine(lines[i].cls||'full');
-    if(lines[i].text){playLineStatic();await typeLine(el,lines[i].text);}
+    // Segmented lines render instantly — the char-by-char typer can't split
+    // one line across colored spans, and status lines suit a snap-in anyway.
+    if(lines[i].parts){renderDynLine(el,lines[i]);playLineStatic();}
+    else if(lines[i].text){playLineStatic();await typeLine(el,lines[i].text);}
     await sleep(40);
   }
 }
@@ -378,7 +390,7 @@ async function runScript(){
         await sleep(220);
       }else if(bline.type==='dynamic'){
         var dr0=resolveDynamic(bline);
-        var del0=addLine(dr0.cls||'dim');del0.textContent=dr0.text;await sleep(80);
+        var del0=addLine(dr0.cls||'dim');renderDynLine(del0,dr0);await sleep(80);
       }
     }
   }else if(!archData){
@@ -413,7 +425,7 @@ async function runScript(){
             await sleep(60);
           }else if(cb.type==='dynamic'){
             var dr1=resolveDynamic(cb);
-            var del1=addLine(dr1.cls||'dim');del1.textContent=dr1.text;await sleep(30);
+            var del1=addLine(dr1.cls||'dim');renderDynLine(del1,dr1);await sleep(30);
           }else if(cb.type==='command'){
             var cCls=cb.cmd_type==='navigation'?'cmd-nav':cb.cmd_type==='pull'?'cmd-pull':'dim';
             var cEl=addLine(cCls);
@@ -544,10 +556,17 @@ function decryptIfNeeded(text){
 var _archReady=false, _engReady=false, _lorReady=false, _devReady=false, _perReady=false;
 
 // ── VERSION = COMMIT ID ───────────────────────────────────────────────────────
-// The displayed version is the short SHA of the newest commit touching either
-// terminal.html or terminal-data/ — terminal edits bump it, unrelated site
-// commits don't. engine_config's version_string is the offline fallback.
+// Header/power-gate version is the short SHA of the latest commit touching
+// terminal.html only. No fallback text — if the fetch fails, the placeholder
+// dashes stay (a page that can't reach GitHub isn't being served fresh anyway).
 var _commitVer=null;
+var COMMITS_API='https://api.github.com/repos/EmptyFishTank-JB/echoes-boardgame/commits?per_page=1&path=';
+function fetchLatestSha(path){
+  return fetch(COMMITS_API+encodeURIComponent(path))
+    .then(function(r){if(!r.ok)throw new Error('bad response');return r.json();})
+    .then(function(d){return d&&d.length?d[0].sha.slice(0,7):null;})
+    .catch(function(){return null;});
+}
 function applyCommitVersion(){
   if(!_commitVer) return;
   var ver=document.getElementById('t-version');if(ver)ver.textContent=_commitVer;
@@ -555,20 +574,23 @@ function applyCommitVersion(){
   if(sub){var parts=[];if(CFG_TITLE)parts.push(CFG_TITLE);parts.push(_commitVer);sub.textContent=parts.join(' // ');}
 }
 function fetchCommitVersion(){
-  var base='https://api.github.com/repos/EmptyFishTank-JB/echoes-boardgame/commits?per_page=1&path=';
-  Promise.all(['terminal.html','terminal-data'].map(function(p){
-    return fetch(base+encodeURIComponent(p))
-      .then(function(r){if(!r.ok)throw new Error('bad response');return r.json();})
-      .then(function(d){return d&&d.length?d[0]:null;})
-      .catch(function(){return null;});
-  })).then(function(results){
-    var best=null;
-    results.forEach(function(c){
-      if(!c)return;
-      var t=(c.commit&&c.commit.committer&&c.commit.committer.date)||'';
-      if(!best||t>best.date) best={sha:c.sha,date:t};
-    });
-    if(best){_commitVer='v.'+best.sha.slice(0,7);applyCommitVersion();}
+  fetchLatestSha('terminal.html').then(function(sha){
+    if(sha){_commitVer='v.'+sha;applyCommitVersion();}
+  });
+}
+// Per-file commit IDs shown on the boot screen's subsystem check lines.
+// Keys match the file_status.* dynamic variables in nodes.json.
+var _fileCommits={personality:null,lore:null,devlogs:null,nodes:null,engine:null};
+var FILE_COMMIT_PATHS={
+  personality:'terminal-data/personality.json',
+  lore:'terminal-data/lore.json',
+  devlogs:'terminal-data/dev_logs.json',
+  nodes:'terminal-data/nodes.json',
+  engine:'terminal-data/engine_config.json'
+};
+function fetchFileCommits(){
+  Object.keys(FILE_COMMIT_PATHS).forEach(function(k){
+    fetchLatestSha(FILE_COMMIT_PATHS[k]).then(function(sha){if(sha)_fileCommits[k]=sha;});
   });
 }
 
@@ -597,13 +619,12 @@ function applyEngineConfig(c){
   // l2_intro, l3_intro removed — content lives in L2_INTRO/L3_INTRO nodes in nodes.json
   // Update visible UI if already rendered
   var btn=document.getElementById('power-btn');if(btn&&CFG_POWER_BTN) btn.textContent=CFG_POWER_BTN;
-  // Version display prefers the live commit ID (_commitVer) over the
-  // engine_config version_string — the config value is only a fallback
-  // for when the GitHub API is unreachable.
-  var vDisp=_commitVer||CFG_VERSION;
+  // Version display is the live commit ID only — engine_config's
+  // version_string is never shown; the placeholder dashes stay until
+  // (unless) the commit fetch resolves.
   var sub=document.getElementById('power-sub');
-  if(sub){var subParts=[];if(CFG_TITLE)subParts.push(CFG_TITLE);if(vDisp)subParts.push(vDisp);if(subParts.length)sub.textContent=subParts.join(' // ');}
-  var ver=document.getElementById('t-version');if(ver&&vDisp) ver.textContent=vDisp;
+  if(sub){var subParts=[];if(CFG_TITLE)subParts.push(CFG_TITLE);if(_commitVer)subParts.push(_commitVer);if(subParts.length)sub.textContent=subParts.join(' // ');}
+  var ver=document.getElementById('t-version');if(ver&&_commitVer) ver.textContent=_commitVer;
   var ttl=document.getElementById('t-title');if(ttl&&CFG_TITLE) ttl.textContent=CFG_TITLE;
   if(typeof updPhosphorCSS==='function') updPhosphorCSS();
   // Apply theme colors from engine config
@@ -757,10 +778,37 @@ function resolveDynamic(b){
   else if(variable==='node.title'){var cn=archData&&archData.nodes&&archData.nodes[termState];return{text:'> '+label+(cn?cn.title||'\u2014':'\u2014'),cls:labelCls};}
   else if(variable==='node.layer'){var cn2=archData&&archData.nodes&&archData.nodes[termState];return{text:'> '+label+(cn2?cn2.layer||'\u2014':'\u2014'),cls:labelCls};}
   else{return{text:'> '+label+'[?]',cls:'low'};}
-  // file_status variables — two-part line: label at labelCls, value colored by ok/err
+  // file_status variables — segmented line: label at labelCls, [OK] in green
+  // ([ERROR] in red), then that file's own commit ID in orange glow. The
+  // commit shows an em-dash until (unless) its GitHub API fetch resolves.
   val = ok ? '['+okText+']' : '['+errText+']';
   cls = ok ? valueCls : 'denied';
-  return{text:'> '+label+val, cls:cls, ok:ok};
+  var fileKey = variable.split('.')[1];
+  var sha = _fileCommits && _fileCommits[fileKey];
+  return{
+    text:'> '+label+val+' '+(sha||'—'),
+    cls:cls, ok:ok,
+    parts:[
+      {text:'> '+label, cls:labelCls},
+      {text:val, cls: ok?'ok':'denied'},
+      {text:' '+(sha||'—'), cls:'commit'}
+    ]
+  };
+}
+
+// Renders a resolved dynamic line into an element — segmented (multi-color
+// spans) when parts are present, plain text otherwise.
+function renderDynLine(el, dr){
+  if(dr.parts){
+    dr.parts.forEach(function(p){
+      var s=document.createElement('span');
+      s.className='seg-'+(p.cls||'dim');
+      s.textContent=p.text;
+      el.appendChild(s);
+    });
+  } else {
+    el.textContent=dr.text;
+  }
 }
 
 // ── GENERIC ARCHIVE PAGE RENDERER ────────────────────────────────────────────
@@ -866,7 +914,7 @@ async function renderLogEntryNode(nodeId){
       } else if(b2.type==='dynamic'){
         var dr=resolveDynamic(b2);
         var de=document.createElement('div');de.className='t-line '+(dr.cls||'dim');
-        de.textContent=dr.text;inner.appendChild(de);await sleep(20);
+        renderDynLine(de,dr);inner.appendChild(de);await sleep(20);
       }
     }
   }
@@ -903,7 +951,7 @@ async function renderIntroLines(nodeId){
       if(b.text){playLineStatic();await typeLine(el,b.text);}
       await sleep(100);
     }else if(b.type==='dynamic'){
-      var dr=resolveDynamic(b);var del=addLine(dr.cls||'dim',true);del.textContent=dr.text;await sleep(40);
+      var dr=resolveDynamic(b);var del=addLine(dr.cls||'dim',true);renderDynLine(del,dr);await sleep(40);
     }else if(b.type==='command'){
       var cCls=b.cmd_type==='navigation'?'cmd-nav':b.cmd_type==='pull'?'cmd-pull':'dim';
       var cEl=addLine(cCls,true);
@@ -1137,7 +1185,7 @@ async function renderHelpNode(cmd){
   for(var i=0;i<(node.body||[]).length;i++){
     var b=node.body[i];
     if(b.type==='text'){var el=addLine(b.cls||'dim');if(b.text){playLineStatic();await typeLine(el,b.text);}await sleep(40);}
-    else if(b.type==='dynamic'){var dr=resolveDynamic(b);var del=addLine(dr.cls||'dim');del.textContent=dr.text;await sleep(20);}
+    else if(b.type==='dynamic'){var dr=resolveDynamic(b);var del=addLine(dr.cls||'dim');renderDynLine(del,dr);await sleep(20);}
   }
 }
 
@@ -1323,7 +1371,7 @@ async function renderPullInline(nodeId){
       if(b.text){playLineStatic();await typeLine(el,b.text);}
       await sleep(40);
     }else if(b.type==='dynamic'){
-      var dr=resolveDynamic(b);var del=addLine(dr.cls||'dim',true);del.textContent=dr.text;await sleep(20);
+      var dr=resolveDynamic(b);var del=addLine(dr.cls||'dim',true);renderDynLine(del,dr);await sleep(20);
     }
   }
   // Subtle separator after inline pull content
@@ -1409,6 +1457,7 @@ document.getElementById('power-btn').addEventListener('click',function(){
 // ── INIT (fetch starts immediately on page load) ──────────────────────────────
 fetchAllData(); // timing fix: all JSON loading before user sees power button
 fetchCommitVersion();
+fetchFileCommits();
 resetIdleTimer();
 updateClock();
 
