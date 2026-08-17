@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+CiAgPHJlY3QgeD0iNSIgeT0iNiIgd2lkdGg9IjYiIGhlaWdodD0iMTAiIHJ4PSIxIiBmaWxsPSIjZTg3MzJhIiBvcGFjaXR5PSIwLjkiLz4KICA8cmVjdCB4PSIxMyIgeT0iMiIgd2lkdGg9IjYiIGhlaWdodD0iMTQiIHJ4PSIxIiBmaWxsPSIjZTg3MzJhIi8+CiAgPHJlY3QgeD0iMjEiIHk9IjYiIHdpZHRoPSI2IiBoZWlnaHQ9IjEwIiByeD0iMSIgZmlsbD0iI2U4NzMyYSIgb3BhY2l0eT0iMC45Ii8+CiAgPHJlY3QgeD0iMSIgeT0iMTciIHdpZHRoPSIxMyIgaGVpZ2h0PSIxMyIgcng9IjIuNSIgZmlsbD0iI2Q4MWYyZiIvPgogIDxjaXJjbGUgY3g9IjQuMyIgY3k9IjIwLjMiIHI9IjEuMyIgZmlsbD0iI2ZmZiIvPgogIDxjaXJjbGUgY3g9IjcuNSIgY3k9IjIzLjUiIHI9IjEuMyIgZmlsbD0iI2ZmZiIvPgogIDxjaXJjbGUgY3g9IjEwLjciIGN5PSIyNi43IiByPSIxLjMiIGZpbGw9IiNmZmYiLz4KICA8cmVjdCB4PSIxOCIgeT0iMTciIHdpZHRoPSIxMyIgaGVpZ2h0PSIxMyIgcng9IjIuNSIgZmlsbD0iIzFjOGZjNyIvPgogIDxjaXJjbGUgY3g9IjI3LjciIGN5PSIyMC4zIiByPSIxLjMiIGZpbGw9IiNmZmYiLz4KICA8Y2lyY2xlIGN4PSIyMS4zIiBjeT0iMjYuNyIgcj0iMS4zIiBmaWxsPSIjZmZmIi8+Cjwvc3ZnPgo=">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ECHOES // D12 Roller (Popper)</title>
+<title>ECHOES // D12 Roller (Static)</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -104,34 +104,13 @@
     opacity: 0.7;
   }
 
-  /* A flat, top-down "tray" the dice get tossed around in — no dome,
-     no glass sheen, just a bounded frame. Each .die-wrap is positioned
-     absolutely within it (JS-computed, grid-cell based so dice never
-     land on top of each other) and translated/rotated on toss. */
   .dice-stage {
-    position: relative;
-    width: 100%;
-    height: 380px;
+    display: flex; align-items: flex-start; justify-content: center;
+    gap: 16px; flex-wrap: wrap;
     margin: 6px 0 26px;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    background: rgba(255,255,255,0.015);
-    box-shadow: inset 0 0 26px rgba(0,0,0,0.45);
-    overflow: hidden;
   }
-  .die-wrap {
-    position: absolute; left: 0; top: 0;
-    text-align: center; width: 108px;
-    transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
-  }
+  .die-wrap { text-align: center; width: 108px; }
   .die-wrap.selectable .die { cursor: pointer; }
-  /* Rotation lives on this inner wrapper, separate from the .die-wrap's
-     own translate — so the toss position and the "landed at an angle"
-     tilt can animate independently without fighting over `transform`. */
-  .die-spin {
-    display: inline-block;
-    transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
-  }
   .die {
     width: 112px; height: 112px;
     display: flex; align-items: center; justify-content: center;
@@ -165,6 +144,19 @@
     transition: opacity 0.15s;
   }
   .die-wrap.unrolled img { opacity: 0.18; }
+  /* No-signal static: covers the ENTIRE die (fill, chip, icon — not
+     just the icon) at full opacity, so fading it out reveals the whole
+     die at once. Rendered at low internal resolution and scaled up
+     with pixelated image-rendering for a chunky TV-snow look. */
+  .die-static {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    clip-path: url(#pentagonClip);
+    z-index: 5;
+    image-rendering: pixelated;
+    pointer-events: none;
+    opacity: 1;
+  }
   /* State indicator: a flat band across the die's bottom edge. It's
      drawn as a bottom-anchored gradient on a full-size, pentagon-clipped
      layer (matching .die::before exactly) rather than a small separate
@@ -417,6 +409,18 @@
   .experiments a:hover { text-decoration: underline; }
   .experiments .sep { color: rgba(238,240,245,0.2); }
 
+  .experiments {
+    margin-top: 22px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+    font-family: 'Share Tech Mono', monospace; font-size: 10px;
+    letter-spacing: 0.15em; text-transform: uppercase; color: var(--text-dim);
+    text-align: center;
+  }
+  .experiments a { color: var(--accent); text-decoration: none; }
+  .experiments a:hover { text-decoration: underline; }
+  .experiments .sep { color: rgba(238,240,245,0.2); }
+
   footer {
     z-index: 1;
     margin-top: 26px;
@@ -449,9 +453,9 @@
 </nav>
 
 <header class="title-block">
-  <div class="eyebrow">// Dice Engine — Visual Experiment: Popper Tray</div>
+  <div class="eyebrow">// Dice Engine — Visual Experiment: Static Signal</div>
   <h1>5x D12 Skill Check</h1>
-  <p class="subtitle">Same rules and odds as the standard roller — dice get tossed into the tray and land at random, non-overlapping spots instead of rolling in place. Up to 3 rolls. Pick the faces this check needs, then roll — click a die between rolls to keep it; the Roll button only re-rolls whatever's still unlocked.</p>
+  <p class="subtitle">Same rules and odds as the standard roller — the whole die is fuzzy no-signal static until a roll clears it into a real face, and fizzes back to static the moment it's rerolled. Up to 3 rolls. Pick the faces this check needs, then roll — click a die between rolls to keep it; the Roll button only re-rolls whatever's still unlocked.</p>
 </header>
 
 <div class="panel">
@@ -498,11 +502,11 @@
     <span class="sep">·</span>
     <a href="d12-roller-slots.html">Slot Reels</a>
     <span class="sep">·</span>
+    <a href="d12-roller-popper.html">Popper Tray</a>
+    <span class="sep">·</span>
     <a href="d12-roller-popper-toss.html">Popper Toss</a>
     <span class="sep">·</span>
     <a href="d12-roller-signal.html">Signal Decode</a>
-    <span class="sep">·</span>
-    <a href="d12-roller-static.html">Static Signal</a>
   </div>
 
 </div>
@@ -568,7 +572,6 @@
   ];
   const DIE_COUNT = 5;
   const MAX_ROLLS = 3;
-  const MAX_TICKS = 8;
   const HISTORY_LIMIT = 10;
 
   const REQUIRED_CATEGORIES = ['Tech', 'Tools', 'DNA', 'Biohazard', 'Hazard'];
@@ -744,15 +747,17 @@
   for (let i = 0; i < DIE_COUNT; i++){
     const wrap = document.createElement('div');
     wrap.className = 'die-wrap unrolled';
-    const spin = document.createElement('div');
-    spin.className = 'die-spin';
     const die = document.createElement('div');
     die.className = 'die';
     const img = document.createElement('img');
     img.src = FACES[0].file;
     img.alt = '';
     die.appendChild(img);
-    spin.appendChild(die);
+    const staticCanvas = document.createElement('canvas');
+    staticCanvas.className = 'die-static';
+    staticCanvas.width = 56;
+    staticCanvas.height = 56;
+    die.appendChild(staticCanvas);
     const label = document.createElement('div');
     label.className = 'die-label';
     label.textContent = 'D12 — ' + (i + 1);
@@ -760,12 +765,12 @@
     faceName.className = 'die-face-name';
     const statusEl = document.createElement('div');
     statusEl.className = 'die-status';
-    wrap.appendChild(spin);
+    wrap.appendChild(die);
     wrap.appendChild(label);
     wrap.appendChild(faceName);
     wrap.appendChild(statusEl);
     diceStage.appendChild(wrap);
-    const entry = { wrap, spin, die, img, faceName, statusEl, face: null, locked: false, dead: false, matchType: null, assignedSlot: null, assignedType: null, cellIndex: null };
+    const entry = { wrap, die, img, staticCanvas, staticTimer: null, faceName, statusEl, face: null, locked: false, dead: false, matchType: null, assignedSlot: null, assignedType: null };
     wrap.addEventListener('click', () => toggleLock(entry));
     dice.push(entry);
   }
@@ -774,65 +779,54 @@
     return FACES[Math.floor(Math.random() * FACES.length)];
   }
 
-  // ── TOSS PLACEMENT ── flat top-down tray, dice land in a shuffled
-  // grid cell (with a little random jitter + tilt) so they never
-  // overlap. Position/rotation are purely cosmetic, not game state.
-  const GRID_COLS = 3;
-  const GRID_ROWS = 2;
-  const DIE_FOOTPRINT_W = 108;
-  const DIE_FOOTPRINT_H = 175;
-
-  function cellRect(index, frameW, frameH){
-    const col = index % GRID_COLS;
-    const row = Math.floor(index / GRID_COLS);
-    const cellW = frameW / GRID_COLS;
-    const cellH = frameH / GRID_ROWS;
-    return { x: col * cellW, y: row * cellH, w: cellW, h: cellH };
-  }
-
-  function placeInCell(d, cellIndex, animate){
-    const frameW = diceStage.clientWidth;
-    const frameH = diceStage.clientHeight;
-    const cell = cellRect(cellIndex, frameW, frameH);
-    const jitterX = Math.max(0, cell.w - DIE_FOOTPRINT_W);
-    const jitterY = Math.max(0, cell.h - DIE_FOOTPRINT_H);
-    const x = cell.x + Math.random() * jitterX;
-    const y = cell.y + Math.random() * jitterY;
-    const rot = Math.random() * 30 - 15;
-    if (!animate){
-      d.wrap.style.transition = 'none';
-      d.spin.style.transition = 'none';
+  // ── STATIC / NO-SIGNAL EFFECT ──
+  // A low-res canvas redrawn with random noise, scaled up with pixelated
+  // rendering for a chunky "TV snow" look, tinted toward the accent
+  // color to read as a signal rather than plain black-and-white static.
+  // It sits above the entire die (fill, chip, icon) via z-index, so
+  // fading it out reveals the whole die at once, not just the icon.
+  function drawStatic(canvas){
+    const ctx = canvas.getContext('2d');
+    const w = canvas.width, h = canvas.height;
+    const imgData = ctx.createImageData(w, h);
+    const data = imgData.data;
+    for (let i = 0; i < data.length; i += 4){
+      const v = Math.random() * 255 | 0;
+      data[i] = v * 0.55;
+      data[i + 1] = v * 0.78;
+      data[i + 2] = v;
+      data[i + 3] = 255;
     }
-    d.wrap.style.transform = 'translate(' + x + 'px,' + y + 'px)';
-    d.spin.style.transform = 'rotate(' + rot + 'deg)';
-    if (!animate){
-      void d.wrap.offsetWidth; // reflow so the transition stays off for this jump
-      d.wrap.style.transition = '';
-      d.spin.style.transition = '';
+    ctx.putImageData(imgData, 0, 0);
+  }
+
+  function startStatic(d){
+    if (d.staticTimer) return;
+    drawStatic(d.staticCanvas);
+    d.staticTimer = setInterval(() => drawStatic(d.staticCanvas), 60);
+  }
+
+  function stopStatic(d){
+    if (d.staticTimer){ clearInterval(d.staticTimer); d.staticTimer = null; }
+  }
+
+  // Instantly snaps a die to fully static (no signal) or fully clear
+  // (signal locked), no fade — used by Reset/Undo/Redo, not by rolling.
+  function setStaticInstant(d, showStatic){
+    d.staticCanvas.style.transition = 'none';
+    if (showStatic){
+      startStatic(d);
+      d.staticCanvas.style.opacity = '1';
+    } else {
+      stopStatic(d);
+      d.staticCanvas.style.opacity = '0';
     }
-    d.cellIndex = cellIndex;
+    void d.staticCanvas.offsetWidth;
+    d.staticCanvas.style.transition = '';
   }
 
-  // Tosses only the dice actually being rolled — locked/dead dice stay
-  // put, and the ones in motion avoid every cell already occupied.
-  function tossActive(active){
-    const activeSet = new Set(active);
-    const used = new Set(dice.filter(d => d.cellIndex !== null && !activeSet.has(d)).map(d => d.cellIndex));
-    const allCells = [];
-    for (let i = 0; i < GRID_COLS * GRID_ROWS; i++) allCells.push(i);
-    active.forEach(d => {
-      const free = allCells.filter(c => !used.has(c));
-      const pool = free.length ? free : allCells;
-      const pick = pool[Math.floor(Math.random() * pool.length)];
-      used.add(pick);
-      placeInCell(d, pick, true);
-    });
-  }
-
-  function placeAllHome(){
-    dice.forEach((d, i) => placeInCell(d, i % (GRID_COLS * GRID_ROWS), false));
-  }
-  placeAllHome();
+  dice.forEach(d => startStatic(d));
+  dice.forEach(renderDieState);
 
   function log(html){
     const line = document.createElement('div');
@@ -890,6 +884,7 @@
     else if (d.locked) status = 'LOCKED';
     else if (d.matchType === 'direct') status = 'REQUIRED FACE';
     else if (d.matchType === 'wild') status = 'WILD AVAILABLE';
+    else if (!d.face) status = 'NO SIGNAL';
     d.statusEl.textContent = status;
   }
 
@@ -930,6 +925,14 @@
     endCheckBtn.disabled = rollsUsed === 0 || checkEnded;
   }
 
+  // Fizz-out (if the die already shows a face) -> hold on pure static ->
+  // snap-reveal the already-decided result. The result is chosen up front,
+  // same as every other variant — the static is only ever hiding an
+  // outcome that's already locked in, never influencing it.
+  const FIZZ_OUT_MS = 180;
+  const STATIC_HOLD_MS = 850;
+  const REVEAL_MS = 200;
+
   function roll(){
     if (rollsUsed >= MAX_ROLLS || checkEnded) return;
     const active = dice.filter(d => !d.locked && !d.dead);
@@ -937,28 +940,36 @@
     rollBtn.disabled = true;
     resetBtn.disabled = true;
     SFX.select();
-    active.forEach(d => {
+
+    const results = active.map(d => ({ d, face: randomFace() }));
+    const wasUnrolled = active.map(d => d.wrap.classList.contains('unrolled'));
+
+    active.forEach((d, i) => {
       d.wrap.classList.remove('unrolled');
       d.faceName.textContent = '';
-    });
-    tossActive(active);
-
-    let ticks = 0;
-    const spin = setInterval(() => {
-      active.forEach(d => { d.img.src = randomFace().file; });
-      SFX.tick();
-      ticks++;
-      if (ticks > MAX_TICKS){
-        clearInterval(spin);
-        settle(active);
+      d.statusEl.textContent = 'NO SIGNAL';
+      startStatic(d);
+      if (wasUnrolled[i]){
+        d.staticCanvas.style.opacity = '1';
+      } else {
+        d.staticCanvas.style.transition = 'opacity ' + FIZZ_OUT_MS + 'ms linear';
+        d.staticCanvas.style.opacity = '1';
       }
-    }, 70);
+    });
+
+    setTimeout(() => {
+      const tickTimer = setInterval(() => SFX.tick(), 140);
+      setTimeout(() => {
+        clearInterval(tickTimer);
+        settle(results);
+      }, STATIC_HOLD_MS);
+    }, FIZZ_OUT_MS);
   }
 
-  function settle(active){
-    SFX.settle();
-    active.forEach(d => {
-      const face = randomFace();
+  function settle(results){
+    results.forEach(r => {
+      const d = r.d;
+      const face = r.face;
       d.face = face;
       d.img.src = face.file;
       d.faceName.textContent = face.name;
@@ -967,6 +978,14 @@
         d.locked = false;
       }
     });
+    SFX.settle();
+    results.forEach(r => {
+      r.d.staticCanvas.style.transition = 'opacity ' + REVEAL_MS + 'ms ease-out';
+      r.d.staticCanvas.style.opacity = '0';
+    });
+    setTimeout(() => {
+      results.forEach(r => stopStatic(r.d));
+    }, REVEAL_MS + 30);
     rollsUsed++;
     dirtySinceReset = true;
     if (rollsUsed === 1) lockRequirements();
@@ -1103,6 +1122,7 @@
       d.wrap.classList.toggle('unrolled', !s.face);
       d.img.src = s.face ? s.face.file : FACES[0].file;
       d.faceName.textContent = s.face ? s.face.name : '';
+      setStaticInstant(d, !s.face);
     });
     requiredSlots.forEach((slot, i) => {
       const s = snap.requiredSlots[i];
@@ -1122,28 +1142,6 @@
     updateRollBtn();
     updateEndCheckBtn();
     renderResultBanner();
-    placeSnapshotLayout();
-  }
-
-  // Restores a collision-free tray layout after Undo/Redo — rolled dice
-  // get a random cell, still-unrolled dice go back to their home cell.
-  function placeSnapshotLayout(){
-    const usedCells = new Set();
-    const allCells = [];
-    for (let i = 0; i < GRID_COLS * GRID_ROWS; i++) allCells.push(i);
-    dice.forEach((d, i) => {
-      if (d.face){
-        const free = allCells.filter(c => !usedCells.has(c));
-        const pool = free.length ? free : allCells;
-        const pick = pool[Math.floor(Math.random() * pool.length)];
-        usedCells.add(pick);
-        placeInCell(d, pick, false);
-      } else {
-        const home = i % allCells.length;
-        usedCells.add(home);
-        placeInCell(d, home, false);
-      }
-    });
   }
 
   // Unlimited undo/redo, scoped to Reset actions only — a safety net for
@@ -1174,6 +1172,7 @@
       d.img.src = FACES[0].file;
       d.faceName.textContent = '';
       d.wrap.classList.add('unrolled');
+      setStaticInstant(d, true);
       renderDieState(d);
     });
     requiredSlots.forEach((slot, i) => {
@@ -1191,7 +1190,6 @@
     updateRollBtn();
     updateEndCheckBtn();
     renderResultBanner();
-    placeAllHome();
     SFX.select();
     if (dirtySinceReset){
       log('<span class="tag reset">Reset</span>');
