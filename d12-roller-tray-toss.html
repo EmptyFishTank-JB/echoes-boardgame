@@ -514,7 +514,7 @@
 </div>
 
 <footer>ECHOES · EmptyFishTank-JB · Dice Prototype
-  <div class="footer-meta">Updated 2026-08-17 15:15 UTC &middot; STARDATE <span id="stardate">&mdash;</span></div>
+  <div class="footer-meta">Updated 2026-08-17 12:49 CDT &middot; STARDATE <span id="stardate">&mdash;</span></div>
 </footer>
 
 <script>
@@ -1279,14 +1279,27 @@
   var stardateEl = document.getElementById('stardate');
   if (!stardateEl) return;
   function pad(n, len){ return String(n).padStart(len, '0'); }
+  function chicagoParts(date){
+    var fmt = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'America/Chicago',
+      year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: '2-digit', minute: '2-digit', hour12: false
+    });
+    var parts = {};
+    fmt.formatToParts(date).forEach(function(p){ if (p.type !== 'literal') parts[p.type] = p.value; });
+    if (parts.hour === '24') parts.hour = '00';
+    return parts;
+  }
+  function dayOfYear(year, month, day){
+    var y = parseInt(year, 10);
+    var start = Date.UTC(y, 0, 1);
+    var current = Date.UTC(y, parseInt(month, 10) - 1, parseInt(day, 10));
+    return Math.floor((current - start) / 86400000) + 1;
+  }
   function updateStardate(){
-    var now = new Date();
-    var year = now.getUTCFullYear();
-    var start = Date.UTC(year, 0, 1);
-    var day = Math.floor((now.getTime() - start) / 86400000) + 1;
-    var hh = pad(now.getUTCHours(), 2);
-    var mm = pad(now.getUTCMinutes(), 2);
-    stardateEl.textContent = year + '.' + pad(day, 3) + '.' + hh + mm;
+    var parts = chicagoParts(new Date());
+    var day = dayOfYear(parts.year, parts.month, parts.day);
+    stardateEl.textContent = parts.year + '.' + pad(day, 3) + '.' + parts.hour + parts.minute;
   }
   updateStardate();
   setInterval(updateStardate, 1000);
