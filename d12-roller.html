@@ -144,36 +144,6 @@
     transition: opacity 0.15s;
   }
   .die-wrap.unrolled img { opacity: 0.18; }
-  /* Signal-decode overlay: a scanline texture (opacity/position driven
-     per-tick from JS, so it flickers instead of looping smoothly) plus
-     a moving scan-sweep bar, both only visible while a die is actively
-     "decoding" — faded out as the roll locks onto its real result. */
-  .die-glitch {
-    position: absolute; inset: 0;
-    clip-path: url(#pentagonClip);
-    pointer-events: none;
-    opacity: 0;
-    background: repeating-linear-gradient(0deg,
-      rgba(79,195,247,0.4) 0px, rgba(79,195,247,0.4) 1px,
-      transparent 1px, transparent 3px);
-    mix-blend-mode: screen;
-  }
-  .die-glitch::after {
-    content: "";
-    position: absolute; left: 0; right: 0; height: 8px;
-    top: -10%;
-    background: linear-gradient(180deg, transparent, rgba(79,195,247,0.95), transparent);
-    opacity: 0;
-  }
-  .die-wrap.decoding .die-glitch::after {
-    opacity: 1;
-    animation: scanSweep 0.45s linear infinite;
-  }
-  @keyframes scanSweep {
-    0% { top: -10%; }
-    100% { top: 110%; }
-  }
-  .die-wrap.decoding .die-status { color: var(--accent); }
   /* State indicator: a flat band across the die's bottom edge. It's
      drawn as a bottom-anchored gradient on a full-size, pentagon-clipped
      layer (matching .die::before exactly) rather than a small separate
@@ -460,7 +430,7 @@
 <header class="title-block">
   <div class="eyebrow">// Dice Engine</div>
   <h1>5x D12 Skill Check</h1>
-  <p class="subtitle">Up to 3 rolls. Each roll decodes like a signal locking on — a decaying scramble, scanline flicker, and chromatic glitch that clear as the result resolves. Pick the faces this check needs, then roll — click a die between rolls to keep it; the Roll button only re-rolls whatever's still unlocked.</p>
+  <p class="subtitle">Up to 3 rolls. Pick the faces this check needs, then roll — click a die between rolls to keep it; the Roll button only re-rolls whatever's still unlocked.</p>
 </header>
 
 <div class="panel">
@@ -507,13 +477,9 @@
     <span class="sep">·</span>
     <a href="d12-roller-popper.html">Popper Tray</a>
     <span class="sep">·</span>
-    <a href="d12-roller-popper-toss.html">Popper Toss</a>
-    <span class="sep">·</span>
     <a href="d12-roller-signal.html">Signal Decode</a>
     <span class="sep">·</span>
     <a href="d12-roller-static.html">Static Signal</a>
-    <span class="sep">·</span>
-    <a href="d12-roller-classic.html">Classic</a>
   </div>
 
 </div>
@@ -579,6 +545,7 @@
   ];
   const DIE_COUNT = 5;
   const MAX_ROLLS = 3;
+  const MAX_TICKS = 8;
   const HISTORY_LIMIT = 10;
 
   const REQUIRED_CATEGORIES = ['Tech', 'Tools', 'DNA', 'Biohazard', 'Hazard'];
@@ -760,9 +727,6 @@
     img.src = FACES[0].file;
     img.alt = '';
     die.appendChild(img);
-    const glitch = document.createElement('div');
-    glitch.className = 'die-glitch';
-    die.appendChild(glitch);
     const label = document.createElement('div');
     label.className = 'die-label';
     label.textContent = 'D12 — ' + (i + 1);
@@ -775,7 +739,7 @@
     wrap.appendChild(faceName);
     wrap.appendChild(statusEl);
     diceStage.appendChild(wrap);
-    const entry = { wrap, die, img, glitch, faceName, statusEl, face: null, locked: false, dead: false, matchType: null, assignedSlot: null, assignedType: null };
+    const entry = { wrap, die, img, faceName, statusEl, face: null, locked: false, dead: false, matchType: null, assignedSlot: null, assignedType: null };
     wrap.addEventListener('click', () => toggleLock(entry));
     dice.push(entry);
   }
@@ -880,11 +844,6 @@
     endCheckBtn.disabled = rollsUsed === 0 || checkEnded;
   }
 
-  // Decaying tick schedule (fast -> slow) instead of a constant-speed
-  // flicker — reads as a signal "converging" on a result. The wobble
-  // (.rolling / @keyframes shake) still runs the whole time alongside it.
-  const DECODE_TICKS = [45, 55, 67, 82, 100, 122, 149, 182, 222, 260];
-
   function roll(){
     if (rollsUsed >= MAX_ROLLS || checkEnded) return;
     const active = dice.filter(d => !d.locked && !d.dead);
@@ -894,40 +853,24 @@
     SFX.select();
     active.forEach(d => {
       d.wrap.classList.remove('unrolled');
-      d.wrap.classList.add('decoding');
       d.die.classList.add('rolling');
       d.faceName.textContent = '';
-      d.statusEl.textContent = 'DECODING';
     });
-    decodeTick(active, 0);
-  }
 
-  function decodeTick(active, step){
-    const progress = step / (DECODE_TICKS.length - 1);
-    active.forEach(d => {
-      d.img.src = randomFace().file;
-      const aberration = 3 * (1 - progress);
-      d.img.style.filter = aberration > 0.05
-        ? 'drop-shadow(' + aberration + 'px 0 0 rgba(255,70,70,0.55)) drop-shadow(-' + aberration + 'px 0 0 rgba(70,220,255,0.55))'
-        : 'none';
-      d.glitch.style.opacity = Math.max(0, (0.85 - progress * 0.9) * (0.5 + Math.random() * 0.5));
-      d.glitch.style.backgroundPositionY = (Math.random() * 20) + 'px';
-    });
-    SFX.tick();
-    if (step < DECODE_TICKS.length - 1){
-      setTimeout(() => decodeTick(active, step + 1), DECODE_TICKS[step]);
-    } else {
-      setTimeout(() => settle(active), DECODE_TICKS[step]);
-    }
+    let ticks = 0;
+    const spin = setInterval(() => {
+      active.forEach(d => { d.img.src = randomFace().file; });
+      SFX.tick();
+      ticks++;
+      if (ticks > MAX_TICKS){
+        clearInterval(spin);
+        settle(active);
+      }
+    }, 70);
   }
 
   function settle(active){
-    active.forEach(d => {
-      d.wrap.classList.remove('decoding');
-      d.die.classList.remove('rolling');
-      d.img.style.filter = '';
-      d.glitch.style.opacity = 0;
-    });
+    active.forEach(d => d.die.classList.remove('rolling'));
     SFX.settle();
     active.forEach(d => {
       const face = randomFace();

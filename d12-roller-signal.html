@@ -460,7 +460,7 @@
 <header class="title-block">
   <div class="eyebrow">// Dice Engine — Visual Experiment: Signal Decode</div>
   <h1>5x D12 Skill Check</h1>
-  <p class="subtitle">Same rules and odds as the standard roller — each roll reads as a signal locking on: a decaying scramble, scanline flicker, and chromatic glitch that clears as the result resolves. Up to 3 rolls. Pick the faces this check needs, then roll — click a die between rolls to keep it; the Roll button only re-rolls whatever's still unlocked.</p>
+  <p class="subtitle">Same rules and odds as the standard roller — each roll decodes like a signal locking on: a decaying scramble, scanline flicker, and chromatic glitch that clear as the result resolves. Up to 3 rolls. Pick the faces this check needs, then roll — click a die between rolls to keep it; the Roll button only re-rolls whatever's still unlocked.</p>
 </header>
 
 <div class="panel">
@@ -509,11 +509,7 @@
     <span class="sep">·</span>
     <a href="d12-roller-popper.html">Popper Tray</a>
     <span class="sep">·</span>
-    <a href="d12-roller-popper-toss.html">Popper Toss</a>
-    <span class="sep">·</span>
     <a href="d12-roller-static.html">Static Signal</a>
-    <span class="sep">·</span>
-    <a href="d12-roller-classic.html">Classic</a>
   </div>
 
 </div>
@@ -881,8 +877,8 @@
   }
 
   // Decaying tick schedule (fast -> slow) instead of a constant-speed
-  // flicker — reads as a signal "converging" on a result rather than a
-  // mechanical spin.
+  // flicker — reads as a signal "converging" on a result. The wobble
+  // (.rolling / @keyframes shake) still runs the whole time alongside it.
   const DECODE_TICKS = [45, 55, 67, 82, 100, 122, 149, 182, 222, 260];
 
   function roll(){
@@ -895,6 +891,7 @@
     active.forEach(d => {
       d.wrap.classList.remove('unrolled');
       d.wrap.classList.add('decoding');
+      d.die.classList.add('rolling');
       d.faceName.textContent = '';
       d.statusEl.textContent = 'DECODING';
     });
@@ -923,6 +920,7 @@
   function settle(active){
     active.forEach(d => {
       d.wrap.classList.remove('decoding');
+      d.die.classList.remove('rolling');
       d.img.style.filter = '';
       d.glitch.style.opacity = 0;
     });
