@@ -87,8 +87,7 @@
     position: relative;
     /* mirrors .container's nav-reserve so header-inner centers within the same
        reduced box as main whenever updateNavLayout() has to reserve room. */
-    padding: 48px var(--layout-nav-reserve-r) 60px var(--layout-nav-reserve-l);
-    border-bottom: 1px solid var(--border);
+    padding: 48px var(--layout-nav-reserve-r) 36px var(--layout-nav-reserve-l);
     overflow: hidden;
     background: rgba(10,12,15,0.88);
     backdrop-filter: blur(2px);
@@ -111,6 +110,8 @@
     margin-right: var(--layout-main-margin-right);
     padding-left: var(--layout-pad-l);
     padding-right: var(--layout-pad-r);
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border);
     position: relative;
   }
 
