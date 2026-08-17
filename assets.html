@@ -995,8 +995,6 @@ var SCRIPT = [
   { text: '> STATUS:  OFFLINE', cls: 'warn', pause: 1, alert: true },
   { text: '> ACCESS RESTRICTED', cls: 'full', pause: 1 },
   { text: '> REASON:  REGISTRY UNAVAILABLE', cls: 'dim', pause: 1 },
-  { text: '', cls: 'blank', pause: 0.3 },
-  { text: '> AWAITING INPUT', cls: 'lo', pause: 0 },
 ];
 
 // ── EASTER EGGS ────────────────────────────────────────────────────────────
@@ -1554,9 +1552,6 @@ async function runScript() {
   }
   if (!typingAbort) {
     setActiveCursor(lastLineEl);
-    await sleep(400);
-    inputRow.style.display = 'flex';
-    termInput.focus();
   }
   typing = false;
 }
