@@ -76,7 +76,7 @@ body::after{content:"";position:fixed;inset:-50%;z-index:2;pointer-events:none;
   letter-spacing:0.16em;}
 @keyframes blink{0%,49%{opacity:1}50%,100%{opacity:0}}
 /* Page */
-#page{position:relative;z-index:3;height:100vh;height:100dvh;
+#page{position:fixed;top:0;left:0;right:0;z-index:3;height:100vh;height:100dvh;
   display:flex;flex-direction:column;padding:18px 40px 24px;}
 /* Header */
 #t-header{display:flex;align-items:center;justify-content:space-between;
@@ -520,12 +520,23 @@ function updPhosphorCSS(){
 // keyboard just covers content. visualViewport reports the actual visible area
 // (iOS Safari, modern Android Chrome); window.innerHeight is the fallback for
 // browsers without visualViewport support (older Android WebViews).
+//
+// Shrinking the height alone isn't enough: when a focused input nears the
+// bottom edge, mobile browsers pan the *visual* viewport upward to keep it
+// visible, independent of any document scroll — and since #page is
+// position:fixed (pinned to the *layout* viewport), that pan drags its top
+// edge off-screen along with everything below it. visualViewport.offsetTop
+// reports how far the browser has panned, so we translate #page by the
+// negative of that offset to cancel the pan and keep the top pinned; only
+// the bottom (above the keyboard) compresses.
 (function(){
   var pg=document.getElementById('page');
   if(!pg) return;
   function fixHeight(){
-    var h=(window.visualViewport?window.visualViewport.height:window.innerHeight);
+    var vv=window.visualViewport;
+    var h=(vv?vv.height:window.innerHeight);
     pg.style.height=h+'px';
+    pg.style.transform=vv?('translateY('+(-vv.offsetTop)+'px)'):'';
   }
   if(window.visualViewport){
     window.visualViewport.addEventListener('resize',fixHeight);
