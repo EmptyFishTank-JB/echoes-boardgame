@@ -288,6 +288,12 @@ select.ss{flex:1;padding:5px 7px;font-size:12px;
   opacity:0;transition:opacity 0.22s;pointer-events:none;z-index:200;}
 #toast.show{opacity:1;}
 
+
+  /* Collapsible Template Editor Additions */
+  #tpl-editor.collapsed .fg,
+  #tpl-editor.collapsed .tpl-ed-hdr > div { display: none; }
+  .tpl-ed-hdr { cursor: pointer; user-select: none; }
+  .tpl-ed-hdr:hover { color: var(--blue); }
 </style>
 </head>
 <body>
@@ -402,14 +408,14 @@ select.ss{flex:1;padding:5px 7px;font-size:12px;
       </div>
     </div>
 
-    <div id="tpl-editor">
-      <div class="tpl-ed-hdr">
-        <span>&#9658; TEMPLATE EDITOR</span>
+    <div id="tpl-editor" class="collapsed">
+      <div class="tpl-ed-hdr" onclick="toggleTplEditor()">
+        <span id="tpl-arrow">&#9658; TEMPLATE EDITOR</span>
         <div style="display:flex;gap:6px">
-          <button class="btn sm" onclick="newTpl()">&#43; NEW</button>
-          <button class="btn sm r" onclick="delTpl()">&#8722; DELETE</button>
-          <button class="btn sm g" onclick="saveTpl()">&#10003; SAVE TPL</button>
-          <button class="btn sm a" onclick="dlTpls()">&#8595; EXPORT</button>
+          <button class="btn sm" onclick="event.stopPropagation(); newTpl()">&#43; NEW</button>
+          <button class="btn sm r" onclick="event.stopPropagation(); delTpl()">&#8722; DELETE</button>
+          <button class="btn sm g" onclick="event.stopPropagation(); saveTpl()">&#10003; SAVE TPL</button>
+          <button class="btn sm a" onclick="event.stopPropagation(); dlTpls()">&#8595; EXPORT</button>
         </div>
       </div>
       <div class="fg">
