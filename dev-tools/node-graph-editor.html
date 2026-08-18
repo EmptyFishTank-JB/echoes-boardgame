@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NODE GRAPH EDITOR // v5.22</title>
+<title>NODE GRAPH EDITOR // v5.23</title>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
@@ -76,6 +76,15 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
 .gnode.selected.l2{border-color:#bf7c0a;box-shadow:0 0 0 1px #bf7c0a,0 6px 24px rgba(191,124,10,0.20);}
 .gnode.selected.l3{border-color:#e05050;box-shadow:0 0 0 1px #e05050,0 6px 24px rgba(224,80,80,0.20);}
 .gnode.multi-sel{box-shadow:0 0 0 2px #4fc3f7,0 0 12px rgba(79,195,247,0.25);}
+/* l1 layer — blue #4fc3f7, mirrors l1_archive (migration target for l1c nodes) */
+.gnode.l1{border:1px solid rgba(79,195,247,0.45);background:rgba(2,14,26,0.97);}
+.gnode.selected.l1{border-color:#4fc3f7;box-shadow:0 0 0 1px #4fc3f7,0 6px 24px rgba(79,195,247,0.20);}
+.gnode.l1 .gnode-root-dot{background:#4fc3f7;}
+.gnode.l1 .gnode-id{color:#4fc3f7;}
+.gnode.l1 .gnode-lyr{color:rgba(79,195,247,0.28);}
+.gnode.l1 .in-port{border-color:rgba(79,195,247,0.28);background:#020e1a;}
+/* PINNED NODE — transparent ghost effect (matches dynamic-layer look) */
+.gnode.pinned{border-style:dashed!important;}
 .gnode-hdr{padding:7px 10px 7px 12px;display:flex;align-items:center;gap:5px;cursor:grab;border-bottom:1px solid rgba(79,195,247,0.09);}
 .gnode.l1c .gnode-hdr{border-bottom-color:rgba(77,184,150,0.13);}
 .gnode.l2 .gnode-hdr{border-bottom-color:rgba(191,124,10,0.13);}
@@ -236,7 +245,7 @@ select.iv-sel option{background:#001220;color:var(--blue);}
 <body>
 <div id="app">
 <div id="hdr">
-  <span class="htitle">NODE GRAPH EDITOR // v5.22</span>
+  <span class="htitle">NODE GRAPH EDITOR // v5.23</span>
   <span id="as-ind">&#10003; SAVED</span>
   <span id="fstat" class="none">NO FILE</span>
   <span id="fver" style="font-size:11px;color:rgba(79,195,247,0.28);letter-spacing:0.06em;"></span>
@@ -339,9 +348,9 @@ select.iv-sel option{background:#001220;color:var(--blue);}
 <script>
 'use strict';
 // ── CONSTANTS ─────────────────────────────────────────────────────────────────
-var EDITOR_VERSION='5.19';
-var EDITOR_CREATED='2026-05-25T09:29:36-05:00';
-var EDITOR_CREATED_HUMAN='May 25, 2026 09:29:36 AM CT';
+var EDITOR_VERSION='5.23';
+var EDITOR_CREATED='2026-05-28T00:00:00-05:00';
+var EDITOR_CREATED_HUMAN='May 28, 2026 CT';
 var CANVAS_W=4000, CANVAS_H=3000, NODE_W=220;
 // Default layer color palette (index 0-4, fallback for 5+)
 var LAYER_DEFAULT_COLORS=['#4fc3f7','#bf7c0a','#e05050','#4db896','#a78bfa'];
@@ -584,8 +593,9 @@ function render(){
     var pos=positions[id]||{x:0,y:0};
     var isSel=selectedNode===id, isMulti=multiSel.indexOf(id)>=0;
 
+    var _ed=n._editor||{};
     var el=document.createElement('div');
-    el.className='gnode '+lyr+(isSel?' selected':'')+(isMulti&&!isSel?' multi-sel':'');
+    el.className='gnode '+lyr+(isSel?' selected':'')+(isMulti&&!isSel?' multi-sel':'')+(_ed.pinned?' pinned':'');
     el.id='gn-'+id;el.style.cssText='left:'+pos.x+'px;top:'+pos.y+'px;width:'+NODE_W+'px;position:absolute;';
     // Apply inline styles for dynamic layers (no CSS class exists for them)
     if(!LAYER_COLOR[lyr]){
@@ -595,6 +605,8 @@ function render(){
       if(isSel)el.style.boxShadow='0 0 0 1px '+_dc+',0 6px 24px '+ha(_dc,0.20);
       if(isMulti&&!isSel)el.style.boxShadow='0 0 0 2px '+_dc+',0 0 12px '+ha(_dc,0.25);
     }
+    // PINNED: override background with transparent ghost (same effect as layer 4+ nodes)
+    if(_ed.pinned){el.style.background=ha(getLC(lyr),0.05);}
 
     // Input port
     var inp=document.createElement('div');inp.className='in-port';inp.id='inp-'+id;
@@ -621,7 +633,7 @@ function render(){
     if(!LAYER_COLOR[lyr])lyrSp.style.color=ha(getLC(lyr),0.40);
     lyrSp.textContent=LAYER_LABEL[lyr]||lyr.toUpperCase();hdr.appendChild(lyrSp);
     // Lock / pin indicators
-    var ed=n._editor||{};
+    var ed=_ed;
     if(ed.locked){var lk=document.createElement('span');lk.textContent='\uD83D\uDD12';lk.style.cssText='font-size:10px;opacity:0.60;flex-shrink:0;';hdr.appendChild(lk);}
     if(ed.pinned){var pk=document.createElement('span');pk.textContent='\uD83D\uDCCC';pk.style.cssText='font-size:10px;opacity:0.60;flex-shrink:0;';hdr.appendChild(pk);}
     hdr.addEventListener('contextmenu',function(e){e.preventDefault();e.stopPropagation();showNodeCtxMenu(e,id);});
