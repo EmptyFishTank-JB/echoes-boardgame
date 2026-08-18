@@ -124,7 +124,7 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
 .out-port.pull:hover{border-color:#c47fc4;background:rgba(196,127,196,0.30);}
 .out-port.flavor{border-color:rgba(196,127,196,0.55);background:#0a020a;border-style:dashed;}
 .out-port.flavor:hover{border-color:#c47fc4;background:rgba(196,127,196,0.30);}
-.in-port{width:13px;height:13px;border-radius:50%;border:1px solid;position:absolute;left:-8px;z-index:10;transition:all 0.1s;}
+.in-port{width:13px;height:13px;border-radius:50%;border:1px solid;position:absolute;left:0!important;top:50%!important;transform:translate(-50%,-50%)!important;margin:0!important;z-index:10;transition:background 0.1s,border-color 0.1s;}
 .gnode.l1c .in-port{border-color:rgba(77,184,150,0.28);background:#000e0a;}
 .gnode.l1_archive .in-port{border-color:rgba(79,195,247,0.28);background:#020e1a;}
 .gnode.l2 .in-port{border-color:rgba(191,124,10,0.38);background:#0e0a00;}
@@ -550,9 +550,7 @@ requestAnimationFrame(function(){
         var top=0,cur=inp;while(cur&&cur!==el){top+=cur.offsetTop;cur=cur.offsetParent;}
         top+=inp.offsetHeight/2;
         if(!_portCache[id])_portCache[id]={};
-        _portCache[id]._baseX=positions[id]?positions[id].x:0;
-        _portCache[id]._baseY=positions[id]?positions[id].y:0;
-        _portCache[id].__in={x:(positions[id]?positions[id].x:0),y:(positions[id]?positions[id].y:0)+top};
+        _portCache[id].__in={dx:-inp.offsetWidth/2,dy:top};
       }
       // Cache out-port positions
       el.querySelectorAll('.out-port').forEach(function(port){
@@ -561,7 +559,7 @@ requestAnimationFrame(function(){
         var ptop=0,pcur=port;while(pcur&&pcur!==el){ptop+=pcur.offsetTop;pcur=pcur.offsetParent;}
         ptop+=port.offsetHeight/2;
         if(!_portCache[id])_portCache[id]={};
-        _portCache[id][bi]={x:(positions[id]?positions[id].x:0)+NODE_W+port.offsetWidth/2,y:(positions[id]?positions[id].y:0)+ptop};
+        _portCache[id][bi]={dx:NODE_W+port.offsetWidth/2,dy:ptop};
       });
     });
     drawConnections(nodes);updateMinimap();
@@ -571,30 +569,37 @@ requestAnimationFrame(function(){
 // ── CONNECTIONS ───────────────────────────────────────────────────────────────
 // Port position cache — populated during render
 var _portCache={};
+// Cache stores RELATIVE offsets from node origin — combined with live positions at read time
 function cachePortPos(nodeId,bodyIdx,el,nodeEl){
   var top=0,cur=el;
   while(cur&&cur!==nodeEl){top+=cur.offsetTop;cur=cur.offsetParent;}
   top+=el.offsetHeight/2;
-  var pos=positions[nodeId]||{x:0,y:0};
   if(!_portCache[nodeId])_portCache[nodeId]={};
-  _portCache[nodeId][bodyIdx]={x:pos.x+NODE_W+el.offsetWidth/2,y:pos.y+top};
+  // dx = NODE_W + half port width (translate(50%) shifts center outside node)
+  _portCache[nodeId][bodyIdx]={dx:NODE_W+el.offsetWidth/2,dy:top};
 }
 function cacheInPort(nodeId,el,nodeEl){
   var top=0,cur=el;
   while(cur&&cur!==nodeEl){top+=cur.offsetTop;cur=cur.offsetParent;}
   top+=el.offsetHeight/2;
-  var pos=positions[nodeId]||{x:0,y:0};
   if(!_portCache[nodeId])_portCache[nodeId]={};
-  _portCache[nodeId].__in={x:pos.x,y:pos.y+top};
+  // in-port has left:-portW/2 equivalent (left:0, translate(-50%,-50%))
+  _portCache[nodeId].__in={dx:-el.offsetWidth/2,dy:top};
 }
 function getPortPos(nodeId,bodyIdx){
-  if(_portCache[nodeId]&&_portCache[nodeId][bodyIdx])return _portCache[nodeId][bodyIdx];
   var pos=positions[nodeId]||{x:0,y:0};
+  if(_portCache[nodeId]&&_portCache[nodeId][bodyIdx]){
+    var r=_portCache[nodeId][bodyIdx];
+    return{x:pos.x+r.dx,y:pos.y+r.dy};
+  }
   return{x:pos.x+NODE_W,y:pos.y+40};
 }
 function getInPortPos(nodeId){
-  if(_portCache[nodeId]&&_portCache[nodeId].__in)return _portCache[nodeId].__in;
   var pos=positions[nodeId]||{x:0,y:0};
+  if(_portCache[nodeId]&&_portCache[nodeId].__in){
+    var r=_portCache[nodeId].__in;
+    return{x:pos.x+r.dx,y:pos.y+r.dy};
+  }
   var el=document.getElementById('gn-'+nodeId);var h=el?el.offsetHeight:80;
   return{x:pos.x,y:pos.y+h/2};
 }
@@ -780,15 +785,14 @@ document.addEventListener('mouseup',function(e){
         var itop=0,icur=inpEl;while(icur&&icur!==nel){itop+=icur.offsetTop;icur=icur.offsetParent;}
         itop+=inpEl.offsetHeight/2;
         if(!_portCache[nid])_portCache[nid]={};
-        _portCache[nid].__in={x:(positions[nid]?positions[nid].x:0),y:(positions[nid]?positions[nid].y:0)+itop};
+        _portCache[nid].__in={dx:-inpEl.offsetWidth/2,dy:itop};
       }
       nel.querySelectorAll('.out-port').forEach(function(port){
         var bi=parseInt(port.dataset.bodyidx);if(isNaN(bi))return;
         var ptop=0,pcur=port;while(pcur&&pcur!==nel){ptop+=pcur.offsetTop;pcur=pcur.offsetParent;}
         ptop+=port.offsetHeight/2;
-        var px=(positions[nid]?positions[nid].x:0)+NODE_W+port.offsetWidth/2;
         if(!_portCache[nid])_portCache[nid]={};
-        _portCache[nid][bi]={x:px,y:(positions[nid]?positions[nid].y:0)+ptop};
+        _portCache[nid][bi]={dx:NODE_W+port.offsetWidth/2,dy:ptop};
       });
     });
     pushHist();nodeDrag=null;
