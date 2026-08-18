@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+CiAgPHN0eWxlPgogICAgQGtleWZyYW1lcyBmewogICAgICAwJXtvcGFjaXR5OjF9CiAgICAgIDQwJXtvcGFjaXR5OjF9CiAgICAgIDUwJXtvcGFjaXR5OjAuNH0KICAgICAgNjAle29wYWNpdHk6MX0KICAgICAgMTAwJXtvcGFjaXR5OjF9CiAgICB9CiAgPC9zdHlsZT4KICAgICAgPGcgc3R5bGU9ImFuaW1hdGlvbjpmIDVzIDAuMDAwcyBpbmZpbml0ZSI+CiAgICAgICAgPHJlY3QgeD0iMC4wIiB5PSI1LjAiCiAgICAgICAgICAgICAgd2lkdGg9IjguMCIgaGVpZ2h0PSIyMi4wIgogICAgICAgICAgICAgIHJ4PSIyLjAiCiAgICAgICAgICAgICAgZmlsbD0iIzRmYzNmNyIgb3BhY2l0eT0iMC42Ii8+CiAgICAgICAgPHJlY3QgeD0iMS4wIiB5PSI2LjAiCiAgICAgICAgICAgICAgd2lkdGg9IjYiIGhlaWdodD0iMjAuMCIKICAgICAgICAgICAgICByeD0iMSIgZmlsbD0iIzRmYzNmNyIvPgogICAgICA8L2c+CiAgICAgIDxnIHN0eWxlPSJhbmltYXRpb246ZiA1cyAwLjM1MHMgaW5maW5pdGUiPgogICAgICAgIDxyZWN0IHg9IjEyLjAiIHk9IjAuMCIKICAgICAgICAgICAgICB3aWR0aD0iOC4wIiBoZWlnaHQ9IjMyLjAiCiAgICAgICAgICAgICAgcng9IjIuMCIKICAgICAgICAgICAgICBmaWxsPSIjNGZjM2Y3IiBvcGFjaXR5PSIwLjYiLz4KICAgICAgICA8cmVjdCB4PSIxMy4wIiB5PSIxLjAiCiAgICAgICAgICAgICAgd2lkdGg9IjYiIGhlaWdodD0iMzAuMCIKICAgICAgICAgICAgICByeD0iMSIgZmlsbD0iIzRmYzNmNyIvPgogICAgICA8L2c+CiAgICAgIDxnIHN0eWxlPSJhbmltYXRpb246ZiA1cyAwLjcwMHMgaW5maW5pdGUiPgogICAgICAgIDxyZWN0IHg9IjI0LjAiIHk9IjYuMCIKICAgICAgICAgICAgICB3aWR0aD0iOC4wIiBoZWlnaHQ9IjIwLjAiCiAgICAgICAgICAgICAgcng9IjIuMCIKICAgICAgICAgICAgICBmaWxsPSIjNGZjM2Y3IiBvcGFjaXR5PSIwLjYiLz4KICAgICAgICA8cmVjdCB4PSIyNS4wIiB5PSI3LjAiCiAgICAgICAgICAgICAgd2lkdGg9IjYiIGhlaWdodD0iMTguMCIKICAgICAgICAgICAgICByeD0iMSIgZmlsbD0iIzRmYzNmNyIvPgogICAgICA8L2c+Cjwvc3ZnPg==">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ECHO LORE EDITOR // v4.2.6.026</title>
@@ -9,192 +10,247 @@
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 :root{
   --blue:#4fc3f7;--amber:#bf7c0a;--red:#e05050;--green:#6fb06f;
-  --dim:rgba(79,195,247,0.42);--bg:#00080e;--border:rgba(79,195,247,0.10);
+  --dim:rgba(79,195,247,0.40);--bg:#00080e;--bdr:rgba(79,195,247,0.10);
 }
 html,body{height:100%;background:var(--bg);color:var(--blue);
-  font-family:'Share Tech Mono',monospace;font-size:13px;overflow:hidden;}
+  font-family:"Share Tech Mono",monospace;font-size:13px;overflow:hidden;}
 #app{display:flex;flex-direction:column;height:100vh;}
 
 /* HEADER */
-#header{display:flex;justify-content:space-between;align-items:center;
-  padding:7px 18px;border-bottom:1px solid var(--border);
-  flex-shrink:0;background:rgba(0,4,10,0.98);}
-.h-title{font-size:12px;letter-spacing:0.14em;}
-.h-right{display:flex;align-items:center;gap:14px;font-size:10px;color:var(--dim);}
-#as-ind{color:var(--green);opacity:0;transition:opacity 0.4s;font-size:10px;}
+#hdr{display:flex;justify-content:space-between;align-items:center;
+  padding:7px 16px;border-bottom:1px solid var(--bdr);
+  flex-shrink:0;background:rgba(0,4,10,0.98);gap:12px;}
+.htitle{font-size:11px;letter-spacing:0.14em;}
+.hright{display:flex;align-items:center;gap:12px;font-size:10px;color:var(--dim);}
+#as-ind{color:var(--green);opacity:0;transition:opacity 0.4s;}
 #as-ind.show{opacity:1;}
+#file-status{font-size:10px;padding:2px 8px;border:1px solid;letter-spacing:0.06em;}
+#file-status.none{border-color:rgba(79,195,247,0.12);color:var(--dim);}
+#file-status.ro  {border-color:rgba(191,124,10,0.30);color:var(--amber);}
+#file-status.rw  {border-color:rgba(111,176,111,0.40);color:var(--green);}
+.hbtn{background:transparent;border:1px solid rgba(79,195,247,0.18);
+  color:var(--dim);font-family:"Share Tech Mono",monospace;
+  font-size:10px;letter-spacing:0.07em;padding:3px 10px;cursor:pointer;transition:all 0.15s;}
+.hbtn:hover{border-color:var(--blue);color:var(--blue);}
 
-/* MAIN */
-#main{display:flex;flex:1;min-height:0;}
+/* BODY — 3 COLUMNS */
+#body{display:flex;flex:1;min-height:0;}
 
-/* LEFT */
-#left{width:47%;flex-shrink:0;display:flex;flex-direction:column;
-  border-right:1px solid var(--border);overflow:hidden;}
-.phdr{padding:7px 14px;font-size:10px;letter-spacing:0.12em;
-  color:var(--dim);border-bottom:1px solid var(--border);flex-shrink:0;}
-#scroll{flex:1;overflow-y:auto;padding:11px 14px;
+/* LEFT — ENTRY BROWSER */
+#ecol{width:232px;flex-shrink:0;display:flex;flex-direction:column;
+  border-right:1px solid var(--bdr);overflow:hidden;}
+.phdr{padding:7px 12px;font-size:10px;letter-spacing:0.12em;
+  color:var(--dim);border-bottom:1px solid var(--bdr);flex-shrink:0;}
+#esrch{background:rgba(79,195,247,0.04);border:none;border-bottom:1px solid var(--bdr);
+  color:var(--blue);font-family:"Share Tech Mono",monospace;font-size:11px;
+  padding:6px 12px;outline:none;width:100%;letter-spacing:0.05em;}
+#esrch::placeholder{color:rgba(79,195,247,0.28);}
+#elist{flex:1;overflow-y:auto;}
+.erow{padding:7px 10px;border-bottom:1px solid rgba(79,195,247,0.06);
+  cursor:pointer;transition:background 0.12s;position:relative;}
+.erow:hover{background:rgba(79,195,247,0.05);}
+.erow.active{background:rgba(79,195,247,0.09);border-left:2px solid var(--blue);}
+.erow-code{font-size:10px;color:var(--dim);letter-spacing:0.05em;margin-bottom:3px;}
+.erow-mid{display:flex;align-items:center;gap:5px;margin-bottom:2px;}
+.etbadge{font-size:9px;padding:1px 5px;border:1px solid rgba(79,195,247,0.18);
+  color:var(--dim);flex-shrink:0;white-space:nowrap;}
+.etbadge.virus{border-color:rgba(224,80,80,0.35);color:var(--red);}
+.etbadge.classified{border-color:rgba(191,124,10,0.35);color:var(--amber);}
+.etbadge.partial,.etbadge.degraded,.etbadge.corrupted{border-color:rgba(191,124,10,0.20);color:rgba(191,124,10,0.60);}
+.erow-lbl{font-size:10px;color:rgba(79,195,247,0.55);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.erm{position:absolute;top:6px;right:6px;background:transparent;
+  border:1px solid rgba(224,80,80,0.20);color:rgba(224,80,80,0.45);
+  font-family:"Share Tech Mono",monospace;font-size:10px;
+  padding:1px 5px;cursor:pointer;transition:all 0.12s;line-height:1;}
+.erm:hover{border-color:var(--red);color:var(--red);}
+#eno{padding:12px;font-size:11px;color:var(--dim);text-align:center;}
+#ecount{padding:5px 12px;font-size:10px;color:var(--dim);
+  border-top:1px solid var(--bdr);flex-shrink:0;letter-spacing:0.06em;}
+
+/* MIDDLE — EDITOR */
+#editor{flex:1;min-width:0;display:flex;flex-direction:column;
+  border-right:1px solid var(--bdr);}
+#escroll{flex:1;overflow-y:auto;padding:11px 13px;
   display:flex;flex-direction:column;gap:10px;}
 
-/* STARDATE */
-#sdp{border:1px solid rgba(79,195,247,0.13);
-  background:rgba(79,195,247,0.025);padding:10px 12px;}
-.sdr{display:flex;align-items:center;gap:8px;margin-bottom:5px;}
+/* STARDATE PANEL */
+#sdp{border:1px solid rgba(79,195,247,0.12);
+  background:rgba(79,195,247,0.02);padding:9px 11px;}
+.sdr{display:flex;align-items:center;gap:7px;margin-bottom:5px;}
 .sdr:last-of-type{margin-bottom:0;}
-.sdl{font-size:10px;color:var(--dim);min-width:64px;flex-shrink:0;}
-.sdv{flex:1;font-size:13px;letter-spacing:0.05em;}
+.sdl{font-size:10px;color:var(--dim);min-width:66px;flex-shrink:0;}
+.sdv{flex:1;font-size:12px;letter-spacing:0.05em;}
 .sdv.rl{color:var(--blue);}.sdv.ft{color:var(--amber);}
-.inj{background:transparent;border:1px solid rgba(79,195,247,0.18);
-  color:var(--dim);font-family:'Share Tech Mono',monospace;
-  font-size:10px;padding:3px 8px;cursor:pointer;transition:all 0.15s;flex-shrink:0;}
-.inj:hover{border-color:var(--blue);color:var(--blue);background:rgba(79,195,247,0.06);}
-.inj.a{border-color:rgba(191,124,10,0.22);color:rgba(191,124,10,0.55);}
-.inj.a:hover{border-color:var(--amber);color:var(--amber);background:rgba(191,124,10,0.06);}
-
-/* SETTINGS */
-#sh{cursor:pointer;font-size:10px;letter-spacing:0.10em;color:var(--dim);
-  display:flex;justify-content:space-between;padding:5px 0;
-  border-bottom:1px solid rgba(79,195,247,0.07);user-select:none;}
-#sh:hover{color:var(--blue);}
-#sb{display:none;padding-top:8px;flex-direction:column;gap:8px;}
-#sb.open{display:flex;}
+.inj{background:transparent;border:1px solid rgba(79,195,247,0.17);
+  color:var(--dim);font-family:"Share Tech Mono",monospace;
+  font-size:10px;padding:2px 7px;cursor:pointer;transition:all 0.15s;flex-shrink:0;}
+.inj:hover{border-color:var(--blue);color:var(--blue);background:rgba(79,195,247,0.05);}
+.inj.a{border-color:rgba(191,124,10,0.20);color:rgba(191,124,10,0.50);}
+.inj.a:hover{border-color:var(--amber);color:var(--amber);background:rgba(191,124,10,0.05);}
 
 /* FIELDS */
-.fg{display:flex;flex-direction:column;gap:5px;}
-.fl{font-size:10px;letter-spacing:0.09em;color:rgba(79,195,247,0.46);}
-.fr{display:flex;gap:7px;align-items:stretch;}
-input[type=text],input[type=date],textarea,select{
-  background:rgba(79,195,247,0.04);border:1px solid rgba(79,195,247,0.13);
-  color:var(--blue);font-family:'Share Tech Mono',monospace;
-  font-size:13px;letter-spacing:0.04em;padding:7px 9px;
+.fg{display:flex;flex-direction:column;gap:4px;}
+.fl{font-size:10px;letter-spacing:0.09em;color:rgba(79,195,247,0.44);}
+.fr{display:flex;gap:6px;align-items:stretch;}
+input[type=text],input[type=number],textarea,select{
+  background:rgba(79,195,247,0.04);border:1px solid rgba(79,195,247,0.12);
+  color:var(--blue);font-family:"Share Tech Mono",monospace;
+  font-size:13px;letter-spacing:0.04em;padding:6px 9px;
   outline:none;transition:border-color 0.2s;width:100%;}
-input:focus,textarea:focus,select:focus{border-color:rgba(79,195,247,0.38);}
+input:focus,textarea:focus,select:focus{border-color:rgba(79,195,247,0.36);}
 select option{background:#001220;color:var(--blue);}
-input[type=date]{color-scheme:dark;}
-#codef{text-transform:uppercase;letter-spacing:0.14em;}
-#codest{font-size:10px;color:var(--dim);margin-top:3px;}
-.ok{color:var(--green);}.bad{color:var(--red);}
+#codef{text-transform:uppercase;letter-spacing:0.13em;}
+#codef.valid{border-color:rgba(111,176,111,0.55);}
+#codef.dupe {border-color:rgba(224,80,80,0.55);}
+#codest{font-size:10px;margin-top:3px;letter-spacing:0.05em;color:var(--dim);}
+#codest.ok {color:var(--green);}
+#codest.bad{color:var(--red);}
 
-/* TOGGLES */
-.tgg{display:flex;gap:0;}
-.tg{flex:1;background:transparent;border:1px solid rgba(79,195,247,0.13);
-  color:var(--dim);font-family:'Share Tech Mono',monospace;
-  font-size:10px;letter-spacing:0.07em;padding:5px 0;cursor:pointer;
+/* TOGGLE BUTTONS */
+.tgg{display:flex;}
+.tg{flex:1;background:transparent;border:1px solid rgba(79,195,247,0.12);
+  color:var(--dim);font-family:"Share Tech Mono",monospace;
+  font-size:10px;letter-spacing:0.06em;padding:5px 0;cursor:pointer;
   transition:all 0.15s;margin-left:-1px;}
 .tg:first-child{margin-left:0;}
-.tg:hover{color:var(--blue);border-color:rgba(79,195,247,0.35);z-index:1;}
+.tg:hover{color:var(--blue);border-color:rgba(79,195,247,0.32);z-index:1;}
 .tg.on{color:#001220;background:var(--blue);border-color:var(--blue);z-index:2;}
 .tg.on.a{background:var(--amber);border-color:var(--amber);}
 .tg.on.r{background:var(--red);border-color:var(--red);}
 
-/* CODE GEN */
-#cg{border:1px solid rgba(79,195,247,0.12);
-  background:rgba(79,195,247,0.02);padding:10px 12px;
-  display:flex;flex-direction:column;gap:8px;}
-.cgr{display:flex;gap:7px;align-items:center;flex-wrap:wrap;}
-.cgr.col{flex-direction:column;align-items:flex-start;gap:6px;}
-.cgl{font-size:10px;color:var(--dim);letter-spacing:0.08em;}
-.ss{flex:1;padding:5px 7px;font-size:11px;
-  background:rgba(79,195,247,0.04);border:1px solid rgba(79,195,247,0.13);
-  color:var(--blue);font-family:'Share Tech Mono',monospace;
-  outline:none;min-width:0;}
+/* CODE GENERATOR */
+#cgen{border:1px solid rgba(79,195,247,0.10);
+  background:rgba(79,195,247,0.015);padding:9px 11px;display:flex;flex-direction:column;gap:7px;}
+.cgrow{display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
+.cglbl{font-size:10px;color:var(--dim);letter-spacing:0.07em;}
+select.ss{flex:1;padding:4px 6px;font-size:10px;
+  background:rgba(79,195,247,0.04);border:1px solid rgba(79,195,247,0.12);
+  color:var(--blue);font-family:"Share Tech Mono",monospace;outline:none;min-width:0;}
+
+/* CURRENT TYPE DISPLAY */
+#type-display{display:flex;align-items:center;gap:8px;padding:5px 0;}
+#type-badge{font-size:10px;padding:2px 8px;border:1px solid var(--bdr);color:var(--dim);}
+#type-badge.full{border-color:rgba(79,195,247,0.25);color:var(--blue);}
+#type-badge.partial{border-color:rgba(191,124,10,0.30);color:rgba(191,124,10,0.70);}
+#type-badge.degraded{border-color:rgba(191,124,10,0.25);color:rgba(191,124,10,0.60);}
+#type-badge.corrupted{border-color:rgba(191,124,10,0.20);color:rgba(191,124,10,0.50);}
+#type-badge.classified{border-color:rgba(191,124,10,0.45);color:var(--amber);}
+#type-badge.virus{border-color:rgba(224,80,80,0.45);color:var(--red);}
+#clr-badge{font-size:10px;padding:2px 8px;border:1px solid rgba(79,195,247,0.15);color:var(--dim);}
 
 /* BUTTONS */
-.btn{background:transparent;border:1px solid rgba(79,195,247,0.20);
-  color:var(--blue);font-family:'Share Tech Mono',monospace;
+.btn{background:transparent;border:1px solid rgba(79,195,247,0.18);
+  color:var(--blue);font-family:"Share Tech Mono",monospace;
   font-size:11px;letter-spacing:0.07em;
-  padding:6px 12px;cursor:pointer;transition:all 0.15s;white-space:nowrap;}
-.btn:hover{border-color:var(--blue);background:rgba(79,195,247,0.06);}
-.btn.a{border-color:rgba(191,124,10,0.28);color:var(--amber);}
-.btn.a:hover{border-color:var(--amber);background:rgba(191,124,10,0.06);}
-.btn.r{border-color:rgba(224,80,80,0.22);color:rgba(224,80,80,0.60);}
-.btn.r:hover{border-color:var(--red);color:var(--red);background:rgba(224,80,80,0.06);}
-.btn.sm{font-size:10px;padding:4px 10px;}
-#btnrow{display:flex;gap:7px;flex-wrap:wrap;}
+  padding:5px 11px;cursor:pointer;transition:all 0.15s;white-space:nowrap;}
+.btn:hover{border-color:var(--blue);background:rgba(79,195,247,0.05);}
+.btn.a{border-color:rgba(191,124,10,0.26);color:var(--amber);}
+.btn.a:hover{border-color:var(--amber);background:rgba(191,124,10,0.05);}
+.btn.g{border-color:rgba(111,176,111,0.30);color:var(--green);}
+.btn.g:hover{border-color:var(--green);background:rgba(111,176,111,0.05);}
+.btn.r{border-color:rgba(224,80,80,0.20);color:rgba(224,80,80,0.55);}
+.btn.r:hover{border-color:var(--red);color:var(--red);background:rgba(224,80,80,0.05);}
+.btn.sm{font-size:10px;padding:3px 9px;}
+.btn:disabled{opacity:0.3;cursor:not-allowed;}
+#brow{display:flex;gap:6px;flex-wrap:wrap;}
 
 /* TEXT AREAS */
-#logtxt{resize:vertical;min-height:160px;max-height:280px;line-height:1.75;}
-#l1pre{resize:vertical;min-height:70px;line-height:1.7;}
+#logtxt{resize:vertical;min-height:150px;max-height:280px;line-height:1.75;}
+#l1pre{resize:vertical;min-height:65px;line-height:1.7;}
 #l1preg{display:none;}
-.cct{font-size:10px;color:var(--dim);text-align:right;margin-top:3px;}
+.cct{font-size:10px;color:var(--dim);text-align:right;margin-top:2px;}
 
 /* DROP ZONE */
-#dz{border:1px dashed rgba(79,195,247,0.20);padding:14px;
+#dz{border:1px dashed rgba(79,195,247,0.18);padding:12px;
   text-align:center;cursor:pointer;transition:all 0.2s;
-  color:var(--dim);font-size:11px;letter-spacing:0.07em;}
-#dz:hover,#dz.ov{border-color:var(--blue);color:var(--blue);background:rgba(79,195,247,0.04);}
+  color:var(--dim);font-size:10px;letter-spacing:0.07em;}
+#dz:hover,#dz.ov{border-color:var(--blue);color:var(--blue);background:rgba(79,195,247,0.03);}
 #dz.ov{border-style:solid;}
 #fi{display:none;}
-#pasta{resize:vertical;min-height:50px;font-size:11px;color:rgba(79,195,247,0.38);}
+#pasta{resize:vertical;min-height:45px;font-size:11px;color:rgba(79,195,247,0.35);}
 
-/* RIGHT */
-#right{flex:1;display:flex;flex-direction:column;min-width:0;}
-#pw{flex:1;min-height:0;display:flex;flex-direction:column;border-bottom:1px solid var(--border);}
-.pvh{padding:7px 14px;font-size:10px;letter-spacing:0.12em;
-  color:rgba(191,124,10,0.46);border-bottom:1px solid rgba(191,124,10,0.09);
-  flex-shrink:0;background:rgba(191,124,10,0.02);
+/* RIGHT — PREVIEW + JSON */
+#rcol{width:38%;flex-shrink:0;display:flex;flex-direction:column;}
+#pw{flex:1;min-height:0;display:flex;flex-direction:column;border-bottom:1px solid var(--bdr);}
+.pvhdr{padding:7px 13px;font-size:10px;letter-spacing:0.12em;
+  color:rgba(191,124,10,0.44);border-bottom:1px solid rgba(191,124,10,0.08);
+  flex-shrink:0;background:rgba(191,124,10,0.015);
   display:flex;justify-content:space-between;align-items:center;}
-#mbadge{font-size:9px;letter-spacing:0.08em;padding:2px 7px;border:1px solid;}
-#mbadge.lore{border-color:rgba(191,124,10,0.40);color:var(--amber);}
-#mbadge.dev{border-color:rgba(224,80,80,0.40);color:var(--red);}
-#preview{flex:1;overflow-y:auto;padding:15px 15px 10px;
-  color:#bf7c0a;line-height:1.9;white-space:pre-wrap;word-break:break-word;}
-#preview.dv{color:#e05050;background:rgba(0,0,0,0.22);}
-.ps{color:rgba(191,124,10,0.28);}.pq{color:#d9962a;}
-.pd{color:rgba(191,124,10,0.40);}.pdc{color:rgba(191,124,10,0.55);}
+#mbadge{font-size:9px;letter-spacing:0.07em;padding:2px 6px;border:1px solid;}
+#mbadge.lore{border-color:rgba(191,124,10,0.38);color:var(--amber);}
+#mbadge.dev{border-color:rgba(224,80,80,0.38);color:var(--red);}
+#preview{flex:1;overflow-y:auto;padding:13px 13px 8px;
+  color:#bf7c0a;line-height:1.9;white-space:pre-wrap;word-break:break-word;font-size:12px;}
+#preview.dv{color:#e05050;background:rgba(0,0,0,0.20);}
+.ps{color:rgba(191,124,10,0.26);}.pq{color:#d9962a;}
+.pd{color:rgba(191,124,10,0.38);}.pdc{color:rgba(191,124,10,0.54);}
 .pe{color:#c84040;}
-#jw{height:195px;display:flex;flex-direction:column;flex-shrink:0;}
-.jh{padding:7px 14px;font-size:10px;letter-spacing:0.12em;
-  color:var(--dim);border-bottom:1px solid var(--border);
+#jw{height:185px;display:flex;flex-direction:column;flex-shrink:0;}
+.jhdr{padding:7px 13px;font-size:10px;letter-spacing:0.12em;
+  color:var(--dim);border-bottom:1px solid var(--bdr);
   flex-shrink:0;display:flex;justify-content:space-between;align-items:center;}
-#jo{flex:1;overflow-y:auto;padding:10px 14px;
-  color:rgba(79,195,247,0.65);line-height:1.6;white-space:pre;font-size:11px;}
+#jo{flex:1;overflow-y:auto;padding:9px 13px;
+  color:rgba(79,195,247,0.60);line-height:1.6;white-space:pre;font-size:11px;}
 
-/* ENTRIES */
-#ep{border-top:1px solid var(--border);flex-shrink:0;}
-#et{width:100%;padding:7px 18px;background:transparent;border:none;
-  color:var(--dim);font-family:'Share Tech Mono',monospace;
-  font-size:10px;letter-spacing:0.10em;cursor:pointer;text-align:left;transition:color 0.15s;}
-#et:hover{color:var(--blue);}
-#el{display:none;max-height:145px;overflow-y:auto;padding:6px 18px;}
-#el.open{display:block;}
-.er{display:flex;align-items:center;gap:8px;padding:4px 0;
-  border-bottom:1px solid rgba(79,195,247,0.05);
-  cursor:pointer;transition:color 0.12s;font-size:11px;}
-.er:hover{color:#fff;}
-.erc{color:var(--dim);font-size:10px;min-width:188px;letter-spacing:0.05em;}
-.erl{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.ert{font-size:9px;padding:1px 5px;border:1px solid rgba(79,195,247,0.18);color:var(--dim);flex-shrink:0;}
-.ert.virus{border-color:rgba(224,80,80,0.35);color:var(--red);}
-.ert.classified{border-color:rgba(191,124,10,0.35);color:var(--amber);}
+/* UNDO/REDO bar */
+#ur-bar{display:flex;align-items:center;gap:8px;padding:6px 13px;
+  border-bottom:1px solid var(--bdr);flex-shrink:0;}
+#ur-info{font-size:10px;color:var(--dim);flex:1;}
 
-::-webkit-scrollbar{width:3px;}::-webkit-scrollbar-track{background:transparent;}
+/* SCROLLBARS */
+::-webkit-scrollbar{width:3px;}
+::-webkit-scrollbar-track{background:transparent;}
 ::-webkit-scrollbar-thumb{background:rgba(79,195,247,0.12);}
 
-#toast{position:fixed;bottom:18px;right:18px;
-  background:rgba(4,10,18,0.96);border:1px solid rgba(79,195,247,0.26);
-  color:var(--blue);padding:7px 14px;font-size:11px;letter-spacing:0.06em;
-  opacity:0;transition:opacity 0.25s;pointer-events:none;z-index:100;}
+/* TOAST */
+#toast{position:fixed;bottom:16px;right:16px;
+  background:rgba(2,8,16,0.96);border:1px solid rgba(79,195,247,0.24);
+  color:var(--blue);padding:6px 13px;font-size:11px;letter-spacing:0.05em;
+  opacity:0;transition:opacity 0.22s;pointer-events:none;z-index:200;}
 #toast.show{opacity:1;}
 </style>
 </head>
 <body>
 <div id="app">
 
-<div id="header">
-  <span class="h-title">ECHO LORE EDITOR // v4.2.6.026</span>
-  <div class="h-right">
+<!-- HEADER -->
+<div id="hdr">
+  <span class="htitle">ECHO LORE EDITOR // v4.2.6.026</span>
+  <div class="hright">
     <span id="as-ind">&#10003; AUTOSAVED</span>
-    <span id="ect">0 ENTRIES LOADED</span>
-    <span style="color:rgba(79,195,247,0.22)">PLAIN TEXT MODE</span>
+    <span id="file-status" class="none">NO FILE OPEN</span>
+    <button class="hbtn" onclick="openFile()" id="open-btn" title="Open JSON file with read/write access">&#8213; OPEN FILE</button>
   </div>
 </div>
 
-<div id="main">
-<div id="left">
-  <div class="phdr">&#9658; ENTRY EDITOR</div>
-  <div id="scroll">
+<!-- UNDO/REDO BAR -->
+<div id="ur-bar">
+  <button class="btn sm" onclick="undo()" id="undo-btn" disabled title="Ctrl+Z">&#8617; UNDO</button>
+  <button class="btn sm" onclick="redo()" id="redo-btn" disabled title="Ctrl+Y">&#8618; REDO</button>
+  <span id="ur-info">No changes yet</span>
+  <button class="btn sm g" onclick="saveEntry()" id="save-btn" title="Save current form to JSON (add or update)">&#8629; SAVE ENTRY</button>
+  <button class="btn sm r" onclick="removeEntry()" id="rm-btn" title="Remove current code from JSON">&#8722; REMOVE</button>
+  <button class="btn sm a" onclick="saveToFile()" id="stf-btn" title="Write JSON back to opened file">&#8681; SAVE TO FILE</button>
+  <button class="btn sm" onclick="dlJSON()" title="Download JSON as file">&#8595; DOWNLOAD</button>
+</div>
 
-    <!-- STARDATE -->
+<div id="body">
+
+<!-- LEFT: ENTRY BROWSER -->
+<div id="ecol">
+  <div class="phdr">&#9658; ENTRIES <span id="ect" style="color:rgba(79,195,247,0.35)">— 0</span></div>
+  <input id="esrch" type="text" placeholder="SEARCH CODE OR LABEL..." oninput="filterEnts()" autocomplete="off" spellcheck="false">
+  <div id="elist"><div id="eno" class="pd">Load a JSON file to browse entries</div></div>
+  <div id="ecount" style="display:none"></div>
+</div>
+
+<!-- MIDDLE: EDITOR -->
+<div id="editor">
+  <div class="phdr">&#9658; ENTRY EDITOR</div>
+  <div id="escroll">
+
+    <!-- STARDATE PANEL -->
     <div id="sdp">
       <div class="sdr">
         <span class="sdl">REAL DATE</span>
@@ -208,31 +264,22 @@ input[type=date]{color-scheme:dark;}
       </div>
     </div>
 
-    <!-- SETTINGS -->
-    <div>
-      <div id="sh" onclick="togSet()">&#9658; PROJECT SETTINGS <span id="sarr">&#9662;</span></div>
-      <div id="sb">
-        <div class="fg">
-          <div class="fl">PROJECT START DATE (DAY 1 OF THE PROJECT)</div>
-          <input type="date" id="startd" oninput="updDay();savSet()">
-        </div>
-        <div class="fg">
-          <div class="fl">DEFAULT SIGNATURE</div>
-          <input type="text" id="sigf" placeholder="Capt. E. Harrow" autocomplete="off" oninput="savSet()">
-        </div>
-      </div>
+    <!-- SIGNATURE SETTING -->
+    <div class="fg">
+      <div class="fl">DEFAULT SIGNATURE (USED IN TEMPLATES)</div>
+      <input type="text" id="sigf" placeholder="Dev. J. Betancourt" autocomplete="off" oninput="savSet()">
     </div>
 
-    <!-- MODE -->
+    <!-- MODE TOGGLE -->
     <div class="fg">
       <div class="fl">ENTRY MODE</div>
       <div class="tgg" id="mtg">
         <button class="tg on" data-v="lore" onclick="setMode('lore')">LORE ENTRY</button>
-        <button class="tg" data-v="dev" onclick="setMode('dev')">DEV LOG</button>
+        <button class="tg"    data-v="dev"  onclick="setMode('dev')">DEV LOG</button>
       </div>
     </div>
 
-    <!-- TYPE -->
+    <!-- TYPE TOGGLE -->
     <div class="fg">
       <div class="fl">ENTRY TYPE</div>
       <div class="tgg" id="ttg">
@@ -245,7 +292,7 @@ input[type=date]{color-scheme:dark;}
       </div>
     </div>
 
-    <!-- CLEARANCE -->
+    <!-- CLEARANCE TOGGLE -->
     <div class="fg" id="clrg">
       <div class="fl">CLEARANCE LEVEL</div>
       <div class="tgg" id="ctg">
@@ -276,23 +323,25 @@ input[type=date]{color-scheme:dark;}
 
     <!-- LOG ID + DAY -->
     <div class="fg">
-      <div class="fl">LOG ID (XX-X) &#8212; INCLUDED IN LABEL AND HEADER TEXT</div>
+      <div class="fl">LOG ID (XX-A) &#160;&#160; DAY NUMBER</div>
       <div class="fr" style="align-items:center">
         <input type="text" id="lidn" maxlength="2" placeholder="01"
-               style="width:52px;flex-shrink:0;text-align:center;letter-spacing:0.12em"
+               style="width:50px;flex-shrink:0;text-align:center;letter-spacing:0.12em"
                oninput="fmtLid()" autocomplete="off">
-        <span style="color:var(--dim);font-size:15px;padding:0 4px;flex-shrink:0">&#8212;</span>
+        <span style="color:var(--dim);font-size:14px;padding:0 4px;flex-shrink:0">&#8212;</span>
         <input type="text" id="lidl" maxlength="1" placeholder="A"
-               style="width:44px;flex-shrink:0;text-align:center;text-transform:uppercase;letter-spacing:0.14em"
+               style="width:40px;flex-shrink:0;text-align:center;text-transform:uppercase;letter-spacing:0.14em"
                oninput="fmtLid()" autocomplete="off">
-        <span style="color:var(--dim);font-size:13px;padding:0 8px;flex-shrink:0">|</span>
+        <span style="color:var(--dim);padding:0 8px;flex-shrink:0">|</span>
         <span style="font-size:10px;color:var(--dim);flex-shrink:0">DAY</span>
-        <span id="dayv" style="color:var(--amber);font-size:13px;padding:0 6px;flex-shrink:0">&#8212;</span>
+        <input type="number" id="dayf" min="1" placeholder="205"
+               style="width:68px;flex-shrink:0;margin-left:6px;text-align:center"
+               oninput="updJ()" autocomplete="off">
         <button class="btn sm" style="flex-shrink:0;margin-left:auto" onclick="autoLbl()">AUTO LABEL</button>
       </div>
     </div>
 
-    <!-- CODE -->
+    <!-- CODE FIELD -->
     <div class="fg">
       <div class="fl">ENTRY CODE &#8212; XXXXX-XXXXX-XXXXX-XXXXX</div>
       <input type="text" id="codef" maxlength="24"
@@ -302,93 +351,87 @@ input[type=date]{color-scheme:dark;}
     </div>
 
     <!-- CODE GENERATOR -->
-    <div id="cg">
-      <div style="font-size:10px;color:var(--dim);letter-spacing:0.09em">&#9658; CODE GENERATOR</div>
-      <div class="cgr">
-        <button class="btn sm" onclick="genRand()" title="Random unique code">&#8853; RANDOM</button>
-        <button class="btn sm" onclick="genNext()" title="Next code after highest loaded entry">&#8853; NEXT IN SEQ.</button>
+    <div id="cgen">
+      <div style="font-size:10px;color:var(--dim);letter-spacing:0.08em">&#9658; CODE GENERATOR</div>
+      <div class="cgrow">
+        <button class="btn sm" onclick="genRand()" title="Generate a unique random code">&#8853; RANDOM</button>
+        <button class="btn sm" onclick="genNext()" title="Increment current code or next after highest loaded entry">&#8853; NEXT</button>
         <button class="btn sm a" onclick="cpCode()">COPY CODE</button>
       </div>
-      <div class="cgr col">
-        <span class="cgl">GENERATE BETWEEN TWO LOADED CODES:</span>
-        <div class="cgr" style="width:100%">
+      <div class="cgrow" style="flex-direction:column;align-items:flex-start;gap:5px">
+        <span class="cglbl">MIDPOINT BETWEEN TWO LOADED CODES:</span>
+        <div class="cgrow" style="width:100%">
           <select class="ss" id="bwa"><option value="">&#8212; Code A &#8212;</option></select>
           <select class="ss" id="bwb"><option value="">&#8212; Code B &#8212;</option></select>
-          <button class="btn sm" onclick="genBetween()" style="flex-shrink:0">&#8853; MIDPOINT</button>
+          <button class="btn sm" onclick="genBetween()" style="flex-shrink:0">&#8853; MID</button>
         </div>
       </div>
     </div>
 
-    <!-- LABEL -->
+    <!-- TYPE/CLR DISPLAY + LABEL -->
     <div class="fg">
-      <div class="fl">LABEL &#8212; INTERNAL REFERENCE (NOT SHOWN IN TERMINAL)</div>
-      <input type="text" id="labf"
-             placeholder="Creator's Log 01-A | Stardate 2026.135.1428"
-             autocomplete="off" oninput="updJ()">
+      <div class="fl">TYPE &#160;&#160; LABEL &#8212; INTERNAL REFERENCE (NOT SHOWN IN TERMINAL)</div>
+      <div class="fr" style="align-items:center">
+        <span id="type-badge" class="full" style="flex-shrink:0">FULL</span>
+        <span id="clr-badge" style="flex-shrink:0;margin-right:4px">L1</span>
+        <input type="text" id="labf"
+               placeholder="Creator's Log 01-A | Stardate 2026.135.1428"
+               autocomplete="off" oninput="updJ()" style="width:auto;flex:1">
+      </div>
     </div>
 
     <!-- LOG TEXT -->
     <div class="fg">
-      <div class="fl">LOG TEXT &#8212; ENTER FOR NEW LINES</div>
+      <div class="fl">LOG TEXT &#8212; PRESS ENTER FOR NEW LINES</div>
       <textarea id="logtxt"
         placeholder="[Log 01-A | Stardate 2026.135.1428]&#10;CREATOR'S LOG &#8212; DAY 205&#10;&#10;[Your entry here]&#10;&#10;    -- Dev. J. Betancourt&#10;[END OF LOG]"></textarea>
       <div class="cct"><span id="cct">0</span> CHARS</div>
     </div>
 
-    <!-- L1 PREVIEW -->
+    <!-- L1 PREVIEW (classified) -->
     <div class="fg" id="l1preg">
       <div class="fl">L1 REDACTED PREVIEW &#8212; SHOWN IN L1 BEFORE FULL L2 ACCESS</div>
       <textarea id="l1pre"
         placeholder="[REDACTED] discovered something in the lower [REDACTED]&#10;on day [REDACTED]. This entry requires L2 access."></textarea>
     </div>
 
-    <!-- BUTTONS -->
-    <div id="btnrow">
+    <!-- MAIN BUTTONS -->
+    <div id="brow">
       <button class="btn" onclick="updPrev()">&#9658; PREVIEW</button>
       <button class="btn a" onclick="cpJSON()">&#8853; COPY JSON</button>
-      <button class="btn r" onclick="clrForm()">&#10005; CLEAR</button>
+      <button class="btn r" onclick="clrForm()">&#10005; CLEAR FORM</button>
     </div>
 
-    <!-- JSON MANAGEMENT -->
-    <div class="fg">
-      <div class="fl">JSON FILE MANAGEMENT</div>
-      <div style="display:flex;gap:7px;flex-wrap:wrap">
-        <button class="btn" onclick="addToJSON()" title="Add current entry to loaded JSON">&#43; ADD TO JSON</button>
-        <button class="btn r" onclick="removeFromJSON()" title="Remove current code from loaded JSON">&#8722; REMOVE FROM JSON</button>
-        <button class="btn a" onclick="downloadJSON()" title="Download current JSON as a file">&#8595; DOWNLOAD JSON</button>
-      </div>
-    </div>
-
-    <!-- IMPORT -->
+    <!-- LOAD JSON -->
     <div class="fg">
       <div class="fl">LOAD JSON &#8212; DRAG &amp; DROP, BROWSE, OR PASTE</div>
       <div id="dz" onclick="document.getElementById('fi').click()"
            ondragover="dzov(event)" ondragleave="dzlv(event)" ondrop="dzdp(event)">
-        <input type="file" id="fi" accept=".json" onchange="fiChosen(event)">
-        &#8595; DROP .JSON FILE HERE OR CLICK TO BROWSE
+        <input type="file" id="fi" accept=".json" onchange="fiCh(event)">
+        &#8595; DROP .JSON HERE OR CLICK TO BROWSE (READ-ONLY MODE)<br>
+        <span style="font-size:9px;color:rgba(79,195,247,0.28)">Use OPEN FILE in header for read/write access</span>
       </div>
       <textarea id="pasta"
-        placeholder='{ "CODE": { "label": "...", "type": "full", "text": "..." }, ... }'
+        placeholder='{ "CODE": { "label": "...", "type": "full", "text": "..." } }'
         oninput="tryImp(this.value)"></textarea>
     </div>
 
-  </div><!-- /scroll -->
-</div><!-- /left -->
+  </div><!-- /escroll -->
+</div><!-- /editor -->
 
-<div id="right">
+<!-- RIGHT: PREVIEW + JSON -->
+<div id="rcol">
   <div id="pw">
-    <div class="pvh">
-      <span>&#9658; TERMINAL PREVIEW &#8212; ECHO-ARCHIVE</span>
+    <div class="pvhdr">
+      <span>&#9658; TERMINAL PREVIEW</span>
       <span id="mbadge" class="lore">LORE</span>
     </div>
-    <div id="preview">
-      <span class="pd">Fill in a code and log text, then click PREVIEW</span>
-    </div>
+    <div id="preview"><span class="pd">Fill in a code and log text, then click PREVIEW</span></div>
   </div>
   <div id="jw">
-    <div class="jh">
+    <div class="jhdr">
       <span>&#9658; JSON SNIPPET</span>
-      <div style="display:flex;gap:8px;align-items:center">
+      <div style="display:flex;gap:6px;align-items:center">
         <span id="tgtf" style="font-size:9px;color:var(--dim)">&#8594; lore.json</span>
         <button class="btn sm" onclick="cpJSON()">COPY</button>
       </div>
@@ -397,33 +440,79 @@ input[type=date]{color-scheme:dark;}
   </div>
 </div>
 
-</div><!-- /main -->
-
-<div id="ep">
-  <button id="et" onclick="togEnts()">&#9658; BROWSE LOADED ENTRIES &#8212; load or paste a JSON file above</button>
-  <div id="el"></div>
-</div>
-
+</div><!-- /body -->
 </div><!-- /app -->
 <div id="toast"></div>
 
 <script>
 'use strict';
 
-// STATE
-var mode='lore', typ='full', clr=1, iData={};
+// ── GLOBALS ───────────────────────────────────────────────────────────────────
+var mode='lore', typ='full', clr=1;
+var iData={};          // current JSON data in memory
+var fileHandle=null;   // File System Access API handle (null = read-only)
+var activeCode=null;   // code currently loaded in the form
 var CHARS='0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
-// STARDATE
+// ── UNDO / REDO ───────────────────────────────────────────────────────────────
+var hist=[], histIdx=-1;
+
+function pushHist(){
+  // Save a deep copy of iData
+  var snap=JSON.parse(JSON.stringify(iData));
+  // Truncate forward history
+  hist=hist.slice(0,histIdx+1);
+  hist.push(snap);
+  if(hist.length>60){hist.shift();}
+  histIdx=hist.length-1;
+  updUndoUI();
+}
+
+function undo(){
+  if(histIdx<=0){toast('Nothing to undo');return;}
+  histIdx--;
+  iData=JSON.parse(JSON.stringify(hist[histIdx]));
+  syncAll();
+  toast('Undo');
+}
+
+function redo(){
+  if(histIdx>=hist.length-1){toast('Nothing to redo');return;}
+  histIdx++;
+  iData=JSON.parse(JSON.stringify(hist[histIdx]));
+  syncAll();
+  toast('Redo');
+}
+
+function updUndoUI(){
+  var u=document.getElementById('undo-btn');
+  var r=document.getElementById('redo-btn');
+  u.disabled=histIdx<=0;
+  r.disabled=histIdx>=hist.length-1;
+  var info=histIdx+1+' / '+(hist.length)+' states';
+  document.getElementById('ur-info').textContent=hist.length?info:'No changes yet';
+}
+
+function syncAll(){
+  renderEnts();popBetween();updCounts();updUndoUI();autoSave();
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown',function(e){
+  if((e.ctrlKey||e.metaKey)&&e.key==='z'&&!e.shiftKey){e.preventDefault();undo();}
+  if((e.ctrlKey||e.metaKey)&&(e.key==='y'||(e.key==='z'&&e.shiftKey))){e.preventDefault();redo();}
+});
+
+// ── STARDATE ──────────────────────────────────────────────────────────────────
 function getSD(y){
-  var n=new Date(), s=new Date(n.getFullYear(),0,0);
+  var n=new Date(),s=new Date(n.getFullYear(),0,0);
   var day=Math.floor((n-s)/864e5);
-  return y+'.'+String(day).padStart(3,'0')+'.'+String(n.getHours()).padStart(2,'0')+String(n.getMinutes()).padStart(2,'0');
+  return y+'.'+String(day).padStart(3,'0')+'.'+
+         String(n.getHours()).padStart(2,'0')+String(n.getMinutes()).padStart(2,'0');
 }
 function updClocks(){
   document.getElementById('sdrl').textContent=getSD(new Date().getFullYear());
   document.getElementById('sdft').textContent=getSD(2143);
-  updDay();
 }
 setInterval(updClocks,30000); updClocks();
 
@@ -433,57 +522,38 @@ function inj(w){
   var s=ta.selectionStart,e=ta.selectionEnd;
   ta.value=ta.value.substring(0,s)+v+ta.value.substring(e);
   ta.selectionStart=ta.selectionEnd=s+v.length;
-  ta.focus(); updCct(); toast('Inserted: '+v);
+  ta.focus();updCct();toast('Inserted: '+v);
 }
 
-// DAY COUNTER
-function updDay(){
-  var sd=document.getElementById('startd').value;
-  var el=document.getElementById('dayv');
-  if(!sd){el.textContent='\u2014';return;}
-  var d=Math.floor((new Date()-new Date(sd+'T00:00:00'))/864e5)+1;
-  el.textContent=d>0?d:'\u2014';
-}
-
-// SETTINGS
-var setOpen=false;
-function togSet(){
-  setOpen=!setOpen;
-  document.getElementById('sb').classList.toggle('open',setOpen);
-  document.getElementById('sarr').textContent=setOpen?'\u25b4':'\u25be';
-}
+// ── SETTINGS ──────────────────────────────────────────────────────────────────
 function savSet(){
-  try{localStorage.setItem('echo_set',JSON.stringify({
-    sd:document.getElementById('startd').value,
-    sig:document.getElementById('sigf').value}));}catch(e){}
+  try{localStorage.setItem('echo_set',JSON.stringify({sig:document.getElementById('sigf').value}));}catch(e){}
 }
 function lodSet(){
   try{var s=JSON.parse(localStorage.getItem('echo_set')||'{}');
-    if(s.sd)document.getElementById('startd').value=s.sd;
-    if(s.sig)document.getElementById('sigf').value=s.sig;
-  }catch(e){}updDay();
+    if(s.sig)document.getElementById('sigf').value=s.sig;}catch(e){}
 }
 
-// MODE/TYPE/CLEARANCE
+// ── MODE / TYPE / CLEARANCE ───────────────────────────────────────────────────
 function setMode(m){
   mode=m;
   document.querySelectorAll('#mtg .tg').forEach(function(b){b.classList.toggle('on',b.dataset.v===m);});
   var mb=document.getElementById('mbadge');
   var pv=document.getElementById('preview');
   var tf=document.getElementById('tgtf');
+  var ttg=document.getElementById('ttg');
+  var cg=document.getElementById('clrg');
   if(m==='dev'){
     mb.className='dev';mb.textContent='DEV LOG';
     pv.classList.add('dv');tf.textContent='\u2192 dev_logs.json';
+    ttg.style.opacity='0.35';ttg.style.pointerEvents='none';
+    cg.style.opacity='0.35';cg.style.pointerEvents='none';
     setTyp('full');
-    ['ttg','clrg'].forEach(function(id){
-      document.getElementById(id).style.opacity='0.35';
-      document.getElementById(id).style.pointerEvents='none';});
   }else{
     mb.className='lore';mb.textContent='LORE';
     pv.classList.remove('dv');tf.textContent='\u2192 lore.json';
-    ['ttg','clrg'].forEach(function(id){
-      document.getElementById(id).style.opacity='';
-      document.getElementById(id).style.pointerEvents='';});
+    ttg.style.opacity='';ttg.style.pointerEvents='';
+    cg.style.opacity='';cg.style.pointerEvents='';
   }
   updJ();
 }
@@ -498,6 +568,9 @@ function setTyp(t){
   });
   document.getElementById('l1preg').style.display=t==='classified'?'flex':'none';
   if(t==='classified')setClr(2);
+  // Update type badge display
+  var tb=document.getElementById('type-badge');
+  tb.className=t; tb.textContent=t.toUpperCase();
   updJ();
 }
 
@@ -505,10 +578,11 @@ function setClr(v){
   clr=v;
   document.querySelectorAll('#ctg .tg').forEach(function(b){
     b.classList.toggle('on',parseInt(b.dataset.v)===v);});
+  document.getElementById('clr-badge').textContent='L'+v;
   updJ();
 }
 
-// LOG ID
+// ── LOG ID ────────────────────────────────────────────────────────────────────
 function fmtLid(){
   var n=document.getElementById('lidn');
   var l=document.getElementById('lidl');
@@ -521,54 +595,96 @@ function getLid(){
   var l=document.getElementById('lidl').value||'A';
   return n.padStart(2,'0')+'-'+l.toUpperCase();
 }
+function getDay(){
+  return document.getElementById('dayf').value||'[DAY]';
+}
 
-// CODE FIELD
+// ── CODE FIELD ────────────────────────────────────────────────────────────────
 document.getElementById('codef').addEventListener('input',function(){
   var raw=this.value.replace(/[^A-Z0-9]/gi,'').toUpperCase().slice(0,20);
-  var f='';
-  for(var i=0;i<raw.length;i++){if(i>0&&i%5===0)f+='-';f+=raw[i];}
+  var f='';for(var i=0;i<raw.length;i++){if(i>0&&i%5===0)f+='-';f+=raw[i];}
   this.value=f; valC(raw); updJ();
 });
+
 function valC(raw){
   var el=document.getElementById('codest');
+  var inp=document.getElementById('codef');
+  inp.classList.remove('valid','dupe');
   if(!raw){el.textContent='Enter a 20-character alphanumeric code';el.className='';return false;}
-  if(raw.length<20){el.textContent=raw.length+'/20 \u2014 keep going';el.className='bad';return false;}
+  if(raw.length<20){el.textContent=raw.length+'/20 characters';el.className='';return false;}
   var fc=fmtC(raw);
   var dup=isDup(fc);
-  el.textContent=dup?'\u26a0 DUPLICATE \u2014 already in loaded entries':'\u2713 Valid: '+fc;
-  el.className=dup?'bad':'ok';
-  return !dup;
+  var inJSON=iData.hasOwnProperty(fc);
+  if(dup){
+    el.textContent='\u26a0 EXISTS IN JSON '+(activeCode===fc?'(CURRENTLY EDITING)':'(will overwrite)');
+    el.className=activeCode===fc?'ok':'bad';
+    inp.classList.add(activeCode===fc?'valid':'dupe');
+  }else{
+    el.textContent='\u2713 Available: '+fc;
+    el.className='ok'; inp.classList.add('valid');
+  }
+  return true;
 }
-function fmtC(r){r=r.slice(0,20);return [r.slice(0,5),r.slice(5,10),r.slice(10,15),r.slice(15,20)].join('-');}
+
+function fmtC(r){r=r.slice(0,20);return[r.slice(0,5),r.slice(5,10),r.slice(10,15),r.slice(15,20)].join('-');}
 function getRaw(){return document.getElementById('codef').value.replace(/-/g,'');}
 function getFmt(){var r=getRaw();return r.length===20?fmtC(r):null;}
-function isDup(code){return Object.keys(iData).some(function(k){return k===code;});}
+function isDup(code){return iData.hasOwnProperty(code);}
 
-// CODE GENERATOR
+// ── CODE GENERATOR ────────────────────────────────────────────────────────────
 function setCode(c){document.getElementById('codef').value=c;valC(c.replace(/-/g,''));updJ();}
 
 function genRand(){
-  var att=0,code;
-  do{var r='';for(var i=0;i<20;i++)r+=CHARS[Math.floor(Math.random()*36)];
-    code=fmtC(r);att++;}while(isDup(code)&&att<200);
+  var att=0,code,raw;
+  do{raw='';for(var i=0;i<20;i++)raw+=CHARS[Math.floor(Math.random()*36)];
+    code=fmtC(raw);att++;}while(isDup(code)&&att<500);
+  if(att>=500){toast('Could not generate unique code — load fewer duplicates');return;}
   setCode(code);
-  toast(att>1?'Generated ('+att+' attempts, avoiding duplicates)':'Random code generated');
+  toast(att>1?'Generated (avoided '+att+' duplicates)':'Random code generated');
 }
 
-function genNext(){
-  var keys=Object.keys(iData);
-  if(!keys.length){setCode('00000-00000-00000-00001');toast('Starting sequence');return;}
-  var hi=keys.map(function(k){return k.replace(/-/g,'');}).sort().pop();
-  setCode(fmtC(inc36(hi)));
-  toast('Next in sequence generated');
-}
-
+// Increment a base-36 string by 1
 function inc36(s){
   var a=s.split('').reverse(),c=1;
   for(var i=0;i<a.length&&c;i++){var x=CHARS.indexOf(a[i])+c;a[i]=CHARS[x%36];c=Math.floor(x/36);}
   return a.reverse().join('');
 }
 
+function genNext(){
+  // If a valid code is in the field, increment that
+  var cur=getRaw();
+  if(cur.length===20){
+    var next=fmtC(inc36(cur));
+    setCode(next);
+    toast('Incremented current code');
+    return;
+  }
+  // Otherwise find highest in iData and increment
+  var keys=Object.keys(iData);
+  if(!keys.length){setCode('00000-00000-00000-00001');toast('Starting sequence');return;}
+  var hi=keys.map(function(k){return k.replace(/-/g,'');}).sort().pop();
+  setCode(fmtC(inc36(hi)));
+  toast('Next after highest loaded entry');
+}
+
+// Midpoint using pure string arithmetic (no BigInt — works on all browsers)
+function b36add(a,b){
+  // add two 20-char base-36 strings
+  var res=[],c=0;
+  for(var i=19;i>=0;i--){
+    var s=CHARS.indexOf(a[i])+CHARS.indexOf(b[i])+c;
+    res[i]=CHARS[s%36]; c=Math.floor(s/36);}
+  return res.join('');
+}
+function b36half(s){
+  // halve a 20-char base-36 string (floor)
+  var res=[],rem=0;
+  for(var i=0;i<20;i++){
+    var cur=rem*36+CHARS.indexOf(s[i]);
+    res[i]=CHARS[Math.floor(cur/2)];
+    rem=cur%2;}
+  return res.join('');
+}
 function genBetween(){
   var a=document.getElementById('bwa').value;
   var b=document.getElementById('bwb').value;
@@ -576,16 +692,11 @@ function genBetween(){
   if(a===b){toast('Select two different codes');return;}
   var ra=a.replace(/-/g,''),rb=b.replace(/-/g,'');
   if(ra>rb){var t=ra;ra=rb;rb=t;}
-  try{
-    var na=toB(ra),nb=toB(rb),mid=(na+nb)/2n;
-    var res=fmtC(frB(mid,20));
-    if(res===fmtC(ra)||res===fmtC(rb)){toast('Codes are adjacent \u2014 no midpoint available');return;}
-    setCode(res);toast('Midpoint code generated');
-  }catch(e){toast('Error: '+e.message);}
+  var mid=fmtC(b36half(b36add(ra,rb)));
+  if(mid===fmtC(ra)||mid===fmtC(rb)){
+    toast('Codes are adjacent — no midpoint available');return;}
+  setCode(mid);toast('Midpoint code generated');
 }
-function toB(s){var r=0n;for(var i=0;i<s.length;i++)r=r*36n+BigInt(CHARS.indexOf(s[i]));return r;}
-function frB(n,len){if(n===0n)return '0'.repeat(len);
-  var r='';while(n>0n){r=CHARS[Number(n%36n)]+r;n=n/36n;}return r.padStart(len,'0');}
 
 function cpCode(){
   var c=getFmt()||document.getElementById('codef').value;
@@ -594,7 +705,7 @@ function cpCode(){
     .catch(function(){toast('Copy failed');});
 }
 
-// AUTO LABEL
+// ── AUTO LABEL ────────────────────────────────────────────────────────────────
 function autoLbl(){
   var id=getLid();
   var sd=mode==='dev'?getSD(new Date().getFullYear()):getSD(2143);
@@ -604,59 +715,49 @@ function autoLbl(){
   updJ();
 }
 
-// TEMPLATES
+// ── TEMPLATES ─────────────────────────────────────────────────────────────────
 var TPLS={
   captains:{f:function(id,sd,day,sig){
-    return '[Log '+id+' | Stardate '+sd+']\nCAPTAIN\u2019S LOG \u2014 DAY '+day+'\n\n[Your entry here]\n\n    \u2014\u2014 Capt. '+(sig||'E. Harrow');
-  }},
+    return '[Log '+id+' | Stardate '+sd+']\nCAPTAIN\u2019S LOG \u2014 DAY '+day+'\n\n[Your entry here]\n\n    \u2014\u2014 Capt. '+(sig||'E. Harrow');}},
   research:{f:function(id,sd,day,sig){
-    return '[Log '+id+' | Stardate '+sd+']\nRESEARCH NOTES \u2014 DAY '+day+'\n\n[Your observations here]\n\n    \u2014\u2014 Dr. '+(sig||'N. Osei');
-  }},
+    return '[Log '+id+' | Stardate '+sd+']\nRESEARCH NOTES \u2014 DAY '+day+'\n\n[Your observations here]\n\n    \u2014\u2014 Dr. '+(sig||'N. Osei');}},
   engineering:{f:function(id,sd,day,sig){
-    return '[Log '+id+' | Stardate '+sd+']\nENGINEERING REPORT \u2014 DAY '+day+'\n\nSYSTEMS STATUS:\n[Status here]\n\nNOTES:\n[Notes here]\n\n    \u2014\u2014 Chief Engineer '+(sig||'[NAME]');
-  }},
+    return '[Log '+id+' | Stardate '+sd+']\nENGINEERING REPORT \u2014 DAY '+day+'\n\nSYSTEMS STATUS:\n[Status here]\n\nNOTES:\n[Notes here]\n\n    \u2014\u2014 Chief Engineer '+(sig||'[NAME]');}},
   incident:{f:function(id,sd,day,sig){
-    return '[INCIDENT REPORT '+id+' | Stardate '+sd+']\nCLASSIFICATION: [CLEARANCE LEVEL]\nDAY: '+day+'\n\nDESCRIPTION:\n[Details here]\n\nCASUALTIES: [REDACTED]\nSTATUS: [REDACTED]\n\n    \u2014\u2014 '+(sig||'Reporting Officer');
-  }},
+    return '[INCIDENT REPORT '+id+' | Stardate '+sd+']\nCLASSIFICATION: [CLEARANCE LEVEL]\nDAY: '+day+'\n\nDESCRIPTION:\n[Details here]\n\nCASUALTIES: [REDACTED]\nSTATUS: [REDACTED]\n\n    \u2014\u2014 '+(sig||'Reporting Officer');}},
   personal:{f:function(id,sd,day,sig){
-    return '[Log '+id+' | Stardate '+sd+']\nPERSONAL LOG \u2014 DAY '+day+'\n\n[Your entry here]';
-  }},
+    return '[Log '+id+' | Stardate '+sd+']\nPERSONAL LOG \u2014 DAY '+day+'\n\n[Your entry here]';}},
   comms:{f:function(id,sd,day,sig){
-    return '[INTERCEPTED TRANSMISSION | Stardate '+sd+']\nORIGIN: [CORRUPTED]\nINTEGRITY: PARTIAL\n\n[TRANSMISSION BEGINS]\n\n[Content here]\n\n[END TRANSMISSION]';
-  }},
+    return '[INTERCEPTED TRANSMISSION | Stardate '+sd+']\nORIGIN: [CORRUPTED]\nINTEGRITY: PARTIAL\n\n[TRANSMISSION BEGINS]\n\n[Content here]\n\n[END TRANSMISSION]';}},
   field:{f:function(id,sd,day,sig){
-    return '[Field Notes '+id+' | Stardate '+sd+']\nLOCATION: [SECTOR / DESIGNATION]\nDAY: '+day+'\n\nOBSERVATIONS:\n[Notes here]\n\n    \u2014\u2014 '+(sig||'[CREW MEMBER]');
-  }},
+    return '[Field Notes '+id+' | Stardate '+sd+']\nLOCATION: [SECTOR / DESIGNATION]\nDAY: '+day+'\n\nOBSERVATIONS:\n[Notes here]\n\n    \u2014\u2014 '+(sig||'[CREW MEMBER]');}},
   medical:{f:function(id,sd,day,sig){
-    return '[MEDICAL LOG '+id+' | Stardate '+sd+']\nDAY: '+day+'\nPATIENT: [REDACTED]\nCONDITION: [REDACTED]\n\n[Medical notes here]\n\n    \u2014\u2014 Medical Officer '+(sig||'[NAME]');
-  }},
+    return '[MEDICAL LOG '+id+' | Stardate '+sd+']\nDAY: '+day+'\nPATIENT: [REDACTED]\nCONDITION: [REDACTED]\n\n[Medical notes here]\n\n    \u2014\u2014 Medical Officer '+(sig||'[NAME]');}},
   creator:{f:function(id,sd,day,sig){
-    return '[Log '+id+' | Stardate '+sd+']\nCREATOR\u2019S LOG \u2014 DAY '+day+'\n\n[Your entry here]\n\n    \u2014\u2014 '+(sig||'Dev. J. Betancourt')+'\n[END OF LOG]';
-  }}
+    return '[Log '+id+' | Stardate '+sd+']\nCREATOR\u2019S LOG \u2014 DAY '+day+'\n\n[Your entry here]\n\n    \u2014\u2014 '+(sig||'Dev. J. Betancourt')+'\n[END OF LOG]';}},
 };
-
 function applyTpl(){
   var sel=document.getElementById('tpls').value;
   if(!sel){toast('Select a template first');return;}
   var tpl=TPLS[sel];if(!tpl)return;
   if(sel==='creator'&&mode!=='dev')setMode('dev');
-  var id=getLid();
-  var sd=mode==='dev'?getSD(new Date().getFullYear()):getSD(2143);
-  var day=document.getElementById('dayv').textContent;
-  if(day==='\u2014')day='[DAY]';
-  var sig=document.getElementById('sigf').value.trim();
+  var id=getLid(),sd=mode==='dev'?getSD(new Date().getFullYear()):getSD(2143);
+  var day=getDay(),sig=document.getElementById('sigf').value.trim();
   document.getElementById('logtxt').value=tpl.f(id,sd,day,sig);
   updCct();autoLbl();updJ();toast('Template applied');
 }
 
-// PREVIEW
+// ── PREVIEW ───────────────────────────────────────────────────────────────────
 function updPrev(){
   var code=getFmt(),text=document.getElementById('logtxt').value;
   var pv=document.getElementById('preview'),isDev=mode==='dev';
-  if(!code&&!text){pv.innerHTML='<span class="pd">Fill in a code and log text, then click PREVIEW</span>';updJ();return;}
+  if(!code&&!text){
+    pv.innerHTML='<span class="pd">Fill in a code and log text, then click PREVIEW</span>';
+    updJ();return;}
   var SEP='\u2014'.repeat(36),ls=[];
   if(code){ls.push({t:'ARCHIVE QUERY: '+code,c:'pq'});ls.push({t:SEP,c:'ps'});}
-  if(isDev){ls.push({t:'> DECRYPTING ENTRY\u2026',c:'pdc'});ls.push({t:'> STATUS: PARTIAL RESTORATION',c:'pdc'});ls.push({t:'',c:''});}
+  if(isDev){ls.push({t:'> DECRYPTING ENTRY\u2026',c:'pdc'});
+    ls.push({t:'> STATUS: PARTIAL RESTORATION',c:'pdc'});ls.push({t:'',c:''});}
   if(typ==='classified'){
     var l1=document.getElementById('l1pre').value.trim();
     ls.push({t:'CLASSIFICATION: L2 CLEARANCE REQUIRED',c:'pd'});
@@ -669,39 +770,38 @@ function updPrev(){
     var vl=text.split('\n').filter(function(l){return l.trim();});
     vl.slice(0,3).forEach(function(ln){ls.push({t:ln,c:'pdc'});});
     ls.push({t:'',c:''});
-    ls.push({t:'> WARNING: UNAUTHORIZED PROCESS DETECTED',c:'pe'});
-    ls.push({t:'> FOREIGN SIGNAL INJECTED INTO ARCHIVE READ',c:'pe'});
-    ls.push({t:'> SIGNAL ORIGIN: UNKNOWN',c:'pe'});
-    ls.push({t:'> SYSTEM INTEGRITY: CRITICAL',c:'pe'});
+    ['> WARNING: UNAUTHORIZED PROCESS DETECTED',
+     '> FOREIGN SIGNAL INJECTED INTO ARCHIVE READ',
+     '> SIGNAL ORIGIN: UNKNOWN',
+     '> SYSTEM INTEGRITY: CRITICAL'].forEach(function(t){ls.push({t:t,c:'pe'});});
     ls.push({t:'',c:''});
     ls.push({t:'> SESSION TERMINATED \u2014 EXTERNAL INTERFERENCE',c:'pe'});
     ls.push({t:'',c:''});
     ls.push({t:'[TERMINAL RETURNS TO POWER ON SCREEN]',c:'pd'});
   }else{
-    if(text)text.split('\n').forEach(function(ln){ls.push({t:ln,c:'bc'});});
+    if(text)text.split('\n').forEach(function(ln){ls.push({t:ln,c:''}); });
   }
   if(code||text)ls.push({t:SEP,c:'ps'});
   pv.innerHTML=ls.map(function(l){
-    var c=l.c&&l.c!=='bc'?' class="'+l.c+'"':'';
-    return '<div'+c+'>'+esc(l.t||'\u00a0')+'</div>';
+    var a=l.c?' class="'+l.c+'"':'';
+    return '<div'+a+'>'+esc(l.t||'\u00a0')+'</div>';
   }).join('');
   updJ();
 }
 
-// JSON
+// ── JSON SNIPPET ──────────────────────────────────────────────────────────────
 function buildSnip(){
   var code=getFmt(),lbl=document.getElementById('labf').value.trim();
   var text=document.getElementById('logtxt').value;
   if(!code||!text)return null;
   var o={label:lbl||''};
   if(mode==='lore'){o.type=typ;o.clearance=clr;
-    if(typ==='classified')o.l1_preview=document.getElementById('l1pre').value.trim()||'[REDACTED]';
-  }else{o.type='full';}
+    if(typ==='classified')o.l1_preview=document.getElementById('l1pre').value.trim()||'[REDACTED]';}
+  else{o.type='full';}
   o.text=text;
   var ls=['  '+JSON.stringify(code)+': {'];
   Object.keys(o).forEach(function(k){
-    ls.push('    '+JSON.stringify(k)+': '+(typeof o[k]==='number'?o[k]:JSON.stringify(o[k]))+',');
-  });
+    ls.push('    '+JSON.stringify(k)+': '+(typeof o[k]==='number'?o[k]:JSON.stringify(o[k]))+',');});
   ls[ls.length-1]=ls[ls.length-1].replace(/,$/,'');
   ls.push('  }');
   return ls.join('\n');
@@ -714,16 +814,262 @@ function cpJSON(){
   updPrev();var snip=buildSnip();
   if(!snip){toast('Fill in code and log text first');return;}
   navigator.clipboard.writeText(snip).then(function(){toast('Copied to clipboard');})
-    .catch(function(){var ta=document.createElement('textarea');ta.value=snip;
-      document.body.appendChild(ta);ta.select();document.execCommand('copy');
-      document.body.removeChild(ta);toast('Copied');});
+    .catch(function(){var t=document.createElement('textarea');t.value=snip;
+      document.body.appendChild(t);t.select();document.execCommand('copy');
+      document.body.removeChild(t);toast('Copied');});
 }
-
-// CHAR COUNT
 function updCct(){document.getElementById('cct').textContent=document.getElementById('logtxt').value.length;}
 document.getElementById('logtxt').addEventListener('input',function(){updCct();updJ();});
+document.getElementById('labf').addEventListener('input',updJ);
 
-// AUTOSAVE
+// ── ENTRY MANAGEMENT (ADD / UPDATE / REMOVE) ─────────────────────────────────
+function saveEntry(){
+  var code=getFmt();
+  if(!code){toast('Enter a valid 20-character code first');return;}
+  var text=document.getElementById('logtxt').value.trim();
+  if(!text){toast('Log text cannot be empty');return;}
+  var isUpdate=iData.hasOwnProperty(code);
+  pushHist();
+  var entry={label:document.getElementById('labf').value.trim()||''};
+  if(mode==='lore'){entry.type=typ;entry.clearance=clr;
+    if(typ==='classified')entry.l1_preview=document.getElementById('l1pre').value.trim()||'[REDACTED]';}
+  else{entry.type='full';}
+  entry.text=text;
+  iData[code]=entry;
+  activeCode=code;
+  syncAll();
+  // Highlight this row in the browser
+  highlightRow(code);
+  toast((isUpdate?'Updated':'Added')+': '+code);
+}
+
+function removeEntry(){
+  var code=getFmt();
+  if(!code){toast('No code in field');return;}
+  if(!iData.hasOwnProperty(code)){toast(code+' not in JSON');return;}
+  if(!confirm('Remove '+code+' from JSON?\nThis can be undone.'))return;
+  pushHist();
+  delete iData[code];
+  if(activeCode===code)activeCode=null;
+  syncAll();
+  toast('Removed: '+code);
+}
+
+function rmRow(code){
+  if(!confirm('Remove '+code+'?\nThis can be undone.'))return;
+  pushHist();
+  delete iData[code];
+  if(activeCode===code)activeCode=null;
+  syncAll();
+  toast('Removed: '+code);
+}
+
+// ── FILE OPERATIONS ───────────────────────────────────────────────────────────
+// File System Access API — gives read/write handle
+async function openFile(){
+  if(!window.showOpenFilePicker){
+    toast('File System Access API not supported in this browser. Use drag & drop.');
+    return;
+  }
+  try{
+    var picks=await window.showOpenFilePicker({
+      types:[{description:'JSON files',accept:{'application/json':['.json']}}],
+      multiple:false
+    });
+    fileHandle=picks[0];
+    var file=await fileHandle.getFile();
+    var text=await file.text();
+    parseImp(text,file.name);
+    updFileStatus('rw',file.name);
+    toast('Opened: '+file.name+' (read/write)');
+  }catch(e){
+    if(e.name!=='AbortError')toast('Error opening file: '+e.message);
+  }
+}
+
+async function saveToFile(){
+  if(!fileHandle){
+    toast('No file opened with write access. Use OPEN FILE button or DOWNLOAD.');
+    return;
+  }
+  try{
+    var sorted={};
+    Object.keys(iData).sort().forEach(function(k){sorted[k]=iData[k];});
+    var writable=await fileHandle.createWritable();
+    await writable.write(JSON.stringify(sorted,null,2));
+    await writable.close();
+    var ind=document.getElementById('as-ind');
+    ind.classList.add('show');setTimeout(function(){ind.classList.remove('show');},2000);
+    toast('Saved to '+fileHandle.name);
+  }catch(e){toast('Save failed: '+e.message);}
+}
+
+function dlJSON(){
+  if(!Object.keys(iData).length){toast('No entries to download');return;}
+  var sorted={};
+  Object.keys(iData).sort().forEach(function(k){sorted[k]=iData[k];});
+  var blob=new Blob([JSON.stringify(sorted,null,2)],{type:'application/json'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  a.href=url;a.download=mode==='dev'?'dev_logs.json':'lore.json';
+  document.body.appendChild(a);a.click();
+  document.body.removeChild(a);URL.revokeObjectURL(url);
+  toast('Downloaded: '+a.download+' ('+Object.keys(iData).length+' entries)');
+}
+
+function updFileStatus(state,name){
+  var el=document.getElementById('file-status');
+  var stf=document.getElementById('stf-btn');
+  if(state==='rw'){
+    el.className='rw';el.textContent='\u2713 '+name;
+    stf.disabled=false;
+  }else if(state==='ro'){
+    el.className='ro';el.textContent='\u25cf READ-ONLY: '+name;
+    stf.disabled=true;
+  }else{
+    el.className='none';el.textContent='NO FILE OPEN';
+    stf.disabled=true;
+  }
+}
+
+// ── IMPORT / DROP ─────────────────────────────────────────────────────────────
+function dzov(e){e.preventDefault();document.getElementById('dz').classList.add('ov');}
+function dzlv(e){document.getElementById('dz').classList.remove('ov');}
+function dzdp(e){e.preventDefault();dzlv(e);
+  var f=e.dataTransfer.files[0];
+  if(f&&f.name.endsWith('.json'))rdFile(f);
+  else toast('Drop a .json file');}
+function fiCh(e){var f=e.target.files[0];if(f)rdFile(f);e.target.value='';}
+function rdFile(f){
+  var r=new FileReader();
+  r.onload=function(e){parseImp(e.target.result,f.name);updFileStatus('ro',f.name);};
+  r.readAsText(f);
+}
+function tryImp(v){if(!v.trim())return;parseImp(v,'pasted JSON');}
+
+function parseImp(text,src){
+  try{
+    var parsed=JSON.parse(text);
+    iData=parsed;
+    // Seed the initial history state
+    hist=[JSON.parse(JSON.stringify(iData))];histIdx=0;
+    updUndoUI();
+    syncAll();
+    toast('Loaded '+Object.keys(iData).length+' entries from '+src);
+  }catch(e){toast('JSON parse error \u2014 check format');}
+}
+
+// ── ENTRY BROWSER ─────────────────────────────────────────────────────────────
+var filterText='';
+
+function filterEnts(){
+  filterText=document.getElementById('esrch').value.toUpperCase().trim();
+  renderEnts();
+}
+
+function updCounts(){
+  var n=Object.keys(iData).length;
+  document.getElementById('ect').textContent='\u2014 '+n;
+  var ec=document.getElementById('ecount');
+  if(n){ec.style.display='';ec.textContent=n+' entries, sorted by code';}
+  else{ec.style.display='none';}
+}
+
+function renderEnts(){
+  var list=document.getElementById('elist');
+  list.innerHTML='';
+  var keys=Object.keys(iData).sort();
+  if(!keys.length){
+    list.innerHTML='<div id="eno" class="pd">No entries loaded</div>';
+    return;}
+  var shown=0;
+  keys.forEach(function(code){
+    var e=iData[code];
+    var label=(e.label||'').toUpperCase();
+    if(filterText&&code.indexOf(filterText)<0&&label.indexOf(filterText)<0)return;
+    shown++;
+    var tc=e.type==='virus'?'virus':e.type==='classified'?'classified':
+           (e.type==='partial'||e.type==='degraded'||e.type==='corrupted')?e.type:'';
+    var row=document.createElement('div');
+    row.className='erow'+(activeCode===code?' active':'');
+    row.dataset.code=code;
+    // Remove button
+    var rm=document.createElement('button');
+    rm.className='erm';rm.textContent='\u00d7';rm.title='Remove from JSON';
+    rm.onclick=function(ev){ev.stopPropagation();rmRow(code);};
+    row.innerHTML=
+      '<div class="erow-code">'+code+'</div>'+
+      '<div class="erow-mid">'+
+        '<span class="etbadge '+(tc||'full')+'">'+((e.type||'full').toUpperCase())+'</span>'+
+        '<span style="font-size:9px;color:rgba(79,195,247,0.25);flex-shrink:0">L'+(e.clearance||1)+'</span>'+
+      '</div>'+
+      '<div class="erow-lbl">'+esc(e.label||'\u2014')+'</div>';
+    row.appendChild(rm);
+    row.onclick=function(){lodEnt(code,e);};
+    list.appendChild(row);
+  });
+  if(shown===0&&filterText){
+    list.innerHTML='<div id="eno" class="pd">No matches for "'+esc(filterText)+'"</div>';
+  }
+  updCounts();
+}
+
+function highlightRow(code){
+  document.querySelectorAll('.erow').forEach(function(r){
+    r.classList.toggle('active',r.dataset.code===code);});
+}
+
+function lodEnt(code,e){
+  activeCode=code;
+  document.getElementById('codef').value=code;
+  document.getElementById('labf').value=e.label||'';
+  document.getElementById('logtxt').value=e.text||'';
+  document.getElementById('l1pre').value=e.l1_preview||'';
+  valC(code.replace(/-/g,''));
+  if(e.type)setTyp(e.type);
+  if(e.clearance)setClr(e.clearance);
+  if(mode==='dev'&&e.type==='full')setMode('dev');
+  updCct();updPrev();
+  highlightRow(code);
+  // Try to extract day number from label or text
+  var dayM=(e.label||'').match(/DAY (\d+)/i)||(e.text||'').match(/DAY (\d+)/i);
+  if(dayM)document.getElementById('dayf').value=dayM[1];
+  // Try to extract log id
+  var idM=(e.label||'').match(/Log (\d+)-([A-Z])/i);
+  if(idM){document.getElementById('lidn').value=idM[1];document.getElementById('lidl').value=idM[2];}
+  toast('Loaded: '+code);
+}
+
+function popBetween(){
+  var keys=Object.keys(iData).sort();
+  ['bwa','bwb'].forEach(function(id){
+    var s=document.getElementById(id),pv=s.value;
+    s.innerHTML='<option value="">\u2014 Code \u2014</option>';
+    keys.forEach(function(k){
+      var o=document.createElement('option');
+      o.value=k;o.textContent=k+' \u2014 '+(iData[k].label||'').substring(0,22);
+      s.appendChild(o);});
+    if(pv)s.value=pv;});
+}
+
+// ── CLEAR FORM ────────────────────────────────────────────────────────────────
+function clrForm(){
+  if(!confirm('Clear all form fields?'))return;
+  ['codef','labf','logtxt','l1pre','lidn','lidl'].forEach(function(id){
+    document.getElementById(id).value='';});
+  document.getElementById('dayf').value='';
+  document.getElementById('codest').textContent='Enter a 20-character alphanumeric code';
+  document.getElementById('codest').className='';
+  document.getElementById('codef').className='';
+  document.getElementById('jo').textContent='// Fill in code and log text to generate snippet';
+  document.getElementById('preview').innerHTML='<span class="pd">Fill in a code and log text, then click PREVIEW</span>';
+  document.getElementById('cct').textContent='0';
+  activeCode=null;
+  document.querySelectorAll('.erow').forEach(function(r){r.classList.remove('active');});
+  try{localStorage.removeItem('echo_ed26');}catch(e){}
+}
+
+// ── AUTOSAVE ──────────────────────────────────────────────────────────────────
 var asT=null;
 function autoSave(){
   clearTimeout(asT);
@@ -735,13 +1081,16 @@ function autoSave(){
       text:document.getElementById('logtxt').value,
       l1p:document.getElementById('l1pre').value,
       lidn:document.getElementById('lidn').value,
-      lidl:document.getElementById('lidl').value
+      lidl:document.getElementById('lidl').value,
+      day:document.getElementById('dayf').value
     }));
-    var i=document.getElementById('as-ind');i.classList.add('show');
-    setTimeout(function(){i.classList.remove('show');},1600);}catch(e){}
+    var i=document.getElementById('as-ind');
+    i.classList.add('show');setTimeout(function(){i.classList.remove('show');},1500);
+    }catch(e){}
   },1200);
 }
-function restoreState(){
+
+function restore(){
   try{var s=JSON.parse(localStorage.getItem('echo_ed26')||'{}');
     if(s.mode)setMode(s.mode);if(s.typ)setTyp(s.typ);if(s.clr)setClr(s.clr);
     if(s.code){document.getElementById('codef').value=s.code;valC(s.code.replace(/-/g,''));}
@@ -750,142 +1099,23 @@ function restoreState(){
     if(s.l1p)document.getElementById('l1pre').value=s.l1p;
     if(s.lidn)document.getElementById('lidn').value=s.lidn;
     if(s.lidl)document.getElementById('lidl').value=s.lidl;
+    if(s.day)document.getElementById('dayf').value=s.day;
     updCct();updJ();
     if(s.text||s.code)toast('Session restored');
   }catch(e){}
 }
 
-// CLEAR
-function clrForm(){
-  if(!confirm('Clear all fields?'))return;
-  ['codef','labf','logtxt','l1pre','lidn','lidl'].forEach(function(id){document.getElementById(id).value='';});
-  document.getElementById('codest').textContent='Enter a 20-character alphanumeric code';
-  document.getElementById('codest').className='';
-  document.getElementById('jo').textContent='// Fill in code and log text to generate snippet';
-  document.getElementById('preview').innerHTML='<span class="pd">Fill in a code and log text, then click PREVIEW</span>';
-  document.getElementById('cct').textContent='0';
-  try{localStorage.removeItem('echo_ed26');}catch(e){}
-}
-
-// DROP/FILE
-function dzov(e){e.preventDefault();document.getElementById('dz').classList.add('ov');}
-function dzlv(e){document.getElementById('dz').classList.remove('ov');}
-function dzdp(e){e.preventDefault();dzlv(e);
-  var f=e.dataTransfer.files[0];
-  if(f&&f.name.endsWith('.json'))rdFile(f);else toast('Drop a .json file');}
-function fiChosen(e){var f=e.target.files[0];if(f)rdFile(f);e.target.value='';}
-function rdFile(f){var r=new FileReader();r.onload=function(e){parseImp(e.target.result,f.name);};r.readAsText(f);}
-
-function tryImp(v){if(!v.trim())return;parseImp(v,'pasted JSON');}
-function parseImp(text,src){
-  try{iData=JSON.parse(text);var k=Object.keys(iData);
-    document.getElementById('et').textContent='\u25b8 BROWSE LOADED ENTRIES ('+k.length+' from '+src+')';
-    document.getElementById('ect').textContent=k.length+' ENTRIES LOADED';
-    renderEnts();popBetween();toast('Loaded '+k.length+' entries from '+src);
-  }catch(e){toast('JSON parse error \u2014 check format');}
-}
-function popBetween(){
-  var keys=Object.keys(iData).sort();
-  ['bwa','bwb'].forEach(function(id){
-    var s=document.getElementById(id),pv=s.value;
-    s.innerHTML='<option value="">\u2014 select code \u2014</option>';
-    keys.forEach(function(k){
-      var o=document.createElement('option');
-      o.value=k;o.textContent=k+' \u2014 '+(iData[k].label||'').substring(0,28);
-      s.appendChild(o);});
-    if(pv)s.value=pv;});
-}
-function renderEnts(){
-  var list=document.getElementById('el');list.innerHTML='';
-  var keys=Object.keys(iData).sort();
-  if(!keys.length){list.innerHTML='<div style="color:var(--dim);padding:7px 0;font-size:11px">No entries</div>';return;}
-  keys.forEach(function(code){
-    var e=iData[code],row=document.createElement('div');row.className='er';
-    var tc=e.type==='virus'?'virus':e.type==='classified'?'classified':'';
-    row.innerHTML='<span class="erc">'+code+'</span>'+
-      '<span class="erl">'+esc(e.label||'\u2014')+'</span>'+
-      '<span class="ert '+tc+'">'+(e.type||'full').toUpperCase()+'</span>';
-    row.onclick=function(){lodEnt(code,e);};
-    list.appendChild(row);});
-}
-function lodEnt(code,e){
-  document.getElementById('codef').value=code;
-  document.getElementById('labf').value=e.label||'';
-  document.getElementById('logtxt').value=e.text||'';
-  document.getElementById('l1pre').value=e.l1_preview||'';
-  valC(code.replace(/-/g,''));
-  if(e.type)setTyp(e.type);if(e.clearance)setClr(e.clearance);
-  updCct();updPrev();toast('Loaded: '+code);
-}
-function togEnts(){document.getElementById('el').classList.toggle('open');}
-
-// JSON MANAGEMENT
-function addToJSON(){
-  var code=getFmt();
-  if(!code){toast('Enter a valid 20-character code first');return;}
-  var lbl=document.getElementById('labf').value.trim();
-  var text=document.getElementById('logtxt').value;
-  if(!text){toast('Log text is required');return;}
-  if(isDup(code)&&!confirm('Code '+code+' already exists. Overwrite?'))return;
-  var entry={label:lbl||''};
-  if(mode==='lore'){entry.type=typ;entry.clearance=clr;
-    if(typ==='classified')entry.l1_preview=document.getElementById('l1pre').value.trim()||'[REDACTED]';
-  }else{entry.type='full';}
-  entry.text=text;
-  iData[code]=entry;
-  var keys=Object.keys(iData);
-  document.getElementById('et').textContent='▸ BROWSE LOADED ENTRIES ('+keys.length+' entries)';
-  document.getElementById('ect').textContent=keys.length+' ENTRIES LOADED';
-  renderEnts();popBetween();
-  toast('Added: '+code);
-}
-
-function removeFromJSON(){
-  var code=getFmt()||document.getElementById('codef').value;
-  if(!code){toast('No code to remove');return;}
-  if(!iData[code]){toast(code+' not found in loaded JSON');return;}
-  if(!confirm('Remove '+code+' from JSON?'))return;
-  delete iData[code];
-  var keys=Object.keys(iData);
-  document.getElementById('et').textContent='▸ BROWSE LOADED ENTRIES ('+keys.length+' entries)';
-  document.getElementById('ect').textContent=keys.length+' ENTRIES LOADED';
-  renderEnts();popBetween();
-  toast('Removed: '+code);
-}
-
-function rmEntry(code){
-  if(!confirm('Remove '+code+'?'))return;
-  delete iData[code];
-  var keys=Object.keys(iData);
-  document.getElementById('et').textContent='▸ BROWSE LOADED ENTRIES ('+keys.length+' entries)';
-  document.getElementById('ect').textContent=keys.length+' ENTRIES LOADED';
-  renderEnts();popBetween();
-  toast('Removed: '+code);
-}
-
-function downloadJSON(){
-  if(!Object.keys(iData).length){toast('No entries loaded to download');return;}
-  // Sort by code before saving
-  var sorted={};
-  Object.keys(iData).sort().forEach(function(k){sorted[k]=iData[k];});
-  var blob=new Blob([JSON.stringify(sorted,null,2)],{type:'application/json'});
-  var url=URL.createObjectURL(blob);
-  var a=document.createElement('a');
-  a.href=url;
-  // Suggest correct filename based on mode
-  a.download=mode==='dev'?'dev_logs.json':'lore.json';
-  document.body.appendChild(a);a.click();
-  document.body.removeChild(a);URL.revokeObjectURL(url);
-  toast('Downloaded: '+a.download+' ('+Object.keys(iData).length+' entries, sorted by code)');
-}
-
-// UTIL
+// ── UTIL ──────────────────────────────────────────────────────────────────────
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-function toast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
-  setTimeout(function(){t.classList.remove('show');},2200);}
+function toast(msg){var t=document.getElementById('toast');t.textContent=msg;
+  t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2400);}
 
-// INIT
-lodSet(); restoreState();
+// ── INIT ──────────────────────────────────────────────────────────────────────
+updFileStatus('none','');
+document.getElementById('stf-btn').disabled=true;
+updUndoUI();
+lodSet();
+restore();
 </script>
 </body>
 </html>
