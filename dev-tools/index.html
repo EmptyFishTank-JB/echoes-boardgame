@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ECHO DEV TOOLS</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+CiAgPHJlY3QgeD0iNSIgeT0iNiIgd2lkdGg9IjYiIGhlaWdodD0iMTAiIHJ4PSIxIiBmaWxsPSIjZTg3MzJhIiBvcGFjaXR5PSIwLjkiLz4KICA8cmVjdCB4PSIxMyIgeT0iMiIgd2lkdGg9IjYiIGhlaWdodD0iMTQiIHJ4PSIxIiBmaWxsPSIjZTg3MzJhIi8+CiAgPHJlY3QgeD0iMjEiIHk9IjYiIHdpZHRoPSI2IiBoZWlnaHQ9IjEwIiByeD0iMSIgZmlsbD0iI2U4NzMyYSIgb3BhY2l0eT0iMC45Ii8+CiAgPHJlY3QgeD0iMSIgeT0iMTciIHdpZHRoPSIxMyIgaGVpZ2h0PSIxMyIgcng9IjIuNSIgZmlsbD0iI2Q4MWYyZiIvPgogIDxjaXJjbGUgY3g9IjQuMyIgY3k9IjIwLjMiIHI9IjEuMyIgZmlsbD0iI2ZmZiIvPgogIDxjaXJjbGUgY3g9IjcuNSIgY3k9IjIzLjUiIHI9IjEuMyIgZmlsbD0iI2ZmZiIvPgogIDxjaXJjbGUgY3g9IjEwLjciIGN5PSIyNi43IiByPSIxLjMiIGZpbGw9IiNmZmYiLz4KICA8cmVjdCB4PSIxOCIgeT0iMTciIHdpZHRoPSIxMyIgaGVpZ2h0PSIxMyIgcng9IjIuNSIgZmlsbD0iIzFjOGZjNyIvPgogIDxjaXJjbGUgY3g9IjI3LjciIGN5PSIyMC4zIiByPSIxLjMiIGZpbGw9IiNmZmYiLz4KICA8Y2lyY2xlIGN4PSIyMS4zIiBjeT0iMjYuNyIgcj0iMS4zIiBmaWxsPSIjZmZmIi8+Cjwvc3ZnPgo=">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --blue:#4fc3f7;--amber:#bf7c0a;--dim:rgba(79,195,247,0.40);--bdr:rgba(79,195,247,0.14);
+  --dark:#00080e;
+}
+html,body{min-height:100%;background:var(--dark);color:var(--blue);
+  font-family:"Share Tech Mono",monospace;font-size:13px;}
+body{padding:40px 24px 60px;display:flex;flex-direction:column;align-items:center;}
+
+header{width:100%;max-width:760px;margin-bottom:32px;}
+.back{font-size:11px;color:var(--dim);text-decoration:none;letter-spacing:0.08em;}
+.back:hover{color:var(--blue);}
+h1{font-size:20px;letter-spacing:0.14em;margin-top:14px;color:var(--blue);}
+.sub{font-size:11px;color:var(--dim);letter-spacing:0.08em;margin-top:6px;}
+
+.grid{width:100%;max-width:760px;display:flex;flex-direction:column;gap:14px;}
+.card{border:1px solid var(--bdr);background:rgba(8,10,14,0.6);padding:18px 20px;
+  text-decoration:none;color:inherit;display:block;transition:border-color 0.15s,background 0.15s;}
+.card:hover{border-color:var(--blue);background:rgba(79,195,247,0.05);}
+.card-top{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.card-name{font-size:14px;letter-spacing:0.08em;color:var(--blue);}
+.card-ver{font-size:11px;color:var(--amber);letter-spacing:0.06em;}
+.card-desc{font-size:12px;color:var(--dim);margin-top:8px;line-height:1.5;}
+
+footer{margin-top:40px;font-size:10px;color:rgba(79,195,247,0.25);letter-spacing:0.1em;}
+</style>
+</head>
+<body>
+
+<header>
+  <a class="back" href="../index.html">&larr; ECHOES</a>
+  <h1>ECHO DEV TOOLS</h1>
+  <div class="sub">// local editors for the terminal's content JSON — read live from GitHub, edits export as a download</div>
+</header>
+
+<div class="grid">
+  <a class="card" href="lore-devlog-editor.html">
+    <div class="card-top">
+      <span class="card-name">LORE // DEV LOG EDITOR</span>
+      <span class="card-ver">v14</span>
+    </div>
+    <div class="card-desc">Edits terminal-data/lore.json and dev_logs.json — the terminal's discoverable lore entries and developer log content.</div>
+  </a>
+
+  <a class="card" href="node-graph-editor.html">
+    <div class="card-top">
+      <span class="card-name">NODE GRAPH EDITOR</span>
+      <span class="card-ver">v5.36</span>
+    </div>
+    <div class="card-desc">Edits terminal-data/nodes.json — the terminal's layer/node navigation tree, laid out as a visual graph.</div>
+  </a>
+
+  <a class="card" href="personality-lab.html">
+    <div class="card-top">
+      <span class="card-name">PERSONALITY LAB</span>
+      <span class="card-ver">v3</span>
+    </div>
+    <div class="card-desc">Edits terminal-data/personality.json — easter eggs, denied responses, admin triggers, self-destruct sequence.</div>
+  </a>
+
+  <a class="card" href="terminal-engine-editor.html">
+    <div class="card-top">
+      <span class="card-name">TERMINAL ENGINE EDITOR</span>
+      <span class="card-ver">v4.1</span>
+    </div>
+    <div class="card-desc">Edits terminal-data/engine_config.json — idle messages, typing/audio timing, theme, boot behavior.</div>
+  </a>
+</div>
+
+<footer>ECHOES // internal tooling — not linked from the public site</footer>
+
+</body>
+</html>

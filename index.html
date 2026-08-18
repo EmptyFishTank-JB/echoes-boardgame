@@ -330,7 +330,24 @@
     .enter-arrow { display: block; }
     footer { padding: 10px 24px; }
     footer span.right { display: none; }
+    #devToolsLink { top: 18px; right: 24px; }
   }
+
+  /* ── DEV TOOLS ── */
+  #devToolsLink {
+    position: fixed;
+    top: 22px; right: 40px;
+    z-index: 1001;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px; height: 26px;
+    color: var(--text-dim);
+    opacity: 0.22;
+    transition: opacity 0.25s ease, color 0.25s ease;
+  }
+  #devToolsLink:hover { opacity: 0.9; color: var(--accent); }
+  #devToolsLink svg { width: 20px; height: 14px; display: block; }
 </style>
 </head>
 <body>
@@ -345,6 +362,14 @@
   <span class="sep">//</span>
   <a href="assets.html">Assets</a>
 </nav>
+
+<a href="dev-tools/index.html" id="devToolsLink" aria-label="Dev Tools">
+  <svg viewBox="0 0 40 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M15 2 L4 12 L15 22" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M25 2 L36 12 L25 22" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M23 2 L19.5 9.5 L21.5 10.5 L17 22" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+</a>
 
 <!-- ══ CENTER CONTENT ════════════════════════════════════════════ -->
 <main>
