@@ -164,21 +164,23 @@ select.iv-sel option{background:#001220;color:var(--blue);}
 .rbt{background:transparent;border:none;color:rgba(79,195,247,0.35);font-family:"Share Tech Mono",monospace;font-size:13px;cursor:pointer;padding:0 3px;transition:color 0.12s;line-height:1;}
 .rbt:hover{color:var(--blue);}
 .rbt.r:hover{color:#e05050;}
-.body-type-tag{font-size:10px;padding:1px 4px;border-radius:1px;flex-shrink:0;white-space:nowrap;}
-.tag-text{background:rgba(0,6,12,0.95);color:rgba(79,195,247,0.55);border:1px solid rgba(79,195,247,0.25);}
-.tag-nav{background:rgba(0,6,12,0.95);color:#4fc3f7;border:1px solid rgba(79,195,247,0.70);}
-.tag-pull{background:rgba(0,6,12,0.95);color:#c47fc4;border:1px solid rgba(196,127,196,0.70);}
-.tag-data{background:rgba(0,6,12,0.95);color:#c47fc4;border:1px solid rgba(196,127,196,0.70);}
-.tag-loop{background:rgba(0,6,12,0.95);color:#6fb06f;border:1px solid rgba(111,176,111,0.70);}
-.tag-flavor{background:rgba(0,6,12,0.95);color:#c47fc4;border:1px solid rgba(196,127,196,0.50);border-style:dashed;}
-.tag-dyn{background:rgba(0,6,12,0.95);color:#f0c040;border:1px solid rgba(240,192,64,0.70);}
+.body-type-tag,.btype-btn{background:rgba(0,6,12,0.95);padding:2px 8px;border-radius:4px;transition:all 0.2s ease;font-size:10px;flex-shrink:0;white-space:nowrap;letter-spacing:0.05em;}
+.tag-text,.txt{color:#4fc3f7!important;border:1px solid rgba(79,195,247,0.7)!important;}
+.tag-nav,.nav-tag{color:#4fc3f7!important;border:1px solid rgba(79,195,247,0.9)!important;}
+.tag-pull,.pul{color:#ba68c8!important;border:1px solid rgba(186,104,200,0.7)!important;}
+.tag-data{color:#ba68c8!important;border:1px solid rgba(186,104,200,0.7)!important;}
+.tag-loop,.loo{color:#66bb6a!important;border:1px solid rgba(102,187,106,0.7)!important;}
+.tag-flavor{color:#ba68c8!important;border:1px dashed rgba(186,104,200,0.5)!important;}
+.tag-dyn,.dyn-tag{color:#f0c040!important;border:1px solid rgba(240,192,64,0.7)!important;}
 .add-body-btns{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px;}
-.add-btn{background:transparent;border:1px solid rgba(79,195,247,0.14);color:var(--dim);font-family:"Share Tech Mono",monospace;font-size:11px;padding:3px 7px;cursor:pointer;transition:all 0.15s;}
-.add-btn:hover{border-color:var(--blue);color:var(--blue);}
-.add-btn.nav{border-color:rgba(79,195,247,0.25);color:rgba(79,195,247,0.60);}
-.add-btn.data-cmd{border-color:rgba(196,127,196,0.25);color:rgba(196,127,196,0.60);}
-.add-btn.loop{border-color:rgba(111,176,111,0.25);color:rgba(111,176,111,0.60);}
-.add-btn.flavor{border-color:rgba(196,127,196,0.25);color:rgba(196,127,196,0.60);border-style:dashed;}
+.add-btn{background:rgba(0,6,12,0.95);font-family:"Share Tech Mono",monospace;font-size:11px;padding:3px 8px;cursor:pointer;border-radius:4px;transition:all 0.2s ease;}
+.add-btn:hover{filter:brightness(1.3);box-shadow:0 0 8px currentColor;cursor:pointer;}
+.add-btn.nav{color:#4fc3f7;border:1px solid rgba(79,195,247,0.70);}
+.add-btn.pull,.add-btn.data-cmd{color:#ba68c8;border:1px solid rgba(186,104,200,0.70);}
+.add-btn.loop{color:#66bb6a;border:1px solid rgba(102,187,106,0.70);}
+.add-btn.flavor{color:#ba68c8;border:1px dashed rgba(186,104,200,0.50);}
+.add-btn.dyn{color:#f0c040;border:1px solid rgba(240,192,64,0.70);}
+.add-btn:not(.nav):not(.pull):not(.data-cmd):not(.loop):not(.flavor):not(.dyn){color:#4fc3f7;border:1px solid rgba(79,195,247,0.35);}
 /* CONN LIST */
 .conn-list{display:flex;flex-direction:column;gap:3px;margin-top:4px;}
 .conn-row{font-size:13px;padding:4px 7px;border:1px solid rgba(79,195,247,0.10);color:rgba(79,195,247,0.60);display:flex;gap:5px;align-items:center;}
@@ -214,14 +216,12 @@ select.iv-sel option{background:#001220;color:var(--blue);}
 #toast.show{opacity:1;}
 ::-webkit-scrollbar{width:3px;height:3px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:rgba(79,195,247,0.12);}
 
-.tag-dyn{background:rgba(0,6,12,0.95);color:#f0c040;border:1px solid rgba(240,192,64,0.70);}
 .gnode-bline.dyn{color:rgba(240,192,64,0.65);}
-.add-btn.dyn{border-color:rgba(240,192,64,0.35);color:rgba(240,192,64,0.70);}
 /* HIDDEN BODY LINES */
 .bline-hidden{opacity:0.42;background:rgba(79,195,247,0.015)!important;}
 /* TYPE CYCLE BUTTON */
-.btype-btn{cursor:pointer;border:none;font-family:"Share Tech Mono",monospace;letter-spacing:0.05em;transition:all 0.15s;outline:none;}
-.btype-btn:hover{filter:brightness(1.6);transform:scale(1.05);}
+.btype-btn{cursor:pointer;outline:none;font-family:"Share Tech Mono",monospace;}
+.btype-btn:hover{filter:brightness(1.5);box-shadow:0 0 6px currentColor;}
 </style>
 </head>
 <body>
@@ -289,7 +289,7 @@ select.iv-sel option{background:#001220;color:var(--blue);}
       <div class="leg-row"><div class="leg-dot" style="background:#bf7c0a"></div>L2 ECHO PROTOCOL</div>
       <div class="leg-row"><div class="leg-dot" style="background:#e05050"></div>L3 DEEP ARCHIVE</div>
       <div style="margin-top:6px;font-size:11px;line-height:1.9;">
-        &#9679; NAV &nbsp;&#9679; DATA &nbsp;&#9679; FLAVOR ports<br>
+        &#9679; NAV &nbsp;&#9679; PULL &nbsp;&#9679; ports<br>
         Drag port to connect · DBL-click header = edit ID<br>
         DBL-click field = inline edit · F = fit · DEL = delete<br>
         Wheel-click = fit · Drag L&#8594;R = window sel<br>
@@ -988,7 +988,7 @@ function showInfo(id){
   h+='<div class="add-body-btns">';
   h+='<button class="add-btn" onclick="addBody(\''+esc(id)+'\',\'text\')">+ TEXT</button>';
   h+='<button class="add-btn nav" onclick="addBody(\''+esc(id)+'\',\'cmd-nav\')">+ NAV</button>';
-  h+='<button class="add-btn data-cmd" onclick="addBody(\''+esc(id)+'\',\'cmd-data\')">+ DATA</button>';
+  h+='<button class="add-btn pull" onclick="addBody(\''+esc(id)+'\',\'cmd-pull\')">+ PULL</button>';
   h+='<button class="add-btn loop" onclick="addBody(\''+esc(id)+'\',\'cmd-loop\')">+ LOOP</button>';
   // FLAVOR removed — use personality_src field
   h+='<button class="add-btn dyn" onclick="addBody(\''+esc(id)+'\',\'dyn\')">+ DYN</button>';
