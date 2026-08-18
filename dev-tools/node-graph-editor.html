@@ -211,6 +211,12 @@ select.iv-sel option{background:#001220;color:var(--blue);}
 #toast{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);background:rgba(2,8,16,0.97);border:1px solid rgba(79,195,247,0.24);color:var(--blue);padding:6px 16px;font-size:14px;letter-spacing:0.05em;opacity:0;transition:opacity 0.22s;pointer-events:none;z-index:2000;}
 #toast.show{opacity:1;}
 ::-webkit-scrollbar{width:3px;height:3px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:rgba(79,195,247,0.12);}
+
+/* HIDDEN BODY LINES */
+.bline-hidden{opacity:0.42;background:rgba(79,195,247,0.015)!important;}
+/* TYPE CYCLE BUTTON */
+.btype-btn{cursor:pointer;border:none;font-family:"Share Tech Mono",monospace;letter-spacing:0.05em;transition:all 0.12s;outline:none;}
+.btype-btn:hover{filter:brightness(1.4);}
 </style>
 </head>
 <body>
@@ -488,7 +494,10 @@ function render(){
     el.id='gn-'+id;el.style.cssText='left:'+pos.x+'px;top:'+pos.y+'px;width:'+NODE_W+'px;position:absolute;';
 
     // Input port
-    var inp=document.createElement('div');inp.className='in-port';inp.id='inp-'+id;el.appendChild(inp);
+    var inp=document.createElement('div');inp.className='in-port';inp.id='inp-'+id;
+    inp.addEventListener('contextmenu',function(e){e.preventDefault();e.stopPropagation();showInPortCtxMenu(e,id);});
+    inp.addEventListener('dblclick',function(e){e.stopPropagation();disconnectAllIncoming(id);});
+    el.appendChild(inp);
 
     // Header
     var hdr=document.createElement('div');hdr.className='gnode-hdr';
@@ -517,21 +526,24 @@ function render(){
       var portIdx=0;
       body.forEach(function(b,bi){
         var row=document.createElement('div');
+        var isHidden=b.hidden||false;
         if(b.type==='text'){
-          row.className='gnode-bline text';
-          var ldot=document.createElement('span');ldot.className='bline-type-dot';ldot.style.background='rgba(79,195,247,0.25)';row.appendChild(ldot);
-          var ltxt=document.createElement('span');ltxt.className='bline-lbl';ltxt.textContent=b.text||'';row.appendChild(ltxt);
+          row.className='gnode-bline text'+(isHidden?' bline-hidden':'');
+          var ldot=document.createElement('span');ldot.className='bline-type-dot';ldot.style.background=isHidden?'rgba(79,195,247,0.12)':'rgba(79,195,247,0.25)';row.appendChild(ldot);
+          var ltxt=document.createElement('span');ltxt.className='bline-lbl';ltxt.textContent=b.text||'';ltxt.style.opacity=isHidden?'0.35':'1';row.appendChild(ltxt);
         } else if(b.type==='command'){
           var ct=b.cmd_type||'navigation';
-          row.className='gnode-bline cmd-'+ct;
-          var cdot=document.createElement('span');cdot.className='bline-type-dot';cdot.style.background=CMD_COLOR[ct]||'#4fc3f7';row.appendChild(cdot);
-          var clbl=document.createElement('span');clbl.className='bline-lbl';clbl.textContent=b.label||'';row.appendChild(clbl);
-          // Out port for nav/data/flavor commands
+          row.className='gnode-bline cmd-'+ct+(isHidden?' bline-hidden':'');
+          var cdot=document.createElement('span');cdot.className='bline-type-dot';cdot.style.background=isHidden?'rgba(79,195,247,0.12)':(CMD_COLOR[ct]||'#4fc3f7');row.appendChild(cdot);
+          var clbl=document.createElement('span');clbl.className='bline-lbl';clbl.textContent=(isHidden?'[hidden] ':'')+( b.label||'');clbl.style.opacity=isHidden?'0.35':'1';row.appendChild(clbl);
+          // Out port for nav/data/flavor commands (still shown even if hidden)
           if(ct==='navigation'||ct==='data'||ct==='flavor'){
             var port=document.createElement('div');
             port.className='out-port '+ct+(ct==='navigation'?' '+lyr:'');
+            port.style.opacity=isHidden?'0.30':'1';
             port.dataset.nodeid=id;port.dataset.bodyidx=bi;port.dataset.portidx=portIdx;
             port.addEventListener('mousedown',function(e){e.stopPropagation();e.preventDefault();startConnect(e,id,parseInt(this.dataset.bodyidx));});
+            port.addEventListener('contextmenu',function(e){e.preventDefault();e.stopPropagation();showPortCtxMenu(e,id,parseInt(this.dataset.bodyidx),'out');});
             row.appendChild(port);portIdx++;
           }
         }
@@ -551,12 +563,15 @@ function render(){
     nl.appendChild(el);nodeEls[id]=el;
   });
 
-  requestAnimationFrame(function(){
+requestAnimationFrame(function(){
     Object.keys(nodeEls).forEach(function(id){
       var el=nodeEls[id];var inp=document.getElementById('inp-'+id);
       if(inp)inp.style.top=Math.round(el.offsetHeight/2)+'px';
     });
-    drawConnections(nodes);updateMinimap();
+    // Second rAF ensures layout is fully settled before measuring port positions
+    requestAnimationFrame(function(){
+      drawConnections(nodes);updateMinimap();
+    });
   });
 }
 
@@ -564,18 +579,26 @@ function render(){
 function getPortPos(nodeId,bodyIdx){
   var pos=positions[nodeId]||{x:0,y:0};
   var el=document.getElementById('gn-'+nodeId);if(!el)return{x:pos.x+NODE_W,y:pos.y+40};
-  // Find the port with matching bodyidx
   var port=el.querySelector('.out-port[data-bodyidx="'+bodyIdx+'"]');
   if(port){
-    var pr=port;
-    var top=pr.offsetTop;
-    var par=pr.offsetParent;
-    while(par&&par!==el){top+=par.offsetTop;par=par.offsetParent;}
-    return{x:pos.x+NODE_W,y:pos.y+top+6};
+    // Use bounding rects relative to canvas-inner for accurate position
+    var canvasInner=document.getElementById('canvas-inner');
+    var cr=canvasInner.getBoundingClientRect();
+    var pr=port.getBoundingClientRect();
+    var x=(pr.left+pr.width/2-cr.left)/zoom;
+    var y=(pr.top+pr.height/2-cr.top)/zoom;
+    return{x:x,y:y};
   }
   return{x:pos.x+NODE_W,y:pos.y+40};
 }
 function getInPortPos(nodeId){
+  var inp=document.getElementById('inp-'+nodeId);
+  if(inp){
+    var canvasInner=document.getElementById('canvas-inner');
+    var cr=canvasInner.getBoundingClientRect();
+    var pr=inp.getBoundingClientRect();
+    return{x:(pr.left+pr.width/2-cr.left)/zoom,y:(pr.top+pr.height/2-cr.top)/zoom};
+  }
   var pos=positions[nodeId]||{x:0,y:0};
   var el=document.getElementById('gn-'+nodeId);var h=el?el.offsetHeight:80;
   return{x:pos.x,y:pos.y+h/2};
@@ -656,7 +679,7 @@ document.getElementById('canvas-wrap').addEventListener('mousedown',function(e){
   if(e.target.classList.contains('out-port'))return;
   hideCtxMenu();closeColorPopup();
   if(e.button===2)return;
-  if(e.button===1){e.preventDefault();resetView();return;} // wheel click = fit
+  if(e.button===1){e.preventDefault();panDrag={startX:e.clientX,startY:e.clientY,startPX:pan.x,startPY:pan.y};this.classList.add('grabbing');return;} // middle btn pan
   if(e.button===0&&tool==='pan'){
     e.preventDefault();
     panDrag={startX:e.clientX,startY:e.clientY,startPX:pan.x,startPY:pan.y};
@@ -672,6 +695,11 @@ document.getElementById('canvas-wrap').addEventListener('mousedown',function(e){
   }
 });
 
+document.getElementById('canvas-wrap').addEventListener('dblclick',function(e){
+  if(e.button!==0)return;
+  // Only fit on double-click of canvas background (not nodes)
+  if(!e.target.closest('.gnode')&&!e.target.closest('.out-port'))resetView();
+});
 document.getElementById('canvas-wrap').addEventListener('contextmenu',function(e){
   e.preventDefault();
   if(!e.target.closest('.gnode'))showCanvasCtxMenu(e);
@@ -876,7 +904,7 @@ function showInfo(id){
     var isText=b.type==='text';
     var ct=b.cmd_type||'navigation';
     h+='<div class="body-row" id="brow-'+bi+'">';
-    h+='<span class="body-type-tag '+(isText?'tag-text':'tag-'+ct)+'">'+(isText?'TXT':ct.toUpperCase().slice(0,3))+'</span>';
+    h+='<button class="body-type-tag '+(isText?'tag-text':'tag-'+ct)+' btype-btn" data-nodeid="'+esc(id)+'" data-bi="'+bi+'" title="Click to change type">'+(isText?'TXT':ct.toUpperCase().slice(0,3))+'</button>';
     h+='<input type="text" value="'+esc(b.text||b.label||'')+'" placeholder="'+(isText?'text line...':'[COMMAND]')+'" oninput="liveBody(\''+esc(id)+'\','+bi+',this.value)" onchange="pushHist()" autocomplete="off" spellcheck="false">';
     if(!isText){
       // Target input for non-loop commands
@@ -892,6 +920,7 @@ function showInfo(id){
     h+='<div class="body-row-btns">';
     h+='<button class="rbt" onclick="movBody(\''+esc(id)+'\','+bi+',-1)" title="Up">&#8593;</button>';
     h+='<button class="rbt" onclick="movBody(\''+esc(id)+'\','+bi+',1)" title="Down">&#8595;</button>';
+    h+='<button class="rbt" onclick="toggleBodyHidden(\''+esc(id)+'\','+bi+')" title="Toggle hidden" style="'+(b.hidden?'color:#c47fc4;':'')+'">&#128065;</button>';
     h+='<button class="rbt r" onclick="rmBody(\''+esc(id)+'\','+bi+')" title="Remove">\u00D7</button>';
     h+='</div></div>';
   });
@@ -1137,6 +1166,96 @@ function updateMinimap(){
   mv.style.cssText='left:'+Math.max(0,vx)+'px;top:'+Math.max(0,vy)+'px;width:'+Math.min(150,vw)+'px;height:'+Math.min(90,vh)+'px;position:absolute;border:1px solid rgba(79,195,247,0.50);pointer-events:none;';
 }
 
+// ── BODY TYPE CYCLING ────────────────────────────────────────────────────────
+var BODY_CYCLE_TEXT=['text'];
+var BODY_CYCLE_CMD=['navigation','data','loop','flavor'];
+
+function cycleBodyType(nodeId,bi){
+  var n=arch&&arch.nodes&&arch.nodes[nodeId];if(!n||!n.body[bi])return;
+  var b=n.body[bi];
+  if(b.type==='text'){
+    // text → navigation command
+    n.body[bi]={type:'command',cmd_type:'navigation',label:b.text||'[COMMAND]',target:'',hidden:b.hidden||false};
+  } else {
+    var order=BODY_CYCLE_CMD;
+    var idx=order.indexOf(b.cmd_type||'navigation');
+    var next=order[(idx+1)%order.length];
+    if(next==='navigation'&&idx===order.length-1){
+      // wrap back to text
+      n.body[bi]={type:'text',text:b.label||'',cls:'full',hidden:b.hidden||false};
+    } else {
+      n.body[bi].cmd_type=next;
+    }
+  }
+  pushHist();render();showInfo(nodeId);
+}
+
+// ── HIDDEN TOGGLE ─────────────────────────────────────────────────────────────
+function toggleBodyHidden(nodeId,bi){
+  var n=arch&&arch.nodes&&arch.nodes[nodeId];if(!n||!n.body[bi])return;
+  n.body[bi].hidden=!n.body[bi].hidden;
+  pushHist();render();showInfo(nodeId);
+  toast(n.body[bi].hidden?'Line hidden':'Line visible');
+}
+
+// ── PORT CONTEXT MENUS ────────────────────────────────────────────────────────
+function showPortCtxMenu(e,nodeId,bodyIdx,side){
+  e.stopPropagation();
+  var n=arch&&arch.nodes&&arch.nodes[nodeId];if(!n)return;
+  var b=n.body&&n.body[bodyIdx];
+  var hasConn=b&&b.target&&arch.nodes[b.target];
+  var menu=document.getElementById('ctx-menu');
+  menu.innerHTML=
+    '<div style="padding:5px 16px 3px;font-size:11px;color:rgba(79,195,247,0.38);letter-spacing:0.08em;">OUT PORT — body['+bodyIdx+']</div>'+
+    '<div class="ctx-sep"></div>'+
+    '<div class="ctx-item" onclick="startConnectFromCtx(\''+nodeId+'\','+bodyIdx+')">&#9655; Create Connection</div>'+
+    (hasConn?'<div class="ctx-item r" onclick="disconnectOut(\''+nodeId+'\','+bodyIdx+')">&#10005; Disconnect</div>':'<div class="ctx-item" style="opacity:0.35;pointer-events:none;">&#10005; Disconnect (none)</div>');
+  posCtxMenu(menu,e);
+}
+
+function showInPortCtxMenu(e,nodeId){
+  var incoming=[];
+  if(arch&&arch.nodes)Object.keys(arch.nodes).forEach(function(sid){
+    (arch.nodes[sid].body||[]).forEach(function(b,bi){if(b.type==='command'&&b.target===nodeId)incoming.push({sid:sid,bi:bi,label:b.label});});
+  });
+  var menu=document.getElementById('ctx-menu');
+  var h='<div style="padding:5px 16px 3px;font-size:11px;color:rgba(79,195,247,0.38);letter-spacing:0.08em;">IN PORT — '+nodeId+'</div><div class="ctx-sep"></div>';
+  if(incoming.length){
+    incoming.forEach(function(c){
+      h+='<div class="ctx-item r" onclick="disconnectOut(\''+c.sid+'\','+c.bi+')">&#10005; Disconnect from '+esc(c.sid)+'</div>';
+    });
+  } else {
+    h+='<div class="ctx-item" style="opacity:0.35;pointer-events:none;">No incoming connections</div>';
+  }
+  menu.innerHTML=h;
+  posCtxMenu(menu,e);
+}
+
+function startConnectFromCtx(nodeId,bodyIdx){
+  hideCtxMenu();
+  connecting={fromNode:nodeId,fromBodyIdx:bodyIdx};
+  document.getElementById('canvas-wrap').classList.add('connecting');
+  toast('Drag to target node to connect');
+}
+
+function disconnectOut(nodeId,bodyIdx){
+  hideCtxMenu();
+  var n=arch&&arch.nodes&&arch.nodes[nodeId];if(!n||!n.body[bodyIdx])return;
+  var old=n.body[bodyIdx].target;
+  n.body[bodyIdx].target='';
+  pushHist();render();if(selectedNode)showInfo(selectedNode);
+  toast('Disconnected from '+(old||'?'));
+}
+
+function disconnectAllIncoming(nodeId){
+  if(!arch||!arch.nodes)return;
+  var found=false;
+  Object.keys(arch.nodes).forEach(function(sid){
+    (arch.nodes[sid].body||[]).forEach(function(b){if(b.type==='command'&&b.target===nodeId){b.target='';found=true;}});
+  });
+  if(found){pushHist();render();toast('All incoming connections cleared');}
+}
+
 // ── KEYBOARD ─────────────────────────────────────────────────────────────────
 document.addEventListener('keydown',function(e){
   if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA'||e.target.tagName==='SELECT')return;
@@ -1168,6 +1287,12 @@ function toggleLayer(lyr){layerVis[lyr]=!layerVis[lyr];document.getElementById('
 function setTool(t){tool=t;document.getElementById('btn-sel').classList.toggle('on',t==='select');document.getElementById('btn-pan').classList.toggle('on',t==='pan');}
 
 // ── INIT ─────────────────────────────────────────────────────────────────────
+// Delegated handler for body type cycle buttons (avoids inline escaping)
+document.getElementById('info-body').addEventListener('click',function(e){
+  var btn=e.target.closest('.btype-btn');
+  if(!btn)return;
+  cycleBodyType(btn.dataset.nodeid,parseInt(btn.dataset.bi));
+});
 sizeCanvas();
 drawGrid();
 setTool('select');
