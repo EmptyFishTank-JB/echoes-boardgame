@@ -3,14 +3,21 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NODE GRAPH EDITOR // v1</title>
+<title>NODE GRAPH EDITOR // v2</title>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
-:root{--blue:#4fc3f7;--amber:#bf7c0a;--red:#e05050;--green:#6fb06f;--dark:#00080e;--dim:rgba(79,195,247,0.40);--bdr:rgba(79,195,247,0.10);}
+:root{
+  --blue:#4fc3f7;--amber:#bf7c0a;--red:#e05050;--green:#6fb06f;
+  --dark:#00080e;--dim:rgba(79,195,247,0.40);--bdr:rgba(79,195,247,0.10);
+  --canvas-bg:#06111a;--grid-color:rgba(79,195,247,0.055);
+  --canvas-border:#b0b8c1;
+}
 html,body{height:100%;background:var(--dark);color:var(--blue);font-family:"Share Tech Mono",monospace;font-size:13px;overflow:hidden;}
 #app{display:flex;flex-direction:column;height:100vh;}
-#hdr{display:flex;align-items:center;gap:10px;padding:7px 16px;border-bottom:1px solid var(--bdr);flex-shrink:0;background:rgba(0,4,10,0.98);flex-wrap:wrap;}
+
+/* HEADER */
+#hdr{display:flex;align-items:center;gap:8px;padding:6px 14px;border-bottom:1px solid var(--bdr);flex-shrink:0;background:rgba(0,4,10,0.98);flex-wrap:wrap;}
 .htitle{font-size:12px;letter-spacing:0.14em;flex:1;}
 .hbtn{background:transparent;border:1px solid rgba(79,195,247,0.16);color:var(--dim);font-family:"Share Tech Mono",monospace;font-size:11px;letter-spacing:0.07em;padding:3px 10px;cursor:pointer;transition:all 0.15s;}
 .hbtn:hover{border-color:var(--blue);color:var(--blue);}
@@ -20,138 +27,218 @@ html,body{height:100%;background:var(--dark);color:var(--blue);font-family:"Shar
 #fstat.rw{border-color:rgba(111,176,111,0.35);color:var(--green);}
 #as-ind{color:var(--green);opacity:0;transition:opacity 0.4s;font-size:11px;}
 #as-ind.show{opacity:1;}
-#toolbar{display:flex;align-items:center;gap:7px;padding:5px 13px;border-bottom:1px solid var(--bdr);flex-shrink:0;flex-wrap:wrap;}
+
+/* TOOLBAR */
+#toolbar{display:flex;align-items:center;gap:6px;padding:5px 13px;border-bottom:1px solid var(--bdr);flex-shrink:0;flex-wrap:wrap;}
 .tbtn{background:transparent;border:1px solid rgba(79,195,247,0.14);color:var(--dim);font-family:"Share Tech Mono",monospace;font-size:11px;padding:3px 9px;cursor:pointer;transition:all 0.15s;letter-spacing:0.06em;}
 .tbtn:hover{border-color:var(--blue);color:var(--blue);}
 .tbtn.on{border-color:var(--blue);color:var(--blue);background:rgba(79,195,247,0.07);}
-#zoom-info{font-size:11px;color:var(--dim);margin-left:4px;}
-#layer-filter{display:flex;gap:4px;margin-left:8px;}
-.lf-btn{background:transparent;border:1px solid rgba(79,195,247,0.12);color:var(--dim);font-family:"Share Tech Mono",monospace;font-size:10px;padding:2px 8px;cursor:pointer;transition:all 0.15s;letter-spacing:0.06em;}
-.lf-btn:hover{opacity:0.8;}
+.tbtn:disabled{opacity:0.25;cursor:not-allowed;}
+.tsep{width:1px;height:18px;background:rgba(79,195,247,0.10);flex-shrink:0;margin:0 2px;}
+#zoom-info{font-size:11px;color:var(--dim);min-width:38px;}
+#srch{background:rgba(79,195,247,0.04);border:1px solid rgba(79,195,247,0.12);color:var(--blue);font-family:"Share Tech Mono",monospace;font-size:11px;padding:3px 8px;outline:none;width:140px;letter-spacing:0.04em;}
+#srch::placeholder{color:rgba(79,195,247,0.22);}
+#layer-filter{display:flex;gap:3px;}
+.lf-btn{background:transparent;border:1px solid rgba(79,195,247,0.12);color:var(--dim);font-family:"Share Tech Mono",monospace;font-size:10px;padding:2px 8px;cursor:pointer;transition:opacity 0.15s;letter-spacing:0.06em;}
 .lf-btn.on{opacity:1;}
 .lf-btn.off{opacity:0.22;}
+
+/* BODY */
 #body{display:flex;flex:1;min-height:0;position:relative;}
 
 /* CANVAS */
-#canvas-wrap{flex:1;overflow:hidden;position:relative;cursor:grab;}
-#canvas-wrap.grabbing{cursor:grabbing;}
-#canvas-wrap.connecting{cursor:crosshair;}
-#canvas{position:absolute;top:0;left:0;transform-origin:0 0;}
-#svg-layer{position:absolute;top:0;left:0;pointer-events:none;}
+#canvas-wrap{flex:1;overflow:hidden;position:relative;}
+#canvas-wrap.grabbing{cursor:grabbing!important;}
+#canvas-wrap.connecting{cursor:crosshair!important;}
+/* Working area outer */
+#canvas-outer{position:absolute;background:#1a2430;border:2px solid var(--canvas-border);}
+/* Grid + nodes live inside canvas-inner which transforms */
+#canvas-inner{position:absolute;top:0;left:0;transform-origin:0 0;}
+#grid-canvas{position:absolute;top:0;left:0;pointer-events:none;}
+#svg-layer{position:absolute;top:0;left:0;pointer-events:none;overflow:visible;}
+#nodes-layer{position:absolute;top:0;left:0;}
 
 /* NODES */
-.gnode{position:absolute;min-width:180px;max-width:220px;border:1px solid;border-radius:2px;cursor:pointer;user-select:none;transition:box-shadow 0.15s;}
-.gnode.l1_archive{border-color:rgba(79,195,247,0.35);background:rgba(0,8,14,0.92);}
-.gnode.l2{border-color:rgba(191,124,10,0.45);background:rgba(10,7,0,0.92);}
-.gnode.l3{border-color:rgba(224,80,80,0.45);background:rgba(5,0,0,0.92);}
-.gnode.selected.l1_archive{border-color:#4fc3f7;box-shadow:0 0 0 1px #4fc3f7,0 4px 20px rgba(79,195,247,0.15);}
-.gnode.selected.l2{border-color:#bf7c0a;box-shadow:0 0 0 1px #bf7c0a,0 4px 20px rgba(191,124,10,0.15);}
-.gnode.selected.l3{border-color:#e05050;box-shadow:0 0 0 1px #e05050,0 4px 20px rgba(224,80,80,0.15);}
-.gnode-hdr{padding:6px 8px;display:flex;align-items:center;gap:6px;border-bottom:1px solid rgba(79,195,247,0.08);}
+.gnode{position:absolute;min-width:190px;border-radius:2px;cursor:default;user-select:none;transition:box-shadow 0.12s;}
+.gnode.l1_archive{border:1px solid rgba(79,195,247,0.40);background:rgba(2,12,22,0.97);}
+.gnode.l2{border:1px solid rgba(191,124,10,0.50);background:rgba(12,9,0,0.97);}
+.gnode.l3{border:1px solid rgba(224,80,80,0.50);background:rgba(10,2,2,0.97);}
+.gnode.selected.l1_archive{border-color:#4fc3f7;box-shadow:0 0 0 1px #4fc3f7,0 6px 24px rgba(79,195,247,0.18);}
+.gnode.selected.l2{border-color:#bf7c0a;box-shadow:0 0 0 1px #bf7c0a,0 6px 24px rgba(191,124,10,0.18);}
+.gnode.selected.l3{border-color:#e05050;box-shadow:0 0 0 1px #e05050,0 6px 24px rgba(224,80,80,0.18);}
+.gnode-hdr{padding:6px 8px 6px 10px;display:flex;align-items:center;gap:5px;cursor:grab;border-bottom:1px solid rgba(79,195,247,0.08);}
 .gnode.l2 .gnode-hdr{border-bottom-color:rgba(191,124,10,0.12);}
 .gnode.l3 .gnode-hdr{border-bottom-color:rgba(224,80,80,0.12);}
-.gnode-root-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.gnode-hdr:active{cursor:grabbing;}
+.gnode-root-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
 .gnode.l1_archive .gnode-root-dot{background:#4fc3f7;}
 .gnode.l2 .gnode-root-dot{background:#bf7c0a;}
 .gnode.l3 .gnode-root-dot{background:#e05050;}
-.gnode-id{font-size:10px;letter-spacing:0.08em;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.gnode-id{font-size:10px;letter-spacing:0.07em;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .gnode.l1_archive .gnode-id{color:#4fc3f7;}
 .gnode.l2 .gnode-id{color:#bf7c0a;}
 .gnode.l3 .gnode-id{color:#e05050;}
-.gnode-lyr{font-size:9px;color:rgba(79,195,247,0.30);flex-shrink:0;letter-spacing:0.06em;}
-.gnode.l2 .gnode-lyr{color:rgba(191,124,10,0.40);}
-.gnode.l3 .gnode-lyr{color:rgba(224,80,80,0.40);}
-.gnode-title{padding:5px 8px;font-size:11px;color:rgba(79,195,247,0.65);line-height:1.4;border-bottom:1px solid rgba(79,195,247,0.06);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.gnode.l2 .gnode-title{color:rgba(191,124,10,0.75);border-bottom-color:rgba(191,124,10,0.08);}
-.gnode.l3 .gnode-title{color:rgba(224,80,80,0.75);border-bottom-color:rgba(224,80,80,0.08);}
-.gnode-opts{padding:4px 0;}
-.gnode-opt{display:flex;align-items:center;padding:3px 8px;font-size:10px;color:rgba(79,195,247,0.55);letter-spacing:0.04em;position:relative;}
-.gnode.l2 .gnode-opt{color:rgba(191,124,10,0.65);}
-.gnode.l3 .gnode-opt{color:rgba(224,80,80,0.65);}
-.gnode-opt-label{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:14px;}
-/* OUTPUT PORT */
-.out-port{width:10px;height:10px;border-radius:50%;border:1px solid;position:absolute;right:-6px;top:50%;transform:translateY(-50%);cursor:crosshair;flex-shrink:0;transition:all 0.12s;z-index:10;}
-.gnode.l1_archive .out-port{border-color:rgba(79,195,247,0.35);background:rgba(0,8,14,0.9);}
-.gnode.l1_archive .out-port:hover{border-color:#4fc3f7;background:rgba(79,195,247,0.25);}
-.gnode.l2 .out-port{border-color:rgba(191,124,10,0.45);background:rgba(10,7,0,0.9);}
-.gnode.l2 .out-port:hover{border-color:#bf7c0a;background:rgba(191,124,10,0.25);}
-.gnode.l3 .out-port{border-color:rgba(224,80,80,0.45);background:rgba(5,0,0,0.9);}
-.gnode.l3 .out-port:hover{border-color:#e05050;background:rgba(224,80,80,0.25);}
-/* INPUT PORT */
-.in-port{width:10px;height:10px;border-radius:50%;border:1px solid;position:absolute;left:-6px;top:50%;transform:translateY(-50%);z-index:10;}
-.gnode.l1_archive .in-port{border-color:rgba(79,195,247,0.25);background:rgba(0,8,14,0.9);}
-.gnode.l2 .in-port{border-color:rgba(191,124,10,0.35);background:rgba(10,7,0,0.9);}
-.gnode.l3 .in-port{border-color:rgba(224,80,80,0.35);background:rgba(5,0,0,0.9);}
-.in-port.highlight{border-color:#4fc3f7;background:rgba(79,195,247,0.30);}
+.gnode-lyr{font-size:9px;color:rgba(79,195,247,0.28);flex-shrink:0;}
+.gnode.l2 .gnode-lyr{color:rgba(191,124,10,0.38);}
+.gnode.l3 .gnode-lyr{color:rgba(224,80,80,0.38);}
+.gnode-title{padding:4px 10px;font-size:10px;color:rgba(79,195,247,0.55);line-height:1.3;border-bottom:1px solid rgba(79,195,247,0.06);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.gnode.l2 .gnode-title{color:rgba(191,124,10,0.70);border-bottom-color:rgba(191,124,10,0.08);}
+.gnode.l3 .gnode-title{color:rgba(224,80,80,0.70);border-bottom-color:rgba(224,80,80,0.08);}
+.gnode-opts{padding:2px 0 4px;}
+.gnode-opt{display:flex;align-items:center;height:26px;padding:0 8px 0 10px;font-size:10px;color:rgba(79,195,247,0.50);letter-spacing:0.03em;position:relative;}
+.gnode.l2 .gnode-opt{color:rgba(191,124,10,0.60);}
+.gnode.l3 .gnode-opt{color:rgba(224,80,80,0.60);}
+.gnode-opt-lbl{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:6px;}
+/* PORTS */
+.out-port{width:11px;height:11px;border-radius:50%;border:1px solid;position:absolute;right:-7px;top:50%;transform:translateY(-50%);cursor:crosshair;z-index:10;transition:all 0.1s;}
+.in-port{width:11px;height:11px;border-radius:50%;border:1px solid;position:absolute;left:-7px;z-index:10;transition:all 0.1s;}
+.gnode.l1_archive .out-port{border-color:rgba(79,195,247,0.40);background:#020c16;}
+.gnode.l1_archive .out-port:hover,.gnode.l1_archive .out-port.active{border-color:#4fc3f7;background:rgba(79,195,247,0.30);}
+.gnode.l2 .out-port{border-color:rgba(191,124,10,0.50);background:#0c0900;}
+.gnode.l2 .out-port:hover,.gnode.l2 .out-port.active{border-color:#bf7c0a;background:rgba(191,124,10,0.30);}
+.gnode.l3 .out-port{border-color:rgba(224,80,80,0.50);background:#0a0202;}
+.gnode.l3 .out-port:hover,.gnode.l3 .out-port.active{border-color:#e05050;background:rgba(224,80,80,0.30);}
+.gnode.l1_archive .in-port{border-color:rgba(79,195,247,0.28);background:#020c16;}
+.gnode.l2 .in-port{border-color:rgba(191,124,10,0.35);background:#0c0900;}
+.gnode.l3 .in-port{border-color:rgba(224,80,80,0.35);background:#0a0202;}
+.in-port.highlight{border-color:#4fc3f7!important;background:rgba(79,195,247,0.35)!important;box-shadow:0 0 6px rgba(79,195,247,0.5);}
+
+/* DRAG HANDLE */
+.drag-handle{width:5px;flex-shrink:0;cursor:col-resize;background:transparent;position:relative;border-left:1px solid var(--bdr);transition:background 0.15s;}
+.drag-handle:hover,.drag-handle.dragging{background:rgba(79,195,247,0.07);}
+.drag-handle::after{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);height:40px;width:1px;background:rgba(79,195,247,0.20);}
 
 /* INFO PANEL */
-#info{width:260px;flex-shrink:0;border-left:1px solid var(--bdr);display:flex;flex-direction:column;background:rgba(0,4,10,0.98);}
-.iphdr{padding:7px 12px;font-size:12px;letter-spacing:0.12em;color:var(--dim);border-bottom:1px solid var(--bdr);flex-shrink:0;}
-#info-body{flex:1;overflow-y:auto;padding:12px;}
-#info-empty{color:var(--dim);font-size:12px;line-height:2;text-align:center;padding:20px 0;}
-.if{display:flex;flex-direction:column;gap:4px;margin-bottom:10px;}
-.il{font-size:11px;color:rgba(79,195,247,0.42);letter-spacing:0.08em;}
-.iv{font-size:12px;color:var(--blue);line-height:1.5;}
-.iv.amber{color:var(--amber);}
-.iv.red{color:var(--red);}
+#info{width:290px;flex-shrink:0;display:flex;flex-direction:column;background:rgba(0,4,10,0.98);min-width:180px;max-width:700px;}
+.iphdr{padding:6px 12px;font-size:12px;letter-spacing:0.12em;color:var(--dim);border-bottom:1px solid var(--bdr);flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.iphdr-btns{display:flex;gap:4px;}
+.iphdr-btn{background:transparent;border:1px solid rgba(79,195,247,0.14);color:var(--dim);font-family:"Share Tech Mono",monospace;font-size:10px;padding:2px 7px;cursor:pointer;transition:all 0.15s;}
+.iphdr-btn:hover{border-color:var(--blue);color:var(--blue);}
+.iphdr-btn.on{border-color:var(--blue);color:var(--blue);background:rgba(79,195,247,0.07);}
+#info-body{flex:1;overflow-y:auto;padding:10px 12px;display:flex;flex-direction:column;gap:8px;}
+#info-code{flex:1;overflow-y:auto;font-size:11px;color:rgba(79,195,247,0.60);white-space:pre;padding:10px 12px;line-height:1.6;}
+#info-empty{color:var(--dim);font-size:12px;line-height:2.2;text-align:center;padding:20px 0;}
+/* Info fields */
+.if{display:flex;flex-direction:column;gap:4px;}
+.il{font-size:10px;color:rgba(79,195,247,0.38);letter-spacing:0.08em;}
+.iv{font-size:12px;color:var(--blue);line-height:1.4;}
+input[type=text].iv-inp,select.iv-sel{background:rgba(79,195,247,0.05);border:1px solid rgba(79,195,247,0.14);color:var(--blue);font-family:"Share Tech Mono",monospace;font-size:12px;padding:4px 7px;outline:none;width:100%;transition:border-color 0.15s;letter-spacing:0.03em;}
+input[type=text].iv-inp:focus,select.iv-sel:focus{border-color:rgba(79,195,247,0.40);}
+select.iv-sel option{background:#001220;color:var(--blue);}
+.toggle-row{display:flex;gap:4px;}
+.tg{flex:1;background:transparent;border:1px solid rgba(79,195,247,0.12);color:var(--dim);font-family:"Share Tech Mono",monospace;font-size:11px;padding:4px 0;cursor:pointer;transition:all 0.15s;text-align:center;}
+.tg.on{color:#001220;background:var(--blue);border-color:var(--blue);}
+.sec-div{border-top:1px solid rgba(79,195,247,0.07);padding-top:8px;}
 .conn-list{display:flex;flex-direction:column;gap:3px;margin-top:4px;}
-.conn-row{font-size:11px;padding:3px 6px;border:1px solid rgba(79,195,247,0.10);color:rgba(79,195,247,0.60);display:flex;gap:6px;align-items:center;}
-.conn-arrow{color:rgba(79,195,247,0.30);}
+.conn-row{font-size:10px;padding:3px 6px;border:1px solid rgba(79,195,247,0.10);color:rgba(79,195,247,0.55);display:flex;gap:5px;align-items:center;position:relative;}
+.conn-arrow{color:rgba(79,195,247,0.28);flex-shrink:0;}
+.conn-lbl{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.conn-del{background:transparent;border:none;color:rgba(224,80,80,0.35);font-family:"Share Tech Mono",monospace;font-size:10px;cursor:pointer;padding:0 2px;transition:color 0.12s;flex-shrink:0;}
+.conn-del:hover{color:#e05050;}
+.conn-inp{background:rgba(79,195,247,0.05);border:1px solid rgba(79,195,247,0.14);color:var(--blue);font-family:"Share Tech Mono",monospace;font-size:11px;padding:3px 6px;outline:none;width:100%;margin-top:3px;}
+.add-btn{background:transparent;border:1px solid rgba(79,195,247,0.14);color:var(--dim);font-family:"Share Tech Mono",monospace;font-size:11px;padding:3px 8px;cursor:pointer;transition:all 0.15s;margin-top:4px;width:100%;}
+.add-btn:hover{border-color:var(--blue);color:var(--blue);}
+.save-btn{background:rgba(111,176,111,0.08);border:1px solid rgba(111,176,111,0.28);color:var(--green);font-family:"Share Tech Mono",monospace;font-size:11px;padding:5px;cursor:pointer;transition:all 0.15s;width:100%;margin-top:6px;letter-spacing:0.06em;}
+.save-btn:hover{background:rgba(111,176,111,0.14);border-color:var(--green);}
 
 /* LEGEND */
-#legend{padding:10px 12px;border-top:1px solid var(--bdr);flex-shrink:0;}
-.leg-row{display:flex;align-items:center;gap:6px;margin-bottom:5px;font-size:10px;color:var(--dim);}
-.leg-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+#legend{padding:8px 12px;border-top:1px solid var(--bdr);flex-shrink:0;font-size:10px;color:rgba(79,195,247,0.30);line-height:1.9;}
+.leg-row{display:flex;align-items:center;gap:6px;}
+.leg-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
 
 /* MINIMAP */
-#minimap{position:absolute;bottom:12px;right:272px;width:160px;height:100px;border:1px solid rgba(79,195,247,0.14);background:rgba(0,4,10,0.85);pointer-events:none;overflow:hidden;}
+#minimap{position:absolute;bottom:10px;right:0;width:150px;height:90px;border:1px solid rgba(79,195,247,0.14);background:rgba(0,4,10,0.88);pointer-events:none;overflow:hidden;z-index:20;}
 #minimap-canvas{position:absolute;top:0;left:0;}
-#minimap-vp{position:absolute;border:1px solid rgba(79,195,247,0.40);pointer-events:none;}
+#minimap-vp{position:absolute;border:1px solid rgba(79,195,247,0.45);pointer-events:none;}
 
-#toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:rgba(2,8,16,0.96);border:1px solid rgba(79,195,247,0.22);color:var(--blue);padding:6px 14px;font-size:12px;letter-spacing:0.05em;opacity:0;transition:opacity 0.22s;pointer-events:none;z-index:999;}
+/* CONTEXT MENU */
+#ctx-menu{position:fixed;background:rgba(2,10,20,0.98);border:1px solid rgba(79,195,247,0.22);z-index:1000;min-width:160px;display:none;box-shadow:0 8px 24px rgba(0,0,0,0.6);}
+.ctx-item{padding:7px 14px;font-size:12px;color:rgba(79,195,247,0.75);cursor:pointer;letter-spacing:0.05em;transition:background 0.1s;}
+.ctx-item:hover{background:rgba(79,195,247,0.08);color:var(--blue);}
+.ctx-item.r{color:rgba(224,80,80,0.70);}
+.ctx-item.r:hover{background:rgba(224,80,80,0.07);color:#e05050;}
+.ctx-sep{height:1px;background:rgba(79,195,247,0.08);margin:3px 0;}
+
+#toast{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);background:rgba(2,8,16,0.97);border:1px solid rgba(79,195,247,0.22);color:var(--blue);padding:5px 14px;font-size:12px;letter-spacing:0.05em;opacity:0;transition:opacity 0.22s;pointer-events:none;z-index:2000;}
 #toast.show{opacity:1;}
+
+::-webkit-scrollbar{width:3px;height:3px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:rgba(79,195,247,0.12);}
 </style>
 </head>
 <body>
 <div id="app">
+
 <div id="hdr">
-  <span class="htitle">NODE GRAPH EDITOR // v1</span>
+  <span class="htitle">NODE GRAPH EDITOR // v2</span>
   <span id="as-ind">&#10003; SAVED</span>
-  <span id="fstat" class="none">NO FILE OPEN</span>
-  <button class="hbtn" onclick="openFile()">&#8213; OPEN nodes.json</button>
-  <button class="hbtn" onclick="dlJSON()">&#8595; EXPORT nodes.json</button>
+  <span id="fstat" class="none">NO FILE</span>
+  <button class="hbtn" onclick="openFile()">&#8213; OPEN</button>
+  <button class="hbtn" onclick="dlJSON()">&#8595; EXPORT</button>
 </div>
+
 <div id="toolbar">
-  <button class="tbtn" id="btn-select" onclick="setTool('select')" title="Select / move nodes">&#9654; SELECT</button>
-  <button class="tbtn" id="btn-pan" onclick="setTool('pan')" title="Pan canvas">&#10021; PAN</button>
-  <button class="tbtn" onclick="addNode()" title="Add new node">&#43; NODE</button>
-  <button class="tbtn" onclick="resetView()" title="Fit all nodes in view">&#9635; FIT</button>
+  <button class="tbtn on" id="btn-sel" onclick="setTool('select')">&#9654; SELECT</button>
+  <button class="tbtn" id="btn-pan" onclick="setTool('pan')">&#10021; PAN</button>
+  <div class="tsep"></div>
+  <button class="tbtn" id="undo-btn" onclick="doUndo()" disabled title="Undo (Ctrl+Z)">&#8617; UNDO</button>
+  <button class="tbtn" id="redo-btn" onclick="doRedo()" disabled title="Redo (Ctrl+Y)">&#8618; REDO</button>
+  <div class="tsep"></div>
+  <button class="tbtn" onclick="addNode()">&#43; NODE</button>
+  <button class="tbtn" onclick="resetView()" title="Fit all (F)">&#9635; FIT</button>
   <span id="zoom-info">100%</span>
+  <div class="tsep"></div>
+  <input id="srch" type="text" placeholder="SEARCH NODES..." oninput="onSearch()" autocomplete="off" spellcheck="false">
+  <div class="tsep"></div>
   <div id="layer-filter">
     <button class="lf-btn on" id="lf-l1_archive" style="color:#4fc3f7;border-color:rgba(79,195,247,0.35);" onclick="toggleLayer('l1_archive')">L1</button>
     <button class="lf-btn on" id="lf-l2" style="color:#bf7c0a;border-color:rgba(191,124,10,0.40);" onclick="toggleLayer('l2')">L2</button>
     <button class="lf-btn on" id="lf-l3" style="color:#e05050;border-color:rgba(224,80,80,0.40);" onclick="toggleLayer('l3')">L3</button>
   </div>
 </div>
+
 <div id="body">
   <div id="canvas-wrap">
-    <div id="canvas">
-      <svg id="svg-layer" xmlns="http://www.w3.org/2000/svg"></svg>
+    <div id="canvas-outer">
+      <div id="canvas-inner">
+        <canvas id="grid-canvas"></canvas>
+        <svg id="svg-layer" xmlns="http://www.w3.org/2000/svg"></svg>
+        <div id="nodes-layer"></div>
+      </div>
     </div>
+    <div id="minimap"><canvas id="minimap-canvas" width="150" height="90"></canvas><div id="minimap-vp"></div></div>
   </div>
-  <div id="minimap"><canvas id="minimap-canvas" width="160" height="100"></canvas><div id="minimap-vp"></div></div>
+  <div class="drag-handle" id="dh-r" onmousedown="startPanelDrag(event)"></div>
   <div id="info">
-    <div class="iphdr">&#9658; NODE INFO</div>
-    <div id="info-body"><div id="info-empty">Select a node<br>to view details.</div></div>
+    <div class="iphdr">
+      <span>&#9658; NODE INFO</span>
+      <div class="iphdr-btns">
+        <button class="iphdr-btn on" id="btn-details" onclick="setInfoMode('details')">DETAILS</button>
+        <button class="iphdr-btn" id="btn-code" onclick="setInfoMode('code')">JSON</button>
+      </div>
+    </div>
+    <div id="info-body"><div id="info-empty">Select a node to view details.</div></div>
+    <div id="info-code" style="display:none;">// No node selected</div>
     <div id="legend">
-      <div class="leg-row"><div class="leg-dot" style="background:#4fc3f7;"></div>L1 ARCHIVE</div>
-      <div class="leg-row"><div class="leg-dot" style="background:#bf7c0a;"></div>L2 ECHO PROTOCOL</div>
-      <div class="leg-row"><div class="leg-dot" style="background:#e05050;"></div>L3 DEEP ARCHIVE</div>
-      <div class="leg-row" style="margin-top:6px;color:rgba(79,195,247,0.25);">SCROLL: zoom &nbsp;·&nbsp; DRAG: pan/move<br>PORT &#9679;: drag to connect</div>
+      <div class="leg-row"><div class="leg-dot" style="background:#4fc3f7"></div>L1 ARCHIVE</div>
+      <div class="leg-row"><div class="leg-dot" style="background:#bf7c0a"></div>L2 ECHO PROTOCOL</div>
+      <div class="leg-row"><div class="leg-dot" style="background:#e05050"></div>L3 DEEP ARCHIVE</div>
+      <div style="margin-top:5px;">SCROLL=zoom &nbsp;·&nbsp; F=fit &nbsp;·&nbsp; DEL=delete<br>Right-click node header for options<br>Drag port &#9679; to connect nodes</div>
     </div>
   </div>
 </div>
 </div>
+
+<!-- CONTEXT MENU -->
+<div id="ctx-menu">
+  <div class="ctx-item" onclick="ctxRename()">&#9998; Rename ID</div>
+  <div class="ctx-item" onclick="ctxDuplicate()">&#10064; Duplicate</div>
+  <div class="ctx-item" onclick="ctxSetRoot()">&#9733; Toggle Root</div>
+  <div class="ctx-sep"></div>
+  <div class="ctx-item r" onclick="ctxDelete()">&#10005; Delete Node</div>
+</div>
+
 <input type="file" id="fi" accept=".json" style="display:none" onchange="onFileIn(event)">
 <div id="toast"></div>
 
@@ -160,27 +247,68 @@ html,body{height:100%;background:var(--dark);color:var(--blue);font-family:"Shar
 
 // ── STATE ─────────────────────────────────────────────────────────────────────
 var arch = null;
-var positions = {}; // nodeId -> {x, y}
+var positions = {};
 var selectedNode = null;
-var tool = 'select'; // select | pan
-var pan = {x:60, y:60};
+var tool = 'select';
+var pan = {x:80,y:80};
 var zoom = 1.0;
-var layerVis = {l1_archive:true, l2:true, l3:true};
+var layerVis = {l1_archive:true,l2:true,l3:true};
+var searchStr = '';
 var fileHandle = null;
+var infoMode = 'details';
+var hist = [], histIdx = -1;
+var ctxNodeId = null;
 
-// Drag state
-var drag = null; // {type:'node'|'pan', nodeId, startX, startY, startPanX, startPanY, startNX, startNY}
-var connecting = null; // {fromNode, fromOptIdx, x1, y1}
+// Drag
+var nodeDrag = null;
+var panDrag = null;
+var connecting = null;
+var panelDrag = null;
 
-var LAYER_COLOR = {l1_archive:'#4fc3f7', l2:'#bf7c0a', l3:'#e05050'};
-var LAYER_LABEL = {l1_archive:'L1 ARCHIVE', l2:'L2', l3:'L3'};
+var LAYER_COLOR = {l1_archive:'#4fc3f7',l2:'#bf7c0a',l3:'#e05050'};
+var LAYER_LABEL = {l1_archive:'L1',l2:'L2',l3:'L3'};
+var LAYER_FULL  = {l1_archive:'L1 ARCHIVE',l2:'L2 ECHO PROTOCOL',l3:'L3 DEEP ARCHIVE'};
 var NODE_W = 200;
+var CANVAS_W = 4000;
+var CANVAS_H = 3000;
 
 // ── FAVICON ───────────────────────────────────────────────────────────────────
 (function(){
   var s='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><circle cx="8" cy="16" r="5" fill="#4fc3f7" opacity="0.9"/><circle cx="24" cy="8" r="5" fill="#bf7c0a" opacity="0.9"/><circle cx="24" cy="24" r="5" fill="#e05050" opacity="0.9"/><line x1="13" y1="14" x2="19" y2="10" stroke="#4fc3f7" stroke-width="1.5" opacity="0.6"/><line x1="13" y1="18" x2="19" y2="22" stroke="#4fc3f7" stroke-width="1.5" opacity="0.6"/></svg>';
   var el=document.createElement('link');el.rel='icon';el.type='image/svg+xml';el.href='data:image/svg+xml;base64,'+btoa(s);document.head.appendChild(el);
 })();
+
+// ── HISTORY ───────────────────────────────────────────────────────────────────
+function pushHist(){
+  if(!arch)return;
+  hist=hist.slice(0,histIdx+1);
+  hist.push(JSON.parse(JSON.stringify({arch:arch,positions:positions})));
+  if(hist.length>60)hist.shift();
+  histIdx=hist.length-1;
+  updHistUI();
+}
+function doUndo(){
+  if(histIdx<=0){toast('Nothing to undo');return;}
+  histIdx--;
+  var s=hist[histIdx];
+  arch=JSON.parse(JSON.stringify(s.arch));
+  positions=JSON.parse(JSON.stringify(s.positions));
+  render();if(selectedNode)showInfo(selectedNode);
+  toast('Undo');
+}
+function doRedo(){
+  if(histIdx>=hist.length-1){toast('Nothing to redo');return;}
+  histIdx++;
+  var s=hist[histIdx];
+  arch=JSON.parse(JSON.stringify(s.arch));
+  positions=JSON.parse(JSON.stringify(s.positions));
+  render();if(selectedNode)showInfo(selectedNode);
+  toast('Redo');
+}
+function updHistUI(){
+  document.getElementById('undo-btn').disabled=histIdx<=0;
+  document.getElementById('redo-btn').disabled=histIdx>=hist.length-1;
+}
 
 // ── FILE I/O ──────────────────────────────────────────────────────────────────
 async function openFile(){
@@ -199,401 +327,355 @@ function onFileIn(e){
   r.readAsText(f);e.target.value='';
 }
 function loadArch(raw,name,cls){
-  arch=raw;
+  arch=raw;positions={};
+  var saved=(arch.meta&&arch.meta.node_positions)||{};
+  Object.keys(arch.nodes||{}).forEach(function(id){if(saved[id])positions[id]={x:saved[id].x,y:saved[id].y};});
   autoLayout();
-  render();
-  resetView();
+  pushHist();
+  render();resetView();
   setFstat(name,cls);
   toast('Loaded '+Object.keys(arch.nodes||{}).length+' nodes');
 }
 function setFstat(n,c){var el=document.getElementById('fstat');el.textContent=n;el.className=c;}
 function buildExport(){
   if(!arch)return'{}';
-  // Write positions back into arch meta
   if(!arch.meta)arch.meta={};
-  arch.meta.node_positions=positions;
+  arch.meta.node_positions=JSON.parse(JSON.stringify(positions));
   return JSON.stringify(arch,null,2);
+}
+async function saveToFile(){
+  if(!fileHandle){dlJSON();return;}
+  try{var w=await fileHandle.createWritable();await w.write(buildExport());await w.close();showSaved();toast('Saved');}
+  catch(e){toast('Save failed — downloading');dlJSON();}
 }
 function dlJSON(){
   var b=new Blob([buildExport()],{type:'application/json'});
   var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='nodes.json';a.click();
-  toast('Exported nodes.json');
+  showSaved();toast('Exported nodes.json');
 }
+function showSaved(){var i=document.getElementById('as-ind');i.classList.add('show');setTimeout(function(){i.classList.remove('show');},1800);}
 
 // ── AUTO LAYOUT ───────────────────────────────────────────────────────────────
 function autoLayout(){
   if(!arch||!arch.nodes)return;
   var nodes=arch.nodes;
-  // Restore saved positions first
-  var saved=(arch.meta&&arch.meta.node_positions)||{};
-  Object.keys(nodes).forEach(function(id){
-    if(saved[id]){positions[id]={x:saved[id].x,y:saved[id].y};}
-  });
-  // Layout any unsaved nodes by layer columns
   var cols={l1_archive:[],l2:[],l3:[]};
   Object.keys(nodes).forEach(function(id){
     if(!positions[id]){
       var lyr=nodes[id].layer||'l1_archive';
-      if(!cols[lyr])cols[lyr]=[];
-      cols[lyr].push(id);
+      (cols[lyr]=cols[lyr]||[]).push(id);
     }
   });
-  var COL_X={l1_archive:60,l2:340,l3:620};
-  var ROW_H=160;
+  var COL_X={l1_archive:100,l2:400,l3:700};
   Object.keys(cols).forEach(function(lyr){
-    cols[lyr].forEach(function(id,i){
-      // Put root at top
-      var isRoot=nodes[id].is_root;
-      positions[id]={x:COL_X[lyr]||(Object.keys(COL_X).length*260),y:isRoot?40:80+i*ROW_H};
-    });
-    // Re-sort roots to top
     var roots=cols[lyr].filter(function(id){return nodes[id].is_root;});
-    var nonroots=cols[lyr].filter(function(id){return !nodes[id].is_root;});
-    roots.forEach(function(id,i){positions[id].y=40+i*ROW_H;});
-    nonroots.forEach(function(id,i){positions[id].y=40+(roots.length+i)*ROW_H;});
+    var rest=cols[lyr].filter(function(id){return !nodes[id].is_root;});
+    var all=roots.concat(rest);
+    var x=COL_X[lyr]||100;
+    all.forEach(function(id,i){positions[id]={x:x,y:60+i*170};});
   });
 }
 
+// ── GRID ─────────────────────────────────────────────────────────────────────
+function drawGrid(){
+  var gc=document.getElementById('grid-canvas');
+  gc.width=CANVAS_W;gc.height=CANVAS_H;
+  gc.style.width=CANVAS_W+'px';gc.style.height=CANVAS_H+'px';
+  var ctx=gc.getContext('2d');
+  ctx.clearRect(0,0,CANVAS_W,CANVAS_H);
+  var MINOR=20,MAJOR=100;
+  ctx.strokeStyle='rgba(79,195,247,0.055)';ctx.lineWidth=1;
+  for(var x=0;x<=CANVAS_W;x+=MINOR){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,CANVAS_H);ctx.stroke();}
+  for(var y=0;y<=CANVAS_H;y+=MINOR){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(CANVAS_W,y);ctx.stroke();}
+  ctx.strokeStyle='rgba(79,195,247,0.11)';ctx.lineWidth=1;
+  for(var x2=0;x2<=CANVAS_W;x2+=MAJOR){ctx.beginPath();ctx.moveTo(x2,0);ctx.lineTo(x2,CANVAS_H);ctx.stroke();}
+  for(var y2=0;y2<=CANVAS_H;y2+=MAJOR){ctx.beginPath();ctx.moveTo(0,y2);ctx.lineTo(CANVAS_W,y2);ctx.stroke();}
+}
+
 // ── RENDER ────────────────────────────────────────────────────────────────────
+function applyTransform(){
+  document.getElementById('canvas-inner').style.transform='translate('+pan.x+'px,'+pan.y+'px) scale('+zoom+')';
+  document.getElementById('zoom-info').textContent=Math.round(zoom*100)+'%';
+}
+
 function render(){
   if(!arch)return;
-  var canvas=document.getElementById('canvas');
-  var svg=document.getElementById('svg-layer');
-  canvas.style.transform='translate('+pan.x+'px,'+pan.y+'px) scale('+zoom+')';
-  document.getElementById('zoom-info').textContent=Math.round(zoom*100)+'%';
-
-  // Build node DOM
-  // Remove old nodes
-  canvas.querySelectorAll('.gnode').forEach(function(el){el.remove();});
-  svg.innerHTML='';
-
+  applyTransform();
   var nodes=arch.nodes||{};
-  var nodeEls={}; // id -> el
+  var nl=document.getElementById('nodes-layer');
+  nl.innerHTML='';
 
+  // SVG
+  var svg=document.getElementById('svg-layer');
+  svg.innerHTML='';
+  svg.setAttribute('width',CANVAS_W);svg.setAttribute('height',CANVAS_H);
+  svg.style.width=CANVAS_W+'px';svg.style.height=CANVAS_H+'px';
+
+  var nodeEls={};
   Object.keys(nodes).forEach(function(id){
     var n=nodes[id];
     var lyr=n.layer||'l1_archive';
-    if(!layerVis[lyr])return;
+    var show=layerVis[lyr]&&(!searchStr||id.toLowerCase().indexOf(searchStr)>=0||(n.title||'').toLowerCase().indexOf(searchStr)>=0);
+    if(!show)return;
     var pos=positions[id]||{x:0,y:0};
 
     var el=document.createElement('div');
     el.className='gnode '+lyr+(selectedNode===id?' selected':'');
     el.id='gn-'+id;
-    el.style.left=pos.x+'px';
-    el.style.top=pos.y+'px';
-    el.style.width=NODE_W+'px';
+    el.style.cssText='left:'+pos.x+'px;top:'+pos.y+'px;width:'+NODE_W+'px;position:absolute;';
 
-    // Input port
+    // Input port (centered vertically on node — will position after build)
     var inp=document.createElement('div');
     inp.className='in-port';
-    inp.title='Input';
+    inp.id='inp-'+id;
     el.appendChild(inp);
 
     // Header
-    var hdr=document.createElement('div');
-    hdr.className='gnode-hdr';
+    var hdr=document.createElement('div');hdr.className='gnode-hdr';
     if(n.is_root){var dot=document.createElement('div');dot.className='gnode-root-dot';hdr.appendChild(dot);}
-    var idSpan=document.createElement('div');idSpan.className='gnode-id';idSpan.textContent=id;hdr.appendChild(idSpan);
-    var lyrSpan=document.createElement('div');lyrSpan.className='gnode-lyr';lyrSpan.textContent=LAYER_LABEL[lyr]||lyr;hdr.appendChild(lyrSpan);
+    var idSp=document.createElement('div');idSp.className='gnode-id';idSp.textContent=id;hdr.appendChild(idSp);
+    var lyrSp=document.createElement('div');lyrSp.className='gnode-lyr';lyrSp.textContent=LAYER_LABEL[lyr]||lyr;hdr.appendChild(lyrSp);
+    // Right-click on header
+    hdr.addEventListener('contextmenu',function(e){e.preventDefault();e.stopPropagation();showCtxMenu(e,id);});
+    hdr.addEventListener('mousedown',function(e){if(e.button!==0)return;e.stopPropagation();startNodeDrag(e,id);});
     el.appendChild(hdr);
 
     // Title
-    if(n.title){
-      var tDiv=document.createElement('div');tDiv.className='gnode-title';tDiv.textContent=n.title;el.appendChild(tDiv);
-    }
+    if(n.title){var tDiv=document.createElement('div');tDiv.className='gnode-title';tDiv.textContent=n.title;el.appendChild(tDiv);}
 
-    // Options/commands with output ports
+    // Options with out-ports
     var opts=n.options||[];
     if(opts.length){
       var optsDiv=document.createElement('div');optsDiv.className='gnode-opts';
       opts.forEach(function(opt,oi){
         var row=document.createElement('div');row.className='gnode-opt';
-        var lbl=document.createElement('div');lbl.className='gnode-opt-label';lbl.textContent=opt.label||'';row.appendChild(lbl);
-        // Output port
+        var lbl=document.createElement('div');lbl.className='gnode-opt-lbl';lbl.textContent=opt.label||'';row.appendChild(lbl);
         var port=document.createElement('div');port.className='out-port';
-        port.title='Connect to node';
         port.dataset.nodeid=id;port.dataset.optidx=oi;
-        port.addEventListener('mousedown',function(e){e.stopPropagation();startConnect(e,id,oi);});
+        port.addEventListener('mousedown',function(e){e.stopPropagation();e.preventDefault();startConnect(e,id,oi);});
         row.appendChild(port);
         optsDiv.appendChild(row);
       });
       el.appendChild(optsDiv);
     }
 
-    // Node drag
-    hdr.addEventListener('mousedown',function(e){if(e.button!==0)return;e.stopPropagation();startNodeDrag(e,id);});
-    idSpan.addEventListener('mousedown',function(e){if(e.button!==0)return;e.stopPropagation();startNodeDrag(e,id);});
-
-    // Select on click
     el.addEventListener('click',function(e){
       if(connecting)return;
       selectNode(id);
     });
 
-    canvas.appendChild(el);
+    nl.appendChild(el);
     nodeEls[id]=el;
   });
 
-  // Draw connections
-  drawConnections(nodes, nodeEls);
-  updateMinimap();
+  // Position input ports after render (center on node height)
+  requestAnimationFrame(function(){
+    Object.keys(nodeEls).forEach(function(id){
+      var el=nodeEls[id];
+      var inp=document.getElementById('inp-'+id);
+      if(inp){inp.style.top=Math.round(el.offsetHeight/2)+'px';}
+    });
+    drawConnections(nodes);
+    updateMinimap();
+  });
 }
 
 // ── CONNECTIONS ───────────────────────────────────────────────────────────────
-function drawConnections(nodes, nodeEls){
+function getPortPos(nodeId,optIdx){
+  var pos=positions[nodeId]||{x:0,y:0};
+  var el=document.getElementById('gn-'+nodeId);
+  if(!el)return{x:pos.x+NODE_W,y:pos.y+40};
+  var ports=el.querySelectorAll('.out-port');
+  if(ports[optIdx]){
+    var pr=ports[optIdx];
+    // port center relative to node top-left
+    var pTop=pr.offsetTop+pr.offsetParent.offsetTop+6;
+    return{x:pos.x+NODE_W,y:pos.y+pTop};
+  }
+  return{x:pos.x+NODE_W,y:pos.y+40};
+}
+function getInPortPos(nodeId){
+  var pos=positions[nodeId]||{x:0,y:0};
+  var el=document.getElementById('gn-'+nodeId);
+  var h=el?el.offsetHeight:80;
+  return{x:pos.x,y:pos.y+h/2};
+}
+
+function drawConnections(nodes){
   var svg=document.getElementById('svg-layer');
-  // Resize SVG to canvas
-  var bounds=getNodeBounds(nodes);
-  var svgW=Math.max(bounds.maxX+300, 1200);
-  var svgH=Math.max(bounds.maxY+300, 900);
-  svg.setAttribute('width',svgW);svg.setAttribute('height',svgH);
-  svg.style.width=svgW+'px';svg.style.height=svgH+'px';
+  // Remove old connection paths (keep tmp-wire)
+  svg.querySelectorAll('.conn-path,.conn-arr').forEach(function(el){el.remove();});
 
   Object.keys(nodes).forEach(function(id){
-    var n=nodes[id];
-    var lyr=n.layer||'l1_archive';
+    var n=nodes[id];var lyr=n.layer||'l1_archive';
     if(!layerVis[lyr])return;
-    var srcEl=document.getElementById('gn-'+id);
-    if(!srcEl)return;
-    var srcPos=positions[id]||{x:0,y:0};
-    var opts=n.options||[];
-    opts.forEach(function(opt,oi){
+    if(!document.getElementById('gn-'+id))return;
+    (n.options||[]).forEach(function(opt,oi){
       var tgt=opt.target;
       if(!tgt||!nodes[tgt])return;
-      var tgtLyr=nodes[tgt].layer||'l1_archive';
-      if(!layerVis[tgtLyr])return;
-      var tgtEl=document.getElementById('gn-'+tgt);
-      if(!tgtEl)return;
-      var tgtPos=positions[tgt]||{x:0,y:0};
-
-      // Calculate port positions
-      var optRowH=28; // approx height per option row
-      var hdrH=n.title?58:30;
-      var portY=srcPos.y+hdrH+(oi*optRowH)+(optRowH/2);
-      var x1=srcPos.x+NODE_W;
-      var y1=portY;
-
-      // Input port on target — left center of node
-      var tgtH=getTgtHeight(nodes[tgt]);
-      var x2=tgtPos.x;
-      var y2=tgtPos.y+(tgtH/2);
-
+      if(!document.getElementById('gn-'+tgt))return;
+      var p1=getPortPos(id,oi);
+      var p2=getInPortPos(tgt);
+      var isSel=(id===selectedNode||tgt===selectedNode);
       var color=LAYER_COLOR[lyr]||'#4fc3f7';
-      var cp=Math.abs(x2-x1)*0.5+40;
-
+      var cp=Math.max(60,Math.abs(p2.x-p1.x)*0.5);
       var path=document.createElementNS('http://www.w3.org/2000/svg','path');
-      var d='M'+x1+','+y1+' C'+(x1+cp)+','+y1+' '+(x2-cp)+','+y2+' '+x2+','+y2;
-      path.setAttribute('d',d);
+      path.classList.add('conn-path');
+      path.setAttribute('d','M'+p1.x+','+p1.y+' C'+(p1.x+cp)+','+p1.y+' '+(p2.x-cp)+','+p2.y+' '+p2.x+','+p2.y);
       path.setAttribute('stroke',color);
-      path.setAttribute('stroke-width','1.5');
+      path.setAttribute('stroke-width',isSel?'2':'1.5');
       path.setAttribute('fill','none');
-      path.setAttribute('opacity','0.45');
-      path.setAttribute('stroke-dasharray', id===selectedNode||tgt===selectedNode?'none':'4,3');
+      path.setAttribute('opacity',isSel?'0.75':'0.38');
+      if(!isSel)path.setAttribute('stroke-dasharray','5,4');
       svg.appendChild(path);
-
-      // Arrow at end
-      var angle=Math.atan2(y2-y1,x2-x1);
-      var ax=x2,ay=y2;
-      var aLen=7;
-      var a1x=ax-aLen*Math.cos(angle-0.4),a1y=ay-aLen*Math.sin(angle-0.4);
-      var a2x=ax-aLen*Math.cos(angle+0.4),a2y=ay-aLen*Math.sin(angle+0.4);
+      // Arrow
+      var ang=Math.atan2(p2.y-p1.y,p2.x-p1.x);
+      var al=8;
       var arr=document.createElementNS('http://www.w3.org/2000/svg','polyline');
-      arr.setAttribute('points',a1x+','+a1y+' '+ax+','+ay+' '+a2x+','+a2y);
-      arr.setAttribute('stroke',color);arr.setAttribute('stroke-width','1.5');arr.setAttribute('fill','none');
-      arr.setAttribute('opacity','0.55');
+      arr.classList.add('conn-arr');
+      arr.setAttribute('points',(p2.x-al*Math.cos(ang-0.4))+','+(p2.y-al*Math.sin(ang-0.4))+' '+p2.x+','+p2.y+' '+(p2.x-al*Math.cos(ang+0.4))+','+(p2.y-al*Math.sin(ang+0.4)));
+      arr.setAttribute('stroke',color);arr.setAttribute('stroke-width',isSel?'2':'1.5');arr.setAttribute('fill','none');arr.setAttribute('opacity',isSel?'0.75':'0.45');
       svg.appendChild(arr);
     });
   });
 }
 
-function getTgtHeight(node){
-  var h=30;
-  if(node.title)h+=28;
-  h+=(node.options||[]).length*28;
-  return Math.max(h,50);
+// ── CANVAS SIZING ─────────────────────────────────────────────────────────────
+function sizeCanvas(){
+  var wrap=document.getElementById('canvas-wrap');
+  var outer=document.getElementById('canvas-outer');
+  var ww=wrap.clientWidth,wh=wrap.clientHeight;
+  // Center the outer canvas in the wrap
+  var ox=Math.max(0,(ww-CANVAS_W*zoom)/2);
+  var oy=Math.max(0,(wh-CANVAS_H*zoom)/2);
+  outer.style.cssText='width:'+CANVAS_W+'px;height:'+CANVAS_H+'px;position:absolute;top:0;left:0;background:#0d1c28;border:2px solid '+getComputedStyle(document.documentElement).getPropertyValue('--canvas-border').trim()+';';
+  document.getElementById('canvas-inner').style.transformOrigin='0 0';
 }
 
-function getNodeBounds(nodes){
-  var maxX=0,maxY=0;
-  Object.keys(nodes).forEach(function(id){
-    var p=positions[id]||{x:0,y:0};
-    maxX=Math.max(maxX,p.x+NODE_W);
-    maxY=Math.max(maxY,p.y+getTgtHeight(nodes[id]));
-  });
-  return{maxX:maxX,maxY:maxY};
-}
-
-// ── SELECTION ─────────────────────────────────────────────────────────────────
-function selectNode(id){
-  selectedNode=id;
-  render();
-  showInfo(id);
-}
-
-function showInfo(id){
-  var n=(arch&&arch.nodes&&arch.nodes[id]);
-  if(!n){document.getElementById('info-body').innerHTML='<div id="info-empty">Select a node<br>to view details.</div>';return;}
-  var lyr=n.layer||'l1_archive';
-  var col=LAYER_COLOR[lyr]||'#4fc3f7';
-  var opts=n.options||[];
-  var connsIn=[];
-  Object.keys(arch.nodes).forEach(function(sid){
-    (arch.nodes[sid].options||[]).forEach(function(o){if(o.target===id)connsIn.push({from:sid,label:o.label});});
-  });
-
-  var h='';
-  h+='<div class="if"><div class="il">NODE ID</div><div class="iv" style="color:'+col+';">'+esc(id)+'</div></div>';
-  h+='<div class="if"><div class="il">LAYER</div><div class="iv">'+esc(LAYER_LABEL[lyr]||lyr)+'</div></div>';
-  if(n.title)h+='<div class="if"><div class="il">TITLE</div><div class="iv">'+esc(n.title)+'</div></div>';
-  h+='<div class="if"><div class="il">ROOT</div><div class="iv">'+(n.is_root?'YES':'NO')+'</div></div>';
-  h+='<div class="if"><div class="il">FETCH ALLOWED</div><div class="iv">'+(n.fetch_allowed?'YES':'NO')+'</div></div>';
-  h+='<div class="if"><div class="il">TYPE</div><div class="iv">'+esc(n.type||'standard')+'</div></div>';
-  if(n.breadcrumb)h+='<div class="if"><div class="il">BREADCRUMB</div><div class="iv">'+esc(n.breadcrumb)+'</div></div>';
-
-  if(opts.length){
-    h+='<div class="if"><div class="il">COMMANDS OUT ('+opts.length+')</div><div class="conn-list">';
-    opts.forEach(function(o){
-      h+='<div class="conn-row">'+esc(o.label||'')+'<span class="conn-arrow">&#8594;</span>'+esc(o.target||'?')+'</div>';
-    });
-    h+='</div></div>';
-  }
-  if(connsIn.length){
-    h+='<div class="if"><div class="il">INCOMING ('+connsIn.length+')</div><div class="conn-list">';
-    connsIn.forEach(function(c){
-      h+='<div class="conn-row">'+esc(c.from)+'<span class="conn-arrow">&#8594;</span>'+esc(c.label||'')+'</div>';
-    });
-    h+='</div></div>';
-  }
-  document.getElementById('info-body').innerHTML=h;
-}
-
-// ── TOOL ──────────────────────────────────────────────────────────────────────
+// ── TOOL / LAYER / SEARCH ─────────────────────────────────────────────────────
 function setTool(t){
   tool=t;
-  document.getElementById('btn-select').classList.toggle('on',t==='select');
+  document.getElementById('btn-sel').classList.toggle('on',t==='select');
   document.getElementById('btn-pan').classList.toggle('on',t==='pan');
-  document.getElementById('canvas-wrap').style.cursor=t==='pan'?'grab':'default';
 }
-
 function toggleLayer(lyr){
   layerVis[lyr]=!layerVis[lyr];
   document.getElementById('lf-'+lyr).classList.toggle('on',layerVis[lyr]);
   document.getElementById('lf-'+lyr).classList.toggle('off',!layerVis[lyr]);
   render();
 }
-
-function addNode(){
-  if(!arch){toast('Open a nodes.json first');return;}
-  if(!arch.nodes)arch.nodes={};
-  var id='NEW_NODE_'+Date.now();
-  arch.nodes[id]={layer:'l1_archive',is_root:false,fetch_allowed:false,type:'standard',parent:null,title:'NEW NODE',breadcrumb:'',footer:'',body:[],options:[]};
-  var cx=(-pan.x/zoom)+200;var cy=(-pan.y/zoom)+200;
-  positions[id]={x:cx,y:cy};
-  render();selectNode(id);
-  toast('Node added: '+id);
+function onSearch(){
+  searchStr=document.getElementById('srch').value.trim().toLowerCase();
+  render();
 }
 
-// ── DRAG NODES ────────────────────────────────────────────────────────────────
+// ── NODE DRAG ─────────────────────────────────────────────────────────────────
 function startNodeDrag(e,id){
   if(tool==='pan')return;
-  var pos=positions[id]||{x:0,y:0};
-  drag={type:'node',nodeId:id,startX:e.clientX,startY:e.clientY,startNX:pos.x,startNY:pos.y};
   selectNode(id);
+  var pos=positions[id]||{x:0,y:0};
+  nodeDrag={id:id,startX:e.clientX,startY:e.clientY,startNX:pos.x,startNY:pos.y};
 }
 
 // ── CONNECT ───────────────────────────────────────────────────────────────────
 function startConnect(e,nodeId,optIdx){
-  var pos=positions[nodeId]||{x:0,y:0};
-  var n=arch.nodes[nodeId];
-  var hdrH=n.title?58:30;
-  var portY=pos.y+hdrH+(optIdx*28)+14;
-  var x1=pos.x+NODE_W;
-  connecting={fromNode:nodeId,fromOptIdx:optIdx,x1:x1,y1:portY};
+  connecting={fromNode:nodeId,fromOptIdx:optIdx};
   document.getElementById('canvas-wrap').classList.add('connecting');
 }
 
 // ── PAN / ZOOM ────────────────────────────────────────────────────────────────
-var panDrag=null;
 document.getElementById('canvas-wrap').addEventListener('mousedown',function(e){
-  if(connecting)return;
   if(e.target.classList.contains('out-port'))return;
   if(e.button===1||(e.button===0&&tool==='pan')){
     e.preventDefault();
     panDrag={startX:e.clientX,startY:e.clientY,startPX:pan.x,startPY:pan.y};
-    document.getElementById('canvas-wrap').classList.add('grabbing');
+    this.classList.add('grabbing');
   }
 });
 
 document.addEventListener('mousemove',function(e){
-  if(drag&&drag.type==='node'){
-    var dx=(e.clientX-drag.startX)/zoom;
-    var dy=(e.clientY-drag.startY)/zoom;
-    positions[drag.nodeId]={x:drag.startNX+dx,y:drag.startNY+dy};
-    var el=document.getElementById('gn-'+drag.nodeId);
-    if(el){el.style.left=positions[drag.nodeId].x+'px';el.style.top=positions[drag.nodeId].y+'px';}
-    // Redraw connections only
-    var svg=document.getElementById('svg-layer');
-    svg.innerHTML='';
-    drawConnections(arch.nodes,{});
-    updateMinimap();
+  if(nodeDrag){
+    var dx=(e.clientX-nodeDrag.startX)/zoom;
+    var dy=(e.clientY-nodeDrag.startY)/zoom;
+    var nx=Math.max(0,Math.min(CANVAS_W-NODE_W,nodeDrag.startNX+dx));
+    var ny=Math.max(0,Math.min(CANVAS_H-200,nodeDrag.startNY+dy));
+    positions[nodeDrag.id]={x:nx,y:ny};
+    var el=document.getElementById('gn-'+nodeDrag.id);
+    if(el){el.style.left=nx+'px';el.style.top=ny+'px';}
+    requestAnimationFrame(function(){drawConnections(arch.nodes||{});updateMinimap();});
     return;
   }
   if(panDrag){
     pan.x=panDrag.startPX+(e.clientX-panDrag.startX);
     pan.y=panDrag.startPY+(e.clientY-panDrag.startY);
-    document.getElementById('canvas').style.transform='translate('+pan.x+'px,'+pan.y+'px) scale('+zoom+')';
-    updateMinimap();
+    applyTransform();updateMinimap();
+    return;
+  }
+  if(panelDrag){
+    var dx2=panelDrag.startX-e.clientX;
+    var newW=Math.max(180,Math.min(700,panelDrag.startW+dx2));
+    document.getElementById('info').style.width=newW+'px';
     return;
   }
   if(connecting){
-    // Draw temp wire on SVG
     var svg=document.getElementById('svg-layer');
-    // Remove old temp
     var old=document.getElementById('tmp-wire');if(old)old.remove();
-    var old2=document.getElementById('tmp-wire2');if(old2)old2.remove();
     var wrap=document.getElementById('canvas-wrap');
     var rect=wrap.getBoundingClientRect();
     var mx=(e.clientX-rect.left-pan.x)/zoom;
     var my=(e.clientY-rect.top-pan.y)/zoom;
-    var x1=connecting.x1,y1=connecting.y1;
-    var cp=Math.abs(mx-x1)*0.5+40;
+    var p1=getPortPos(connecting.fromNode,connecting.fromOptIdx);
+    var cp=Math.max(60,Math.abs(mx-p1.x)*0.5);
     var path=document.createElementNS('http://www.w3.org/2000/svg','path');
     path.id='tmp-wire';
-    path.setAttribute('d','M'+x1+','+y1+' C'+(x1+cp)+','+y1+' '+(mx-cp)+','+my+' '+mx+','+my);
+    path.setAttribute('d','M'+p1.x+','+p1.y+' C'+(p1.x+cp)+','+p1.y+' '+(mx-cp)+','+my+' '+mx+','+my);
     path.setAttribute('stroke','#4fc3f7');path.setAttribute('stroke-width','1.5');
-    path.setAttribute('fill','none');path.setAttribute('opacity','0.5');
+    path.setAttribute('fill','none');path.setAttribute('opacity','0.55');
     path.setAttribute('stroke-dasharray','4,3');
     svg.appendChild(path);
-    // Highlight potential targets
+    // Highlight target
     document.querySelectorAll('.in-port').forEach(function(p){p.classList.remove('highlight');});
     var els=document.elementsFromPoint(e.clientX,e.clientY);
-    els.forEach(function(el){if(el.classList.contains('gnode')||el.closest('.gnode')){var gn=el.closest('.gnode');if(gn){var inp=gn.querySelector('.in-port');if(inp)inp.classList.add('highlight');}}});
+    els.forEach(function(el){
+      var gn=el.classList.contains('gnode')?el:el.closest&&el.closest('.gnode');
+      if(gn){var ip=gn.querySelector('.in-port');if(ip)ip.classList.add('highlight');}
+    });
   }
 });
 
 document.addEventListener('mouseup',function(e){
-  if(drag){drag=null;}
-  if(panDrag){panDrag=null;document.getElementById('canvas-wrap').classList.remove('grabbing');}
+  if(nodeDrag){pushHist();nodeDrag=null;return;}
+  if(panDrag){panDrag=null;document.getElementById('canvas-wrap').classList.remove('grabbing');return;}
+  if(panelDrag){panelDrag=null;return;}
   if(connecting){
-    // Check if dropped on a node
     var els=document.elementsFromPoint(e.clientX,e.clientY);
-    var targetEl=null;
-    els.forEach(function(el){if(!targetEl&&(el.classList.contains('gnode')||el.closest('.gnode'))){targetEl=el.closest('.gnode');}});
-    if(targetEl){
-      var targetId=targetEl.id.replace('gn-','');
-      if(targetId!==connecting.fromNode){
-        // Set the connection
-        var opts=arch.nodes[connecting.fromNode].options;
-        if(opts[connecting.fromOptIdx]){
-          opts[connecting.fromOptIdx].target=targetId;
-          toast('Connected \u2192 '+targetId);
-        }
+    var targetId=null;
+    els.forEach(function(el){
+      if(targetId)return;
+      var gn=el.classList.contains('gnode')?el:el.closest&&el.closest('.gnode');
+      if(gn)targetId=gn.id.replace('gn-','');
+    });
+    if(targetId&&targetId!==connecting.fromNode&&arch&&arch.nodes){
+      var opts=arch.nodes[connecting.fromNode].options;
+      if(opts&&opts[connecting.fromOptIdx]){
+        var old=opts[connecting.fromOptIdx].target;
+        opts[connecting.fromOptIdx].target=targetId;
+        pushHist();
+        toast('Connected \u2192 '+targetId);
+        if(selectedNode)showInfo(selectedNode);
+      } else {
+        // Auto-create new command
+        if(!arch.nodes[connecting.fromNode].options)arch.nodes[connecting.fromNode].options=[];
+        arch.nodes[connecting.fromNode].options.push({label:'[NEW COMMAND]',target:targetId});
+        pushHist();
+        toast('New command created \u2192 '+targetId);
+        if(selectedNode)showInfo(selectedNode);
       }
     }
     connecting=null;
     document.getElementById('canvas-wrap').classList.remove('connecting');
     document.querySelectorAll('.in-port').forEach(function(p){p.classList.remove('highlight');});
-    var old=document.getElementById('tmp-wire');if(old)old.remove();
+    var tw=document.getElementById('tmp-wire');if(tw)tw.remove();
     render();
   }
 });
@@ -601,37 +683,248 @@ document.addEventListener('mouseup',function(e){
 document.getElementById('canvas-wrap').addEventListener('wheel',function(e){
   e.preventDefault();
   var rect=this.getBoundingClientRect();
-  var mx=e.clientX-rect.left;var my=e.clientY-rect.top;
+  var mx=e.clientX-rect.left,my=e.clientY-rect.top;
   var delta=e.deltaY>0?0.9:1.1;
-  var newZoom=Math.max(0.15,Math.min(3,zoom*delta));
-  pan.x=mx-(mx-pan.x)*(newZoom/zoom);
-  pan.y=my-(my-pan.y)*(newZoom/zoom);
-  zoom=newZoom;
-  document.getElementById('canvas').style.transform='translate('+pan.x+'px,'+pan.y+'px) scale('+zoom+')';
-  document.getElementById('zoom-info').textContent=Math.round(zoom*100)+'%';
-  updateMinimap();
+  var nz=Math.max(0.12,Math.min(3,zoom*delta));
+  pan.x=mx-(mx-pan.x)*(nz/zoom);
+  pan.y=my-(my-pan.y)*(nz/zoom);
+  zoom=nz;applyTransform();updateMinimap();
 },{passive:false});
 
-// ── FIT VIEW ──────────────────────────────────────────────────────────────────
+// ── PANEL DRAG ────────────────────────────────────────────────────────────────
+function startPanelDrag(e){
+  e.preventDefault();
+  var info=document.getElementById('info');
+  panelDrag={startX:e.clientX,startW:info.offsetWidth};
+  document.getElementById('dh-r').classList.add('dragging');
+  document.addEventListener('mouseup',function(){document.getElementById('dh-r').classList.remove('dragging');},{ once:true });
+}
+
+// ── FIT VIEW ─────────────────────────────────────────────────────────────────
 function resetView(){
   if(!arch||!arch.nodes)return;
-  var ids=Object.keys(arch.nodes).filter(function(id){return positions[id];});
+  var ids=Object.keys(arch.nodes).filter(function(id){return positions[id]&&layerVis[arch.nodes[id].layer||'l1_archive'];});
   if(!ids.length)return;
   var minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
-  ids.forEach(function(id){
-    var p=positions[id];
-    minX=Math.min(minX,p.x);minY=Math.min(minY,p.y);
-    maxX=Math.max(maxX,p.x+NODE_W);maxY=Math.max(maxY,p.y+150);
-  });
+  ids.forEach(function(id){var p=positions[id];minX=Math.min(minX,p.x);minY=Math.min(minY,p.y);maxX=Math.max(maxX,p.x+NODE_W);maxY=Math.max(maxY,p.y+150);});
   var wrap=document.getElementById('canvas-wrap');
   var ww=wrap.clientWidth,wh=wrap.clientHeight;
-  var pad=60;
-  var scaleX=(ww-pad*2)/(maxX-minX);var scaleY=(wh-pad*2)/(maxY-minY);
-  zoom=Math.min(scaleX,scaleY,1.2);
+  var pad=80;
+  zoom=Math.min((ww-pad*2)/(maxX-minX),(wh-pad*2)/(maxY-minY),1.4);
   pan.x=pad-minX*zoom;pan.y=pad-minY*zoom;
-  document.getElementById('canvas').style.transform='translate('+pan.x+'px,'+pan.y+'px) scale('+zoom+')';
-  document.getElementById('zoom-info').textContent=Math.round(zoom*100)+'%';
-  updateMinimap();
+  applyTransform();updateMinimap();
+}
+
+// ── ADD NODE ─────────────────────────────────────────────────────────────────
+function addNode(){
+  if(!arch){toast('Open a nodes.json first');return;}
+  if(!arch.nodes)arch.nodes={};
+  var id='NEW_NODE_'+Date.now();
+  arch.nodes[id]={layer:'l1_archive',is_root:false,fetch_allowed:false,type:'standard',parent:null,title:'NEW NODE',breadcrumb:'',footer:'',body:[],options:[]};
+  var cx=Math.round((-pan.x/zoom)+200);var cy=Math.round((-pan.y/zoom)+200);
+  positions[id]={x:cx,y:cy};
+  pushHist();render();selectNode(id);toast('Node added');
+}
+
+// ── SELECTION & INFO ─────────────────────────────────────────────────────────
+function selectNode(id){
+  selectedNode=id;render();showInfo(id);
+}
+
+function setInfoMode(m){
+  infoMode=m;
+  document.getElementById('btn-details').classList.toggle('on',m==='details');
+  document.getElementById('btn-code').classList.toggle('on',m==='code');
+  document.getElementById('info-body').style.display=m==='details'?'flex':'none';
+  document.getElementById('info-code').style.display=m==='code'?'block':'none';
+  if(selectedNode)showInfo(selectedNode);
+  else showAllCode();
+}
+
+function showAllCode(){
+  document.getElementById('info-code').textContent=arch?JSON.stringify(arch.nodes||{},null,2):'// No file loaded';
+}
+
+function showInfo(id){
+  var n=(arch&&arch.nodes&&arch.nodes[id]);
+  if(!n){
+    document.getElementById('info-body').innerHTML='<div id="info-empty">Select a node to view details.</div>';
+    showAllCode();return;
+  }
+  // Code view
+  var nodeObj={};nodeObj[id]=n;
+  document.getElementById('info-code').textContent=JSON.stringify(nodeObj,null,2);
+
+  if(infoMode!=='details')return;
+
+  var lyr=n.layer||'l1_archive';
+  var col=LAYER_COLOR[lyr]||'#4fc3f7';
+  var opts=n.options||[];
+  var incomingConns=[];
+  Object.keys(arch.nodes).forEach(function(sid){
+    (arch.nodes[sid].options||[]).forEach(function(o,oi){if(o.target===id)incomingConns.push({from:sid,label:o.label,oi:oi});});
+  });
+
+  var h='';
+
+  // ID
+  h+='<div class="if"><div class="il">NODE ID</div><input type="text" class="iv-inp" id="fi-id" value="'+esc(id)+'" autocomplete="off" spellcheck="false"></div>';
+
+  // Layer
+  h+='<div class="if"><div class="il">LAYER</div><select class="iv-sel" id="fi-layer">';
+  ['l1_archive','l2','l3'].forEach(function(lv){h+='<option value="'+lv+'"'+(lv===lyr?' selected':'')+'>'+LAYER_FULL[lv]+'</option>';});
+  h+='</select></div>';
+
+  // Title
+  h+='<div class="if"><div class="il">TITLE</div><input type="text" class="iv-inp" id="fi-title" value="'+esc(n.title||'')+'" autocomplete="off" spellcheck="false"></div>';
+
+  // Breadcrumb
+  h+='<div class="if"><div class="il">BREADCRUMB</div><input type="text" class="iv-inp" id="fi-bc" value="'+esc(n.breadcrumb||'')+'" autocomplete="off" spellcheck="false"></div>';
+
+  // Type
+  h+='<div class="if"><div class="il">TYPE</div><select class="iv-sel" id="fi-type"><option value="standard"'+(n.type==='standard'?' selected':'')+'>standard</option><option value="lore_entry"'+(n.type==='lore_entry'?' selected':'')+'>lore_entry</option><option value="transition"'+(n.type==='transition'?' selected':'')+'>transition</option></select></div>';
+
+  // Toggles
+  h+='<div class="if"><div class="il">ROOT NODE</div><div class="toggle-row"><button class="tg'+(n.is_root?'':' on')+'" id="fi-root-n" onclick="setNodeBool(\'is_root\',false)">NO</button><button class="tg'+(n.is_root?' on':'')+'" id="fi-root-y" onclick="setNodeBool(\'is_root\',true)">YES</button></div></div>';
+  h+='<div class="if"><div class="il">FETCH ALLOWED</div><div class="toggle-row"><button class="tg'+(n.fetch_allowed?'':' on')+'" id="fi-fa-n" onclick="setNodeBool(\'fetch_allowed\',false)">NO</button><button class="tg'+(n.fetch_allowed?' on':'')+'" id="fi-fa-y" onclick="setNodeBool(\'fetch_allowed\',true)">YES</button></div></div>';
+
+  // Save props button
+  h+='<button class="save-btn" onclick="saveNodeProps()">&#10003; SAVE PROPERTIES</button>';
+
+  // Commands out
+  h+='<div class="if sec-div"><div class="il">COMMANDS ('+opts.length+')</div><div class="conn-list" id="cmd-list">';
+  opts.forEach(function(o,oi){
+    h+='<div class="conn-row" id="cmd-row-'+oi+'">';
+    h+='<input style="flex:1;background:transparent;border:none;color:rgba(79,195,247,0.75);font-family:\'Share Tech Mono\',monospace;font-size:10px;outline:none;min-width:0;" value="'+esc(o.label||'')+'" oninput="updateCmdLabel('+oi+',this.value)" autocomplete="off" spellcheck="false">';
+    h+='<span class="conn-arrow">&#8594;</span>';
+    h+='<span style="font-size:10px;color:rgba(79,195,247,0.45);flex-shrink:0;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="'+esc(o.target||'')+'">'+esc(o.target||'?')+'</span>';
+    h+='<button class="conn-del" onclick="removeCmd('+oi+')" title="Remove">\u00D7</button>';
+    h+='</div>';
+  });
+  h+='</div>';
+  h+='<button class="add-btn" onclick="addCmd()">+ ADD COMMAND</button></div>';
+
+  // Incoming
+  if(incomingConns.length){
+    h+='<div class="if sec-div"><div class="il">INCOMING ('+incomingConns.length+')</div><div class="conn-list">';
+    incomingConns.forEach(function(c){
+      h+='<div class="conn-row"><span class="conn-lbl">'+esc(c.from)+'</span><span class="conn-arrow">&#8594;</span><span style="font-size:10px;color:rgba(79,195,247,0.45);">'+esc(c.label)+'</span></div>';
+    });
+    h+='</div></div>';
+  }
+
+  document.getElementById('info-body').innerHTML=h;
+  document.getElementById('info-body').style.display='flex';
+}
+
+function saveNodeProps(){
+  if(!selectedNode||!arch||!arch.nodes[selectedNode])return;
+  var n=arch.nodes[selectedNode];
+  var newId=document.getElementById('fi-id').value.trim();
+  n.layer=document.getElementById('fi-layer').value;
+  n.title=document.getElementById('fi-title').value;
+  n.breadcrumb=document.getElementById('fi-bc').value;
+  n.type=document.getElementById('fi-type').value;
+  // Rename if ID changed
+  if(newId&&newId!==selectedNode){
+    arch.nodes[newId]=arch.nodes[selectedNode];
+    delete arch.nodes[selectedNode];
+    positions[newId]=positions[selectedNode];
+    delete positions[selectedNode];
+    // Update all references
+    Object.keys(arch.nodes).forEach(function(sid){
+      (arch.nodes[sid].options||[]).forEach(function(o){if(o.target===selectedNode)o.target=newId;});
+      if(arch.nodes[sid].parent===selectedNode)arch.nodes[sid].parent=newId;
+    });
+    selectedNode=newId;
+    toast('Renamed \u2192 '+newId);
+  }else{toast('Properties saved');}
+  pushHist();render();showInfo(selectedNode);
+}
+
+function setNodeBool(prop,val){
+  if(!selectedNode||!arch||!arch.nodes[selectedNode])return;
+  arch.nodes[selectedNode][prop]=val;
+  render();showInfo(selectedNode);
+}
+
+function updateCmdLabel(oi,val){
+  if(!selectedNode||!arch||!arch.nodes[selectedNode])return;
+  if(arch.nodes[selectedNode].options[oi])arch.nodes[selectedNode].options[oi].label=val;
+}
+
+function addCmd(){
+  if(!selectedNode||!arch||!arch.nodes[selectedNode])return;
+  if(!arch.nodes[selectedNode].options)arch.nodes[selectedNode].options=[];
+  arch.nodes[selectedNode].options.push({label:'[NEW COMMAND]',target:''});
+  pushHist();render();showInfo(selectedNode);
+}
+
+function removeCmd(oi){
+  if(!selectedNode||!arch||!arch.nodes[selectedNode])return;
+  arch.nodes[selectedNode].options.splice(oi,1);
+  pushHist();render();showInfo(selectedNode);
+}
+
+// ── CONTEXT MENU ─────────────────────────────────────────────────────────────
+function showCtxMenu(e,id){
+  ctxNodeId=id;selectNode(id);
+  var menu=document.getElementById('ctx-menu');
+  menu.style.display='block';
+  var x=e.clientX,y=e.clientY;
+  if(x+180>window.innerWidth)x=window.innerWidth-185;
+  if(y+160>window.innerHeight)y=window.innerHeight-165;
+  menu.style.left=x+'px';menu.style.top=y+'px';
+}
+function hideCtxMenu(){document.getElementById('ctx-menu').style.display='none';}
+document.addEventListener('click',hideCtxMenu);
+document.addEventListener('contextmenu',function(e){if(!e.target.closest('.gnode-hdr'))hideCtxMenu();});
+
+function ctxRename(){
+  hideCtxMenu();
+  var newId=prompt('Enter new node ID:',ctxNodeId);
+  if(!newId||newId===ctxNodeId)return;
+  newId=newId.trim().toUpperCase().replace(/\s+/g,'_');
+  if(arch.nodes[newId]){toast('ID already exists');return;}
+  arch.nodes[newId]=arch.nodes[ctxNodeId];
+  delete arch.nodes[ctxNodeId];
+  positions[newId]=positions[ctxNodeId];
+  delete positions[ctxNodeId];
+  Object.keys(arch.nodes).forEach(function(sid){
+    (arch.nodes[sid].options||[]).forEach(function(o){if(o.target===ctxNodeId)o.target=newId;});
+    if(arch.nodes[sid].parent===ctxNodeId)arch.nodes[sid].parent=newId;
+  });
+  if(selectedNode===ctxNodeId)selectedNode=newId;
+  ctxNodeId=newId;
+  pushHist();render();showInfo(selectedNode);toast('Renamed \u2192 '+newId);
+}
+
+function ctxDuplicate(){
+  hideCtxMenu();
+  if(!ctxNodeId||!arch.nodes[ctxNodeId])return;
+  var newId=ctxNodeId+'_COPY';
+  var i=1;while(arch.nodes[newId]){newId=ctxNodeId+'_COPY'+i;i++;}
+  arch.nodes[newId]=JSON.parse(JSON.stringify(arch.nodes[ctxNodeId]));
+  arch.nodes[newId].is_root=false;
+  var pos=positions[ctxNodeId]||{x:0,y:0};
+  positions[newId]={x:pos.x+30,y:pos.y+30};
+  pushHist();render();selectNode(newId);toast('Duplicated \u2192 '+newId);
+}
+
+function ctxSetRoot(){
+  hideCtxMenu();
+  if(!ctxNodeId||!arch.nodes[ctxNodeId])return;
+  arch.nodes[ctxNodeId].is_root=!arch.nodes[ctxNodeId].is_root;
+  pushHist();render();showInfo(ctxNodeId);
+}
+
+function ctxDelete(){
+  hideCtxMenu();
+  if(!ctxNodeId)return;
+  if(!confirm('Delete node '+ctxNodeId+'?'))return;
+  delete arch.nodes[ctxNodeId];delete positions[ctxNodeId];
+  if(selectedNode===ctxNodeId){selectedNode=null;document.getElementById('info-body').innerHTML='<div id="info-empty">Select a node to view details.</div>';showAllCode();}
+  pushHist();render();toast('Deleted');
 }
 
 // ── MINIMAP ───────────────────────────────────────────────────────────────────
@@ -639,52 +932,68 @@ function updateMinimap(){
   if(!arch||!arch.nodes)return;
   var mc=document.getElementById('minimap-canvas');
   var ctx=mc.getContext('2d');
-  ctx.clearRect(0,0,160,100);
-  var ids=Object.keys(arch.nodes);
-  if(!ids.length)return;
-  var minX=Infinity,minY=Infinity,maxX=0,maxY=0;
-  ids.forEach(function(id){var p=positions[id]||{x:0,y:0};minX=Math.min(minX,p.x);minY=Math.min(minY,p.y);maxX=Math.max(maxX,p.x+NODE_W);maxY=Math.max(maxY,p.y+120);});
-  var scX=140/(maxX-minX||1);var scY=80/(maxY-minY||1);var sc=Math.min(scX,scY);
-  var offX=10,offY=10;
+  ctx.clearRect(0,0,150,90);
+  var ids=Object.keys(arch.nodes);if(!ids.length)return;
+  var sc=Math.min(140/CANVAS_W,82/CANVAS_H);
+  var ox=5,oy=4;
   ids.forEach(function(id){
-    var n=arch.nodes[id];var p=positions[id]||{x:0,y:0};
-    var lyr=n.layer||'l1_archive';
+    var n=arch.nodes[id];var lyr=n.layer||'l1_archive';
     if(!layerVis[lyr])return;
+    var p=positions[id]||{x:0,y:0};
     var col=lyr==='l2'?'#bf7c0a':lyr==='l3'?'#e05050':'#4fc3f7';
-    ctx.fillStyle=col;ctx.globalAlpha=id===selectedNode?0.9:0.4;
-    ctx.fillRect(offX+(p.x-minX)*sc,offY+(p.y-minY)*sc,NODE_W*sc,40*sc);
+    ctx.fillStyle=col;ctx.globalAlpha=id===selectedNode?0.85:0.35;
+    ctx.fillRect(ox+p.x*sc,oy+p.y*sc,NODE_W*sc,30*sc);
     ctx.globalAlpha=1;
   });
-  // Viewport indicator
   var wrap=document.getElementById('canvas-wrap');
   var ww=wrap.clientWidth,wh=wrap.clientHeight;
-  var vx=offX+(-pan.x/zoom-minX)*sc;var vy=offY+(-pan.y/zoom-minY)*sc;
-  var vw=(ww/zoom)*sc;var vh=(wh/zoom)*sc;
+  var vx=ox+(-pan.x/zoom)*sc,vy=oy+(-pan.y/zoom)*sc;
+  var vw=(ww/zoom)*sc,vh=(wh/zoom)*sc;
   var mv=document.getElementById('minimap-vp');
-  mv.style.left=Math.max(0,vx)+'px';mv.style.top=Math.max(0,vy)+'px';
-  mv.style.width=Math.min(160,vw)+'px';mv.style.height=Math.min(100,vh)+'px';
+  mv.style.cssText='left:'+Math.max(0,vx)+'px;top:'+Math.max(0,vy)+'px;width:'+Math.min(150,vw)+'px;height:'+Math.min(90,vh)+'px;position:absolute;border:1px solid rgba(79,195,247,0.45);pointer-events:none;';
 }
 
-// ── KEYBOARD ──────────────────────────────────────────────────────────────────
+// ── KEYBOARD ─────────────────────────────────────────────────────────────────
 document.addEventListener('keydown',function(e){
-  if(e.key==='Escape'){connecting=null;document.getElementById('canvas-wrap').classList.remove('connecting');var old=document.getElementById('tmp-wire');if(old)old.remove();}
-  if(e.key==='f'||e.key==='F')resetView();
-  if(e.key==='Delete'&&selectedNode&&arch&&arch.nodes[selectedNode]){
-    if(confirm('Delete node '+selectedNode+'?')){
-      delete arch.nodes[selectedNode];delete positions[selectedNode];
-      selectedNode=null;render();
-      document.getElementById('info-body').innerHTML='<div id="info-empty">Select a node<br>to view details.</div>';
-    }
+  if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA'||e.target.tagName==='SELECT')return;
+  if((e.ctrlKey||e.metaKey)&&e.key==='z'&&!e.shiftKey){e.preventDefault();doUndo();}
+  if((e.ctrlKey||e.metaKey)&&(e.key==='y'||(e.key==='z'&&e.shiftKey))){e.preventDefault();doRedo();}
+  if((e.ctrlKey||e.metaKey)&&e.key==='s'){e.preventDefault();saveToFile();}
+  if(e.key==='f'||e.key==='F'){resetView();}
+  if(e.key==='Escape'){
+    connecting=null;
+    document.getElementById('canvas-wrap').classList.remove('connecting');
+    var tw=document.getElementById('tmp-wire');if(tw)tw.remove();
+    document.querySelectorAll('.in-port').forEach(function(p){p.classList.remove('highlight');});
+  }
+  if((e.key==='Delete'||e.key==='Backspace')&&selectedNode){
+    if(!confirm('Delete node '+selectedNode+'?'))return;
+    delete arch.nodes[selectedNode];delete positions[selectedNode];
+    selectedNode=null;
+    document.getElementById('info-body').innerHTML='<div id="info-empty">Select a node to view details.</div>';
+    showAllCode();pushHist();render();
   }
 });
 
-// ── TOAST / ESC ───────────────────────────────────────────────────────────────
+// ── UTILS ─────────────────────────────────────────────────────────────────────
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 var toastT=null;
 function toast(msg){var el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');clearTimeout(toastT);toastT=setTimeout(function(){el.classList.remove('show');},2600);}
-function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
-// ── INIT ──────────────────────────────────────────────────────────────────────
+// ── INIT ─────────────────────────────────────────────────────────────────────
+sizeCanvas();
+drawGrid();
 setTool('select');
+window.addEventListener('resize',function(){sizeCanvas();if(arch)updateMinimap();});
+
+/*
+ * ── PALETTE INJECTOR INJECTION POINT ────────────────────────────────────────
+ * Paste the ECHO LAB PALETTE INJECTOR <script> block immediately before
+ * the closing </body> tag below this comment block.
+ * The injector reads/writes CSS variables on :root so all node colors,
+ * backgrounds, and borders will respond to theme changes automatically.
+ * Compatible with: Lore Editor, Personality Lab, Engine Lab, Node Graph.
+ * ────────────────────────────────────────────────────────────────────────── */
 </script>
 </body>
 </html>
