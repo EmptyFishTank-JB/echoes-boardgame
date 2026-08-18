@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ECHO ENGINE LAB // v4.0</title>
+<title>ECHO ENGINE LAB // v4.1</title>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
@@ -104,7 +104,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;heigh
 <body>
 <div id="app">
 <div id="hdr">
-  <span class="htitle">ECHO ENGINE LAB // v4.0</span>
+  <span class="htitle">ECHO ENGINE LAB // v4.1</span>
   <div class="hright">
     <span id="as-ind">&#10003; SAVED</span>
     <span id="fstat-nodes" class="fstat none">NO NODES FILE</span>
@@ -154,8 +154,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;heigh
 'use strict';
 
 // ── VERSION ───────────────────────────────────────────────────────────────────
-var EDITOR_VERSION = '4.0';
-var EDITOR_TIMESTAMP = '2026-05-28';
+var EDITOR_VERSION = '4.1';
+var EDITOR_TIMESTAMP = '2026-05-29';
 
 // ── SECTIONS ──────────────────────────────────────────────────────────────────
 var SECTIONS = [
@@ -165,7 +165,8 @@ var SECTIONS = [
   {id:'audio',    label:'AUDIO',            hint:'Volume + ambient oscillators per layer'},
   {id:'timing',   label:'VISUAL TIMING',    hint:'Fades, phosphor, crossfade'},
   {id:'colors',   label:'TERMINAL COLORS',  hint:'Theme colors per layer'},
-  {id:'power',    label:'POWER OVERLAY',    hint:'Button text, version string'}
+  {id:'power',    label:'POWER OVERLAY',    hint:'Title, button text, version string'},
+  {id:'strings',  label:'TERMINAL STRINGS', hint:'Engine error and UI messages'}
 ];
 
 // ── CONSTANTS ─────────────────────────────────────────────────────────────────
@@ -319,6 +320,9 @@ function loadSection(id){
   } else if(id==='power'){
     form.appendChild(mkPowerEditor());
     form.appendChild(mkBrow());
+  } else if(id==='strings'){
+    form.appendChild(mkStringsEditor());
+    form.appendChild(mkBrow());
   }
 
   updPreview(id);updJSON(id);
@@ -467,12 +471,65 @@ function setCfgOp(lid,key,val){if(!cfg.theme)cfg.theme={};if(!cfg.theme[lid])cfg
 // ── POWER EDITOR ──────────────────────────────────────────────────────────────
 function mkPowerEditor(){
   var wrap=document.createElement('div');
-  wrap.innerHTML='<div class="fg"><div class="fl">POWER BUTTON TEXT</div><input type="text" id="pw-btn" value="'+esc(cfg.power_button_text||'[ Power On / Initialize ]')+'" autocomplete="off"></div>'+
-    '<div class="fg sec-div"><div class="fl">VERSION STRING (shown below button and in header)</div><input type="text" id="pw-ver" value="'+esc(cfg.version_string||'v1.0')+'" autocomplete="off"></div>';
+  wrap.innerHTML='<div class="fg"><div class="fl">TERMINAL TITLE (shown in header and power overlay)</div><input type="text" id="pw-title" value="'+esc(cfg.terminal_title||'')+'" placeholder="e.g. ECHOES SHIP SYSTEM TERMINAL 426" autocomplete="off"></div>'+
+    '<div class="fg sec-div"><div class="fl">POWER BUTTON TEXT</div><input type="text" id="pw-btn" value="'+esc(cfg.power_button_text||'[ Power On / Initialize ]')+'" autocomplete="off"></div>'+
+    '<div class="fg sec-div"><div class="fl">VERSION STRING (shown next to title)</div><input type="text" id="pw-ver" value="'+esc(cfg.version_string||'v1.0')+'" autocomplete="off"></div>';
   return wrap;
 }
 
-// ── SAVE SECTION ──────────────────────────────────────────────────────────────
+// ── STRINGS EDITOR ────────────────────────────────────────────────────────────
+var STRING_KEYS = [
+  {key:'error_nav_offline',           label:'Nav data offline error'},
+  {key:'error_cmd_not_recognized',    label:'Command not recognized error'},
+  {key:'error_personality_offline',   label:'Personality matrix offline error'},
+  {key:'error_invalid_selection',     label:'Invalid selection message'},
+  {key:'error_invalid_selection_hint',label:'Invalid selection hint (secondary line)'},
+  {key:'error_fetch_format',          label:'Fetch code format error'},
+  {key:'error_fetch_unavailable',     label:'Fetch unavailable from node'},
+  {key:'error_pull_not_found',        label:'Pull target not found error'},
+  {key:'error_target_not_found',      label:'Nav target not found error'},
+  {key:'error_fetch_cancelled',       label:'Fetch cancelled message'},
+  {key:'layer_enter_confirmed',       label:'Layer entry confirmation (leave blank = silent)'},
+  {key:'layer_exit_confirmed',        label:'Layer exit confirmation (leave blank = silent)'}
+];
+var DEFAULT_STRINGS = {
+  error_nav_offline:          '> ERROR \u2014 NAVIGATION DATA UNAVAILABLE',
+  error_cmd_not_recognized:   '> ERROR \u2014 COMMAND NOT RECOGNIZED',
+  error_personality_offline:  '> ERROR \u2014 PERSONALITY MATRIX OFFLINE',
+  error_invalid_selection:    '> INVALID SELECTION',
+  error_invalid_selection_hint:'  Enter option exactly as shown, including brackets.',
+  error_fetch_format:         '> INVALID FORMAT \u2014 Expected: XXXXX-XXXXX-XXXXX-XXXXX',
+  error_fetch_unavailable:    '> FETCH UNAVAILABLE FROM THIS NODE',
+  error_pull_not_found:       '> ERROR \u2014 PULL TARGET NOT FOUND',
+  error_target_not_found:     '> ERROR \u2014 TARGET NODE NOT FOUND',
+  error_fetch_cancelled:      '> FETCH CANCELLED',
+  layer_enter_confirmed:      '',
+  layer_exit_confirmed:       ''
+};
+function mkStringsEditor(){
+  if(!cfg.terminal_strings) cfg.terminal_strings={};
+  var wrap=document.createElement('div');
+  var note=document.createElement('div');note.className='fl';note.style.marginBottom='8px';
+  note.textContent='Engine error and UI messages. Leave blank to use default. "AWAITING INPUT" is always hardcoded.';
+  wrap.appendChild(note);
+  STRING_KEYS.forEach(function(sk){
+    var cur=cfg.terminal_strings[sk.key]!=null?cfg.terminal_strings[sk.key]:DEFAULT_STRINGS[sk.key]||'';
+    var d=document.createElement('div');d.className='fg sec-div';
+    d.innerHTML='<div class="fl" style="font-size:11px;">'+sk.label+'</div>'+
+      '<div style="display:flex;gap:5px;align-items:center;">'+
+      '<input type="text" id="str-'+sk.key+'" value="'+esc(cur)+'" placeholder="(uses default)" style="flex:1;" autocomplete="off" spellcheck="false">'+
+      '<button class="btn sm" onclick="resetStringKey(\''+sk.key+'\')" title="Reset to default" style="flex-shrink:0;font-size:10px;padding:3px 7px;">&#8635;</button>'+
+      '</div>'+
+      '<div style="font-size:10px;color:rgba(79,195,247,0.30);margin-top:2px;">default: '+esc(DEFAULT_STRINGS[sk.key]||'(empty)')+'</div>';
+    wrap.appendChild(d);
+  });
+  return wrap;
+}
+function resetStringKey(key){
+  if(!cfg.terminal_strings)cfg.terminal_strings={};
+  var inp=document.getElementById('str-'+key);
+  if(inp){inp.value=DEFAULT_STRINGS[key]||'';}
+}
 function saveSection(){
   if(!cfg||!curSec)return;
   var id=curSec;
@@ -500,6 +557,13 @@ function saveSection(){
   } else if(id==='power'){
     cfg.power_button_text=document.getElementById('pw-btn').value;
     cfg.version_string=document.getElementById('pw-ver').value;
+    cfg.terminal_title=document.getElementById('pw-title').value;
+  } else if(id==='strings'){
+    if(!cfg.terminal_strings)cfg.terminal_strings={};
+    STRING_KEYS.forEach(function(sk){
+      var el=document.getElementById('str-'+sk.key);
+      if(el) cfg.terminal_strings[sk.key]=el.value;
+    });
   }
   pushHist();showSaved();updPreview(id);updJSON(id);toast('Saved: '+id);
 }
@@ -551,9 +615,24 @@ function updPreview(id){
     });
     pv.innerHTML=ch;
   } else if(id==='power'){
-    lbl.textContent='BUTTON PREVIEW';
-    var bt=cfg.power_button_text||'[ Power On / Initialize ]';var vs=cfg.version_string||'v1.0';
-    pv.innerHTML='<div style="display:flex;flex-direction:column;align-items:center;gap:20px;padding:24px 0;"><button style="background:transparent;border:1px solid rgba(79,195,247,0.45);color:#4fc3f7;font-family:\'Share Tech Mono\',monospace;font-size:14px;padding:16px 32px;letter-spacing:0.12em;cursor:default;">'+esc(bt)+'</button><div style="font-size:11px;color:rgba(79,195,247,0.28);letter-spacing:0.16em;">'+esc(vs)+'</div></div>';
+    lbl.textContent='POWER OVERLAY PREVIEW';
+    var bt=cfg.power_button_text||'[ Power On / Initialize ]';
+    var vs=cfg.version_string||'v1.0';
+    var tt=cfg.terminal_title||'';
+    var subLine=tt?(tt+(vs?' // '+vs:'')):(vs||'');
+    pv.innerHTML='<div style="display:flex;flex-direction:column;align-items:center;gap:16px;padding:24px 0;">'+
+      '<div style="font-size:11px;color:rgba(79,195,247,0.35);letter-spacing:0.10em;">'+esc(tt)+'</div>'+
+      '<button style="background:transparent;border:1px solid rgba(79,195,247,0.45);color:#4fc3f7;font-family:\'Share Tech Mono\',monospace;font-size:14px;padding:16px 32px;letter-spacing:0.12em;cursor:default;">'+esc(bt)+'</button>'+
+      '<div style="font-size:11px;color:rgba(79,195,247,0.28);letter-spacing:0.16em;">'+esc(subLine)+'</div></div>';
+  } else if(id==='strings'){
+    lbl.textContent='STRINGS PREVIEW';
+    var ts=cfg.terminal_strings||{};
+    pv.innerHTML=STRING_KEYS.map(function(sk){
+      var val=ts[sk.key]!=null?ts[sk.key]:DEFAULT_STRINGS[sk.key]||'';
+      var isEmpty=!val;
+      return '<div style="border-bottom:1px solid rgba(79,195,247,0.06);padding:5px 0;"><div style="font-size:10px;color:rgba(79,195,247,0.35);letter-spacing:0.06em;margin-bottom:2px;">'+sk.label+'</div>'+
+        '<div style="font-size:12px;color:'+(isEmpty?'rgba(79,195,247,0.22)':'rgba(79,195,247,0.70)')+';">'+(isEmpty?'(silent)':esc(val))+'</div></div>';
+    }).join('');
   }
 }
 
@@ -569,7 +648,8 @@ function updJSON(id){
   else if(id==='audio')s={audio:cfg.audio};
   else if(id==='timing')s={timing:cfg.timing};
   else if(id==='colors')s={theme:cfg.theme};
-  else if(id==='power')s={power_button_text:cfg.power_button_text,version_string:cfg.version_string};
+  else if(id==='power')s={terminal_title:cfg.terminal_title,power_button_text:cfg.power_button_text,version_string:cfg.version_string};
+  else if(id==='strings')s={terminal_strings:cfg.terminal_strings};
   else s[id]=cfg[id];
   document.getElementById('jo').textContent=JSON.stringify(s,null,2);
 }
