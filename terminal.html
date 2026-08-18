@@ -37,6 +37,20 @@ body.layer-3a{
   --theme-irow:rgba(180,30,30,0.10);--theme-bc:rgba(224,80,80,0.36);
   --theme-bgsolid:#050000;--theme-glow-a:rgba(80,15,15,0.32);--theme-glow-b:rgba(50,8,8,0.18);
 }
+/* SYSTEM OVERRIDE — forced black/green, wins over whatever layer theme is
+   active regardless of that theme's CSS source order (engine_config.json's
+   theme-overrides <style> block is injected dynamically, so this can't rely
+   on cascade position alone). */
+body.override-mode{
+  background:#000 !important;
+  --theme-full:#00ff41 !important;--theme-dim:rgba(0,255,65,0.65) !important;
+  --theme-lo:rgba(0,255,65,0.40) !important;--theme-warn:#00ff41 !important;
+  --theme-denied:#ff3333 !important;--theme-user:rgba(0,255,65,0.70) !important;
+  --theme-bg:rgba(0,0,0,0.97) !important;--theme-border:rgba(0,255,65,0.25) !important;
+  --theme-irow:rgba(0,255,65,0.06) !important;--theme-bc:rgba(0,255,65,0.45) !important;
+  --theme-bgsolid:#000000 !important;--theme-glow-a:rgba(0,120,40,0.35) !important;
+  --theme-glow-b:rgba(0,80,25,0.18) !important;
+}
 *{margin:0;padding:0;box-sizing:border-box;}
 html,body{height:100%;background:#000;overflow:hidden;}
 body{transition:background 1.1s ease;}
@@ -734,6 +748,8 @@ var l1ChatBackup    = null;
 var preFetchState   = null;
 var commandHistory  = [];
 var commandHistIdx  = -1;
+var overrideActive  = false;
+var overrideSnapshot = null;
 
 var SEP = '> \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500';
 var SEP_PLAIN = SEP.slice(2);
@@ -1192,7 +1208,7 @@ function resetIdleTimer(){
   idleTimer=setTimeout(showIdleMsg,CFG_IDLE_MS||IDLE_MS_FB);
 }
 function showIdleMsg(){
-  if(termState!=='L1_NORMAL'||typing||isResponding){idleTimer=setTimeout(showIdleMsg,CFG_IDLE_MS||IDLE_MS_FB);return;}
+  if(overrideActive||termState!=='L1_NORMAL'||typing||isResponding){idleTimer=setTimeout(showIdleMsg,CFG_IDLE_MS||IDLE_MS_FB);return;}
   var pool=CFG_IDLE_MSGS;
   if(!pool||!pool.length) return; // no idle messages configured — stay silent
   idleEl=addLine('low',true);idleEl.textContent=pool[Math.floor(Math.random()*pool.length)];
@@ -1325,7 +1341,8 @@ async function handleL1Input(val){
     isResponding=true;var u=addLine('user');u.textContent='> '+val;
     await sleep(120);playDenied();
     var pick=ADMIN_RESP[Math.floor(Math.random()*ADMIN_RESP.length)];
-    for(var i=0;i<pick.length;i++){playThinkHum(200);await sleep(200);var el=addLine(i===0?'denied':'warn');await typeLine(el,pick[i]);await sleep(180);}
+    for(var i=0;i<pick.length;i++){if(overrideActive)return;playThinkHum(200);await sleep(200);if(overrideActive)return;var el=addLine(i===0?'denied':'warn');await typeLine(el,pick[i]);await sleep(180);}
+    if(overrideActive)return;
     var pl=addLine('low');await typeLine(pl,'> AWAITING INPUT');setActiveCursor(pl);isResponding=false;output.scrollTop=output.scrollHeight;termInput.focus();return;
   }
 
@@ -1343,14 +1360,15 @@ async function handleL1Input(val){
 
   var egg=checkEasterEgg(val);
   if(egg){
-    playEggTone();await sleep(300);var v=pickVariant(egg);
-    for(var ei=0;ei<v.lines.length;ei++){var eel=addLine((v.cls&&v.cls[ei])||'dim');await typeLine(eel,v.lines[ei]);await sleep(280*0.8);}
+    playEggTone();await sleep(300);if(overrideActive)return;var v=pickVariant(egg);
+    for(var ei=0;ei<v.lines.length;ei++){if(overrideActive)return;var eel=addLine((v.cls&&v.cls[ei])||'dim');await typeLine(eel,v.lines[ei]);await sleep(280*0.8);}
   }else{
     playDenied();
     var dResp=DENIED[deniedIdx%DENIED.length];deniedIdx++;
     if(Math.random()<0.05){output.style.opacity='0.4';output.style.letterSpacing='0.12em';setTimeout(function(){output.style.opacity='';output.style.letterSpacing='';},120);}
-    for(var ri=0;ri<dResp.length;ri++){if(!dResp[ri])continue;playThinkHum(200);await sleep(200);var isBad=dResp[ri].indexOf('COMMAND')>=0||dResp[ri].indexOf('ERROR')>=0||dResp[ri].indexOf('WARNING')>=0;var rel=addLine(isBad?'denied':'dim');await typeLine(rel,dResp[ri]);await sleep(280*0.6);}
+    for(var ri=0;ri<dResp.length;ri++){if(!dResp[ri])continue;if(overrideActive)return;playThinkHum(200);await sleep(200);if(overrideActive)return;var isBad=dResp[ri].indexOf('COMMAND')>=0||dResp[ri].indexOf('ERROR')>=0||dResp[ri].indexOf('WARNING')>=0;var rel=addLine(isBad?'denied':'dim');await typeLine(rel,dResp[ri]);await sleep(280*0.6);}
   }
+  if(overrideActive)return;
   var pl2=addLine('low');await typeLine(pl2,'> AWAITING INPUT');setActiveCursor(pl2);inputSlowed=false;isResponding=false;output.scrollTop=output.scrollHeight;termInput.focus();
 }
 
@@ -1418,8 +1436,75 @@ async function renderPullInline(nodeId){
   var sep=addLine('low',true);sep.textContent=SEP;await sleep(40);
 }
 
+// ── SYSTEM OVERRIDE ────────────────────────────────────────────────────────────
+// Hardcoded, string-matched before any archData/nodes.json lookup — this has
+// to survive even a fully broken or failed archive load, so it can never
+// depend on the data it exists to diagnose. Typeable from any state.
+async function enterSystemOverride(){
+  overrideSnapshot={
+    html:output.innerHTML, termState:termState, currentLevel:currentLevel,
+    breadcrumb:breadcrumbEl.textContent, title:titleEl.textContent,
+    menuOpts:currentMenuOpts.slice(), menuSelIdx:menuSelIdx,
+    inputValue:termInput.value, inputPlaceholder:termInput.placeholder
+  };
+  overrideActive=true;isResponding=true;
+  playEggTone();
+  document.body.classList.add('override-mode');
+  output.innerHTML='';currentMenuOpts=[];menuSelIdx=-1;termInput.value='';termInput.placeholder='';
+  setBreadcrumb('SYSTEM OVERRIDE');
+  setHeaderTitle('SYSTEM OVERRIDE — UNAUTHORIZED ACCESS');
+  var h=addLine('full',true);await typeLine(h,'> SYSTEM OVERRIDE');
+  var a=addLine('full',true);await typeLine(a,'> ACCESS GRANTED');
+  await sleep(120);
+  var sep=addLine('low',true);sep.textContent=SEP;await sleep(40);
+  printOverrideMenu();
+  var pl=addLine('low');await typeLine(pl,'> AWAITING INPUT');setActiveCursor(pl);
+  isResponding=false;termInput.focus();
+}
+function printOverrideMenu(){
+  var m1=addLine('full');m1.textContent='  [STATUS]      — run full data validation report';
+  var m2=addLine('full');m2.textContent='  [EXIT]         — return to previous screen';
+}
+async function handleOverrideInput(val){
+  isResponding=true;
+  var u=addLine('user');u.textContent='> '+val;
+  if(val==='[STATUS]'){
+    await sleep(80);
+    var l1=addLine('warn',true);await typeLine(l1,'> VALIDATOR NOT YET IMPLEMENTED');
+    var l2=addLine('low',true);await typeLine(l2,'> (semantic validation — dangling targets, unhandled cmd_types, orphaned nodes — lands in a later pass)');
+    var pl=addLine('low');await typeLine(pl,'> AWAITING INPUT');setActiveCursor(pl);
+    isResponding=false;termInput.focus();return;
+  }
+  if(val==='[EXIT]'){await exitSystemOverride();return;}
+  playDenied();
+  var er=addLine('denied',true);await typeLine(er,CFG_STRINGS.error_cmd_not_recognized);
+  var pl2=addLine('low');await typeLine(pl2,'> AWAITING INPUT');setActiveCursor(pl2);
+  isResponding=false;termInput.focus();
+}
+async function exitSystemOverride(){
+  var snap=overrideSnapshot;overrideSnapshot=null;overrideActive=false;
+  document.body.classList.remove('override-mode');
+  if(!snap){
+    termState='L1_NORMAL';output.innerHTML='';setBreadcrumb('');setHeaderTitle('');
+    var pl=addLine('low');await typeLine(pl,'> AWAITING INPUT');setActiveCursor(pl);
+    isResponding=false;termInput.focus();return;
+  }
+  applyLayerClass(snap.currentLevel);
+  output.innerHTML=snap.html;
+  termState=snap.termState;
+  setBreadcrumb(snap.breadcrumb);
+  titleEl.textContent=snap.title;titleEl.style.opacity='1';
+  currentMenuOpts=snap.menuOpts;menuSelIdx=snap.menuSelIdx;
+  termInput.value=snap.inputValue;termInput.placeholder=snap.inputPlaceholder;
+  var cur=output.querySelector('.t-cursor');if(cur)cursorEl=cur;
+  output.scrollTop=output.scrollHeight;
+  isResponding=false;termInput.focus();
+}
+
 // ── MAIN INPUT ROUTER ─────────────────────────────────────────────────────────
 async function routeInput(val){
+  if(!overrideActive&&val==='[SYSTEM OVERRIDE]'){await enterSystemOverride();return;}
+  if(overrideActive){await handleOverrideInput(val);return;}
   if(!val&&termState!=='AWAITING_FETCH_CODE') return;
 
   if(termState==='AWAITING_FETCH_CODE'){
@@ -1470,6 +1555,11 @@ termInput.addEventListener('keydown',async function(e){
   if(e.key==='ArrowLeft'&&termInput.value===''&&!isResponding){e.preventDefault();if(termState!=='L1_NORMAL'&&termState!=='AWAITING_FETCH_CODE'){isResponding=true;await handleBack();}return;}
   if(e.key==='Escape'&&!isResponding){e.preventDefault();if(termState!=='L1_NORMAL'&&termState!=='AWAITING_FETCH_CODE'){isResponding=true;await handleExit();}return;}
 
+  // SYSTEM OVERRIDE must be reachable even mid-response (isResponding=true) —
+  // that's the whole point of a hardcoded recovery entry point.
+  if(e.key==='Enter'&&!overrideActive&&termInput.value.trim().toUpperCase()==='[SYSTEM OVERRIDE]'){
+    e.preventDefault();termInput.value='';playEnter();routeInput('[SYSTEM OVERRIDE]');return;
+  }
   if(e.key==='Enter'&&!isResponding){
     e.preventDefault();var v5=termInput.value.trim().toUpperCase();termInput.value='';
     if(termState==='L1_NORMAL'&&v5){commandHistory.push(v5);commandHistIdx=commandHistory.length;}
