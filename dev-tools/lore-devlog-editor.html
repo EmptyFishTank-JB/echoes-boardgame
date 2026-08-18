@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ECHO LORE // DEV LOG EDITOR v12</title>
+<title>ECHO LORE // DEV LOG EDITOR v13</title>
 <link rel="icon" type="image/svg+xml" id="fav-lnk">
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
@@ -287,7 +287,7 @@ select option{background:#001220;color:var(--blue);}
 <div id="app">
 
 <div id="hdr">
-  <span class="htitle">ECHO LORE // DEV LOG EDITOR v12</span>
+  <span class="htitle">ECHO LORE // DEV LOG EDITOR v13</span>
   <div class="hright">
     <span id="as-ind">&#10003; AUTOSAVED</span>
     <span id="fstat" class="none">NO FILE OPEN</span>
@@ -554,6 +554,7 @@ select option{background:#001220;color:var(--blue);}
           <button class="btn g" onclick="doDecode()" style="flex:1;">DECODE</button>
           <button class="btn sm" onclick="clearDecode()">CLEAR</button>
         </div>
+        <button class="btn a" id="dec-load-btn" style="display:none;width:100%;">&#8629; LOAD INTO EDITOR</button>
         <div id="drp">
           <div id="drp-hdr">&#9658; RESULT</div>
           <div id="drp-body"></div>
@@ -1107,25 +1108,50 @@ function doDecode(){
   var panel=document.getElementById('drp');
   var hdr=document.getElementById('drp-hdr');
   var body=document.getElementById('drp-body');
+  var loadBtn=document.getElementById('dec-load-btn');
   hdr.style.display='block';
+  // Normalize code to hyphenated format for JSON lookup
+  var normRaw=code.replace(/-/g,'').toUpperCase();
+  var fmtCode=normRaw.length===20?normRaw.slice(0,5)+'-'+normRaw.slice(5,10)+'-'+normRaw.slice(10,15)+'-'+normRaw.slice(15,20):code.toUpperCase();
+  var inJson=iData&&(iData.hasOwnProperty(fmtCode)||iData.hasOwnProperty(normRaw));
+  var hasJson=Object.keys(iData||{}).length>0;
+  var inJsonTxt=hasJson?(inJson?'✓ FOUND IN LOADED JSON':'NOT IN LOADED JSON'):'(no JSON loaded)';
+  var inJsonCls=hasJson?(inJson?'ok':'bad'):'';
   if(!result.valid){
     panel.className='bad';hdr.className='bad';
-    hdr.textContent='\u25B6 RESULT \u2014 \u2715 INVALID';
-    body.innerHTML=dr('STATUS','\u2715 INVALID','bad')+dr('REASON',result.error,'bad')+dr('SALT USED',''+useSalt);
+    hdr.textContent='▶ RESULT — ✕ INVALID';
+    body.innerHTML=dr('STATUS','✕ INVALID','bad')+dr('REASON',result.error,'bad')+dr('SALT USED',''+useSalt)+dr('IN JSON',inJsonTxt,inJsonCls);
+    loadBtn.style.display='none';
     return;
   }
   panel.className='ok';hdr.className='ok';
-  hdr.textContent='\u25B6 RESULT \u2014 \u2713 VALID';
+  hdr.textContent='▶ RESULT — ✓ VALID';
   var isLeap=(result.year%4===0&&result.year%100!==0)||(result.year%400===0);
   body.innerHTML=
-    dr('STATUS','\u2713 VALID','ok')+
+    dr('STATUS','✓ VALID','ok')+
     dr('DATE',p2(result.day)+'/'+p2(result.month)+'/'+result.year+(isLeap?' (LEAP)':''))+
     dr('TIME',p2(result.hour)+':'+p2(result.minute))+
     dr('DAY OF YEAR',p3(result.doy)+' of '+(isLeap?366:365))+
     dr('ENTRY ID','#'+result.entryId)+
     dr('STARDATE',result.stardate)+
     dr('SALT USED',''+useSalt)+
+    dr('IN JSON',inJsonTxt,inJsonCls)+
     '<div style="font-size:12px;color:rgba(79,195,247,0.50);margin-top:8px;padding:5px 8px;border:1px solid rgba(79,195,247,0.10);">STARDATE '+result.stardate+'</div>';
+  // LOAD INTO EDITOR button
+  loadBtn.style.display='block';
+  loadBtn.onclick=function(){
+    document.getElementById('dt-year').value=result.year;
+    document.getElementById('dt-month').value=result.month;
+    document.getElementById('dt-day').value=result.day;
+    document.getElementById('dt-hour').value=result.hour;
+    document.getElementById('dt-min').value=result.minute;
+    document.getElementById('eid').value=result.entryId;
+    document.getElementById('codef').value=fmtCode;
+    valC(normRaw);
+    onDtChange();updJ();
+    if(inJson){var ent=iData[fmtCode]||iData[normRaw];if(ent)lodEnt(fmtCode,ent);}
+    toast('Fields loaded from decode');
+  };
 }
 function dr(label,val,cls){return '<div class="dr-row"><span class="dr-l">'+label+'</span><span class="dr-v'+(cls?' '+cls:'')+'">'+val+'</span></div>';}
 function clearDecode(){
@@ -1134,6 +1160,7 @@ function clearDecode(){
   var panel=document.getElementById('drp');panel.className='';
   var hdr=document.getElementById('drp-hdr');hdr.className='';hdr.style.display='none';hdr.textContent='';
   document.getElementById('drp-body').innerHTML='';
+  document.getElementById('dec-load-btn').style.display='none';
 }
 
 // ── PREVIEW ───────────────────────────────────────────────────────────────────
@@ -1291,8 +1318,25 @@ function lodEnt(code,e){
   valC(code.replace(/-/g,''));
   if(e.type)setTyp(e.type);if(e.clearance)setClr(e.clearance);
   updCct();updPrev();highlightRow(code);
+  // Parse log ID letter/number from label
   var idM=(e.label||'').match(/([A-Z])-(\d+)/i);
   if(idM){document.getElementById('lidl').value=idM[1].toUpperCase();document.getElementById('lidn').value=idM[2];}
+  // Decode code to backfill date/time/entry ID fields if salt is set
+  if(saltValue&&saltValue>=1){
+    var dec=decodeEntry(code,saltValue);
+    if(dec.valid){
+      document.getElementById('dt-year').value=dec.year;
+      document.getElementById('dt-month').value=dec.month;
+      document.getElementById('dt-day').value=dec.day;
+      document.getElementById('dt-hour').value=dec.hour;
+      document.getElementById('dt-min').value=dec.minute;
+      document.getElementById('eid').value=dec.entryId;
+      onDtChange();
+    }
+  }
+  // Parse signature from log text (line starting with —— or -- )
+  var sigM=null;var _st=e.text||'';var _di=_st.indexOf('\u2014\u2014');if(_di<0)_di=_st.indexOf('--');if(_di>=0){var _sl=_st.slice(_di+2).split(' ').filter(function(s){return s.length>0;});if(_sl.length)sigM=[null,_sl.join(' ').split('\u000a')[0].trim()];}
+  if(sigM&&sigM[1])document.getElementById('sigf').value=sigM[1].trim();
   toast('Loaded: '+code);
 }
 
