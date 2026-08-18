@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ECHO LORE // DEV LOG EDITOR v14</title>
+<title>ECHO LORE // DEV LOG EDITOR v15</title>
 <link rel="icon" type="image/svg+xml" id="fav-lnk">
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
@@ -287,10 +287,11 @@ select option{background:#001220;color:var(--blue);}
 <div id="app">
 
 <div id="hdr">
-  <span class="htitle">ECHO LORE // DEV LOG EDITOR v14</span>
+  <span class="htitle">ECHO LORE // DEV LOG EDITOR v15</span>
   <div class="hright">
     <span id="as-ind">&#10003; AUTOSAVED</span>
     <span id="fstat" class="none">NO FILE OPEN</span>
+    <button class="hbtn" onclick="loadFromGitHub()">&#8681; LOAD FROM GITHUB</button>
     <button class="hbtn" onclick="openFile()">&#8213; OPEN FILE</button>
   </div>
 </div>
@@ -1235,6 +1236,17 @@ function rmRow(code){
 }
 
 // ── FILE OPS ──────────────────────────────────────────────────────────────────
+var GH_RAW_BASE='https://raw.githubusercontent.com/EmptyFishTank-JB/echoes-boardgame/main/terminal-data/';
+async function loadFromGitHub(){
+  var name=(mode==='dev'?'dev_logs.json':'lore.json');
+  fileHandle=null;
+  try{
+    var r=await fetch(GH_RAW_BASE+name+'?v='+Date.now());
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    var text=await r.text();
+    parseImp(text,'GitHub: '+name);updFstat('ro',name+' (GitHub, read-only)');
+  }catch(e){toast('GitHub fetch failed: '+e.message);}
+}
 async function openFile(){
   if(!window.showOpenFilePicker){toast('Not supported. Use drag & drop.');return;}
   try{var picks=await window.showOpenFilePicker({types:[{description:'JSON',accept:{'application/json':['.json']}}],multiple:false});
