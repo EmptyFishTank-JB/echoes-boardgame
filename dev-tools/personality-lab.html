@@ -539,12 +539,21 @@ function exportData() {
 
 // ── FILE I/O ──────────────────────────────────────────────────────────────────
 var GH_RAW_BASE = 'https://raw.githubusercontent.com/EmptyFishTank-JB/echoes-boardgame/main/terminal-data/';
+var GH_COMMITS_API = 'https://api.github.com/repos/EmptyFishTank-JB/echoes-boardgame/commits?per_page=1&path=';
+function fetchLatestSha(repoPath) {
+  return fetch(GH_COMMITS_API+encodeURIComponent(repoPath))
+    .then(function(r){return r.ok?r.json():null;})
+    .then(function(d){return(d&&d.length)?d[0].sha.slice(0,7):null;})
+    .catch(function(){return null;});
+}
 async function loadFromGitHub() {
   fileHandle = null;
   try {
     var r = await fetch(GH_RAW_BASE+'personality.json?v='+Date.now());
     if (!r.ok) throw new Error('HTTP '+r.status);
-    loadJSON(JSON.parse(await r.text()), 'personality.json', 'ro');
+    var raw = JSON.parse(await r.text());
+    var sha = await fetchLatestSha('terminal-data/personality.json');
+    loadJSON(raw, 'personality.json', 'ro', sha);
   } catch(e) { toast('GitHub fetch failed: '+e.message); }
 }
 async function openFile() {
@@ -553,7 +562,7 @@ async function openFile() {
       var [h] = await window.showOpenFilePicker({types:[{description:'JSON',accept:{'application/json':['.json']}}]});
       fileHandle = h;
       var f = await h.getFile();
-      loadJSON(JSON.parse(await f.text()), f.name, 'rw');
+      loadJSON(JSON.parse(await f.text()), f.name, 'rw', null);
     } catch(e) { if (e.name !== 'AbortError') document.getElementById('fi').click(); }
   } else { document.getElementById('fi').click(); }
 }
@@ -561,19 +570,21 @@ function onFileIn(e) {
   var f = e.target.files[0]; if (!f) return;
   var r = new FileReader();
   r.onload = function(ev) {
-    try { loadJSON(JSON.parse(ev.target.result), f.name, 'ro'); } catch(ex) { toast('Parse error: '+ex.message); }
+    try { loadJSON(JSON.parse(ev.target.result), f.name, 'ro', null); } catch(ex) { toast('Parse error: '+ex.message); }
   };
   r.readAsText(f); e.target.value = '';
 }
-function loadJSON(raw, name, cls) {
+function loadJSON(raw, name, cls, sha) {
   data = normalize(raw);
   pushHist(); selEgg=null; selVariant=null; selDenied=null; selAdmResp=null;
   renderList(); showNoSel();
-  setFstat(name, cls);
+  setFstat(name, cls, sha);
   toast('Opened: '+name+' ('+data.eggs.length+' eggs, '+data.denied.length+' denied, '+data.admin.keywords.length+' admin keywords)');
 }
-function setFstat(name, cls) {
-  var el=document.getElementById('fstat'); el.textContent=name; el.className=cls;
+function setFstat(name, cls, sha) {
+  var el=document.getElementById('fstat');
+  el.textContent=(sha!==undefined)?('['+name+'] ['+(sha||'—')+']'):name;
+  el.className=cls;
   document.getElementById('stf-btn').disabled=(cls==='ro');
 }
 async function saveToFile() {
