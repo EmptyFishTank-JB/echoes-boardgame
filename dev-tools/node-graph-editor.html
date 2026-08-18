@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NODE GRAPH EDITOR // v5.34</title>
+<title>NODE GRAPH EDITOR // v5.35</title>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
@@ -80,6 +80,8 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
 .gnode.selected.l2{border-color:#bf7c0a;box-shadow:0 0 0 1.5px #bf7c0a,0 6px 24px rgba(191,124,10,0.22);}
 .gnode.selected.l3{border-color:#e05050;box-shadow:0 0 0 1.5px #e05050,0 6px 24px rgba(224,80,80,0.22);}
 .gnode.multi-sel{box-shadow:0 0 0 2px #4fc3f7,0 0 12px rgba(79,195,247,0.25);}
+/* Global node selected — white glow */
+.gnode.selected.global-node{border-color:#ffffff;box-shadow:0 0 0 1.5px #ffffff,0 6px 24px rgba(255,255,255,0.18)!important;}
 /* PINNED NODE — dashed border only */
 .gnode.pinned{border-style:dashed!important;}
 .gnode-hdr{padding:7px 10px 7px 12px;display:flex;align-items:center;gap:5px;cursor:grab;border-bottom:1px solid rgba(79,195,247,0.09);}
@@ -104,7 +106,7 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
 .gnode-bline.text{color:rgba(79,195,247,0.55);}
 .gnode.l2 .gnode-bline.text{color:rgba(191,124,10,0.65);}
 .gnode.l3 .gnode-bline.text{color:rgba(224,80,80,0.65);}
-.gnode-bline.cmd-nav{color:#cc3311;}
+.gnode-bline.cmd-nav{color:#e05050;}
 .gnode.l2 .gnode-bline.cmd-nav{color:rgba(191,124,10,0.90);}
 .gnode.l3 .gnode-bline.cmd-nav{color:rgba(224,80,80,0.90);}
 .gnode-bline.cmd-pull{color:rgba(196,127,196,0.85);}
@@ -175,7 +177,7 @@ select.iv-sel option{background:#001220;color:var(--blue);}
 .add-btn{font-size:11px;padding:3px 8px;}
 .body-type-tag:hover,.add-btn:hover{filter:brightness(1.35);box-shadow:0 0 7px currentColor;}
 .tag-text,.add-btn.txt{color:#4fc3f7;border:1px solid rgba(79,195,247,0.70);}
-.tag-nav,.add-btn.nav{color:#cc3311;border:1px solid rgba(204,51,17,0.75);}
+.tag-nav,.add-btn.nav{color:#e05050;border:1px solid rgba(224,80,80,0.75);}
 .tag-pull,.add-btn.pull{color:#c47fc4;border:1px solid rgba(196,127,196,0.75);}
 .tag-loop,.add-btn.loop{color:#6fb06f;border:1px solid rgba(111,176,111,0.75);}
 .tag-dyn,.add-btn.dyn{color:#f0c040;border:1px solid rgba(240,192,64,0.75);}
@@ -228,8 +230,8 @@ select.iv-sel option{background:#001220;color:var(--blue);}
 .body-grip{font-size:12px;color:rgba(79,195,247,1.00);cursor:grab;flex-shrink:0;padding:0 2px;user-select:none;line-height:1;}
 .body-grip:hover{color:rgba(79,195,247,0.55);}
 .body-row[draggable]{cursor:default;}
-.body-row.drag-over-top{border-top:2px solid #4fc3f7;}
-.body-row.drag-over-bot{border-bottom:2px solid #4fc3f7;}
+.body-row.drag-over-top,.body-row-dyn.drag-over-top{border-top:2px solid #4fc3f7;}
+.body-row.drag-over-bot,.body-row-dyn.drag-over-bot{border-bottom:2px solid #4fc3f7;}
 /* HIDDEN BODY LINES */
 .bline-hidden{opacity:0.42;background:rgba(79,195,247,0.015)!important;}
 /* TYPE CYCLE BUTTON */
@@ -239,7 +241,7 @@ select.iv-sel option{background:#001220;color:var(--blue);}
 <body>
 <div id="app">
 <div id="hdr">
-  <span class="htitle">NODE GRAPH EDITOR // v5.34</span>
+  <span class="htitle">NODE GRAPH EDITOR // v5.35</span>
   <span id="as-ind">&#10003; SAVED</span>
   <span id="fstat" class="none">NO FILE</span>
   <span id="fver" style="font-size:11px;color:rgba(79,195,247,0.28);letter-spacing:0.06em;"></span>
@@ -343,7 +345,7 @@ select.iv-sel option{background:#001220;color:var(--blue);}
 <script>
 'use strict';
 // ── CONSTANTS ─────────────────────────────────────────────────────────────────
-var EDITOR_VERSION='5.34';
+var EDITOR_VERSION='5.35';
 var EDITOR_CREATED='2026-05-28T12:00:00-05:00';
 var EDITOR_CREATED_HUMAN='May 28, 2026 CT';
 var CANVAS_W=4000, CANVAS_H=3000, NODE_W=220;
@@ -418,7 +420,7 @@ function getLayerIds(){
 
 var LAYER_COLOR={l1:'#4fc3f7',l2:'#bf7c0a',l3:'#e05050'};
 var LAYER_LABEL={l1:'L1',l2:'L2',l3:'L3'};
-var CMD_COLOR={navigation:'#cc3311',pull:'#c47fc4',loop:'#6fb06f',flavor:'#c47fc4'};
+var CMD_COLOR={navigation:'#e05050',pull:'#c47fc4',loop:'#6fb06f',flavor:'#c47fc4'};
 var NODE_TYPES=['standard','chat','boot','intro','log_entry','data','global'];
 var NODE_TYPE_LABELS={standard:'STANDARD',chat:'CHAT',boot:'BOOT',intro:'INTRO',log_entry:'LOG ENTRY',data:'DATA',global:'GLOBAL'};
 var CLS_OPTS=['full','dim','low','warn','denied','blank'];
@@ -625,7 +627,7 @@ function render(){
 
     var _ed=n._editor||{};
     var el=document.createElement('div');
-    el.className='gnode '+lyr+(isSel?' selected':'')+(isMulti&&!isSel?' multi-sel':'')+(_ed.pinned?' pinned':'');
+    el.className='gnode '+lyr+(nt==='global'?' global-node':'')+(isSel?' selected':'')+(isMulti&&!isSel?' multi-sel':'')+(_ed.pinned?' pinned':'');
     el.id='gn-'+id;el.style.cssText='left:'+pos.x+'px;top:'+pos.y+'px;width:'+NODE_W+'px;position:absolute;';
     // Apply inline styles for dynamic layers (no CSS class exists for them)
     if(!LAYER_COLOR[lyr]){
@@ -1188,6 +1190,15 @@ function showInfo(id){
       h+='<input type="text" value="'+esc(b.display_label||'')+'" placeholder="display label" style="flex:1;font-size:11px;background:transparent;border:none;border-bottom:1px solid rgba(240,192,64,0.25);color:rgba(240,192,64,0.75);outline:none;" oninput="liveDynLabel(\''+esc(id)+'\','+bi+',this.value)" onchange="pushHist()" autocomplete="off" spellcheck="false">';
       h+='<button class="cls-cycle" style="color:'+vCol+';border-color:'+vCol+';" onclick="cycleValueCls(\''+esc(id)+'\','+bi+')" title="Value color: '+vCls+'">&#9635; '+vCls+'</button>';
       h+='</div>';
+      // Sub-row 3: valid response text + denied response text
+      var vText=b.valid_text||'OK'; var dText=b.denied_text||'ERROR';
+      h+='<div class="dyn-sub-row" style="gap:6px;">';
+      h+='<span style="width:13px;flex-shrink:0;"></span>';
+      h+='<span style="font-size:10px;color:rgba(240,192,64,0.45);flex-shrink:0;">&#10003;</span>';
+      h+='<input type="text" value="'+esc(vText)+'" placeholder="valid text" style="flex:1;font-size:11px;background:transparent;border:none;border-bottom:1px solid rgba(111,176,111,0.30);color:#6fb06f;outline:none;" oninput="liveDynValidText(\''+esc(id)+'\','+bi+',this.value)" onchange="pushHist()" autocomplete="off" spellcheck="false" title="Valid/OK response text">';
+      h+='<span style="font-size:10px;color:rgba(240,192,64,0.45);flex-shrink:0;">&#10007;</span>';
+      h+='<input type="text" value="'+esc(dText)+'" placeholder="denied text" style="flex:1;font-size:11px;background:transparent;border:none;border-bottom:1px solid rgba(224,80,80,0.30);color:#e05050;outline:none;" oninput="liveDynDeniedText(\''+esc(id)+'\','+bi+',this.value)" onchange="pushHist()" autocomplete="off" spellcheck="false" title="Denied/ERROR response text">';
+      h+='</div>';
       h+='</div>';
       return;
     }
@@ -1315,28 +1326,28 @@ function liveBody(nodeId,bi,val){
 // ── BODY ROW DRAG AND DROP ────────────────────────────────────────────────────
 var _bodyDragSrc=null;
 document.getElementById('info-body').addEventListener('dragstart',function(e){
-  var row=e.target.closest('.body-row');if(!row)return;
+  var row=e.target.closest('.body-row,.body-row-dyn');if(!row)return;
   _bodyDragSrc={bi:parseInt(row.dataset.bi),nodeId:row.dataset.nodeid};
   e.dataTransfer.effectAllowed='move';
   setTimeout(function(){row.style.opacity='0.4';},0);
 });
 document.getElementById('info-body').addEventListener('dragend',function(e){
-  var row=e.target.closest('.body-row');if(row)row.style.opacity='1';
-  document.querySelectorAll('.body-row').forEach(function(r){r.classList.remove('drag-over-top','drag-over-bot');});
+  var row=e.target.closest('.body-row,.body-row-dyn');if(row)row.style.opacity='1';
+  document.querySelectorAll('.body-row,.body-row-dyn').forEach(function(r){r.classList.remove('drag-over-top','drag-over-bot');});
   _bodyDragSrc=null;
 });
 document.getElementById('info-body').addEventListener('dragover',function(e){
   e.preventDefault();
-  var row=e.target.closest('.body-row');if(!row||!_bodyDragSrc)return;
-  document.querySelectorAll('.body-row').forEach(function(r){r.classList.remove('drag-over-top','drag-over-bot');});
+  var row=e.target.closest('.body-row,.body-row-dyn');if(!row||!_bodyDragSrc)return;
+  document.querySelectorAll('.body-row,.body-row-dyn').forEach(function(r){r.classList.remove('drag-over-top','drag-over-bot');});
   var rect=row.getBoundingClientRect();
   var mid=rect.top+rect.height/2;
   row.classList.add(e.clientY<mid?'drag-over-top':'drag-over-bot');
 });
 document.getElementById('info-body').addEventListener('drop',function(e){
   e.preventDefault();
-  var row=e.target.closest('.body-row');
-  document.querySelectorAll('.body-row').forEach(function(r){r.classList.remove('drag-over-top','drag-over-bot');});
+  var row=e.target.closest('.body-row,.body-row-dyn');
+  document.querySelectorAll('.body-row,.body-row-dyn').forEach(function(r){r.classList.remove('drag-over-top','drag-over-bot');});
   if(!row||!_bodyDragSrc)return;
   var toBI=parseInt(row.dataset.bi);
   var fromBI=_bodyDragSrc.bi;
@@ -1368,7 +1379,7 @@ function addBody(nodeId,btype){
   else if(btype==='cmd-data')n.body.push({type:'command',cmd_type:'pull',label:'[PULL]',target:''});
   else if(btype==='cmd-pull')n.body.push({type:'command',cmd_type:'pull',label:'[PULL]',target:''});
   else if(btype==='cmd-loop')n.body.push({type:'command',cmd_type:'loop',label:'[ENTER ANOTHER CODE]',target:''});
-  else if(btype==='dyn')n.body.push({type:'dynamic',variable:DYN_VARS[0],display_label:DYN_LABELS[DYN_VARS[0]]||'',label_cls:'dim',value_cls:'full'});
+  else if(btype==='dyn')n.body.push({type:'dynamic',variable:DYN_VARS[0],display_label:DYN_LABELS[DYN_VARS[0]]||'',label_cls:'dim',value_cls:'full',valid_text:'OK',denied_text:'ERROR'});
   pushHist();render();showInfo(nodeId);
   // Scroll info-body to bottom so new line is visible
   requestAnimationFrame(function(){
@@ -1705,11 +1716,13 @@ function disconnectAllIncoming(nodeId){
 
 
 // ── DYNAMIC VARS ─────────────────────────────────────────────────────────────
-var DYN_VARS=['file_status.personality','file_status.lore','file_status.devlogs','file_status.nodes','file_status.engine','session.level','session.node','session.discovered','session.l3_visited','node.title','node.layer'];
-var DYN_LABELS={'file_status.personality':'CREW BEHAVIORAL MATRIX','file_status.lore':'ARCHIVE LOG DATABASE','file_status.devlogs':'DEVELOPMENT RECORDS','file_status.nodes':'NAVIGATION ARCHITECTURE','file_status.engine':'CORE ENGINE PARAMETERS','session.level':'CURRENT LEVEL','session.node':'CURRENT NODE','session.discovered':'DISCOVERED ENTRIES','session.l3_visited':'L3 VISITED','node.title':'NODE TITLE','node.layer':'NODE LAYER'};
+var DYN_VARS=['file_status.personality','file_status.lore','file_status.devlogs','file_status.nodes','file_status.engine','system.boot_status','session.level','session.node','session.discovered','session.l3_visited','node.title','node.layer'];
+var DYN_LABELS={'file_status.personality':'CREW BEHAVIORAL MATRIX','file_status.lore':'ARCHIVE LOG DATABASE','file_status.devlogs':'DEVELOPMENT RECORDS','file_status.nodes':'NAVIGATION ARCHITECTURE','file_status.engine':'CORE ENGINE PARAMETERS','system.boot_status':'SYSTEM STATUS (FULL ACCESS / DEGRADED)','session.level':'CURRENT LEVEL','session.node':'CURRENT NODE','session.discovered':'DISCOVERED ENTRIES','session.l3_visited':'L3 VISITED','node.title':'NODE TITLE','node.layer':'NODE LAYER'};
 
 function liveDynVar(nodeId,bi,val){var n=arch&&arch.nodes&&arch.nodes[nodeId];if(!n||!n.body[bi])return;n.body[bi].variable=val;if(!n.body[bi].display_label)n.body[bi].display_label=DYN_LABELS[val]||'';render();}
 function liveDynLabel(nodeId,bi,val){var n=arch&&arch.nodes&&arch.nodes[nodeId];if(!n||!n.body[bi])return;n.body[bi].display_label=val;}
+function liveDynValidText(nodeId,bi,val){var n=arch&&arch.nodes&&arch.nodes[nodeId];if(!n||!n.body[bi])return;n.body[bi].valid_text=val||'OK';}
+function liveDynDeniedText(nodeId,bi,val){var n=arch&&arch.nodes&&arch.nodes[nodeId];if(!n||!n.body[bi])return;n.body[bi].denied_text=val||'ERROR';}
 function cycleLabelCls(nodeId,bi){
   var n=arch&&arch.nodes&&arch.nodes[nodeId];if(!n||!n.body[bi])return;
   var cur=n.body[bi].label_cls||n.body[bi].cls||'dim';
