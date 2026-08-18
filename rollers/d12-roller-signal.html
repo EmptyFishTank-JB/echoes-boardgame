@@ -456,15 +456,15 @@
 </svg>
 
 <nav>
-  <a href="index.html">&larr; Echoes</a>
+  <a href="../index.html">&larr; Echoes</a>
   <span class="sep">//</span>
-  <a href="rules.html">Rules &amp; Design</a>
+  <a href="../rules.html">Rules &amp; Design</a>
   <span class="sep">//</span>
-  <a href="echo-events.html">Echo Events</a>
+  <a href="../echo-events.html">Echo Events</a>
   <span class="sep">//</span>
-  <a href="assets.html">Assets</a>
+  <a href="../assets.html">Assets</a>
   <span class="sep">//</span>
-  <a href="terminal.html">Terminal</a>
+  <a href="../terminal.html">Terminal</a>
 </nav>
 
 <header class="title-block">
@@ -1272,7 +1272,7 @@
     var tzName = tzFmt.formatToParts(d).find(function(p){ return p.type === 'timeZoneName'; }).value;
     return dateStr + ' ' + hh + ':' + mm + ' ' + tzName;
   }
-  fetch('https://api.github.com/repos/EmptyFishTank-JB/echoes-boardgame/commits?path=d12-roller-signal.html&per_page=1')
+  fetch('https://api.github.com/repos/EmptyFishTank-JB/echoes-boardgame/commits?path=rollers/d12-roller-signal.html&per_page=1')
     .then(function(r){ if (!r.ok) throw new Error('bad response'); return r.json(); })
     .then(function(data){
       if (!data || !data.length) throw new Error('no commits');
