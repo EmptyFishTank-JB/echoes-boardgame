@@ -1,0 +1,1649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ECHO LORE // DEV LOG EDITOR v12</title>
+<link rel="icon" type="image/svg+xml" id="fav-lnk">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --blue:#4fc3f7;--amber:#bf7c0a;--red:#e05050;--green:#6fb06f;
+  --dark:#00080e;--dim:rgba(79,195,247,0.40);--bdr:rgba(79,195,247,0.10);
+}
+html,body{height:100%;background:var(--dark);color:var(--blue);
+  font-family:"Share Tech Mono",monospace;font-size:13px;overflow:hidden;}
+#app{display:flex;flex-direction:column;height:100vh;}
+
+/* HEADER */
+#hdr{display:flex;justify-content:space-between;align-items:center;
+  padding:7px 16px;border-bottom:1px solid var(--bdr);
+  flex-shrink:0;background:rgba(0,4,10,0.98);gap:10px;flex-wrap:wrap;}
+.htitle{font-size:12px;letter-spacing:0.14em;}
+.hright{display:flex;align-items:center;gap:10px;font-size:11px;color:var(--dim);}
+#as-ind{color:var(--green);opacity:0;transition:opacity 0.4s;}
+#as-ind.show{opacity:1;}
+#fstat{font-size:11px;padding:2px 8px;border:1px solid;letter-spacing:0.06em;}
+#fstat.none{border-color:rgba(79,195,247,0.10);color:var(--dim);}
+#fstat.ro  {border-color:rgba(191,124,10,0.28);color:var(--amber);}
+#fstat.rw  {border-color:rgba(111,176,111,0.35);color:var(--green);}
+.hbtn{background:transparent;border:1px solid rgba(79,195,247,0.16);
+  color:var(--dim);font-family:"Share Tech Mono",monospace;
+  font-size:11px;letter-spacing:0.07em;padding:3px 10px;cursor:pointer;transition:all 0.15s;}
+.hbtn:hover{border-color:var(--blue);color:var(--blue);}
+
+/* UNDO BAR */
+#urbar{display:flex;align-items:center;gap:7px;padding:5px 13px;
+  border-bottom:1px solid var(--bdr);flex-shrink:0;flex-wrap:wrap;}
+#urinfo{font-size:11px;color:var(--dim);flex:1;min-width:60px;}
+
+/* BODY */
+#body{display:flex;flex:1;min-height:0;}
+
+/* ENTRIES COLUMN */
+#etgl-outer{width:28px;flex-shrink:0;display:flex;align-items:stretch;border-right:1px solid var(--bdr);}
+#etgl-outer button{width:100%;background:transparent;border:none;
+  color:var(--dim);font-family:"Share Tech Mono",monospace;font-size:11px;
+  cursor:pointer;transition:all 0.15s;padding:0;}
+#etgl-outer button:hover{background:rgba(79,195,247,0.06);color:var(--blue);}
+#ecol{width:340px;flex-shrink:0;display:flex;flex-direction:column;
+  border-right:1px solid var(--bdr);overflow:hidden;
+  transition:width 0.28s cubic-bezier(0.4,0,0.2,1);}
+#ecol.collapsed{width:0;}
+.ecol-inner{display:flex;flex-direction:column;flex:1;min-height:0;min-width:312px;}
+.phdr{padding:7px 12px;font-size:12px;letter-spacing:0.12em;color:var(--dim);
+  border-bottom:1px solid var(--bdr);flex-shrink:0;display:flex;align-items:center;gap:8px;}
+#esrch{background:rgba(79,195,247,0.03);border:none;border-bottom:1px solid var(--bdr);
+  color:var(--blue);font-family:"Share Tech Mono",monospace;font-size:12px;
+  padding:6px 12px;outline:none;width:100%;flex-shrink:0;}
+#esrch::placeholder{color:rgba(79,195,247,0.24);}
+#elist{flex:1;overflow-y:auto;}
+.erow{padding:7px 10px;border-bottom:1px solid rgba(79,195,247,0.05);
+  cursor:pointer;transition:background 0.10s;position:relative;}
+.erow:hover{background:rgba(79,195,247,0.04);}
+.erow.active{background:rgba(79,195,247,0.08);border-left:2px solid var(--blue);}
+.er-code{font-size:11px;color:var(--dim);letter-spacing:0.05em;margin-bottom:3px;}
+.er-mid{display:flex;align-items:center;gap:5px;margin-bottom:3px;flex-wrap:wrap;}
+.er-lbl{font-size:12px;color:rgba(79,195,247,0.55);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:22px;}
+.erm{position:absolute;top:7px;right:6px;background:transparent;
+  border:1px solid rgba(224,80,80,0.18);color:rgba(224,80,80,0.40);
+  font-family:"Share Tech Mono",monospace;font-size:10px;
+  padding:1px 5px;cursor:pointer;transition:all 0.12s;line-height:1;}
+.erm:hover{border-color:var(--red);color:var(--red);}
+#ecount{padding:5px 12px;font-size:11px;color:var(--dim);
+  border-top:1px solid var(--bdr);flex-shrink:0;display:none;}
+
+/* BADGES */
+.etbadge{font-size:11px;padding:2px 6px;border:1px solid rgba(79,195,247,0.16);
+  color:var(--dim);flex-shrink:0;white-space:nowrap;position:relative;overflow:hidden;display:inline-block;}
+.etbadge .bt{position:relative;z-index:1;}
+.etbadge.full{border-color:rgba(79,195,247,0.22);color:var(--blue);}
+.etbadge.partial{border-color:rgba(79,195,247,0.40);}
+.etbadge.partial::before{content:'';position:absolute;inset:0;
+  background:linear-gradient(to top right,var(--blue) 50%,transparent 50%);pointer-events:none;}
+.etbadge.partial .bt{background:linear-gradient(to top right,#00080e 50%,var(--blue) 50%);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}
+.etbadge.degraded{border-color:rgba(79,195,247,0.30);}
+.etbadge.degraded::before{content:'';position:absolute;inset:0;
+  background:linear-gradient(to top left,var(--blue) 50%,transparent 50%) right/50% 100% no-repeat,
+             linear-gradient(to top right,var(--blue) 50%,transparent 50%) left/50% 100% no-repeat;pointer-events:none;}
+.etbadge.degraded .bt{background:linear-gradient(to top left,#00080e 50%,var(--blue) 50%) right/50% 100% no-repeat,
+  linear-gradient(to top right,#00080e 50%,var(--blue) 50%) left/50% 100% no-repeat;
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}
+.etbadge.corrupted{border-color:rgba(191,124,10,0.45);border-style:dashed;color:var(--amber);}
+.etbadge.corrupted::before{content:'';position:absolute;inset:0;
+  background:repeating-linear-gradient(-45deg,rgba(191,124,10,0.12),rgba(191,124,10,0.12) 2px,transparent 2px,transparent 7px);pointer-events:none;}
+.etbadge.classified{border-color:rgba(191,124,10,0.40);color:var(--amber);}
+.etbadge.virus{border-color:rgba(224,80,80,0.40);color:var(--red);}
+
+/* EDITOR */
+#editor{flex:1;min-width:0;display:flex;flex-direction:column;border-right:1px solid var(--bdr);}
+.ephdr{padding:7px 12px;font-size:12px;letter-spacing:0.12em;color:var(--dim);
+  border-bottom:1px solid var(--bdr);flex-shrink:0;}
+#escroll{flex:1;overflow-y:auto;padding:11px 13px;display:flex;flex-direction:column;gap:10px;}
+
+/* FIELDS */
+.fg{display:flex;flex-direction:column;gap:5px;}
+.fl{font-size:12px;letter-spacing:0.08em;color:rgba(79,195,247,0.46);}
+.fr{display:flex;gap:6px;align-items:stretch;}
+input[type=text],input[type=number],textarea,select{
+  background:rgba(79,195,247,0.04);border:1px solid rgba(79,195,247,0.12);
+  color:var(--blue);font-family:"Share Tech Mono",monospace;
+  font-size:13px;letter-spacing:0.04em;padding:7px 9px;
+  outline:none;transition:border-color 0.2s;width:100%;}
+input:focus,textarea:focus,select:focus{border-color:rgba(79,195,247,0.35);}
+select option{background:#001220;color:var(--blue);}
+#codef{text-transform:uppercase;letter-spacing:0.13em;}
+#codef.valid{border-color:rgba(111,176,111,0.55);}
+#codef.dupe {border-color:rgba(224,80,80,0.55);}
+#codest{font-size:11px;margin-top:3px;letter-spacing:0.05em;color:var(--dim);}
+#codest.ok{color:var(--green);}
+#codest.bad{color:var(--red);}
+
+/* TOGGLES */
+.tgg{display:flex;}
+.tg{flex:1;background:transparent;border:1px solid rgba(79,195,247,0.12);
+  color:var(--dim);font-family:"Share Tech Mono",monospace;
+  font-size:12px;letter-spacing:0.06em;padding:5px 0;cursor:pointer;
+  transition:all 0.15s;margin-left:-1px;}
+.tg:first-child{margin-left:0;}
+.tg:hover{color:var(--blue);border-color:rgba(79,195,247,0.30);z-index:1;}
+.tg.on{color:#001220;background:var(--blue);border-color:var(--blue);z-index:2;}
+.tg.on.a{background:var(--amber);border-color:var(--amber);}
+.tg.on.r{background:var(--red);border-color:var(--red);}
+
+/* BUTTONS */
+.btn{background:transparent;border:1px solid rgba(79,195,247,0.17);color:var(--blue);
+  font-family:"Share Tech Mono",monospace;font-size:12px;letter-spacing:0.07em;
+  padding:5px 12px;cursor:pointer;transition:all 0.15s;white-space:nowrap;}
+.btn:hover{border-color:var(--blue);background:rgba(79,195,247,0.05);}
+.btn.a{border-color:rgba(191,124,10,0.24);color:var(--amber);}
+.btn.a:hover{border-color:var(--amber);background:rgba(191,124,10,0.05);}
+.btn.g{border-color:rgba(111,176,111,0.28);color:var(--green);}
+.btn.g:hover{border-color:var(--green);background:rgba(111,176,111,0.05);}
+.btn.r{border-color:rgba(224,80,80,0.18);color:rgba(224,80,80,0.50);}
+.btn.r:hover{border-color:var(--red);color:var(--red);background:rgba(224,80,80,0.05);}
+.btn.sm{font-size:11px;padding:3px 9px;}
+.btn.lg{font-size:13px;padding:11px 0;letter-spacing:0.12em;width:100%;margin-top:4px;}
+.btn:disabled{opacity:0.28;cursor:not-allowed;}
+#brow{display:flex;gap:6px;flex-wrap:wrap;}
+.btn-row{display:flex;gap:6px;flex-wrap:wrap;}
+
+/* LIVE HEADER PREVIEW */
+#hdprev{border:1px solid rgba(79,195,247,0.12);background:rgba(79,195,247,0.02);padding:9px 11px;}
+.hdprev-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.hdprev-top .fl{margin-bottom:0;}
+.hdprev-btns{display:flex;gap:5px;flex-shrink:0;}
+#hp-line1{font-size:12px;color:var(--blue);letter-spacing:0.05em;line-height:1.7;}
+#hp-line2{font-size:12px;color:var(--dim);letter-spacing:0.05em;line-height:1.7;}
+.inj{background:transparent;border:1px solid rgba(79,195,247,0.15);
+  color:var(--dim);font-family:"Share Tech Mono",monospace;
+  font-size:11px;padding:2px 8px;cursor:pointer;transition:all 0.15s;flex-shrink:0;}
+.inj:hover{border-color:var(--blue);color:var(--blue);}
+.inj.a{border-color:rgba(191,124,10,0.18);color:rgba(191,124,10,0.45);}
+.inj.a:hover{border-color:var(--amber);color:var(--amber);}
+
+/* DATE/TIME GRID */
+.dt5{display:grid;grid-template-columns:2.2fr 1fr 1fr 1fr 1fr;gap:6px;}
+.sub-fl{font-size:10px;letter-spacing:0.06em;color:rgba(79,195,247,0.30);margin-bottom:3px;}
+#doy-line{padding:7px 9px;background:rgba(79,195,247,0.03);border:1px solid rgba(79,195,247,0.09);
+  font-size:12px;color:var(--dim);letter-spacing:0.05em;line-height:1.7;}
+#doy-line span{color:var(--blue);}
+
+/* SALT SECTION */
+#salt-sec{border:1px solid rgba(79,195,247,0.10);background:rgba(79,195,247,0.015);padding:9px 11px;}
+.salt-hdr{font-size:12px;color:var(--dim);letter-spacing:0.08em;
+  display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none;}
+.salt-hdr:hover{color:var(--blue);}
+.salt-body{display:flex;flex-direction:column;gap:8px;margin-top:8px;}
+.salt-body.hidden{display:none;}
+.salt-row{display:flex;gap:6px;align-items:center;}
+.salt-row input{flex:1;}
+.warn-line{font-size:11px;color:rgba(232,115,42,0.80);line-height:1.7;}
+
+/* CODE GENERATED DISPLAY (inline) */
+#code-out-row{display:flex;gap:8px;align-items:center;margin-top:4px;}
+#code-out-disp{flex:1;font-size:15px;letter-spacing:0.16em;color:var(--blue);
+  padding:8px 10px;border:1px solid rgba(79,195,247,0.14);
+  background:rgba(79,195,247,0.02);text-align:center;min-height:42px;
+  display:flex;align-items:center;justify-content:center;}
+#code-out-disp.empty{color:rgba(79,195,247,0.20);font-size:12px;letter-spacing:0.06em;}
+#code-out-disp.error{color:var(--red);font-size:12px;}
+
+/* ENTRY ID ROW */
+.eid-row{display:flex;gap:8px;align-items:center;}
+.eid-row input{width:90px;flex-shrink:0;}
+.eid-row label{font-size:12px;color:var(--dim);cursor:pointer;display:flex;align-items:center;gap:5px;white-space:nowrap;}
+.eid-row input[type=checkbox]{width:auto;accent-color:var(--blue);}
+
+/* TEMPLATE EDITOR */
+#tpl-editor{border:1px solid rgba(79,195,247,0.10);background:rgba(79,195,247,0.015);padding:9px 11px;display:flex;flex-direction:column;gap:8px;}
+#tpl-editor.collapsed .tpl-body-wrap{display:none;}
+.tpl-ed-hdr{font-size:12px;color:var(--dim);letter-spacing:0.08em;
+  display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none;}
+.tpl-ed-hdr:hover{color:var(--blue);}
+#tpl-name{font-size:12px;padding:5px 8px;}
+#tpl-body{resize:vertical;min-height:80px;font-size:12px;line-height:1.65;}
+
+/* LOG FIELDS */
+.set-bar{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--dim);flex-wrap:wrap;}
+.set-bar input[type=date]{width:150px;font-size:12px;padding:4px 7px;color-scheme:dark;}
+.set-bar label{flex-shrink:0;letter-spacing:0.06em;}
+#logtxt{resize:vertical;min-height:150px;max-height:320px;line-height:1.75;}
+#l1pre{resize:vertical;min-height:65px;line-height:1.7;}
+#l1preg{display:none;}
+.cct{font-size:11px;color:var(--dim);text-align:right;margin-top:2px;}
+#type-badge{font-size:12px;padding:3px 9px;border:1px solid var(--bdr);color:var(--dim);flex-shrink:0;}
+#type-badge.full{border-color:rgba(79,195,247,0.24);color:var(--blue);}
+#type-badge.classified{border-color:rgba(191,124,10,0.42);color:var(--amber);}
+#type-badge.virus{border-color:rgba(224,80,80,0.42);color:var(--red);}
+#clr-badge{font-size:12px;padding:3px 9px;border:1px solid rgba(79,195,247,0.13);color:var(--dim);flex-shrink:0;}
+
+/* DECODE SECTION */
+#dec-sec{border:1px solid rgba(79,195,247,0.10);background:rgba(79,195,247,0.015);}
+.dec-hdr{font-size:12px;color:var(--dim);letter-spacing:0.08em;padding:9px 11px;
+  display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none;}
+.dec-hdr:hover{color:var(--blue);}
+.dec-body{padding:0 11px 11px;display:flex;flex-direction:column;gap:8px;}
+.dec-body.hidden{display:none;}
+#drp{border:1px solid rgba(79,195,247,0.12);background:rgba(79,195,247,0.02);}
+#drp.ok{border-color:rgba(111,176,111,0.28);background:rgba(111,176,111,0.02);}
+#drp.bad{border-color:rgba(224,80,80,0.22);background:rgba(224,80,80,0.02);}
+#drp-hdr{padding:7px 11px;font-size:11px;letter-spacing:0.12em;border-bottom:1px solid var(--bdr);display:none;}
+#drp-hdr.ok{color:var(--green);border-color:rgba(111,176,111,0.18);}
+#drp-hdr.bad{color:var(--red);border-color:rgba(224,80,80,0.18);}
+#drp-body{padding:9px 11px;}
+.dr-row{display:flex;justify-content:space-between;padding:3px 0;
+  border-bottom:1px solid rgba(79,195,247,0.04);font-size:12px;}
+.dr-row:last-child{border-bottom:none;}
+.dr-l{color:var(--dim);}
+.dr-v{color:var(--blue);}
+.dr-v.ok{color:var(--green);}
+.dr-v.bad{color:var(--red);}
+.how-sec{font-size:11px;color:var(--dim);line-height:1.9;}
+.how-sec span{color:var(--blue);}
+
+/* DROP ZONE */
+#dz{border:1px dashed rgba(79,195,247,0.16);padding:12px;text-align:center;cursor:pointer;
+  transition:all 0.2s;color:var(--dim);font-size:12px;letter-spacing:0.06em;}
+#dz:hover,#dz.ov{border-color:var(--blue);color:var(--blue);background:rgba(79,195,247,0.03);}
+#fi{display:none;}
+#pasta{resize:vertical;min-height:44px;font-size:12px;color:rgba(79,195,247,0.34);}
+
+/* PREVIEW + JSON */
+#rcol{flex:1;min-width:200px;display:flex;flex-direction:column;}
+#pw{flex:1;min-height:0;display:flex;flex-direction:column;border-bottom:1px solid var(--bdr);}
+.pvhdr{padding:7px 13px;font-size:12px;letter-spacing:0.12em;
+  color:rgba(191,124,10,0.42);border-bottom:1px solid rgba(191,124,10,0.08);
+  flex-shrink:0;background:rgba(191,124,10,0.015);
+  display:flex;justify-content:space-between;align-items:center;}
+#mbadge{font-size:10px;letter-spacing:0.07em;padding:2px 6px;border:1px solid;}
+#mbadge.lore{border-color:rgba(191,124,10,0.36);color:var(--amber);}
+#mbadge.dev{border-color:rgba(224,80,80,0.36);color:var(--red);}
+#preview{flex:1;overflow-y:auto;padding:13px;color:#bf7c0a;
+  line-height:1.9;white-space:pre-wrap;word-break:break-word;font-size:13px;}
+#preview.dv{color:#e05050;background:rgba(0,0,0,0.18);}
+.ps{color:rgba(191,124,10,0.25);}.pq{color:#d9962a;}
+.pd{color:rgba(191,124,10,0.36);}.pdc{color:rgba(191,124,10,0.52);}
+.pe{color:#c84040;}
+#jw{height:180px;display:flex;flex-direction:column;flex-shrink:0;}
+.jhdr{padding:7px 13px;font-size:12px;letter-spacing:0.12em;color:var(--dim);
+  border-bottom:1px solid var(--bdr);flex-shrink:0;
+  display:flex;justify-content:space-between;align-items:center;}
+#jo{flex:1;overflow-y:auto;padding:9px 13px;
+  color:rgba(79,195,247,0.58);line-height:1.6;white-space:pre;font-size:12px;}
+
+::-webkit-scrollbar{width:3px;}::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:rgba(79,195,247,0.12);}
+#toast{position:fixed;bottom:16px;right:16px;background:rgba(2,8,16,0.96);
+  border:1px solid rgba(79,195,247,0.22);color:var(--blue);padding:6px 13px;
+  font-size:12px;letter-spacing:0.05em;opacity:0;transition:opacity 0.22s;
+  pointer-events:none;z-index:200;}
+#toast.show{opacity:1;}
+</style>
+</head>
+<body>
+<div id="app">
+
+<div id="hdr">
+  <span class="htitle">ECHO LORE // DEV LOG EDITOR v12</span>
+  <div class="hright">
+    <span id="as-ind">&#10003; AUTOSAVED</span>
+    <span id="fstat" class="none">NO FILE OPEN</span>
+    <button class="hbtn" onclick="openFile()">&#8213; OPEN FILE</button>
+  </div>
+</div>
+
+<div id="urbar">
+  <button class="btn sm" onclick="undo()" id="undo-btn" disabled>&#8617; UNDO</button>
+  <button class="btn sm" onclick="redo()" id="redo-btn" disabled>&#8618; REDO</button>
+  <span id="urinfo">No changes yet</span>
+  <button class="btn sm g" onclick="saveEntry()">&#8629; SAVE ENTRY</button>
+  <button class="btn sm r" onclick="removeEntry()">&#8722; REMOVE</button>
+  <button class="btn sm a" onclick="saveToFile()" id="stf-btn">&#8681; SAVE TO FILE</button>
+  <button class="btn sm" onclick="dlJSON()">&#8595; DOWNLOAD</button>
+</div>
+
+<div id="body">
+
+<!-- ENTRIES COLUMN -->
+<div id="etgl-outer">
+  <button onclick="toggleEcol()" id="etgl-btn" title="Collapse / expand">&#9664;</button>
+</div>
+<div id="ecol">
+  <div class="ecol-inner">
+    <div class="phdr">&#9658; ENTRIES <span id="ect" style="color:rgba(79,195,247,0.30)">&#8212; 0</span></div>
+    <input id="esrch" type="text" placeholder="SEARCH CODE OR LABEL..."
+           oninput="filterEnts()" autocomplete="off" spellcheck="false">
+    <div id="elist">
+      <div id="eno" class="pd" style="padding:14px;font-size:12px;text-align:center">Load a JSON file to browse entries</div>
+    </div>
+    <div id="ecount"></div>
+  </div>
+</div>
+
+<!-- EDITOR -->
+<div id="editor">
+  <div class="ephdr">&#9658; ENTRY EDITOR</div>
+  <div id="escroll">
+
+    <!-- LIVE HEADER PREVIEW -->
+    <div id="hdprev">
+      <div class="hdprev-top">
+        <span class="fl">LIVE HEADER PREVIEW</span>
+        <div class="hdprev-btns">
+          <button class="inj" onclick="injHeader()">&#8595; INSERT HEADER</button>
+          <button class="inj a" onclick="injSD()">&#8595; STARDATE ONLY</button>
+        </div>
+      </div>
+      <div id="hp-line1">&#8212;</div>
+      <div id="hp-line2">&#8212;</div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="set-bar">
+      <label>SIGNATURE</label>
+      <input type="text" id="sigf" placeholder="Dev. J. Betancourt"
+             style="flex:1;min-width:120px;font-size:12px;padding:4px 8px"
+             autocomplete="off" oninput="savSet();updHeader();">
+      <label>PROJECT DAY 1</label>
+      <input type="date" id="startd" oninput="savSet();updDayDisp();">
+    </div>
+
+    <!-- MODE -->
+    <div class="fg">
+      <div class="fl">ENTRY MODE</div>
+      <div class="tgg" id="mtg">
+        <button class="tg on" data-v="lore" onclick="setMode('lore')">LORE ENTRY</button>
+        <button class="tg"    data-v="dev"  onclick="setMode('dev')">DEV LOG</button>
+      </div>
+    </div>
+
+    <!-- TYPE -->
+    <div class="fg">
+      <div class="fl">ENTRY TYPE</div>
+      <div class="tgg" id="ttg">
+        <button class="tg on" data-v="full"       onclick="setTyp('full')">FULL</button>
+        <button class="tg"    data-v="partial"    onclick="setTyp('partial')">PARTIAL</button>
+        <button class="tg"    data-v="degraded"   onclick="setTyp('degraded')">DEGRAD.</button>
+        <button class="tg"    data-v="corrupted"  onclick="setTyp('corrupted')">CORRUPT</button>
+        <button class="tg"    data-v="classified" onclick="setTyp('classified')">CLASS.</button>
+        <button class="tg"    data-v="virus"      onclick="setTyp('virus')">VIRUS</button>
+      </div>
+    </div>
+
+    <!-- CLEARANCE -->
+    <div class="fg" id="clrg">
+      <div class="fl">CLEARANCE LEVEL</div>
+      <div class="tgg" id="ctg">
+        <button class="tg on" data-v="1" onclick="setClr(1)">L1 &#8212; STANDARD</button>
+        <button class="tg"    data-v="2" onclick="setClr(2)">L2 &#8212; RESTRICTED</button>
+      </div>
+    </div>
+
+    <!-- TEMPLATE SELECTOR -->
+    <div class="fg">
+      <div class="fl">LOG TEMPLATE</div>
+      <div class="fr">
+        <select id="tpls" onchange="onTplChange()"></select>
+        <button class="btn sm" style="flex-shrink:0" onclick="applyTpl()">APPLY</button>
+      </div>
+    </div>
+
+    <!-- TEMPLATE EDITOR (collapsible) -->
+    <div id="tpl-editor" class="collapsed">
+      <div class="tpl-ed-hdr" onclick="toggleTplEditor()">
+        <span id="tpl-arrow">&#9658; TEMPLATE EDITOR</span>
+        <div class="tpl-body-wrap" style="display:flex;gap:6px" onclick="event.stopPropagation()">
+          <button class="btn sm" onclick="newTpl()">&#43; NEW</button>
+          <button class="btn sm r" onclick="delTpl()">&#8722; DELETE</button>
+          <button class="btn sm g" onclick="saveTpl()">&#10003; SAVE TPL</button>
+          <button class="btn sm a" onclick="dlTpls()">&#8595; EXPORT</button>
+        </div>
+      </div>
+      <div class="tpl-body-wrap" style="display:flex;flex-direction:column;gap:8px;">
+        <div class="fg">
+          <div class="fl">TEMPLATE NAME</div>
+          <input type="text" id="tpl-name" placeholder="e.g. CAPTAIN'S LOG" autocomplete="off">
+        </div>
+        <div class="fg">
+          <div class="fl">TEMPLATE BODY &#8212; Use {ID} {SD} {DAY} {SIG} as placeholders</div>
+          <textarea id="tpl-body" placeholder="[Log {ID} | Stardate {SD}]&#10;LOG TITLE &#8212; DAY {DAY}&#10;&#10;[Your entry here]&#10;&#10;    &#8212;&#8212; {SIG}"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- LOG ID + DAY -->
+    <div class="fg">
+      <div class="fl">LOG ID (A-00) &#160;&#160; PROJECT DAY</div>
+      <div class="fr" style="align-items:center;gap:8px">
+        <input type="text" id="lidl" maxlength="1" placeholder="A"
+               style="width:44px;flex-shrink:0;text-align:center;text-transform:uppercase;letter-spacing:0.14em"
+               oninput="fmtLid()" autocomplete="off">
+        <span style="color:var(--dim);font-size:14px;flex-shrink:0">&#8212;</span>
+        <input type="text" id="lidn" maxlength="2" placeholder="00"
+               style="width:50px;flex-shrink:0;text-align:center;letter-spacing:0.12em"
+               oninput="fmtLid()" autocomplete="off">
+        <span style="color:var(--dim);font-size:12px;padding:0 6px;flex-shrink:0">|</span>
+        <span style="font-size:12px;color:var(--dim);flex-shrink:0">DAY</span>
+        <input type="number" id="dayf" min="1" placeholder="1"
+               style="width:70px;flex-shrink:0;font-size:13px;text-align:center;border-color:rgba(79,195,247,0.08)"
+               oninput="updHeader();updJ();" autocomplete="off"
+               title="Auto-calculated from project start date. Editable. Double-click to reset.">
+        <button class="btn sm" style="flex-shrink:0;margin-left:auto" onclick="autoLbl()">AUTO LABEL</button>
+      </div>
+    </div>
+
+    <!-- CODE FIELD -->
+    <div class="fg">
+      <div class="fl">ENTRY CODE &#8212; XXXXX-XXXXX-XXXXX-XXXXX</div>
+      <input type="text" id="codef" maxlength="24"
+             placeholder="Generate below or enter manually"
+             autocomplete="off" spellcheck="false">
+      <div id="codest">Enter or generate a 20-character code</div>
+    </div>
+
+    <!-- SALT CODE GENERATOR -->
+    <div id="salt-sec">
+      <div class="salt-hdr" onclick="toggleSalt()">
+        <span id="salt-arrow">&#9660; SALT CODE GENERATOR</span>
+        <span id="salt-disp" style="font-size:11px;color:rgba(79,195,247,0.30)">SALT: &#8212;</span>
+      </div>
+      <div class="salt-body" id="salt-body">
+        <div>
+          <div class="fl" style="margin-bottom:4px;">SALT KEY &#8212; save this number. Required to decode all codes from this file.</div>
+          <div class="salt-row">
+            <input type="number" id="salt-in" min="1" max="999999999" placeholder="enter a number">
+            <button class="btn sm" onclick="randomSalt()">RANDOM</button>
+            <button class="btn sm g" onclick="saveSalt()">SAVE</button>
+          </div>
+          <div class="warn-line" style="margin-top:5px;">&#9888; Losing this number makes all generated codes undecodable. Back it up.</div>
+        </div>
+
+        <div>
+          <div class="fl" style="margin-bottom:5px;">DATE &amp; TIME &#8212; sets the stardate used in the header and code</div>
+          <div class="dt5">
+            <div><div class="sub-fl">YEAR</div>
+              <input type="number" id="dt-year" min="1900" max="2500" value="2026"
+                     oninput="onDtChange()"></div>
+            <div><div class="sub-fl">MONTH</div>
+              <input type="number" id="dt-month" min="1" max="12" value="1"
+                     oninput="onDtChange()"></div>
+            <div><div class="sub-fl">DAY</div>
+              <input type="number" id="dt-day" min="1" max="31" value="1"
+                     oninput="onDtChange()"></div>
+            <div><div class="sub-fl">HOUR</div>
+              <input type="number" id="dt-hour" min="0" max="23" value="0"
+                     oninput="onDtChange()"></div>
+            <div><div class="sub-fl">MIN</div>
+              <input type="number" id="dt-min" min="0" max="59" value="0"
+                     oninput="onDtChange()"></div>
+          </div>
+          <div class="btn-row" style="margin-top:5px;">
+            <button class="btn sm" onclick="fillNow()">USE NOW</button>
+            <button class="btn sm r" onclick="clearDtFields()">CLEAR DATE</button>
+          </div>
+        </div>
+
+        <div id="doy-line">&#8212;</div>
+
+        <div>
+          <div class="fl" style="margin-bottom:5px;">ENTRY ID &#8212; unique number per code (0&#8211;999)</div>
+          <div class="eid-row">
+            <input type="number" id="eid" min="0" max="999" value="0">
+            <label><input type="checkbox" id="eid-auto" checked> auto-increment</label>
+          </div>
+        </div>
+
+        <button class="btn lg g" onclick="doGenerate()">&#9654; GENERATE CODE</button>
+
+        <div id="code-out-row">
+          <div id="code-out-disp" class="empty">&#8212;</div>
+          <button class="btn sm" onclick="cpGenCode()" id="cp-gen-btn" disabled>COPY</button>
+          <button class="btn sm g" onclick="useGenCode()" id="use-gen-btn" disabled>USE</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TYPE BADGE + LABEL -->
+    <div class="fg">
+      <div class="fl">TYPE &#160;&#160; LABEL &#8212; INTERNAL REFERENCE</div>
+      <div class="fr" style="align-items:center;gap:6px">
+        <span id="type-badge" class="full" style="flex-shrink:0">FULL</span>
+        <span id="clr-badge" style="flex-shrink:0">L1</span>
+        <input type="text" id="labf"
+               placeholder="Log A-00 | Stardate 2026.139.1431"
+               autocomplete="off" oninput="updJ()" style="flex:1">
+      </div>
+    </div>
+
+    <!-- LOG TEXT -->
+    <div class="fg">
+      <div class="fl">LOG TEXT</div>
+      <textarea id="logtxt"
+        placeholder="[Log A-00 | Stardate 2026.139.1431]&#10;CREATOR'S LOG &#8212; DAY 1&#10;&#10;[Your entry here]&#10;&#10;    &#8212;&#8212; Dev. J. Betancourt&#10;[END OF LOG]"></textarea>
+      <div class="cct"><span id="cct">0</span> CHARS</div>
+    </div>
+
+    <!-- L1 PREVIEW (classified) -->
+    <div class="fg" id="l1preg">
+      <div class="fl">L1 REDACTED PREVIEW &#8212; SHOWN BEFORE FULL L2 ACCESS</div>
+      <textarea id="l1pre"
+        placeholder="[REDACTED] discovered something on day [REDACTED]. L2 access required."></textarea>
+    </div>
+
+    <!-- DECODE / VALIDATE (collapsible) -->
+    <div id="dec-sec">
+      <div class="dec-hdr" onclick="toggleDec()">
+        <span id="dec-arrow">&#9658; DECODE / VALIDATE</span>
+        <span style="font-size:11px;color:rgba(79,195,247,0.28);">verify any code</span>
+      </div>
+      <div class="dec-body hidden" id="dec-body">
+        <div class="fg">
+          <div class="fl">PASTE CODE TO DECODE</div>
+          <input type="text" id="dec-in" placeholder="XXXXX-XXXXX-XXXXX-XXXXX"
+                 oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9-]/g,'')"
+                 autocomplete="off" spellcheck="false" maxlength="24">
+        </div>
+        <div class="fg">
+          <div class="fl">SALT (leave blank to use saved salt)</div>
+          <input type="number" id="dec-salt" placeholder="uses saved salt if empty" min="1" max="999999999">
+        </div>
+        <div class="btn-row">
+          <button class="btn g" onclick="doDecode()" style="flex:1;">DECODE</button>
+          <button class="btn sm" onclick="clearDecode()">CLEAR</button>
+        </div>
+        <div id="drp">
+          <div id="drp-hdr">&#9658; RESULT</div>
+          <div id="drp-body"></div>
+        </div>
+        <div class="how-sec">
+          <div style="color:rgba(79,195,247,0.46);letter-spacing:0.08em;margin-bottom:5px;">HOW CODES WORK</div>
+          Same inputs + same salt always produce the same code. Change the salt and all codes become unreadable.<br><br>
+          <span>CODE LENGTH:</span> 20 chars (XXXXX-XXXXX-XXXXX-XXXXX)<br>
+          <span>YEAR RANGE:</span> 1900 &#8211; 2500<br>
+          <span>ENTRY IDs:</span> 0 &#8211; 999 unique codes per minute<br>
+          <span>LEAP YEARS:</span> handled automatically
+        </div>
+      </div>
+    </div>
+
+    <!-- BUTTONS -->
+    <div id="brow">
+      <button class="btn" onclick="updPrev()">&#9658; PREVIEW</button>
+      <button class="btn a" onclick="cpJSON()">&#8853; COPY JSON</button>
+      <button class="btn r" onclick="clrForm()">&#10005; CLEAR ALL</button>
+    </div>
+
+    <!-- LOAD JSON -->
+    <div class="fg">
+      <div class="fl">LOAD JSON &#8212; DRAG &amp; DROP, BROWSE, OR PASTE</div>
+      <div id="dz" onclick="document.getElementById('fi').click()"
+           ondragover="dzov(event)" ondragleave="dzlv(event)" ondrop="dzdp(event)">
+        <input type="file" id="fi" accept=".json" onchange="fiCh(event)">
+        &#8595; DROP .JSON HERE OR CLICK TO BROWSE (read-only)<br>
+        <span style="font-size:10px;color:rgba(79,195,247,0.22)">Use OPEN FILE above for write access</span>
+      </div>
+      <textarea id="pasta"
+        placeholder='{ "CODE": { "label": "...", "type": "full", "text": "..." } }'
+        oninput="tryImp(this.value)"></textarea>
+    </div>
+
+  </div>
+</div>
+
+<!-- PREVIEW + JSON -->
+<div id="rcol">
+  <div id="pw">
+    <div class="pvhdr">
+      <span>&#9658; TERMINAL PREVIEW</span>
+      <span id="mbadge" class="lore">LORE</span>
+    </div>
+    <div id="preview"><span class="pd">Fill in a code and log text, then click PREVIEW</span></div>
+  </div>
+  <div id="jw">
+    <div class="jhdr">
+      <span>&#9658; JSON SNIPPET</span>
+      <div style="display:flex;gap:6px;align-items:center">
+        <span id="tgtf" style="font-size:10px;color:var(--dim)">&#8594; lore.json</span>
+        <button class="btn sm" onclick="cpJSON()">COPY</button>
+      </div>
+    </div>
+    <div id="jo">// Fill in code and log text to generate snippet</div>
+  </div>
+</div>
+
+</div><!-- /body -->
+</div><!-- /app -->
+
+<input type="file" id="fit" accept=".json" style="display:none">
+<div id="toast"></div>
+
+<script>
+'use strict';
+
+// ── ALGORITHM ────────────────────────────────────────────────────────────────
+var CHARS  = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+var BASE   = 36;
+var M      = 2147483647;
+var LCG_A  = 1664525;
+var LCG_C  = 1013904223;
+var BASE_YEAR = 1900; // year range: 1900-2500
+
+function lcgStep(s) { return (LCG_A * s + LCG_C) % M; }
+function lcgInt(s, max) { var ns = lcgStep(s); return { val: Math.floor((ns/M)*max), seed: ns }; }
+
+function encodeB36(n, w) {
+  if (n < 0) n = 0;
+  var r = '', v = Math.floor(n);
+  if (!v) { r = '0'; } else { while (v > 0) { r = CHARS[v%BASE]+r; v = Math.floor(v/BASE); } }
+  while (r.length < w) r = '0' + r;
+  return r;
+}
+function decodeB36(s) {
+  var r = 0;
+  for (var i = 0; i < s.length; i++) {
+    var c = CHARS.indexOf(s[i]);
+    if (c < 0) return -1;
+    r = r * BASE + c;
+  }
+  return r;
+}
+
+// Day of year using Date.UTC — DST safe, leap-year aware. Jan 1 = day 1.
+function dayOfYear(year, month, day) {
+  return Math.floor((Date.UTC(year, month-1, day) - Date.UTC(year, 0, 1)) / 86400000) + 1;
+}
+
+// Pack: year*12*31*24*60*1000 chain. Max ~3.2e11 < 36^9 (~1e14) ✓
+function packData(yo, mo, d, h, mi, eid) {
+  var n = yo;
+  n = n * 12   + (mo - 1);
+  n = n * 31   + (d - 1);
+  n = n * 24   + h;
+  n = n * 60   + mi;
+  n = n * 1000 + eid;
+  return n;
+}
+function unpackData(n) {
+  var eid = n % 1000;         n = Math.floor(n / 1000);
+  var mi  = n % 60;           n = Math.floor(n / 60);
+  var h   = n % 24;           n = Math.floor(n / 24);
+  var d   = (n % 31) + 1;    n = Math.floor(n / 31);
+  var mo  = (n % 12) + 1;    n = Math.floor(n / 12);
+  return { yearOff: n, month: mo, day: d, hour: h, minute: mi, entryId: eid };
+}
+
+function genPermutation(salt, n) {
+  var perm = []; for (var i = 0; i < n; i++) perm.push(i);
+  var seed = Math.abs(Math.floor(salt)) % M;
+  if (!seed) seed = 987654321;
+  seed = lcgStep(seed);
+  for (var i = n-1; i > 0; i--) {
+    var r = lcgInt(seed, i+1); seed = r.seed;
+    var t = perm[i]; perm[i] = perm[r.val]; perm[r.val] = t;
+  }
+  return perm;
+}
+
+function computeChecksum(ds, fs) {
+  var val = 0, s = ds + fs;
+  for (var i = 0; i < s.length; i++) val = (val * 31 + CHARS.indexOf(s[i]) * (i+1)) % (BASE*BASE);
+  return encodeB36(val, 2);
+}
+
+function genFillerSeed(packNum, salt) {
+  var a = packNum % M, b = Math.abs(Math.floor(salt)) % M;
+  var seed = (a * 31337 + b * 1000003) % M;
+  return seed || 111222333;
+}
+
+function generateCode(year, month, day, hour, minute, entryId, salt) {
+  var yearOff = year - BASE_YEAR;
+  if (yearOff < 0 || yearOff > 600)    return { error: 'Year must be 1900–2500' };
+  if (month < 1  || month > 12)        return { error: 'Month must be 1–12' };
+  if (day < 1    || day > 31)          return { error: 'Day must be 1–31' };
+  if (hour < 0   || hour > 23)         return { error: 'Hour must be 0–23' };
+  if (minute < 0 || minute > 59)       return { error: 'Minute must be 0–59' };
+  if (entryId < 0 || entryId > 999)    return { error: 'Entry ID must be 0–999' };
+  if (!salt || salt < 1)               return { error: 'Set and save a salt first' };
+
+  var packNum = packData(yearOff, month, day, hour, minute, entryId);
+  var ds      = encodeB36(packNum, 9);
+  var fSeed   = genFillerSeed(packNum, salt);
+  var fil = '';
+  for (var i = 0; i < 9; i++) { fSeed = lcgStep(fSeed); fil += CHARS[Math.floor((fSeed/M)*BASE)]; }
+  var ck  = computeChecksum(ds, fil);
+  var raw = ds + fil + ck;
+  var perm = genPermutation(salt, 20);
+  var sh = new Array(20);
+  for (var i = 0; i < 20; i++) sh[perm[i]] = raw[i];
+  var flat = sh.join('');
+  return { code: flat.slice(0,5)+'-'+flat.slice(5,10)+'-'+flat.slice(10,15)+'-'+flat.slice(15,20) };
+}
+
+function decodeEntry(code, salt) {
+  var raw = code.replace(/-/g,'').toUpperCase().trim();
+  if (raw.length !== 20) return { valid: false, error: 'Must be 20 characters (excluding hyphens)' };
+  for (var i = 0; i < 20; i++) if (CHARS.indexOf(raw[i]) < 0) return { valid: false, error: 'Invalid character: '+raw[i] };
+  if (!salt || salt < 1) return { valid: false, error: 'Salt must be a positive integer' };
+  var perm = genPermutation(salt, 20);
+  var us = new Array(20);
+  for (var i = 0; i < 20; i++) us[i] = raw[perm[i]]; // encode: sh[perm[i]]=raw[i] → raw[i]=sh[perm[i]]
+  var u = us.join('');
+  var ds = u.slice(0,9), fil = u.slice(9,18), ck = u.slice(18,20);
+  if (ck !== computeChecksum(ds, fil)) return { valid: false, error: 'Invalid checksum — wrong salt or corrupted code' };
+  var packNum = decodeB36(ds);
+  if (packNum < 0) return { valid: false, error: 'Could not decode data segment' };
+  var fSeed = genFillerSeed(packNum, salt);
+  var ef = '';
+  for (var i = 0; i < 9; i++) { fSeed = lcgStep(fSeed); ef += CHARS[Math.floor((fSeed/M)*BASE)]; }
+  if (fil !== ef) return { valid: false, error: 'Filler mismatch — wrong salt or corrupted code' };
+  var d = unpackData(packNum);
+  var year = d.yearOff + BASE_YEAR;
+  var doy  = dayOfYear(year, d.month, d.day);
+  return { valid: true, year: year, month: d.month, day: d.day,
+           hour: d.hour, minute: d.minute, entryId: d.entryId,
+           doy: doy, stardate: buildSD(year, doy, d.hour, d.minute) };
+}
+
+// ── STARDATE ─────────────────────────────────────────────────────────────────
+function buildSD(year, doy, hour, min) {
+  return year + '.' + p3(doy) + '.' + p2(hour) + p2(min);
+}
+function getSDFromFields() {
+  var y  = iv('dt-year')  || new Date().getFullYear();
+  var mo = iv('dt-month') || new Date().getMonth()+1;
+  var d  = iv('dt-day')   || new Date().getDate();
+  var h  = iv('dt-hour')  || 0;
+  var mi = iv('dt-min')   || 0;
+  var doy = dayOfYear(y, mo, d);
+  return buildSD(y, doy, h, mi);
+}
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+var mode = 'lore', typ = 'full', clr = 1;
+var iData = {}, fileHandle = null, activeCode = null;
+var saltValue = 0;
+var lastGenCode = '';
+var PROJECT_START_DEFAULT = '2025-10-23';
+var hist = [], histIdx = -1;
+var CHARS_ALL = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
+// ── FAVICON ───────────────────────────────────────────────────────────────────
+(function(){
+  function mk(c){var s='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><style>@keyframes f{0%,44%{opacity:1}46%,50%{opacity:0.07}52%,100%{opacity:1}}</style>';[{x:0,y:5,h:22,d:'0s'},{x:12,y:0,h:32,d:'.35s'},{x:24,y:6,h:20,d:'.7s'}].forEach(function(b){s+='<g style="animation:f 5s '+b.d+' infinite"><rect x="'+b.x+'" y="'+b.y+'" width="8" height="'+b.h+'" rx="2" fill="'+c+'" opacity="0.6"/><rect x="'+(b.x+1)+'" y="'+(b.y+1)+'" width="6" height="'+(b.h-2)+'" rx="1" fill="'+c+'"/></g>';});return s+'</svg>';}
+  document.getElementById('fav-lnk').href='data:image/svg+xml;base64,'+btoa(mk('#4fc3f7'));
+})();
+
+// ── UNDO / REDO ───────────────────────────────────────────────────────────────
+function pushHist(){hist=hist.slice(0,histIdx+1);hist.push(JSON.parse(JSON.stringify(iData)));if(hist.length>60)hist.shift();histIdx=hist.length-1;updUrUI();}
+function undo(){if(histIdx<=0){toast('Nothing to undo');return;}histIdx--;iData=JSON.parse(JSON.stringify(hist[histIdx]));syncAll();toast('Undo');}
+function redo(){if(histIdx>=hist.length-1){toast('Nothing to redo');return;}histIdx++;iData=JSON.parse(JSON.stringify(hist[histIdx]));syncAll();toast('Redo');}
+function updUrUI(){
+  document.getElementById('undo-btn').disabled=histIdx<=0;
+  document.getElementById('redo-btn').disabled=histIdx>=hist.length-1;
+  document.getElementById('urinfo').textContent=hist.length?(histIdx+1)+' / '+hist.length+' states':'No changes yet';
+}
+document.addEventListener('keydown',function(e){
+  if((e.ctrlKey||e.metaKey)&&e.key==='z'&&!e.shiftKey){e.preventDefault();undo();}
+  if((e.ctrlKey||e.metaKey)&&(e.key==='y'||(e.key==='z'&&e.shiftKey))){e.preventDefault();redo();}
+});
+
+// ── ENTRIES COLUMN TOGGLE ─────────────────────────────────────────────────────
+var ecolOpen = true;
+function toggleEcol(){ecolOpen=!ecolOpen;document.getElementById('ecol').classList.toggle('collapsed',!ecolOpen);document.getElementById('etgl-btn').innerHTML=ecolOpen?'&#9664;':'&#9654;';}
+
+// ── DATE/TIME FIELDS ──────────────────────────────────────────────────────────
+function iv(id){ return parseInt(document.getElementById(id).value,10)||0; }
+function p2(n){ return String(n).padStart(2,'0'); }
+function p3(n){ return String(n).padStart(3,'0'); }
+
+function onDtChange() { updDoyLine(); updHeader(); updJ(); }
+
+function updDoyLine() {
+  var y  = iv('dt-year')||2026, mo = iv('dt-month')||1, d = iv('dt-day')||1;
+  var h  = iv('dt-hour'), mi = iv('dt-min');
+  var doy = dayOfYear(y, mo, d);
+  var isLeap = (y%4===0&&y%100!==0)||(y%400===0);
+  var sd = buildSD(y, doy, h, mi);
+  var el = document.getElementById('doy-line');
+  el.innerHTML = 'DAY <span>'+p3(doy)+'</span> OF <span>'+y+'</span>'+
+    (isLeap?' <span style="color:rgba(232,115,42,0.70);">(LEAP)</span>':'')+
+    ' &nbsp;&middot;&nbsp; STARDATE <span>'+sd+'</span>';
+}
+
+function fillNow() {
+  var now = new Date();
+  document.getElementById('dt-year').value  = now.getFullYear();
+  document.getElementById('dt-month').value = now.getMonth()+1;
+  document.getElementById('dt-day').value   = now.getDate();
+  document.getElementById('dt-hour').value  = now.getHours();
+  document.getElementById('dt-min').value   = now.getMinutes();
+  onDtChange();
+}
+function clearDtFields() {
+  ['dt-year','dt-month','dt-day','dt-hour','dt-min'].forEach(function(id){document.getElementById(id).value='';});
+  document.getElementById('doy-line').textContent='—';
+  updHeader();
+}
+
+// ── LIVE HEADER PREVIEW ───────────────────────────────────────────────────────
+function updHeader() {
+  var id  = getLid();
+  var sd  = getSDFromFields();
+  var day = document.getElementById('dayf').value || '?';
+  var line1 = '[Log '+id+' | Stardate '+sd+']';
+  var tpl   = document.getElementById('tpls').value;
+  var line2 = '';
+  if (tpl && TPLS[tpl]) {
+    // Extract the second line of the template as the title pattern
+    var body  = TPLS[tpl].body;
+    var lines = body.split('\n');
+    if (lines.length > 1) {
+      line2 = lines[1].replace(/\{DAY\}/g, day).replace(/\{ID\}/g, id).replace(/\{SD\}/g, sd);
+    }
+  } else if (mode === 'dev') {
+    line2 = "CREATOR'S LOG \u2014 DAY " + day;
+  } else {
+    line2 = "CAPTAIN'S LOG \u2014 DAY " + day;
+  }
+  document.getElementById('hp-line1').textContent = line1;
+  document.getElementById('hp-line2').textContent = line2;
+}
+
+function injHeader() {
+  var t = document.getElementById('hp-line1').textContent + '\n' + document.getElementById('hp-line2').textContent;
+  injIntoLog(t); toast('Header inserted');
+}
+function injSD() {
+  var sd = getSDFromFields();
+  injIntoLog(sd); toast('Stardate inserted');
+}
+function injIntoLog(text) {
+  var ta = document.getElementById('logtxt');
+  var s = ta.selectionStart, e = ta.selectionEnd;
+  ta.value = ta.value.substring(0,s) + text + ta.value.substring(e);
+  ta.selectionStart = ta.selectionEnd = s + text.length;
+  ta.focus(); updCct(); updJ();
+}
+
+// ── DAY COUNTER ───────────────────────────────────────────────────────────────
+function getProjectDay(){
+  var sd = document.getElementById('startd').value || PROJECT_START_DEFAULT;
+  var elapsed = Math.floor((new Date() - new Date(sd+'T00:00:00')) / 86400000);
+  return elapsed+1 > 0 ? elapsed+1 : 1;
+}
+function updDayDisp(){
+  var el = document.getElementById('dayf');
+  if (!el.dataset.manual) { el.value = getProjectDay(); el.style.color='rgba(79,195,247,0.45)'; }
+}
+document.getElementById('dayf').addEventListener('input',function(){this.dataset.manual='1';this.style.color='var(--blue)';updHeader();updJ();});
+document.getElementById('dayf').addEventListener('dblclick',function(){delete this.dataset.manual;this.value=getProjectDay();this.style.color='rgba(79,195,247,0.45)';updHeader();updJ();});
+setInterval(function(){if(!document.getElementById('dayf').dataset.manual)updDayDisp();},60000);
+
+// ── SETTINGS ──────────────────────────────────────────────────────────────────
+function savSet(){
+  try{localStorage.setItem('echo_set',JSON.stringify({sig:document.getElementById('sigf').value,startd:document.getElementById('startd').value}));}catch(e){}
+  updDayDisp();
+}
+function lodSet(){
+  try{var s=JSON.parse(localStorage.getItem('echo_set')||'{}');
+    if(s.sig)document.getElementById('sigf').value=s.sig;
+    document.getElementById('startd').value=s.startd||PROJECT_START_DEFAULT;
+  }catch(e){document.getElementById('startd').value=PROJECT_START_DEFAULT;}
+  updDayDisp();
+}
+
+// ── SALT ──────────────────────────────────────────────────────────────────────
+function loadSalt(){
+  try{var s=localStorage.getItem('echo_gen_salt');if(s)saltValue=parseInt(s,10);}catch(e){}
+  if(!saltValue||saltValue<1) saltValue=Math.floor(Math.random()*899999999)+100000000;
+  document.getElementById('salt-in').value=saltValue;
+  document.getElementById('salt-disp').textContent='SALT: '+saltValue;
+}
+function saveSalt(){
+  var v=parseInt(document.getElementById('salt-in').value,10);
+  if(!v||v<1){toast('Salt must be a positive integer');return;}
+  saltValue=v;
+  try{localStorage.setItem('echo_gen_salt',saltValue);}catch(e){}
+  document.getElementById('salt-disp').textContent='SALT: '+saltValue;
+  toast('Salt saved');
+}
+function randomSalt(){document.getElementById('salt-in').value=Math.floor(Math.random()*899999999)+100000000;}
+var saltOpen=true;
+function toggleSalt(){
+  saltOpen=!saltOpen;
+  document.getElementById('salt-body').classList.toggle('hidden',!saltOpen);
+  document.getElementById('salt-arrow').innerHTML=(saltOpen?'&#9660;':'&#9658;')+' SALT CODE GENERATOR';
+}
+
+// ── GENERATE ──────────────────────────────────────────────────────────────────
+function doGenerate(){
+  var saltIn = parseInt(document.getElementById('salt-in').value,10);
+  if(!saltIn||saltIn<1){toast('Set and save a salt first');return;}
+  saltValue=saltIn;
+  var y  = iv('dt-year'), mo = iv('dt-month'), d  = iv('dt-day');
+  var h  = iv('dt-hour'), mi = iv('dt-min');
+  var eid = iv('eid');
+  if(!y){toast('Enter a year first');return;}
+  var result = generateCode(y, mo||1, d||1, h, mi, eid, saltValue);
+  var disp = document.getElementById('code-out-disp');
+  if(result.error){disp.textContent=result.error;disp.className='error';document.getElementById('cp-gen-btn').disabled=true;document.getElementById('use-gen-btn').disabled=true;lastGenCode='';return;}
+  lastGenCode=result.code;
+  disp.textContent=result.code;
+  disp.className='';
+  document.getElementById('cp-gen-btn').disabled=false;
+  document.getElementById('use-gen-btn').disabled=false;
+  if(document.getElementById('eid-auto').checked){
+    var next=eid+1;document.getElementById('eid').value=next>999?0:next;
+  }
+  toast('Code generated');
+}
+function cpGenCode(){
+  if(!lastGenCode)return;
+  navigator.clipboard.writeText(lastGenCode).then(function(){toast('Code copied');}).catch(function(){toast('Copy failed');});
+}
+function useGenCode(){
+  if(!lastGenCode)return;
+  setCode(lastGenCode);
+  toast('Code applied to entry');
+}
+
+// ── MODE / TYPE / CLEARANCE ───────────────────────────────────────────────────
+function setMode(m){
+  mode=m;
+  document.querySelectorAll('#mtg .tg').forEach(function(b){b.classList.toggle('on',b.dataset.v===m);});
+  var mb=document.getElementById('mbadge'), pv=document.getElementById('preview'), tf=document.getElementById('tgtf');
+  if(m==='dev'){mb.className='dev';mb.textContent='DEV LOG';pv.classList.add('dv');tf.textContent='\u2192 dev_logs.json';}
+  else{mb.className='lore';mb.textContent='LORE';pv.classList.remove('dv');tf.textContent='\u2192 lore.json';}
+  updHeader(); updJ();
+}
+function setTyp(t){
+  typ=t;
+  document.querySelectorAll('#ttg .tg').forEach(function(b){b.classList.remove('on','a','r');
+    if(b.dataset.v===t){b.classList.add('on');if(t==='classified')b.classList.add('a');if(t==='virus')b.classList.add('r');}
+  });
+  document.getElementById('l1preg').style.display=t==='classified'?'flex':'none';
+  if(t==='classified')setClr(2);
+  var tb=document.getElementById('type-badge');tb.className=t;tb.textContent=t.toUpperCase();updJ();
+}
+function setClr(v){
+  clr=v;
+  document.querySelectorAll('#ctg .tg').forEach(function(b){b.classList.toggle('on',parseInt(b.dataset.v)===v);});
+  document.getElementById('clr-badge').textContent='L'+v;updJ();
+}
+
+// ── LOG ID ────────────────────────────────────────────────────────────────────
+function fmtLid(){
+  document.getElementById('lidn').value=document.getElementById('lidn').value.replace(/\D/g,'').slice(0,2);
+  document.getElementById('lidl').value=document.getElementById('lidl').value.replace(/[^A-Za-z]/g,'').toUpperCase().slice(0,1);
+  updHeader();updJ();
+}
+function getLid(){
+  var l=document.getElementById('lidl').value.toUpperCase()||'A';
+  var n=document.getElementById('lidn').value||'00';
+  return l+'-'+n.padStart(2,'0');
+}
+
+// ── CODE FIELD ────────────────────────────────────────────────────────────────
+document.getElementById('codef').addEventListener('input',function(){
+  var raw=this.value.replace(/[^A-Z0-9]/gi,'').toUpperCase().slice(0,20);
+  var f='';for(var i=0;i<raw.length;i++){if(i>0&&i%5===0)f+='-';f+=raw[i];}
+  this.value=f;valC(raw);updJ();
+});
+function valC(raw){
+  var el=document.getElementById('codest'),inp=document.getElementById('codef');
+  inp.classList.remove('valid','dupe');
+  if(!raw){el.textContent='Enter or generate a 20-character code';el.className='';return;}
+  if(raw.length<20){el.textContent=raw.length+'/20 characters';el.className='';return;}
+  var fc=fmtC(raw),dup=iData.hasOwnProperty(fc);
+  if(dup){var editing=activeCode===fc;
+    el.textContent='\u26a0 '+(editing?'Currently editing':'EXISTS \u2014 saving will overwrite');
+    el.className=editing?'ok':'bad';inp.classList.add(editing?'valid':'dupe');}
+  else{el.textContent='\u2713 Available: '+fc;el.className='ok';inp.classList.add('valid');}
+}
+function fmtC(r){r=r.slice(0,20);return[r.slice(0,5),r.slice(5,10),r.slice(10,15),r.slice(15,20)].join('-');}
+function getRaw(){return document.getElementById('codef').value.replace(/-/g,'');}
+function getFmt(){var r=getRaw();return r.length===20?fmtC(r):null;}
+function setCode(c){document.getElementById('codef').value=c;valC(c.replace(/-/g,''));updJ();}
+
+// ── AUTO LABEL ────────────────────────────────────────────────────────────────
+function autoLbl(){
+  var id=getLid(), sd=getSDFromFields(), tt=typ!=='full'?' | '+typ.toUpperCase():'';
+  document.getElementById('labf').value=
+    mode==='dev'?"Creator's Log "+id+" | Stardate "+sd:"Log "+id+" | Stardate "+sd+tt;
+  updJ();
+}
+
+// ── TEMPLATES ─────────────────────────────────────────────────────────────────
+var TPLS={
+  'captains':  {name:"CAPTAIN'S LOG",               body:"[Log {ID} | Stardate {SD}]\nCAPTAIN\u2019S LOG \u2014 DAY {DAY}\n\n[Your entry here]\n\n    \u2014\u2014 Capt. {SIG}"},
+  'survey':    {name:"SURVEY VESSEL LOG",            body:"[LOG {ID} | STARDATE {SD}]\nSURVEY VESSEL \u2014 CAPTAIN\u2019S LOG \u2014 DAY {DAY}\n\n[Your entry here]\n\n    \u2014\u2014 Capt. {SIG}\n\u2014".repeat(36)},
+  'research':  {name:"RESEARCH NOTES",               body:"[Log {ID} | Stardate {SD}]\nRESEARCH NOTES \u2014 DAY {DAY}\n\n[Your observations here]\n\n    \u2014\u2014 Dr. {SIG}"},
+  'engineering':{name:"ENGINEERING REPORT",          body:"[Log {ID} | Stardate {SD}]\nENGINEERING REPORT \u2014 DAY {DAY}\n\nSYSTEMS STATUS:\n[Status here]\n\nNOTES:\n[Notes here]\n\n    \u2014\u2014 Chief Engineer {SIG}"},
+  'incident':  {name:"INCIDENT REPORT",              body:"[INCIDENT REPORT {ID} | Stardate {SD}]\nCLASSIFICATION: [CLEARANCE LEVEL]\nDAY: {DAY}\n\nDESCRIPTION:\n[Details here]\n\nCASUALTIES: [REDACTED]\nSTATUS: [REDACTED]\n\n    \u2014\u2014 {SIG}"},
+  'personal':  {name:"PERSONAL LOG",                 body:"[Log {ID} | Stardate {SD}]\nPERSONAL LOG \u2014 DAY {DAY}\n\n[Your entry here]"},
+  'comms':     {name:"INTERCEPTED TRANSMISSION",     body:"[INTERCEPTED TRANSMISSION | Stardate {SD}]\nORIGIN: [CORRUPTED]\nINTEGRITY: PARTIAL\n\n[TRANSMISSION BEGINS]\n\n[Content here]\n\n[END TRANSMISSION]"},
+  'field':     {name:"FIELD NOTES",                  body:"[Field Notes {ID} | Stardate {SD}]\nLOCATION: [SECTOR]\nDAY: {DAY}\n\nOBSERVATIONS:\n[Notes here]\n\n    \u2014\u2014 {SIG}"},
+  'medical':   {name:"MEDICAL LOG",                  body:"[MEDICAL LOG {ID} | Stardate {SD}]\nDAY: {DAY}\nPATIENT: [REDACTED]\nCONDITION: [REDACTED]\n\n[Medical notes here]\n\n    \u2014\u2014 Medical Officer {SIG}"},
+  'creator':   {name:"CREATOR'S LOG",                body:"[Log {ID} | Stardate {SD}]\nCREATOR\u2019S LOG \u2014 DAY {DAY}\n\n[Your entry here]\n\n    \u2014\u2014 {SIG}\n[END OF LOG]"}
+};
+
+function rebuildTplSelect(selectVal){
+  var sel=document.getElementById('tpls');
+  sel.innerHTML='<option value="">\u2014 select template \u2014</option>';
+  Object.keys(TPLS).forEach(function(k){var o=document.createElement('option');o.value=k;o.textContent=TPLS[k].name;sel.appendChild(o);});
+  if(selectVal)sel.value=selectVal;
+}
+function onTplChange(){
+  var k=document.getElementById('tpls').value;
+  if(!k){document.getElementById('tpl-name').value='';document.getElementById('tpl-body').value='';updHeader();return;}
+  document.getElementById('tpl-name').value=TPLS[k].name;
+  document.getElementById('tpl-body').value=TPLS[k].body;
+  updHeader();
+}
+function applyTpl(){
+  var k=document.getElementById('tpls').value;
+  if(!k){toast('Select a template first');return;}
+  var body=document.getElementById('tpl-body').value||TPLS[k].body;
+  var id=getLid(), sd=getSDFromFields();
+  var day=document.getElementById('dayf').value||getProjectDay();
+  var sig=document.getElementById('sigf').value.trim()||'[SIG]';
+  document.getElementById('logtxt').value=body
+    .replace(/\{ID\}/g,id).replace(/\{SD\}/g,sd)
+    .replace(/\{DAY\}/g,day).replace(/\{SIG\}/g,sig);
+  updCct();autoLbl();updJ();toast('Template applied');
+}
+function saveTpl(){
+  var k=document.getElementById('tpls').value;
+  var name=document.getElementById('tpl-name').value.trim();
+  var body=document.getElementById('tpl-body').value;
+  if(!name){toast('Enter a template name');return;}
+  if(!body){toast('Template body cannot be empty');return;}
+  var newKey=k||(name.toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/_+$/,''));
+  TPLS[newKey]={name:name,body:body};
+  rebuildTplSelect(newKey);onTplChange();toast('Template saved: '+name);saveTplsLocal();
+}
+function newTpl(){
+  document.getElementById('tpls').value='';
+  document.getElementById('tpl-name').value='NEW TEMPLATE';
+  document.getElementById('tpl-body').value='[Log {ID} | Stardate {SD}]\n{DAY}\n\n[Your entry here]\n\n    \u2014\u2014 {SIG}';
+}
+function delTpl(){
+  var k=document.getElementById('tpls').value;
+  if(!k){toast('Select a template to delete');return;}
+  if(!confirm('Delete template "'+TPLS[k].name+'"?'))return;
+  delete TPLS[k];rebuildTplSelect('');onTplChange();toast('Template deleted');saveTplsLocal();
+}
+function saveTplsLocal(){try{localStorage.setItem('echo_tpls',JSON.stringify(TPLS));}catch(e){}}
+function lodTplsLocal(){try{var s=JSON.parse(localStorage.getItem('echo_tpls')||'{}');if(Object.keys(s).length)TPLS=s;}catch(e){}rebuildTplSelect('');}
+function dlTpls(){
+  var blob=new Blob([JSON.stringify(TPLS,null,2)],{type:'application/json'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='entry_templates.json';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);toast('Downloaded entry_templates.json');
+}
+function toggleTplEditor(){
+  var tpl=document.getElementById('tpl-editor'),arrow=document.getElementById('tpl-arrow');
+  var isCollapsed=tpl.classList.toggle('collapsed');
+  arrow.innerHTML=(isCollapsed?'&#9658;':'&#9660;')+' TEMPLATE EDITOR';
+}
+
+// ── DECODE ────────────────────────────────────────────────────────────────────
+var decOpen = false;
+function toggleDec(){
+  decOpen=!decOpen;
+  document.getElementById('dec-body').classList.toggle('hidden',!decOpen);
+  document.getElementById('dec-arrow').innerHTML=(decOpen?'&#9660;':'&#9658;')+' DECODE / VALIDATE';
+}
+function doDecode(){
+  var code=document.getElementById('dec-in').value.trim();
+  if(!code){toast('Enter a code to decode');return;}
+  var saltIn=document.getElementById('dec-salt').value.trim();
+  var useSalt=saltIn?parseInt(saltIn,10):saltValue;
+  if(!useSalt||useSalt<1){toast('Set a salt first');return;}
+  var result=decodeEntry(code,useSalt);
+  var panel=document.getElementById('drp');
+  var hdr=document.getElementById('drp-hdr');
+  var body=document.getElementById('drp-body');
+  hdr.style.display='block';
+  if(!result.valid){
+    panel.className='bad';hdr.className='bad';
+    hdr.textContent='\u25B6 RESULT \u2014 \u2715 INVALID';
+    body.innerHTML=dr('STATUS','\u2715 INVALID','bad')+dr('REASON',result.error,'bad')+dr('SALT USED',''+useSalt);
+    return;
+  }
+  panel.className='ok';hdr.className='ok';
+  hdr.textContent='\u25B6 RESULT \u2014 \u2713 VALID';
+  var isLeap=(result.year%4===0&&result.year%100!==0)||(result.year%400===0);
+  body.innerHTML=
+    dr('STATUS','\u2713 VALID','ok')+
+    dr('DATE',p2(result.day)+'/'+p2(result.month)+'/'+result.year+(isLeap?' (LEAP)':''))+
+    dr('TIME',p2(result.hour)+':'+p2(result.minute))+
+    dr('DAY OF YEAR',p3(result.doy)+' of '+(isLeap?366:365))+
+    dr('ENTRY ID','#'+result.entryId)+
+    dr('STARDATE',result.stardate)+
+    dr('SALT USED',''+useSalt)+
+    '<div style="font-size:12px;color:rgba(79,195,247,0.50);margin-top:8px;padding:5px 8px;border:1px solid rgba(79,195,247,0.10);">STARDATE '+result.stardate+'</div>';
+}
+function dr(label,val,cls){return '<div class="dr-row"><span class="dr-l">'+label+'</span><span class="dr-v'+(cls?' '+cls:'')+'">'+val+'</span></div>';}
+function clearDecode(){
+  document.getElementById('dec-in').value='';
+  document.getElementById('dec-salt').value='';
+  var panel=document.getElementById('drp');panel.className='';
+  var hdr=document.getElementById('drp-hdr');hdr.className='';hdr.style.display='none';hdr.textContent='';
+  document.getElementById('drp-body').innerHTML='';
+}
+
+// ── PREVIEW ───────────────────────────────────────────────────────────────────
+function updPrev(){
+  var code=getFmt(),text=document.getElementById('logtxt').value;
+  var pv=document.getElementById('preview'),isDev=mode==='dev';
+  if(!code&&!text){pv.innerHTML='<span class="pd">Fill in a code and log text, then click PREVIEW</span>';updJ();return;}
+  var SEP='\u2014'.repeat(36),ls=[];
+  if(code){ls.push({t:'ARCHIVE QUERY: '+code,c:'pq'});ls.push({t:SEP,c:'ps'});}
+  if(isDev){ls.push({t:'> DECRYPTING ENTRY\u2026',c:'pdc'});ls.push({t:'> STATUS: PARTIAL RESTORATION',c:'pdc'});ls.push({t:'',c:''});}
+  if(typ==='classified'){
+    var l1=document.getElementById('l1pre').value.trim();
+    ls.push({t:'CLASSIFICATION: L2 CLEARANCE REQUIRED',c:'pd'},{t:'',c:''});
+    if(l1)l1.split('\n').forEach(function(ln){ls.push({t:ln,c:'pd'});});
+    ls.push({t:'',c:''},{t:'> Full entry requires elevated access.',c:'pd'},{t:'> Use [ECHO.ARCHIVE] to access ECHO PROTOCOL.',c:'pd'});
+  }else if(typ==='virus'){
+    var vl=text.split('\n').filter(function(l){return l.trim();});
+    vl.slice(0,3).forEach(function(ln){ls.push({t:ln,c:'pdc'});});
+    ls.push({t:'',c:''});
+    ['> WARNING: UNAUTHORIZED PROCESS DETECTED','> FOREIGN SIGNAL INJECTED INTO ARCHIVE READ','> SIGNAL ORIGIN: UNKNOWN','> SYSTEM INTEGRITY: CRITICAL']
+      .forEach(function(t){ls.push({t:t,c:'pe'});});
+    ls.push({t:'',c:''},{t:'> SESSION TERMINATED \u2014 EXTERNAL INTERFERENCE',c:'pe'},{t:'',c:''},{t:'[TERMINAL RETURNS TO POWER ON SCREEN]',c:'pd'});
+  }else{
+    if(text)text.split('\n').forEach(function(ln){ls.push({t:ln,c:'nc'});});
+  }
+  if(code||text)ls.push({t:SEP,c:'ps'});
+  pv.innerHTML=ls.map(function(l){var a=(l.c&&l.c!=='nc')?' class="'+l.c+'"':'';return '<div'+a+'>'+esc(l.t||'\u00a0')+'</div>';}).join('');
+  updJ();
+}
+
+// ── JSON SNIPPET ──────────────────────────────────────────────────────────────
+function buildSnip(){
+  var code=getFmt(),lbl=document.getElementById('labf').value.trim();
+  var text=document.getElementById('logtxt').value;
+  if(!code||!text)return null;
+  var o={label:lbl||''};
+  if(mode==='lore'){o.type=typ;o.clearance=clr;if(typ==='classified')o.l1_preview=document.getElementById('l1pre').value.trim()||'[REDACTED]';}
+  else{o.type=typ;}
+  o.text=text;
+  var ls=['  '+JSON.stringify(code)+': {'];
+  Object.keys(o).forEach(function(k){ls.push('    '+JSON.stringify(k)+': '+(typeof o[k]==='number'?o[k]:JSON.stringify(o[k]))+',');});
+  ls[ls.length-1]=ls[ls.length-1].replace(/,$/,'');
+  ls.push('  }');
+  return ls.join('\n');
+}
+function updJ(){document.getElementById('jo').textContent=buildSnip()||'// Fill in code and log text to generate snippet';autoSave();}
+function cpJSON(){updPrev();var snip=buildSnip();if(!snip){toast('Fill in code and log text first');return;}
+  navigator.clipboard.writeText(snip).then(function(){toast('Copied');}).catch(function(){var t=document.createElement('textarea');t.value=snip;document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t);toast('Copied');});}
+function updCct(){document.getElementById('cct').textContent=document.getElementById('logtxt').value.length;}
+document.getElementById('logtxt').addEventListener('input',function(){updCct();updJ();});
+document.getElementById('labf').addEventListener('input',updJ);
+
+// ── ENTRY MANAGEMENT ─────────────────────────────────────────────────────────
+function saveEntry(){
+  var code=getFmt();if(!code){toast('Enter a valid 20-character code first');return;}
+  var text=document.getElementById('logtxt').value.trim();if(!text){toast('Log text cannot be empty');return;}
+  var isUp=iData.hasOwnProperty(code);pushHist();
+  var entry={label:document.getElementById('labf').value.trim()||''};
+  entry.type=typ;entry.clearance=clr;
+  if(typ==='classified')entry.l1_preview=document.getElementById('l1pre').value.trim()||'[REDACTED]';
+  entry.text=text;
+  iData[code]=entry;activeCode=code;syncAll();highlightRow(code);
+  toast((isUp?'Updated':'Added')+': '+code);
+}
+function removeEntry(){
+  var code=getFmt();if(!code){toast('No code in field');return;}
+  if(!iData.hasOwnProperty(code)){toast(code+' not in JSON');return;}
+  if(!confirm('Remove '+code+'? (Undoable)'))return;
+  pushHist();delete iData[code];if(activeCode===code)activeCode=null;syncAll();toast('Removed: '+code);
+}
+function rmRow(code){
+  if(!confirm('Remove '+code+'? (Undoable)'))return;
+  pushHist();delete iData[code];if(activeCode===code)activeCode=null;syncAll();toast('Removed: '+code);
+}
+
+// ── FILE OPS ──────────────────────────────────────────────────────────────────
+async function openFile(){
+  if(!window.showOpenFilePicker){toast('Not supported. Use drag & drop.');return;}
+  try{var picks=await window.showOpenFilePicker({types:[{description:'JSON',accept:{'application/json':['.json']}}],multiple:false});
+    fileHandle=picks[0];var file=await fileHandle.getFile();
+    parseImp(await file.text(),file.name);updFstat('rw',file.name);toast('Opened: '+file.name);}
+  catch(e){if(e.name!=='AbortError')toast('Error: '+e.message);}
+}
+async function saveToFile(){
+  if(!fileHandle){toast('No file with write access. Use OPEN FILE or DOWNLOAD.');return;}
+  try{var sorted={};Object.keys(iData).sort().forEach(function(k){sorted[k]=iData[k];});
+    var w=await fileHandle.createWritable();await w.write(JSON.stringify(sorted,null,2));await w.close();
+    var i=document.getElementById('as-ind');i.classList.add('show');setTimeout(function(){i.classList.remove('show');},2000);
+    toast('Saved to '+fileHandle.name);}
+  catch(e){toast('Save failed: '+e.message);}
+}
+function dlJSON(){
+  if(!Object.keys(iData).length){toast('No entries to download');return;}
+  var sorted={};Object.keys(iData).sort().forEach(function(k){sorted[k]=iData[k];});
+  var blob=new Blob([JSON.stringify(sorted,null,2)],{type:'application/json'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download=mode==='dev'?'dev_logs.json':'lore.json';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);toast('Downloaded: '+a.download);
+}
+function updFstat(state,name){
+  var el=document.getElementById('fstat'),stf=document.getElementById('stf-btn');
+  if(state==='rw'){el.className='rw';el.textContent='\u2713 '+name;stf.disabled=false;}
+  else if(state==='ro'){el.className='ro';el.textContent='\u25cf READ-ONLY: '+name;stf.disabled=true;}
+  else{el.className='none';el.textContent='NO FILE OPEN';stf.disabled=true;}
+}
+
+// ── IMPORT / DROP ─────────────────────────────────────────────────────────────
+function dzov(e){e.preventDefault();document.getElementById('dz').classList.add('ov');}
+function dzlv(e){document.getElementById('dz').classList.remove('ov');}
+function dzdp(e){e.preventDefault();dzlv(e);var f=e.dataTransfer.files[0];if(f&&f.name.endsWith('.json'))rdFile(f);else toast('Drop a .json file');}
+function fiCh(e){var f=e.target.files[0];if(f)rdFile(f);e.target.value='';}
+function rdFile(f){var r=new FileReader();r.onload=function(e){parseImp(e.target.result,f.name);updFstat('ro',f.name);};r.readAsText(f);}
+function tryImp(v){if(!v.trim())return;parseImp(v,'pasted JSON');}
+function parseImp(text,src){
+  try{iData=JSON.parse(text);hist=[JSON.parse(JSON.stringify(iData))];histIdx=0;
+    syncAll();toast('Loaded '+Object.keys(iData).length+' entries from '+src);}
+  catch(e){toast('JSON parse error \u2014 check format');}
+}
+
+// ── ENTRY BROWSER ─────────────────────────────────────────────────────────────
+var filterText='';
+function filterEnts(){filterText=document.getElementById('esrch').value.toUpperCase().trim();renderEnts();}
+function updCounts(){var n=Object.keys(iData).length;document.getElementById('ect').textContent='\u2014 '+n;var ec=document.getElementById('ecount');if(n){ec.style.display='';ec.textContent=n+' entries \u2014 sorted by code';}else{ec.style.display='none';}}
+function mkBadge(t){var tc=(['virus','classified','partial','degraded','corrupted'].indexOf(t)>=0)?t:'full';return '<span class="etbadge '+tc+'"><span class="bt">'+t.toUpperCase()+'</span></span>';}
+function renderEnts(){
+  var list=document.getElementById('elist');list.innerHTML='';
+  var keys=Object.keys(iData).sort();
+  if(!keys.length){list.innerHTML='<div style="padding:14px;font-size:12px;color:rgba(79,195,247,0.35);text-align:center">No entries loaded</div>';return;}
+  var shown=0;
+  keys.forEach(function(code){
+    var e=iData[code],lbl=(e.label||'').toUpperCase();
+    if(filterText&&code.indexOf(filterText)<0&&lbl.indexOf(filterText)<0)return;
+    shown++;
+    var row=document.createElement('div');
+    row.className='erow'+(activeCode===code?' active':'');row.dataset.code=code;
+    var rm=document.createElement('button');rm.className='erm';rm.textContent='\u00d7';rm.title='Remove';
+    rm.onclick=function(ev){ev.stopPropagation();rmRow(code);};
+    var t=e.type||'full';
+    row.innerHTML='<div class="er-code">'+code+'</div>'+
+      '<div class="er-mid">'+mkBadge(t)+'<span style="font-size:10px;color:rgba(79,195,247,0.24);">L'+(e.clearance||1)+'</span></div>'+
+      '<div class="er-lbl">'+esc(e.label||'\u2014')+'</div>';
+    row.appendChild(rm);row.onclick=function(){lodEnt(code,e);};
+    list.appendChild(row);
+  });
+  if(shown===0&&filterText)list.innerHTML='<div style="padding:14px;font-size:12px;color:rgba(79,195,247,0.35);text-align:center">No matches</div>';
+  updCounts();
+}
+function highlightRow(code){document.querySelectorAll('.erow').forEach(function(r){r.classList.toggle('active',r.dataset.code===code);});}
+function lodEnt(code,e){
+  activeCode=code;
+  document.getElementById('codef').value=code;
+  document.getElementById('labf').value=e.label||'';
+  document.getElementById('logtxt').value=e.text||'';
+  document.getElementById('l1pre').value=e.l1_preview||'';
+  valC(code.replace(/-/g,''));
+  if(e.type)setTyp(e.type);if(e.clearance)setClr(e.clearance);
+  updCct();updPrev();highlightRow(code);
+  var idM=(e.label||'').match(/([A-Z])-(\d+)/i);
+  if(idM){document.getElementById('lidl').value=idM[1].toUpperCase();document.getElementById('lidn').value=idM[2];}
+  toast('Loaded: '+code);
+}
+
+// ── CLEAR FORM ────────────────────────────────────────────────────────────────
+function clrForm(){
+  if(!confirm('Clear all fields?'))return;
+  ['codef','labf','logtxt','l1pre','lidn','lidl','sigf'].forEach(function(id){document.getElementById(id).value='';});
+  delete document.getElementById('dayf').dataset.manual;
+  updDayDisp();
+  document.getElementById('codest').textContent='Enter or generate a 20-character code';
+  document.getElementById('codest').className='';
+  document.getElementById('codef').className='';
+  document.getElementById('jo').textContent='// Fill in code and log text to generate snippet';
+  document.getElementById('preview').innerHTML='<span class="pd">Fill in a code and log text, then click PREVIEW</span>';
+  document.getElementById('cct').textContent='0';
+  document.getElementById('code-out-disp').textContent='\u2014';document.getElementById('code-out-disp').className='empty';
+  document.getElementById('cp-gen-btn').disabled=true;document.getElementById('use-gen-btn').disabled=true;
+  lastGenCode='';activeCode=null;
+  document.querySelectorAll('.erow').forEach(function(r){r.classList.remove('active');});
+  updHeader();
+  try{localStorage.removeItem('echo_ed28');}catch(e){}
+}
+
+// ── AUTOSAVE ──────────────────────────────────────────────────────────────────
+var asT=null;
+function autoSave(){
+  clearTimeout(asT);
+  asT=setTimeout(function(){
+    try{localStorage.setItem('echo_ed28',JSON.stringify({
+      mode:mode,typ:typ,clr:clr,
+      code:document.getElementById('codef').value,
+      lbl:document.getElementById('labf').value,
+      text:document.getElementById('logtxt').value,
+      l1p:document.getElementById('l1pre').value,
+      lidn:document.getElementById('lidn').value,
+      lidl:document.getElementById('lidl').value,
+      dty:document.getElementById('dt-year').value,
+      dtmo:document.getElementById('dt-month').value,
+      dtd:document.getElementById('dt-day').value,
+      dth:document.getElementById('dt-hour').value,
+      dtmi:document.getElementById('dt-min').value,
+      eid:document.getElementById('eid').value,
+      day:document.getElementById('dayf').dataset.manual?document.getElementById('dayf').value:''
+    }));
+    var i=document.getElementById('as-ind');i.classList.add('show');setTimeout(function(){i.classList.remove('show');},1500);
+    }catch(e){}},1200);
+}
+function restore(){
+  try{var s=JSON.parse(localStorage.getItem('echo_ed28')||'{}');
+    if(s.mode)setMode(s.mode);if(s.typ)setTyp(s.typ);if(s.clr)setClr(s.clr);
+    if(s.code){document.getElementById('codef').value=s.code;valC(s.code.replace(/-/g,''));}
+    if(s.lbl)document.getElementById('labf').value=s.lbl;
+    if(s.text)document.getElementById('logtxt').value=s.text;
+    if(s.l1p)document.getElementById('l1pre').value=s.l1p;
+    if(s.lidn)document.getElementById('lidn').value=s.lidn;
+    if(s.lidl)document.getElementById('lidl').value=s.lidl;
+    if(s.dty)document.getElementById('dt-year').value=s.dty;
+    if(s.dtmo)document.getElementById('dt-month').value=s.dtmo;
+    if(s.dtd)document.getElementById('dt-day').value=s.dtd;
+    if(s.dth)document.getElementById('dt-hour').value=s.dth;
+    if(s.dtmi)document.getElementById('dt-min').value=s.dtmi;
+    if(s.eid)document.getElementById('eid').value=s.eid;
+    if(s.day){document.getElementById('dayf').value=s.day;document.getElementById('dayf').dataset.manual='1';document.getElementById('dayf').style.color='var(--blue)';}
+    updCct();updJ();onDtChange();
+    if(s.text||s.code)toast('Session restored');
+  }catch(e){}
+}
+
+// ── UTIL ──────────────────────────────────────────────────────────────────────
+function syncAll(){renderEnts();updCounts();updUrUI();autoSave();}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+var toastT=null;
+function toast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(function(){t.classList.remove('show');},2400);}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+updFstat('none','');
+document.getElementById('stf-btn').disabled=true;
+updUrUI();
+loadSalt();
+lodSet();
+lodTplsLocal();
+fillNow();
+restore();
+updHeader();
+
+</script>
+<!-- ── ECHO LAB PALETTE INJECTOR v1.1 ──────────────────────────────────────
+     Paste this block immediately before </body> in any ECHO Lab HTML file.
+     Compatible with: Lore Editor, Personality Lab, Terminal Logic Builder.
+     Theme and custom palette save to localStorage, shared across all labs.
+     ─────────────────────────────────────────────────────────────────────── -->
+<script>
+(function(){
+  'use strict';
+
+  // ── PRESET THEMES ────────────────────────────────────────────────────────
+  var PRESETS = {
+    CYAN:   {bg:'#00080e', blue:'#4fc3f7', dim:'rgba(79,195,247,0.40)',  bdr:'rgba(79,195,247,0.10)'},
+    BRIGHT: {bg:'#000d18', blue:'#7dd8f8', dim:'rgba(125,216,248,0.62)', bdr:'rgba(125,216,248,0.20)'},
+    GREEN:  {bg:'#001200', blue:'#6be52e', dim:'rgba(107,229,46,0.48)',  bdr:'rgba(107,229,46,0.14)'},
+    AMBER:  {bg:'#0a0700', blue:'#e8a430', dim:'rgba(232,164,48,0.48)',  bdr:'rgba(232,164,48,0.14)'},
+    WHITE:  {bg:'#08090c', blue:'#dde3ea', dim:'rgba(221,227,234,0.62)', bdr:'rgba(221,227,234,0.18)'}
+  };
+
+  var THEME_KEY  = 'echo_lab_theme';
+  var CUSTOM_KEY = 'echo_lab_custom';
+
+  // ── CUSTOM PALETTE STATE ──────────────────────────────────────────────────
+  var custom = {bg:'#00080e', blue:'#4fc3f7', dimOp:0.40, bdrOp:0.10};
+  try {
+    var saved = JSON.parse(localStorage.getItem(CUSTOM_KEY) || 'null');
+    if (saved && saved.blue) custom = saved;
+  } catch(e) {}
+
+  var active = localStorage.getItem(THEME_KEY) || 'CYAN';
+
+  // ── HELPERS ───────────────────────────────────────────────────────────────
+  function hexToRgb(hex) {
+    hex = hex.replace('#','');
+    if (hex.length === 3) hex = hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];
+    return [parseInt(hex.slice(0,2),16), parseInt(hex.slice(2,4),16), parseInt(hex.slice(4,6),16)];
+  }
+
+  function buildCustomTheme() {
+    var rgb = hexToRgb(custom.blue);
+    var d = parseFloat(custom.dimOp) || 0.40;
+    var b = parseFloat(custom.bdrOp) || 0.10;
+    return {
+      bg:   custom.bg,
+      blue: custom.blue,
+      dim:  'rgba('+rgb[0]+','+rgb[1]+','+rgb[2]+','+d.toFixed(2)+')',
+      bdr:  'rgba('+rgb[0]+','+rgb[1]+','+rgb[2]+','+b.toFixed(2)+')'
+    };
+  }
+
+  function saveCustom() {
+    try { localStorage.setItem(CUSTOM_KEY, JSON.stringify(custom)); } catch(e) {}
+  }
+
+  // ── APPLY THEME ───────────────────────────────────────────────────────────
+  function apply(name) {
+    var t = name === 'CUSTOM' ? buildCustomTheme() : (PRESETS[name] || PRESETS.CYAN);
+    var r = document.documentElement;
+    r.style.setProperty('--blue', t.blue);
+    r.style.setProperty('--dim',  t.dim);
+    r.style.setProperty('--bdr',  t.bdr);
+    r.style.setProperty('--dark', t.bg);
+    document.body.style.background = t.bg;
+    active = name;
+    try { localStorage.setItem(THEME_KEY, name); } catch(e) {}
+    document.querySelectorAll('[data-plt]').forEach(function(b) {
+      var sel = b.dataset.plt === name;
+      b.style.borderColor = sel ? t.blue : 'rgba(255,255,255,0.10)';
+      b.style.color       = sel ? t.blue : 'rgba(255,255,255,0.32)';
+      b.style.background  = sel ? 'rgba(255,255,255,0.06)' : 'transparent';
+    });
+  }
+
+  // ── UI HELPERS ────────────────────────────────────────────────────────────
+  function mkRow(label, right) {
+    var row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;gap:8px;';
+    var lbl = document.createElement('span');
+    lbl.textContent = label;
+    lbl.style.cssText = 'font-size:10px;color:rgba(255,255,255,0.38);letter-spacing:0.08em;flex:1;white-space:nowrap;';
+    row.appendChild(lbl);
+    row.appendChild(right);
+    return row;
+  }
+
+  function mkColorPicker(value, onChange) {
+    var inp = document.createElement('input');
+    inp.type = 'color';
+    inp.value = value;
+    inp.style.cssText = 'width:34px;height:22px;border:1px solid rgba(255,255,255,0.16);background:transparent;cursor:pointer;padding:0;border-radius:0;';
+    inp.oninput = function() { onChange(this.value); };
+    return inp;
+  }
+
+  function mkSlider(value, onChange) {
+    var wrap = document.createElement('div');
+    wrap.style.cssText = 'display:flex;align-items:center;gap:6px;';
+    var inp = document.createElement('input');
+    inp.type = 'range'; inp.min='0'; inp.max='100'; inp.step='1';
+    inp.value = String(Math.round(value * 100));
+    inp.style.cssText = [
+      'width:80px','-webkit-appearance:none','height:2px',
+      'background:rgba(255,255,255,0.14)','outline:none','cursor:pointer',
+      'accent-color:#4fc3f7'
+    ].join(';');
+    var val = document.createElement('span');
+    val.textContent = inp.value + '%';
+    val.style.cssText = 'font-size:10px;color:rgba(255,255,255,0.48);min-width:32px;text-align:right;';
+    inp.oninput = function() {
+      val.textContent = this.value + '%';
+      onChange(parseInt(this.value, 10) / 100);
+    };
+    wrap.appendChild(inp); wrap.appendChild(val);
+    return wrap;
+  }
+
+  // ── BUILD UI ──────────────────────────────────────────────────────────────
+  function build() {
+    var wrap = document.createElement('div');
+    wrap.style.cssText = 'position:relative;display:inline-flex;align-items:center;';
+
+    // Toggle button
+    var btn = document.createElement('button');
+    btn.textContent = '// PALETTE';
+    btn.style.cssText = [
+      'background:transparent',
+      'border:1px solid rgba(79,195,247,0.16)',
+      'color:rgba(79,195,247,0.44)',
+      'font-family:"Share Tech Mono",monospace',
+      'font-size:11px','letter-spacing:0.07em',
+      'padding:3px 10px','cursor:pointer','transition:all 0.15s'
+    ].join(';');
+    btn.onmouseenter = function(){ this.style.borderColor='rgba(79,195,247,0.40)'; this.style.color='#4fc3f7'; };
+    btn.onmouseleave = function(){ this.style.borderColor='rgba(79,195,247,0.16)'; this.style.color='rgba(79,195,247,0.44)'; };
+
+    // Menu
+    var menu = document.createElement('div');
+    menu.style.cssText = [
+      'display:none','position:absolute','top:calc(100% + 4px)','right:0',
+      'z-index:9999','background:rgba(0,4,10,0.98)',
+      'border:1px solid rgba(79,195,247,0.16)',
+      'padding:7px','flex-direction:column','gap:4px','min-width:200px'
+    ].join(';');
+    // Prevent clicks inside menu from bubbling to document close handler
+    menu.onclick = function(e){ e.stopPropagation(); };
+
+    // Preset theme buttons
+    var themeNames = ['CYAN','BRIGHT','GREEN','AMBER','WHITE'];
+    var customPanel;
+
+    themeNames.forEach(function(name) {
+      var t = PRESETS[name];
+      var opt = document.createElement('button');
+      opt.dataset.plt = name;
+      opt.style.cssText = [
+        'background:transparent','border:1px solid rgba(255,255,255,0.10)',
+        'color:rgba(255,255,255,0.32)','font-family:"Share Tech Mono",monospace',
+        'font-size:11px','padding:5px 9px','cursor:pointer',
+        'display:flex','align-items:center','gap:7px','text-align:left','width:100%','transition:all 0.12s'
+      ].join(';');
+      var dot = document.createElement('span');
+      dot.style.cssText = 'width:11px;height:11px;background:'+t.blue+';flex-shrink:0;display:inline-block;';
+      opt.appendChild(dot);
+      opt.appendChild(document.createTextNode(name));
+      opt.onclick = function() {
+        apply(name);
+        if (customPanel) customPanel.style.display = 'none';
+        open = false; menu.style.display = 'none';
+      };
+      menu.appendChild(opt);
+    });
+
+    // CUSTOM button
+    var custBtn = document.createElement('button');
+    custBtn.dataset.plt = 'CUSTOM';
+    custBtn.style.cssText = [
+      'background:transparent','border:1px solid rgba(255,255,255,0.10)',
+      'color:rgba(255,255,255,0.32)','font-family:"Share Tech Mono",monospace',
+      'font-size:11px','padding:5px 9px','cursor:pointer',
+      'display:flex','align-items:center','gap:7px','text-align:left','width:100%','transition:all 0.12s'
+    ].join(';');
+    var custDot = document.createElement('span');
+    custDot.style.cssText = [
+      'width:11px;height:11px;flex-shrink:0;display:inline-block;',
+      'background:linear-gradient(135deg,'+custom.blue+' 50%,'+custom.bg+' 50%);'
+    ].join('');
+    custBtn.appendChild(custDot);
+    custBtn.appendChild(document.createTextNode('CUSTOM'));
+
+    // ── CUSTOM PANEL ──────────────────────────────────────────────────────
+    customPanel = document.createElement('div');
+    customPanel.style.cssText = [
+      'display:none','flex-direction:column','gap:8px',
+      'border-top:1px solid rgba(255,255,255,0.08)',
+      'margin-top:5px','padding-top:9px'
+    ].join(';');
+
+    // Background color
+    var bgPicker = mkColorPicker(custom.bg, function(v) {
+      custom.bg = v;
+      if (active==='CUSTOM') apply('CUSTOM');
+      saveCustom();
+    });
+    customPanel.appendChild(mkRow('BACKGROUND', bgPicker));
+
+    // Primary color
+    var bluePicker = mkColorPicker(custom.blue, function(v) {
+      custom.blue = v;
+      custDot.style.background = 'linear-gradient(135deg,'+v+' 50%,'+custom.bg+' 50%)';
+      if (active==='CUSTOM') apply('CUSTOM');
+      saveCustom();
+    });
+    customPanel.appendChild(mkRow('PRIMARY COLOR', bluePicker));
+
+    // Dim opacity
+    var dimSlider = mkSlider(custom.dimOp, function(v) {
+      custom.dimOp = v;
+      if (active==='CUSTOM') apply('CUSTOM');
+      saveCustom();
+    });
+    customPanel.appendChild(mkRow('DIM OPACITY', dimSlider));
+
+    // Border opacity
+    var bdrSlider = mkSlider(custom.bdrOp, function(v) {
+      custom.bdrOp = v;
+      if (active==='CUSTOM') apply('CUSTOM');
+      saveCustom();
+    });
+    customPanel.appendChild(mkRow('BORDER OPACITY', bdrSlider));
+
+    // CUSTOM button onclick — apply and show panel, keep menu open
+    custBtn.onclick = function() {
+      apply('CUSTOM');
+      customPanel.style.display = customPanel.style.display === 'flex' ? 'none' : 'flex';
+    };
+
+    menu.appendChild(custBtn);
+    menu.appendChild(customPanel);
+
+    // If CUSTOM is the active theme on load, show panel on first open
+    var open = false;
+    btn.onclick = function(e) {
+      e.stopPropagation();
+      open = !open;
+      menu.style.display = open ? 'flex' : 'none';
+      if (open && active === 'CUSTOM') customPanel.style.display = 'flex';
+    };
+    document.addEventListener('click', function() {
+      if (open) { open = false; menu.style.display = 'none'; }
+    });
+
+    wrap.appendChild(btn);
+    wrap.appendChild(menu);
+
+    var hright = document.querySelector('.hright');
+    if (hright) hright.insertBefore(wrap, hright.firstChild);
+  }
+
+  // ── INIT ─────────────────────────────────────────────────────────────────
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() { apply(active); build(); });
+  } else {
+    apply(active); build();
+  }
+
+})();
+</script>
+</body>
+</html>
