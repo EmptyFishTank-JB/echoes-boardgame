@@ -3,35 +3,35 @@
     "version": "1.0",
     "description": "ECHOES Terminal Node Architecture — TEMPLATE",
     "node_positions": {
-      "L1C_ROOT": {
+      "L1AC_ROOT": {
         "x": 19.25653365530021,
         "y": 19.25653365530021
       },
-      "L1C_INTRO": {
+      "L1AC_INTRO": {
         "x": 315.33117222454433,
         "y": 20.517780562691314
       },
-      "L1_INTRO": {
+      "L1A_INTRO": {
         "x": 560,
         "y": 60
       },
-      "L1_ROOT": {
+      "L1A_ROOT": {
         "x": 558.9571187984827,
         "y": 220.74102868468447
       },
-      "L2_INTRO": {
+      "L2A_INTRO": {
         "x": 860,
         "y": 60
       },
-      "L2_ROOT": {
+      "L2A_ROOT": {
         "x": 860,
         "y": 300
       },
-      "L3_INTRO": {
+      "L3A_INTRO": {
         "x": 1255.2725633258058,
         "y": 46.8084143087346
       },
-      "L3_ROOT": {
+      "L3A_ROOT": {
         "x": 1439.4096949856596,
         "y": 269.203203271349
       },
@@ -39,27 +39,27 @@
         "x": 20.620439913666317,
         "y": 714.2086517339521
       },
-      "L1_CREW_MANIFEST": {
+      "L1A_CREW_MANIFEST": {
         "x": 1116.5373563437065,
         "y": 273.4831921114825
       },
-      "L1_MISSION_BRIEFING": {
+      "L1A_MISSION_BRIEFING": {
         "x": 890.789834601654,
         "y": 460.578901787616
       },
-      "L1_INCIDENT": {
+      "L1A_INCIDENT": {
         "x": 1164.7495504866476,
         "y": 534.4605997174284
       },
-      "L1_RESTRICTED": {
+      "L1A_RESTRICTED": {
         "x": 968.3283208889997,
         "y": 870.1368479544831
       },
-      "L1_SYSTEM_LOGS": {
+      "L1A_SYSTEM_LOGS": {
         "x": 581.9195868158622,
         "y": 703.9933384811475
       },
-      "L1_BREACH": {
+      "L1A_BREACH": {
         "x": 527.4237348334557,
         "y": 957.9073462345247
       },
@@ -82,31 +82,31 @@
     },
     "editor_version": "5.35",
     "last_saved": "2026-05-29T20:04:22.234Z",
-    "schema_notes": "l1_commands, boot_script, dev_override_commands removed — commands now defined in global node bodies. L1C_ROOT and L1_ROOT both have is_root=true on l1: L1C_ROOT=chat/boot root, L1_ROOT=archive folder root."
+    "schema_notes": "l1_commands, boot_script, dev_override_commands removed — commands now defined in global node bodies. L1AC_ROOT and L1A_ROOT both have is_root=true on l1a: L1AC_ROOT=chat/boot root, L1A_ROOT=archive folder root."
   },
   "layers": {
-    "l1": {
+    "l1a": {
       "theme": "blue",
       "header_title": "ECHO-ARCHIVE",
-      "ambient": "l1",
+      "ambient": "l1a",
       "_color": "#4fc3f7"
     },
-    "l2": {
+    "l2a": {
       "theme": "amber",
       "header_title": "ECHO-ARCHIVE",
-      "ambient": "l2",
+      "ambient": "l2a",
       "_color": "#bf7c0a"
     },
-    "l3": {
+    "l3a": {
       "theme": "red",
       "header_title": "DEEP ARCHIVE",
-      "ambient": "l3",
+      "ambient": "l3a",
       "_color": "#e05050"
     }
   },
   "nodes": {
-    "L1C_ROOT": {
-      "layer": "l1",
+    "L1AC_ROOT": {
+      "layer": "l1a",
       "node_type": "chat",
       "is_root": true,
       "fetch_allowed": false,
@@ -233,7 +233,7 @@
           "type": "command",
           "cmd_type": "navigation",
           "label": "[L1 ROOT]",
-          "target": "L1_ROOT",
+          "target": "L1A_ROOT",
           "hidden": false
         }
       ],
@@ -244,13 +244,13 @@
         "id_locked": false
       }
     },
-    "L1C_INTRO": {
-      "layer": "l1",
+    "L1AC_INTRO": {
+      "layer": "l1a",
       "node_type": "intro",
       "is_root": false,
       "fetch_allowed": false,
       "title": "",
-      "breadcrumb": "L1C_INTRO",
+      "breadcrumb": "L1AC_INTRO",
       "footer": "",
       "body": [],
       "_editor": {
@@ -259,8 +259,8 @@
         "id_locked": true
       }
     },
-    "L1_INTRO": {
-      "layer": "l1",
+    "L1A_INTRO": {
+      "layer": "l1a",
       "node_type": "intro",
       "is_root": false,
       "fetch_allowed": false,
@@ -295,8 +295,8 @@
         "id_locked": true
       }
     },
-    "L1_ROOT": {
-      "layer": "l1",
+    "L1A_ROOT": {
+      "layer": "l1a",
       "node_type": "standard",
       "is_root": true,
       "fetch_allowed": false,
@@ -308,31 +308,31 @@
           "type": "command",
           "cmd_type": "navigation",
           "label": "[CREW MANIFEST]",
-          "target": "L1_CREW_MANIFEST"
+          "target": "L1A_CREW_MANIFEST"
         },
         {
           "type": "command",
           "cmd_type": "navigation",
           "label": "[MISSION BRIEFING]",
-          "target": "L1_MISSION_BRIEFING"
+          "target": "L1A_MISSION_BRIEFING"
         },
         {
           "type": "command",
           "cmd_type": "navigation",
           "label": "[INCIDENT REPORTS]",
-          "target": "L1_INCIDENT"
+          "target": "L1A_INCIDENT"
         },
         {
           "type": "command",
           "cmd_type": "navigation",
           "label": "[RESTRICTED FILES]",
-          "target": "L1_RESTRICTED"
+          "target": "L1A_RESTRICTED"
         },
         {
           "type": "command",
           "cmd_type": "navigation",
           "label": "[SYSTEM LOGS]",
-          "target": "L1_SYSTEM_LOGS"
+          "target": "L1A_SYSTEM_LOGS"
         },
         {
           "type": "text",
@@ -356,7 +356,7 @@
           "type": "command",
           "cmd_type": "navigation",
           "label": "[EXIT]",
-          "target": "L1C_ROOT",
+          "target": "L1AC_ROOT",
           "hidden": false
         }
       ],
@@ -366,13 +366,13 @@
         "id_locked": false
       }
     },
-    "L2_INTRO": {
-      "layer": "l2",
+    "L2A_INTRO": {
+      "layer": "l2a",
       "node_type": "intro",
       "is_root": false,
       "fetch_allowed": false,
       "title": "",
-      "breadcrumb": "L2_INTRO",
+      "breadcrumb": "L2A_INTRO",
       "footer": "",
       "body": [
         {
@@ -422,8 +422,8 @@
         "id_locked": true
       }
     },
-    "L2_ROOT": {
-      "layer": "l2",
+    "L2A_ROOT": {
+      "layer": "l2a",
       "node_type": "standard",
       "is_root": true,
       "fetch_allowed": true,
@@ -437,8 +437,8 @@
         "id_locked": false
       }
     },
-    "L3_INTRO": {
-      "layer": "l3",
+    "L3A_INTRO": {
+      "layer": "l3a",
       "node_type": "intro",
       "is_root": false,
       "fetch_allowed": false,
@@ -488,8 +488,8 @@
         "id_locked": true
       }
     },
-    "L3_ROOT": {
-      "layer": "l3",
+    "L3A_ROOT": {
+      "layer": "l3a",
       "node_type": "standard",
       "is_root": true,
       "fetch_allowed": true,
@@ -504,7 +504,7 @@
       }
     },
     "DEV_OVERRIDE_ROOT": {
-      "layer": "l1",
+      "layer": "l1a",
       "node_type": "global",
       "is_root": false,
       "fetch_allowed": false,
@@ -516,21 +516,21 @@
           "type": "command",
           "cmd_type": "navigation",
           "label": "[-- JUMP L1]",
-          "target": "L1_ROOT",
+          "target": "L1A_ROOT",
           "hidden": false
         },
         {
           "type": "command",
           "cmd_type": "navigation",
           "label": "[-- JUMP L2]",
-          "target": "L2_ROOT",
+          "target": "L2A_ROOT",
           "hidden": false
         },
         {
           "type": "command",
           "cmd_type": "navigation",
           "label": "[-- JUMP L3]",
-          "target": "L3_ROOT",
+          "target": "L3A_ROOT",
           "hidden": false
         }
       ],
@@ -541,8 +541,8 @@
       },
       "layer_scope": null
     },
-    "L1_CREW_MANIFEST": {
-      "layer": "l1",
+    "L1A_CREW_MANIFEST": {
+      "layer": "l1a",
       "node_type": "standard",
       "is_root": false,
       "fetch_allowed": false,
@@ -584,7 +584,7 @@
           "type": "command",
           "cmd_type": "navigation",
           "label": "[EXIT]",
-          "target": "L1_ROOT"
+          "target": "L1A_ROOT"
         }
       ],
       "_editor": {
@@ -593,8 +593,8 @@
         "id_locked": false
       }
     },
-    "L1_MISSION_BRIEFING": {
-      "layer": "l1",
+    "L1A_MISSION_BRIEFING": {
+      "layer": "l1a",
       "node_type": "standard",
       "is_root": false,
       "fetch_allowed": false,
@@ -637,7 +637,7 @@
           "type": "command",
           "cmd_type": "navigation",
           "label": "[EXIT]",
-          "target": "L1_ROOT"
+          "target": "L1A_ROOT"
         }
       ],
       "_editor": {
@@ -646,8 +646,8 @@
         "id_locked": false
       }
     },
-    "L1_INCIDENT": {
-      "layer": "l1",
+    "L1A_INCIDENT": {
+      "layer": "l1a",
       "node_type": "standard",
       "is_root": false,
       "fetch_allowed": false,
@@ -659,7 +659,7 @@
           "type": "command",
           "cmd_type": "navigation",
           "label": "[CONTAINMENT BREACH — DAY 31]",
-          "target": "L1_BREACH"
+          "target": "L1A_BREACH"
         },
         {
           "type": "command",
@@ -680,8 +680,8 @@
         "id_locked": false
       }
     },
-    "L1_RESTRICTED": {
-      "layer": "l1",
+    "L1A_RESTRICTED": {
+      "layer": "l1a",
       "node_type": "standard",
       "is_root": false,
       "fetch_allowed": false,
@@ -714,8 +714,8 @@
         "id_locked": false
       }
     },
-    "L1_SYSTEM_LOGS": {
-      "layer": "l1",
+    "L1A_SYSTEM_LOGS": {
+      "layer": "l1a",
       "node_type": "standard",
       "is_root": false,
       "fetch_allowed": false,
@@ -760,7 +760,7 @@
           "type": "command",
           "cmd_type": "navigation",
           "label": "[EXIT]",
-          "target": "L1_ROOT",
+          "target": "L1A_ROOT",
           "hidden": false
         }
       ],
@@ -770,8 +770,8 @@
         "id_locked": false
       }
     },
-    "L1_BREACH": {
-      "layer": "l1",
+    "L1A_BREACH": {
+      "layer": "l1a",
       "node_type": "standard",
       "is_root": false,
       "fetch_allowed": false,
@@ -830,14 +830,14 @@
           "type": "command",
           "cmd_type": "navigation",
           "label": "[INITIATE ECHO PROTOCOL]",
-          "target": "L3_ROOT",
+          "target": "L3A_ROOT",
           "hidden": false
         },
         {
           "type": "command",
           "cmd_type": "navigation",
           "label": "[CLOSE FILE]",
-          "target": "L1_INCIDENT",
+          "target": "L1A_INCIDENT",
           "hidden": false
         }
       ],
@@ -848,7 +848,7 @@
       }
     },
     "GLOBAL_HELP": {
-      "layer": "l1",
+      "layer": "l1a",
       "node_type": "data",
       "is_root": false,
       "fetch_allowed": false,
@@ -917,7 +917,7 @@
       }
     },
     "GLOBAL_STATUS": {
-      "layer": "l1",
+      "layer": "l1a",
       "node_type": "data",
       "is_root": false,
       "fetch_allowed": false,
@@ -938,7 +938,7 @@
       }
     },
     "GLOBAL_SCAN": {
-      "layer": "l1",
+      "layer": "l1a",
       "node_type": "data",
       "is_root": false,
       "fetch_allowed": false,
@@ -959,7 +959,7 @@
       }
     },
     "HELP": {
-      "layer": "l1",
+      "layer": "l1a",
       "node_type": "global",
       "is_root": false,
       "fetch_allowed": false,
