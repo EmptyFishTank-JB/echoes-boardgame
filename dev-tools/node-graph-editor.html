@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NODE GRAPH EDITOR // v5.28</title>
+<title>NODE GRAPH EDITOR // v5.29</title>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
@@ -230,7 +230,7 @@ select.iv-sel option{background:#001220;color:var(--blue);}
 <body>
 <div id="app">
 <div id="hdr">
-  <span class="htitle">NODE GRAPH EDITOR // v5.28</span>
+  <span class="htitle">NODE GRAPH EDITOR // v5.29</span>
   <span id="as-ind">&#10003; SAVED</span>
   <span id="fstat" class="none">NO FILE</span>
   <span id="fver" style="font-size:11px;color:rgba(79,195,247,0.28);letter-spacing:0.06em;"></span>
@@ -333,7 +333,7 @@ select.iv-sel option{background:#001220;color:var(--blue);}
 <script>
 'use strict';
 // ── CONSTANTS ─────────────────────────────────────────────────────────────────
-var EDITOR_VERSION='5.28';
+var EDITOR_VERSION='5.29';
 var EDITOR_CREATED='2026-05-28T12:00:00-05:00';
 var EDITOR_CREATED_HUMAN='May 28, 2026 CT';
 var CANVAS_W=4000, CANVAS_H=3000, NODE_W=220;
@@ -690,7 +690,12 @@ function render(){
       fb.textContent='no flavor connected';el.appendChild(fb);
     }
 
-    el.addEventListener('click',function(e){if(connecting)return;selectNode(id);});
+    el.addEventListener('click',function(e){
+      if(connecting)return;
+      // If this node is part of a multi-selection, keep the group — just update primary
+      if(multiSel.length>1&&multiSel.indexOf(id)>=0){selectedNode=id;showInfo(id);return;}
+      selectNode(id);
+    });
     nl.appendChild(el);nodeEls[id]=el;
   });
 
@@ -902,7 +907,7 @@ document.addEventListener('mousemove',function(e){
     var cp=Math.max(60,Math.abs(mx-p1.x)*0.5);
     // Color by command type
     var bdy=arch.nodes[connecting.fromNode]&&arch.nodes[connecting.fromNode].body[connecting.fromBodyIdx];
-    var _fl=arch.nodes[connecting.fromNode]&&arch.nodes[connecting.fromNode].layer||'l1_archive';
+    var _fl=arch.nodes[connecting.fromNode]&&arch.nodes[connecting.fromNode].layer||'l1';
     var wCol=bdy?(bdy.cmd_type==='navigation'?getLC(_fl):(CMD_COLOR[bdy.cmd_type]||'#4fc3f7')):'#4fc3f7';
     var path=document.createElementNS('http://www.w3.org/2000/svg','path');
     path.id='tmp-wire';
@@ -1009,7 +1014,7 @@ function addNode(cx,cy){
   if(newType==='boot'){
     id='BOOT_NODE';idLocked=true;
   }else if(newType==='intro'){
-    var lyr='l1_archive';
+    var lyr='l1';
     id=lyr.toUpperCase().replace(/_/g,'_')+'_INTRO';
     idLocked=true;
   }else{
@@ -1041,7 +1046,7 @@ function showInfo(id){
   var nodeObj={};nodeObj[id]=n;
   document.getElementById('info-code').textContent=JSON.stringify(nodeObj,null,2);
   if(infoMode!=='details')return;
-  var lyr=n.layer||'l1_archive';
+  var lyr=n.layer||'l1';
   var body=n.body||[];
   var incoming=[];
   Object.keys(arch.nodes).forEach(function(sid){
@@ -1171,7 +1176,7 @@ function showInfo(id){
     if(newType==='boot'){
       newId='BOOT_NODE';shouldLock=true;
     }else if(newType==='intro'){
-      var lyr=arch.nodes[id].layer||'l1_archive';
+      var lyr=arch.nodes[id].layer||'l1';
       newId=lyr.toUpperCase().replace(/_/g,'_')+'_INTRO';
       shouldLock=true;
     }
