@@ -6,7 +6,6 @@
     "schema_notes": "l2_intro, l3_intro, destruct_at removed — intros live in nodes.json, self_destruct lives in personality.json",
     "editor_version": "4.1"
   },
-  "version_string": "v41.00",
   "power_button_text": "[ Power On / Initialize ]",
   "idle_messages": [
     "> TERMINAL IDLE — AWAITING INPUT",
