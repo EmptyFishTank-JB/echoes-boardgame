@@ -364,7 +364,7 @@ function drawGrid(){
   var gc=document.getElementById('grid-canvas');
   gc.width=CANVAS_W;gc.height=CANVAS_H;gc.style.width=CANVAS_W+'px';gc.style.height=CANVAS_H+'px';
   var ctx=gc.getContext('2d');ctx.clearRect(0,0,CANVAS_W,CANVAS_H);
-  var GLX=3000,GLY=2200; // grid covers this area; beyond is darker
+  var GLX=CANVAS_W,GLY=CANVAS_H; // grid covers this area; beyond is darker
   // Beyond-grid fill
   var beyondCol=window._beyondGridColor||'#0a0f14';
   ctx.fillStyle=beyondCol;ctx.fillRect(0,0,CANVAS_W,CANVAS_H);
@@ -887,11 +887,12 @@ function showCanvasCtxMenu(e){
     '<div class="ctx-item" onclick="addNodeAt('+e.clientX+','+e.clientY+')">&#43; Add Node Here</div>'+
     '<div class="ctx-item" onclick="autoOrganize()">&#9783; Auto-Organize</div>'+
     '<div class="ctx-sep"></div>'+
-    '<div class="ctx-item" onclick="showColorPicker(\'canvas\','+e.clientX+','+e.clientY+')">&#9632; Canvas Background Color</div>'+
-    '<div class="ctx-item" onclick="showColorPicker(\'gridarea\','+e.clientX+','+e.clientY+')">&#9632; Beyond-Grid Area Color</div>'+
-    '<div class="ctx-item" onclick="showColorPicker(\'gridminor\','+e.clientX+','+e.clientY+')">&#9632; Grid Line Color (minor)</div>'+
-    '<div class="ctx-item" onclick="showColorPicker(\'gridmajor\','+e.clientX+','+e.clientY+')">&#9632; Grid Line Color (major)</div>'+
-    '<div class="ctx-item" onclick="showColorPicker(\'border\','+e.clientX+','+e.clientY+')">&#9632; Canvas Border Color</div>';
+    '<div class="ctx-item" onclick="showColorPicker(\'canvas\','+e.clientX+','+e.clientY+')">&#9632; Canvas Background</div>'+
+    '<div class="ctx-item" onclick="showColorPicker(\'gridminor\','+e.clientX+','+e.clientY+')">&#9632; Grid Lines (minor)</div>'+
+    '<div class="ctx-item" onclick="showColorPicker(\'gridmajor\','+e.clientX+','+e.clientY+')">&#9632; Grid Lines (major)</div>'+
+    '<div class="ctx-item" onclick="showColorPicker(\'border\','+e.clientX+','+e.clientY+')">&#9632; Canvas Border</div>'+
+    '<div class="ctx-sep"></div>'+
+    '<div class="ctx-item" onclick="resetColors()">&#8635; Reset Colors to Default</div>';
   posCtxMenu(menu,e);
 }
 function posCtxMenu(menu,e){
@@ -919,20 +920,51 @@ function ctxValidate(){
   if(!issues.length)toast('\u2713 '+ctxNodeId+': all paths valid');
   else{alert('VALIDATION — '+ctxNodeId+':\n\n'+issues.join('\n'));}
 }
-function ctxGroup(){hideCtxMenu();toast('Group: '+multiSel.length+' nodes selected (grouping label coming next version)');}
+function ctxGroup(){
+  hideCtxMenu();
+  if(multiSel.length<2){toast('Select 2+ nodes to group');return;}
+  var name=prompt('Group name (used as label):','GROUP_'+Date.now());
+  if(!name)return;
+  name=name.trim().toUpperCase().replace(/\s+/g,'_');
+  // Store group in arch.groups
+  if(!arch.groups)arch.groups={};
+  arch.groups[name]={nodes:multiSel.slice(),label:name};
+  // Mark nodes with group tag
+  multiSel.forEach(function(id){if(arch.nodes[id])arch.nodes[id].group=name;});
+  pushHist();render();toast('Grouped '+multiSel.length+' nodes as '+name);
+}
 
 // ── COLOR PICKER ─────────────────────────────────────────────────────────────
+var DEFAULT_COLORS={canvas:'#152230',gridminor:'#4fc3f7',gridmajor:'#4fc3f7',border:'#4fc3f7'};
+var COLOR_DEFAULTS_ALPHA={gridminor:'rgba(79,195,247,0.06)',gridmajor:'rgba(79,195,247,0.13)'};
+
 function showColorPicker(target,x,y){
   hideCtxMenu();cpTarget=target;
-  var popup=document.getElementById('color-popup');
-  var titles={canvas:'Canvas Background',outer:'Outer Background',border:'Canvas Border Color'};
-  var vars={canvas:'--canvas-bg',outer:'--outer-bg',border:'--canvas-border'};
+  var titles={canvas:'Canvas Background',gridminor:'Grid Lines (minor)',gridmajor:'Grid Lines (major)',border:'Canvas Border'};
+  // Get current color
+  var cur;
+  if(target==='canvas'){cur=getComputedStyle(document.documentElement).getPropertyValue('--canvas-bg').trim()||'#152230';}
+  else if(target==='gridminor'){cur=rgbToHex(window._gridMinorColor||'rgba(79,195,247,0.06)');}
+  else if(target==='gridmajor'){cur=rgbToHex(window._gridMajorColor||'rgba(79,195,247,0.13)');}
+  else if(target==='border'){cur=getComputedStyle(document.documentElement).getPropertyValue('--canvas-border').trim()||'#4fc3f7';}
+  else cur='#152230';
   document.getElementById('cp-title').textContent=titles[target]||target;
-  var cs=getComputedStyle(document.documentElement);
-  var cur=cs.getPropertyValue(vars[target]).trim()||'#152230';
-  document.getElementById('cp-fields').innerHTML=
-    '<div class="cp-row"><label>COLOR</label><input type="color" id="cp-color" value="'+cur+'"></div>';
-  popup.style.cssText='display:flex;position:fixed;left:'+(Math.min(x,window.innerWidth-240))+'px;top:'+(Math.min(y,window.innerHeight-200))+'px;z-index:1100;flex-direction:column;gap:10px;padding:14px;min-width:220px;background:rgba(2,10,20,0.98);border:1px solid rgba(79,195,247,0.24);box-shadow:0 8px 28px rgba(0,0,0,0.7);';
+  var alphaRow='';
+  if(target==='gridminor'||target==='gridmajor'){
+    var curA=target==='gridminor'?(window._gridMinorAlpha||0.06):(window._gridMajorAlpha||0.13);
+    alphaRow='<div class="cp-row"><label>OPACITY</label><input type="range" id="cp-alpha" min="0" max="1" step="0.01" value="'+curA+'"><span id="cp-alpha-v" style="min-width:32px;font-size:12px;">'+Math.round(curA*100)+'%</span></div>';
+    alphaRow+='<script>document.getElementById("cp-alpha").oninput=function(){document.getElementById("cp-alpha-v").textContent=Math.round(this.value*100)+"%";};<\/script>';
+  }
+  document.getElementById('cp-fields').innerHTML='<div class="cp-row"><label>COLOR</label><input type="color" id="cp-color" value="'+cur+'"></div>'+alphaRow;
+  var popup=document.getElementById('color-popup');
+  popup.style.cssText='display:flex;position:fixed;left:'+(Math.min(x,window.innerWidth-240))+'px;top:'+(Math.min(y,window.innerHeight-220))+'px;z-index:1100;flex-direction:column;gap:10px;padding:14px;min-width:220px;background:rgba(2,10,20,0.98);border:1px solid rgba(79,195,247,0.24);box-shadow:0 8px 28px rgba(0,0,0,0.7);';
+}
+function rgbToHex(str){
+  // handles hex already or rgba
+  if(str.startsWith('#'))return str.slice(0,7);
+  var m=str.match(/rgba?\(\s*(\d+),\s*(\d+),\s*(\d+)/);
+  if(!m)return '#4fc3f7';
+  return '#'+[m[1],m[2],m[3]].map(function(v){return ('0'+parseInt(v).toString(16)).slice(-2);}).join('');
 }
 function applyColorPopup(){
   if(!cpTarget)return;
@@ -941,16 +973,19 @@ function applyColorPopup(){
     document.documentElement.style.setProperty('--canvas-bg',col);
     document.getElementById('canvas-outer').style.background=col;
     drawGrid();
-  } else if(cpTarget==='gridarea'){
-    window._beyondGridColor=col;
-    drawGrid();
   } else if(cpTarget==='gridminor'){
-    document.documentElement.style.setProperty('--grid-minor','rgba(0,0,0,0)'); // placeholder
-    // store as hex for drawGrid
-    window._gridMinorColor=col;
+    var a=document.getElementById('cp-alpha');
+    var alpha=a?parseFloat(a.value):0.06;
+    window._gridMinorAlpha=alpha;
+    var rgb=hexToRgbArr(col);
+    window._gridMinorColor='rgba('+rgb[0]+','+rgb[1]+','+rgb[2]+','+alpha+')';
     drawGrid();
   } else if(cpTarget==='gridmajor'){
-    window._gridMajorColor=col;
+    var a2=document.getElementById('cp-alpha');
+    var alpha2=a2?parseFloat(a2.value):0.13;
+    window._gridMajorAlpha=alpha2;
+    var rgb2=hexToRgbArr(col);
+    window._gridMajorColor='rgba('+rgb2[0]+','+rgb2[1]+','+rgb2[2]+','+alpha2+')';
     drawGrid();
   } else if(cpTarget==='border'){
     document.documentElement.style.setProperty('--canvas-border',col);
@@ -958,7 +993,22 @@ function applyColorPopup(){
   }
   closeColorPopup();toast('Color updated');
 }
+function hexToRgbArr(hex){hex=hex.replace('#','');return[parseInt(hex.slice(0,2),16),parseInt(hex.slice(2,4),16),parseInt(hex.slice(4,6),16)];}
 function closeColorPopup(){document.getElementById('color-popup').style.display='none';cpTarget=null;}
+
+function resetColors(){
+  hideCtxMenu();
+  document.documentElement.style.setProperty('--canvas-bg','#152230');
+  document.documentElement.style.setProperty('--canvas-border','#4fc3f7');
+  document.documentElement.style.setProperty('--outer-bg','#0a0f14');
+  document.getElementById('canvas-outer').style.background='#152230';
+  document.getElementById('canvas-outer').style.borderColor='#4fc3f7';
+  document.getElementById('canvas-wrap').style.background='#0a0f14';
+  window._gridMinorColor='rgba(79,195,247,0.06)';window._gridMinorAlpha=0.06;
+  window._gridMajorColor='rgba(79,195,247,0.13)';window._gridMajorAlpha=0.13;
+  window._beyondGridColor='#0a0f14';
+  drawGrid();toast('Colors reset to default');
+}
 
 // ── MINIMAP ───────────────────────────────────────────────────────────────────
 function updateMinimap(){
@@ -1014,5 +1064,6 @@ window.addEventListener('resize',function(){sizeCanvas();if(arch)updateMinimap()
  * Compatible with: Lore Editor, Personality Lab, Engine Lab, Node Graph.
  * ────────────────────────────────────────────────────────────────────────── */
 </script>
+
 </body>
 </html>
