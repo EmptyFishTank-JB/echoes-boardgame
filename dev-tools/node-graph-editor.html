@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NODE GRAPH EDITOR // v5.27</title>
+<title>NODE GRAPH EDITOR // v5.28</title>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
@@ -68,41 +68,29 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
 
 /* NODES */
 .gnode{position:absolute;min-width:210px;border-radius:2px;cursor:default;user-select:none;transition:box-shadow 0.12s;}
-.gnode.l1c{border:1px solid rgba(77,184,150,0.45);background:rgba(0,14,10,0.97);}
-.gnode.l1_archive{border:1px solid rgba(79,195,247,0.45);background:rgba(2,14,26,0.97);}
-.gnode.l2{border:1px solid rgba(191,124,10,0.55);background:rgba(14,10,0,0.97);}
-.gnode.l3{border:1px solid rgba(224,80,80,0.55);background:rgba(12,2,2,0.97);}
-.gnode.selected.l1c{border-color:#4db896;box-shadow:0 0 0 1px #4db896,0 6px 24px rgba(77,184,150,0.20);}
-.gnode.selected.l1_archive{border-color:#4fc3f7;box-shadow:0 0 0 1px #4fc3f7,0 6px 24px rgba(79,195,247,0.20);}
-.gnode.selected.l2{border-color:#bf7c0a;box-shadow:0 0 0 1px #bf7c0a,0 6px 24px rgba(191,124,10,0.20);}
-.gnode.selected.l3{border-color:#e05050;box-shadow:0 0 0 1px #e05050,0 6px 24px rgba(224,80,80,0.20);}
+.gnode.l1{border:1.5px solid rgba(79,195,247,0.45);background:rgba(2,14,26,0.97);}
+.gnode.l2{border:1.5px solid rgba(191,124,10,0.55);background:rgba(14,10,0,0.97);}
+.gnode.l3{border:1.5px solid rgba(224,80,80,0.55);background:rgba(12,2,2,0.97);}
+.gnode.selected.l1{border-color:#4fc3f7;box-shadow:0 0 0 1.5px #4fc3f7,0 6px 24px rgba(79,195,247,0.22);}
+.gnode.selected.l2{border-color:#bf7c0a;box-shadow:0 0 0 1.5px #bf7c0a,0 6px 24px rgba(191,124,10,0.22);}
+.gnode.selected.l3{border-color:#e05050;box-shadow:0 0 0 1.5px #e05050,0 6px 24px rgba(224,80,80,0.22);}
 .gnode.multi-sel{box-shadow:0 0 0 2px #4fc3f7,0 0 12px rgba(79,195,247,0.25);}
-/* l1 layer — blue #4fc3f7, mirrors l1_archive (migration target for l1c nodes) */
-.gnode.l1{border:1px solid rgba(79,195,247,0.45);background:rgba(2,14,26,0.97);}
-.gnode.selected.l1{border-color:#4fc3f7;box-shadow:0 0 0 1px #4fc3f7,0 6px 24px rgba(79,195,247,0.20);}
-.gnode.l1 .gnode-root-dot{background:#4fc3f7;}
-.gnode.l1 .gnode-id{color:#4fc3f7;}
-.gnode.l1 .gnode-lyr{color:rgba(79,195,247,0.28);}
-.gnode.l1 .in-port{border-color:rgba(79,195,247,0.28);background:#020e1a;}
-/* PINNED NODE — transparent ghost effect (matches dynamic-layer look) */
+/* PINNED NODE — dashed border only */
 .gnode.pinned{border-style:dashed!important;}
 .gnode-hdr{padding:7px 10px 7px 12px;display:flex;align-items:center;gap:5px;cursor:grab;border-bottom:1px solid rgba(79,195,247,0.09);}
-.gnode.l1c .gnode-hdr{border-bottom-color:rgba(77,184,150,0.13);}
+.gnode.l1 .gnode-hdr{border-bottom-color:rgba(79,195,247,0.13);}
 .gnode.l2 .gnode-hdr{border-bottom-color:rgba(191,124,10,0.13);}
 .gnode.l3 .gnode-hdr{border-bottom-color:rgba(224,80,80,0.13);}
 .gnode-hdr:active{cursor:grabbing;}
 .gnode-root-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
-.gnode.l1c .gnode-root-dot{background:#4db896;}
-.gnode.l1_archive .gnode-root-dot{background:#4fc3f7;}
+.gnode.l1 .gnode-root-dot{background:#4fc3f7;}
 .gnode.l2 .gnode-root-dot{background:#bf7c0a;}
 .gnode.l3 .gnode-root-dot{background:#e05050;}
 .gnode-id{font-size:12px;letter-spacing:0.07em;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.gnode.l1c .gnode-id{color:#4db896;}
-.gnode.l1_archive .gnode-id{color:#4fc3f7;}
+.gnode.l1 .gnode-id{color:#4fc3f7;}
 .gnode.l2 .gnode-id{color:#bf7c0a;}
 .gnode.l3 .gnode-id{color:#e05050;}
 .gnode-lyr{font-size:10px;color:rgba(79,195,247,0.28);flex-shrink:0;}
-.gnode.l1c .gnode-lyr{color:rgba(77,184,150,0.40);}
 .gnode.l2 .gnode-lyr{color:rgba(191,124,10,0.38);}
 .gnode.l3 .gnode-lyr{color:rgba(224,80,80,0.38);}
 /* Node body preview lines */
@@ -111,11 +99,9 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
 .gnode-bline.text{color:rgba(79,195,247,0.55);}
 .gnode.l2 .gnode-bline.text{color:rgba(191,124,10,0.65);}
 .gnode.l3 .gnode-bline.text{color:rgba(224,80,80,0.65);}
-.gnode.l1c .gnode-bline.text{color:rgba(77,184,150,0.70);}
 .gnode-bline.cmd-nav{color:#cc3311;}
 .gnode.l2 .gnode-bline.cmd-nav{color:rgba(191,124,10,0.90);}
 .gnode.l3 .gnode-bline.cmd-nav{color:rgba(224,80,80,0.90);}
-.gnode.l1c .gnode-bline.cmd-nav{color:rgba(77,184,150,0.90);}
 .gnode-bline.cmd-pull{color:rgba(196,127,196,0.85);}
 .gnode-bline.cmd-loop{color:rgba(111,176,111,0.80);}
 .gnode-bline.cmd-flavor{color:rgba(196,127,196,0.85);}
@@ -124,21 +110,18 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
 
 /* PORTS */
 .out-port{width:13px;height:13px;border-radius:50%;border:2px solid;position:absolute;right:0!important;left:auto!important;top:50%!important;transform:translate(50%,-50%)!important;margin:0!important;cursor:crosshair;z-index:10;transition:background 0.1s,border-color 0.1s;background:#020e1a;}
-.out-port.nav{border-color:rgba(79,195,247,0.55);}
-.out-port.nav:hover{border-color:#4fc3f7;background:rgba(79,195,247,0.30);}
-.out-port.l2.nav{border-color:rgba(191,124,10,0.55);background:#0e0a00;}
-.out-port.l2.nav:hover{border-color:#bf7c0a;background:rgba(191,124,10,0.30);}
-.out-port.l3.nav{border-color:rgba(224,80,80,0.55);background:#0c0202;}
-.out-port.l3.nav:hover{border-color:#e05050;background:rgba(224,80,80,0.30);}
-.out-port.l1c.nav{border-color:rgba(77,184,150,0.55);background:#000e0a;}
-.out-port.l1c.nav:hover{border-color:#4db896;background:rgba(77,184,150,0.30);}
+.out-port.navigation{border-color:rgba(79,195,247,0.55);}
+.out-port.navigation:hover{border-color:#4fc3f7;background:rgba(79,195,247,0.30);}
+.out-port.navigation.l2{border-color:rgba(191,124,10,0.55);background:#0e0a00;}
+.out-port.navigation.l2:hover{border-color:#bf7c0a;background:rgba(191,124,10,0.30);}
+.out-port.navigation.l3{border-color:rgba(224,80,80,0.55);background:#0c0202;}
+.out-port.navigation.l3:hover{border-color:#e05050;background:rgba(224,80,80,0.30);}
 .out-port.pull{border-color:rgba(196,127,196,0.55);background:#0a020a;}
 .out-port.pull:hover{border-color:#c47fc4;background:rgba(196,127,196,0.30);}
 .out-port.flavor{border-color:rgba(196,127,196,0.55);background:#0a020a;border-style:dashed;}
 .out-port.flavor:hover{border-color:#c47fc4;background:rgba(196,127,196,0.30);}
 .in-port{width:13px;height:13px;border-radius:50%;border:1px solid;background:#020e1a;position:absolute;left:0!important;top:50%!important;transform:translate(-50%,-50%)!important;margin:0!important;z-index:10;transition:background 0.1s,border-color 0.1s;}
-.gnode.l1c .in-port{border-color:rgba(77,184,150,0.28);background:#000e0a;}
-.gnode.l1_archive .in-port{border-color:rgba(79,195,247,0.28);background:#020e1a;}
+.gnode.l1 .in-port{border-color:rgba(79,195,247,0.28);background:#020e1a;}
 .gnode.l2 .in-port{border-color:rgba(191,124,10,0.38);background:#0e0a00;}
 .gnode.l3 .in-port{border-color:rgba(224,80,80,0.38);background:#0c0202;}
 .in-port.highlight{border-color:#4fc3f7!important;background:rgba(79,195,247,0.38)!important;box-shadow:0 0 8px rgba(79,195,247,0.55);}
@@ -247,7 +230,7 @@ select.iv-sel option{background:#001220;color:var(--blue);}
 <body>
 <div id="app">
 <div id="hdr">
-  <span class="htitle">NODE GRAPH EDITOR // v5.27</span>
+  <span class="htitle">NODE GRAPH EDITOR // v5.28</span>
   <span id="as-ind">&#10003; SAVED</span>
   <span id="fstat" class="none">NO FILE</span>
   <span id="fver" style="font-size:11px;color:rgba(79,195,247,0.28);letter-spacing:0.06em;"></span>
@@ -350,7 +333,7 @@ select.iv-sel option{background:#001220;color:var(--blue);}
 <script>
 'use strict';
 // ── CONSTANTS ─────────────────────────────────────────────────────────────────
-var EDITOR_VERSION='5.27';
+var EDITOR_VERSION='5.28';
 var EDITOR_CREATED='2026-05-28T12:00:00-05:00';
 var EDITOR_CREATED_HUMAN='May 28, 2026 CT';
 var CANVAS_W=4000, CANVAS_H=3000, NODE_W=220;
@@ -358,7 +341,7 @@ var CANVAS_W=4000, CANVAS_H=3000, NODE_W=220;
 var LAYER_DEFAULT_COLORS=['#4fc3f7','#bf7c0a','#e05050','#4db896','#a78bfa'];
 var LAYER_FALLBACK_COLOR='#9ca3af';
 // Runtime color map — populated by syncLayerColors() on load
-var layerColors={l1:'#4fc3f7',l1_archive:'#4fc3f7',l2:'#bf7c0a',l3:'#e05050'};
+var layerColors={l1:'#4fc3f7',l2:'#bf7c0a',l3:'#e05050'};
 
 // Get stored or default color for a layer id
 function getLC(lid){ return layerColors[lid]||LAYER_FALLBACK_COLOR; }
@@ -379,9 +362,13 @@ function darkBg(hex){
 // Sync layerColors from arch.layers._color, assign defaults for new layers
 function syncLayerColors(){
   if(!arch||!arch.layers)return;
-  // Merge l1c layer key into l1 if present
+  // Backward compat: collapse legacy layer keys into l1
   if(arch.layers.l1c&&!arch.layers.l1){arch.layers.l1=JSON.parse(JSON.stringify(arch.layers.l1c));}
   delete arch.layers.l1c;
+  if(arch.layers.l1_archive){
+    if(!arch.layers.l1)arch.layers.l1=JSON.parse(JSON.stringify(arch.layers.l1_archive));
+    delete arch.layers.l1_archive;
+  }
   var ids=Object.keys(arch.layers);
   ids.forEach(function(lid,i){
     if(arch.layers[lid]&&arch.layers[lid]._color){
@@ -402,12 +389,11 @@ function persistLayerColors(){
 
 function getLayerIds(){
   if(arch&&arch.layers) return Object.keys(arch.layers);
-  return['l1c','l1_archive','l2','l3'];
+  return['l1','l2','l3'];
 }
 
-var LAYER_COLOR={l1:'#4fc3f7',l1_archive:'#4fc3f7',l2:'#bf7c0a',l3:'#e05050'};
-var LAYER_LABEL={l1:'L1',l1_archive:'L1',l2:'L2',l3:'L3'};
-var LAYER_FULL={l1:'L1',l1_archive:'L1',l2:'L2',l3:'L3'};
+var LAYER_COLOR={l1:'#4fc3f7',l2:'#bf7c0a',l3:'#e05050'};
+var LAYER_LABEL={l1:'L1',l2:'L2',l3:'L3'};
 var CMD_COLOR={navigation:'#cc3311',pull:'#c47fc4',loop:'#6fb06f',flavor:'#c47fc4'};
 var NODE_TYPES=['standard','chat','boot','intro','log_entry','data'];
 var NODE_TYPE_LABELS={standard:'STANDARD',chat:'CHAT',boot:'BOOT',intro:'INTRO',log_entry:'LOG ENTRY',data:'DATA'};
@@ -454,8 +440,8 @@ function migrateNode(n){
     }
   }
   if(!n._editor)n._editor={locked:false,pinned:false,id_locked:false};
-  // Merge l1c into l1
-  if(n.layer==='l1c') n.layer='l1';
+  // Backward compat: collapse legacy layer names into l1
+  if(n.layer==='l1c'||n.layer==='l1_archive') n.layer='l1';
   return n;
 }
 function migrateArch(){
@@ -608,7 +594,7 @@ function render(){
     // Apply inline styles for dynamic layers (no CSS class exists for them)
     if(!LAYER_COLOR[lyr]){
       var _dc=getLC(lyr);
-      el.style.border='1px solid '+ha(_dc,isSel?1:0.45);
+      el.style.border='1.5px solid '+ha(_dc,isSel?1:0.45);
       el.style.background=darkBg(_dc);
       if(isSel)el.style.boxShadow='0 0 0 1px '+_dc+',0 6px 24px '+ha(_dc,0.20);
       if(isMulti&&!isSel)el.style.boxShadow='0 0 0 2px '+_dc+',0 0 12px '+ha(_dc,0.25);
@@ -807,18 +793,23 @@ function inlineEditId(id){
 function startNodeDrag(e,id){
   if(tool==='pan')return;
   var n=arch&&arch.nodes&&arch.nodes[id];
-  if(n&&n._editor&&n._editor.pinned){selectNode(id);toast('Node is pinned — cannot move');return;} // pinned — select only, no drag
+  if(n&&n._editor&&n._editor.pinned){selectNode(id);toast('Node is pinned — cannot move');return;}
   if(n&&n.group&&arch.groups&&arch.groups[n.group]){
+    // Group drag — expand selection to group members
     multiSel=arch.groups[n.group].nodes.filter(function(gid){return arch.nodes[gid];});
     selectedNode=id;render();showInfo(id);
-  }else{selectNode(id);}
+  }else if(multiSel.length>1&&multiSel.indexOf(id)>=0){
+    // Dragging from within a multi-selection — keep selection intact, just update primary
+    selectedNode=id;showInfo(id);
+  }else{
+    selectNode(id);
+  }
   var pos=positions[id]||{x:0,y:0};
   var offsets={};
   if(multiSel.length>1){
     multiSel.forEach(function(gid){
       if(gid===id)return;
       var gn=arch.nodes[gid];
-      // Skip pinned nodes in group drag
       if(gn&&gn._editor&&gn._editor.pinned)return;
       var gpos=positions[gid]||{x:0,y:0};
       offsets[gid]={dx:gpos.x-pos.x,dy:gpos.y-pos.y};
@@ -1701,6 +1692,7 @@ function auditNode(id, n, report){
   // Ensure required fields
   if(!n.node_type){n.node_type='standard';changes++;report.push('  '+id+': set node_type=standard');}
   if(n.layer==='l1c'){n.layer='l1';changes++;report.push('  '+id+': layer l1c → l1');}
+  if(n.layer==='l1_archive'){n.layer='l1';changes++;report.push('  '+id+': layer l1_archive → l1');}
   if(!n._editor){n._editor={locked:false,pinned:false,id_locked:false};changes++;report.push('  '+id+': added _editor');}
   if(typeof n._editor.locked==='undefined')n._editor.locked=false;
   if(typeof n._editor.pinned==='undefined')n._editor.pinned=false;
