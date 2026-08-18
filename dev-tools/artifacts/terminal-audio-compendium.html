@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Terminal Audio Compendium</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #f1f0ec;
+    --surface: #ffffff;
+    --surface-2: #f7f6f2;
+    --border: rgba(20,30,40,0.13);
+    --border-strong: rgba(20,30,40,0.22);
+    --text: #171d24;
+    --text-dim: rgba(23,29,36,0.60);
+    --text-faint: rgba(23,29,36,0.38);
+    --archive: #a1631f;
+    --archive-bg: rgba(161,99,31,0.09);
+    --archive-bg-strong: rgba(161,99,31,0.16);
+    --live: #0d7ea8;
+    --live-bg: rgba(13,126,168,0.08);
+    --live-bg-strong: rgba(13,126,168,0.15);
+    --ok: #2c8a5b;
+    --ok-bg: rgba(44,138,91,0.10);
+    --shadow: 0 1px 2px rgba(20,30,40,0.06), 0 8px 24px -12px rgba(20,30,40,0.18);
+    --mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Consolas, monospace;
+    --sans: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg: #080b0f;
+      --surface: #10151b;
+      --surface-2: #141a21;
+      --border: rgba(170,195,215,0.12);
+      --border-strong: rgba(170,195,215,0.22);
+      --text: #e7edf2;
+      --text-dim: rgba(231,237,242,0.62);
+      --text-faint: rgba(231,237,242,0.40);
+      --archive: #d69a55;
+      --archive-bg: rgba(214,154,85,0.10);
+      --archive-bg-strong: rgba(214,154,85,0.18);
+      --live: #4fc3f7;
+      --live-bg: rgba(79,195,247,0.10);
+      --live-bg-strong: rgba(79,195,247,0.18);
+      --ok: #6fd39a;
+      --ok-bg: rgba(111,211,154,0.12);
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 12px 32px -14px rgba(0,0,0,0.6);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg: #080b0f;
+    --surface: #10151b;
+    --surface-2: #141a21;
+    --border: rgba(170,195,215,0.12);
+    --border-strong: rgba(170,195,215,0.22);
+    --text: #e7edf2;
+    --text-dim: rgba(231,237,242,0.62);
+    --text-faint: rgba(231,237,242,0.40);
+    --archive: #d69a55;
+    --archive-bg: rgba(214,154,85,0.10);
+    --archive-bg-strong: rgba(214,154,85,0.18);
+    --live: #4fc3f7;
+    --live-bg: rgba(79,195,247,0.10);
+    --live-bg-strong: rgba(79,195,247,0.18);
+    --ok: #6fd39a;
+    --ok-bg: rgba(111,211,154,0.12);
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 12px 32px -14px rgba(0,0,0,0.6);
+  }
+
+  *,*::before,*::after{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--sans);
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{background:var(--live-bg-strong);}
+
+  .wrap{max-width:900px;margin:0 auto;padding:56px 24px 96px;}
+
+  /* ── HERO ───────────────────────────────────────────────────────────── */
+  .hero{margin-bottom:52px;}
+  .eyebrow{
+    font-family:var(--mono);font-size:11px;letter-spacing:0.16em;text-transform:uppercase;
+    color:var(--text-faint);margin-bottom:14px;display:flex;align-items:center;gap:10px;
+  }
+  .eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--live);flex-shrink:0;}
+  h1{
+    font-family:var(--mono);font-weight:800;font-size:clamp(28px,4.2vw,42px);
+    letter-spacing:-0.01em;margin:0 0 16px;text-wrap:balance;line-height:1.08;
+  }
+  .lede{font-size:16px;color:var(--text-dim);max-width:62ch;margin:0 0 28px;}
+  .lede code{font-family:var(--mono);font-size:0.92em;background:var(--surface-2);padding:0.1em 0.4em;border-radius:4px;border:1px solid var(--border);}
+
+  .scope-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px;}
+  .scope-chip{
+    display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12px;
+    padding:7px 12px;border-radius:7px;border:1px solid var(--border-strong);background:var(--surface);
+  }
+  .scope-chip .sw{width:8px;height:8px;border-radius:2px;flex-shrink:0;}
+  .scope-chip.archive .sw{background:var(--archive);}
+  .scope-chip.live .sw{background:var(--live);}
+  .scope-chip b{font-weight:600;color:var(--text);}
+
+  /* Waveform strip */
+  .wf-strip{
+    margin-top:28px;height:64px;border-radius:10px;border:1px solid var(--border);
+    background:var(--surface);overflow:hidden;position:relative;box-shadow:var(--shadow);
+  }
+  .wf-strip canvas{display:block;width:100%;height:100%;}
+
+  /* ── NAV ────────────────────────────────────────────────────────────── */
+  .tocnav{
+    display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:40px;
+    font-family:var(--mono);font-size:12.5px;letter-spacing:0.02em;
+  }
+  .tocnav a{
+    color:var(--text-dim);text-decoration:none;padding:10px 4px;margin-right:22px;
+    border-bottom:2px solid transparent;transition:color .15s, border-color .15s;
+  }
+  .tocnav a:hover{color:var(--text);}
+
+  /* ── SECTION HEADS ──────────────────────────────────────────────────── */
+  section{margin-bottom:56px;}
+  .sec-head{margin-bottom:22px;}
+  .sec-head h2{
+    font-family:var(--mono);font-weight:700;font-size:20px;letter-spacing:-0.01em;margin:0 0 8px;
+    display:flex;align-items:center;gap:10px;
+  }
+  .sec-num{font-size:13px;color:var(--text-faint);font-weight:500;}
+  .sec-desc{color:var(--text-dim);font-size:14.5px;max-width:64ch;margin:0;}
+
+  /* ── ONE-SHOT CARD ──────────────────────────────────────────────────── */
+  .sfx-card{
+    border:1px solid var(--border);border-radius:12px;background:var(--surface);
+    box-shadow:var(--shadow);margin-bottom:16px;overflow:hidden;
+  }
+  .sfx-top{
+    display:flex;align-items:baseline;justify-content:space-between;gap:12px;
+    padding:16px 20px 14px;border-bottom:1px solid var(--border);flex-wrap:wrap;
+  }
+  .sfx-name{font-family:var(--mono);font-weight:700;font-size:15px;letter-spacing:0.01em;}
+  .sfx-meta{display:flex;align-items:center;gap:10px;}
+  .badge{
+    font-family:var(--mono);font-size:10.5px;letter-spacing:0.07em;text-transform:uppercase;
+    padding:3px 8px;border-radius:5px;font-weight:600;
+  }
+  .badge.identical{background:var(--ok-bg);color:var(--ok);}
+  .sfx-desc{padding:12px 20px 0;font-size:13.5px;color:var(--text-dim);max-width:70ch;}
+  .sfx-params{
+    padding:10px 20px 16px;font-family:var(--mono);font-size:11.5px;color:var(--text-faint);
+    display:flex;flex-wrap:wrap;gap:6px 14px;
+  }
+  .sfx-params span b{color:var(--text-dim);font-weight:500;}
+
+  .sfx-cols{display:grid;grid-template-columns:1fr 1fr;}
+  @media (max-width:620px){.sfx-cols{grid-template-columns:1fr;}}
+  .sfx-col{padding:16px 20px 18px;}
+  .sfx-col + .sfx-col{border-left:1px solid var(--border);}
+  @media (max-width:620px){.sfx-col + .sfx-col{border-left:none;border-top:1px solid var(--border);}}
+  .sfx-col-head{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+  .sfx-col-head .sw{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+  .sfx-col.archive .sw{background:var(--archive);}
+  .sfx-col.live .sw{background:var(--live);}
+  .sfx-col-head .lbl{font-family:var(--mono);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim);font-weight:600;}
+
+  .play-btn{
+    display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12.5px;font-weight:600;
+    padding:8px 14px;border-radius:8px;border:1px solid var(--border-strong);background:var(--surface-2);
+    color:var(--text);cursor:pointer;transition:transform .08s ease, background .15s, border-color .15s, box-shadow .15s;
+    user-select:none;
+  }
+  .play-btn:hover{border-color:var(--live);}
+  .play-btn:active{transform:scale(0.97);}
+  .play-btn:focus-visible{outline:2px solid var(--live);outline-offset:2px;}
+  .sfx-col.archive .play-btn:hover{border-color:var(--archive);}
+  .play-btn .ic{width:0;height:0;border-style:solid;border-width:5px 0 5px 8px;border-color:transparent transparent transparent currentColor;flex-shrink:0;}
+  .play-btn.playing{background:var(--live-bg-strong);border-color:var(--live);}
+  .sfx-col.archive .play-btn.playing{background:var(--archive-bg-strong);border-color:var(--archive);}
+  .play-btn.playing .ic{border-style:double;border-width:0px 0 0px 8px;width:8px;height:10px;border-left-width:3px;border-image:none;background:currentColor;border:none;display:inline-block;}
+  .play-btn.playing .ic::before,.play-btn.playing .ic::after{content:'';display:inline-block;width:3px;height:10px;background:currentColor;margin-right:3px;}
+
+  .trig{margin-top:12px;font-size:12.5px;color:var(--text-dim);line-height:1.6;}
+  .refs{margin-top:8px;display:flex;flex-wrap:wrap;gap:5px;}
+  .ref{
+    font-family:var(--mono);font-size:10.5px;color:var(--text-faint);background:var(--surface-2);
+    border:1px solid var(--border);padding:2px 6px;border-radius:4px;
+  }
+
+  /* ── AMBIENT CARDS ──────────────────────────────────────────────────── */
+  .amb-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;}
+  @media (max-width:760px){.amb-grid{grid-template-columns:1fr 1fr;}}
+  @media (max-width:420px){.amb-grid{grid-template-columns:1fr;}}
+  .amb-card{
+    border:1px solid var(--border);border-radius:12px;background:var(--surface);box-shadow:var(--shadow);
+    padding:16px 16px 18px;display:flex;flex-direction:column;gap:10px;
+  }
+  .amb-card.archive{border-top:3px solid var(--archive);}
+  .amb-card.live{border-top:3px solid var(--live);}
+  .amb-tag{font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-faint);}
+  .amb-name{font-family:var(--mono);font-weight:700;font-size:14px;}
+  .amb-desc{font-size:12.5px;color:var(--text-dim);flex:1;}
+  .amb-osc{font-family:var(--mono);font-size:10.5px;color:var(--text-faint);border-top:1px dashed var(--border);padding-top:8px;}
+  .amb-osc div{display:flex;justify-content:space-between;gap:8px;padding:1px 0;}
+  .amb-meter{height:20px;border-radius:5px;background:var(--surface-2);border:1px solid var(--border);overflow:hidden;position:relative;}
+  .amb-meter .bars{position:absolute;inset:0;display:flex;align-items:flex-end;gap:2px;padding:3px;opacity:0;transition:opacity .3s;}
+  .amb-meter.on .bars{opacity:1;}
+  .amb-meter .bar{flex:1;background:var(--live);border-radius:1px;animation:meter 0.9s ease-in-out infinite;}
+  .amb-card.archive .amb-meter .bar{background:var(--archive);}
+  .amb-meter .bar:nth-child(1){animation-delay:0s;} .amb-meter .bar:nth-child(2){animation-delay:.12s;}
+  .amb-meter .bar:nth-child(3){animation-delay:.24s;} .amb-meter .bar:nth-child(4){animation-delay:.06s;}
+  .amb-meter .bar:nth-child(5){animation-delay:.3s;} .amb-meter .bar:nth-child(6){animation-delay:.18s;}
+  @keyframes meter{0%,100%{height:20%;}50%{height:90%;}}
+  @media (prefers-reduced-motion: reduce){.amb-meter .bar{animation:none;height:55%;}}
+
+  /* ── SUMMARY ────────────────────────────────────────────────────────── */
+  .summary{
+    border:1px solid var(--border-strong);border-radius:12px;background:var(--surface-2);
+    padding:24px 26px;box-shadow:var(--shadow);
+  }
+  .summary h3{font-family:var(--mono);font-size:15px;margin:0 0 14px;letter-spacing:0.02em;}
+  .summary ul{margin:0;padding-left:0;list-style:none;display:flex;flex-direction:column;gap:12px;}
+  .summary li{display:flex;gap:12px;font-size:13.5px;color:var(--text-dim);line-height:1.6;}
+  .summary li .mk{flex-shrink:0;width:20px;height:20px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;font-weight:700;margin-top:1px;}
+  .summary li.same .mk{background:var(--ok-bg);color:var(--ok);}
+  .summary li.diff .mk{background:var(--live-bg-strong);color:var(--live);}
+  .summary li b{color:var(--text);font-weight:600;}
+
+  footer{margin-top:60px;padding-top:20px;border-top:1px solid var(--border);font-family:var(--mono);font-size:11px;color:var(--text-faint);letter-spacing:0.04em;}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <div class="hero">
+    <div class="eyebrow"><span class="dot"></span>ECHOES // TERMINAL AUDIO</div>
+    <h1>Terminal Audio Compendium</h1>
+    <p class="lede">Every synthesized sound effect pulled from <code>archive/terminal-v021.html</code> (the retired terminal) and <code>terminal.html</code> (the live v42 engine) — what each one is, where it fires, and a button to hear it. All audio here is generated live with the Web Audio API, ported line-for-line from the source — nothing is a recording.</p>
+    <div class="scope-row">
+      <div class="scope-chip archive"><span class="sw"></span>ARCHIVE — <b>terminal-v021.html</b></div>
+      <div class="scope-chip live"><span class="sw"></span>LIVE — <b>terminal.html</b></div>
+    </div>
+    <div class="wf-strip"><canvas id="heroWf"></canvas></div>
+  </div>
+
+  <nav class="tocnav">
+    <a href="#oneshots">One-Shot Effects</a>
+    <a href="#ambient">Ambient Beds</a>
+    <a href="#summary">What Changed</a>
+  </nav>
+
+  <section id="oneshots">
+    <div class="sec-head">
+      <h2><span class="sec-num">01</span> One-Shot Effects</h2>
+      <p class="sec-desc">Ten short, procedurally-generated sounds — clicks, tones, and noise bursts built from oscillators and filtered noise buffers, fired in response to typing, input, and story beats. Every one of these is byte-for-byte identical code in both files; what differs is where in the UI each gets called.</p>
+    </div>
+    <div id="sfxList"></div>
+  </section>
+
+  <section id="ambient">
+    <div class="sec-head">
+      <h2><span class="sec-num">02</span> Ambient Beds</h2>
+      <p class="sec-desc">The background drone that plays continuously once the terminal powers on. This is the one part of the audio system that's genuinely different between the two builds — press play to compare a constant single-oscillator hum against the live engine's three crossfading layers.</p>
+    </div>
+    <div class="amb-grid" id="ambGrid"></div>
+  </section>
+
+  <section id="summary">
+    <div class="sec-head">
+      <h2><span class="sec-num">03</span> What Changed</h2>
+    </div>
+    <div class="summary">
+      <h3>// SIGNAL COMPARISON — ARCHIVE vs LIVE</h3>
+      <ul>
+        <li class="same"><span class="mk">=</span><span><b>All 10 one-shot effects carried over unchanged.</b> Click, punctuation click, enter, backspace, alert, denied burst, line static, think hum, egg tone, and idle pop all use identical synthesis parameters in both files — nothing was lost in the v42 promotion.</span></li>
+        <li class="diff"><span class="mk">+</span><span><b>Denied, static, and egg-tone sounds got wired into far more places.</b> The archive only calls <code style="font-family:inherit">playDenied()</code> and <code style="font-family:inherit">playEggTone()</code> from a single input handler; the live engine reuses them across fetch errors, layer transitions, self-destruct, and lore discovery — same sound, broader vocabulary.</span></li>
+        <li class="diff"><span class="mk">+</span><span><b>Idle pop's trigger changed from a blind timer to a config-driven system.</b> Archive: a fixed 15-second inactivity timer pops in silence. Live: delay and message pool are configurable via <code style="font-family:inherit">engine_config.json</code>, and the pop always accompanies a visible idle message.</span></li>
+        <li class="diff"><span class="mk">+</span><span><b>Ambient is the real rebuild.</b> Archive plays one constant 42&nbsp;Hz drone at fixed volume from power-on to close. Live crossfades between three distinct oscillator stacks — one per layer — each independently tunable from the new Terminal Engine Editor dev tool.</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <footer>GENERATED FROM SOURCE — NO AUDIO FILES, ALL SYNTHESIZED ON PLAY</footer>
+</div>
+
+<script>
+(function(){
+  'use strict';
+
+  // ── SHARED AUDIO ENGINE (ported verbatim from both source files) ────────
+  var ctx = null;
+  var VOL = 0.18;
+  function getCtx(){
+    if(!ctx) ctx = new (window.AudioContext||window.webkitAudioContext)();
+    if(ctx.state==='suspended') ctx.resume();
+    return ctx;
+  }
+
+  var PUNCT = {'.':1,',':1,':':1,';':1,'!':1,'?':1,'-':1,'>':1,'/':1,'_':1};
+
+  function playClick(ch){
+    if(ch && PUNCT[ch]){ playPunctClick(); return; }
+    try{
+      var c=getCtx(), dur=0.025;
+      var buf=c.createBuffer(1, Math.floor(c.sampleRate*dur), c.sampleRate);
+      var d=buf.getChannelData(0);
+      for(var i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*(1-i/d.length);
+      var src=c.createBufferSource(); src.buffer=buf;
+      var flt=c.createBiquadFilter(); flt.type='bandpass'; flt.frequency.value=3000+Math.random()*1000; flt.Q.value=0.8;
+      var gn=c.createGain(); gn.gain.setValueAtTime(VOL,c.currentTime); gn.gain.exponentialRampToValueAtTime(0.001,c.currentTime+dur);
+      src.connect(flt); flt.connect(gn); gn.connect(c.destination);
+      src.start(); src.stop(c.currentTime+dur);
+    }catch(e){}
+  }
+  function playPunctClick(){
+    try{
+      var c=getCtx(); var osc=c.createOscillator(); osc.type='triangle'; osc.frequency.value=200;
+      var gn=c.createGain(); gn.gain.setValueAtTime(VOL*0.55,c.currentTime); gn.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.04);
+      osc.connect(gn); gn.connect(c.destination); osc.start(); osc.stop(c.currentTime+0.04);
+    }catch(e){}
+  }
+  function playEnter(){
+    try{
+      var c=getCtx(), dur=0.055;
+      var buf=c.createBuffer(1, Math.floor(c.sampleRate*dur), c.sampleRate);
+      var d=buf.getChannelData(0);
+      for(var i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*Math.exp(-i/(d.length*0.25));
+      var src=c.createBufferSource(); src.buffer=buf;
+      var flt=c.createBiquadFilter(); flt.type='lowpass'; flt.frequency.value=800;
+      var gn=c.createGain(); gn.gain.setValueAtTime(VOL*1.2,c.currentTime); gn.gain.exponentialRampToValueAtTime(0.001,c.currentTime+dur);
+      src.connect(flt); flt.connect(gn); gn.connect(c.destination); src.start(); src.stop(c.currentTime+dur);
+    }catch(e){}
+  }
+  function playBackspace(){
+    try{
+      var c=getCtx(), dur=0.032;
+      var buf=c.createBuffer(1, Math.floor(c.sampleRate*dur), c.sampleRate);
+      var d=buf.getChannelData(0);
+      for(var i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,1.4);
+      var src=c.createBufferSource(); src.buffer=buf;
+      var f=c.createBiquadFilter(); f.type='bandpass'; f.frequency.value=900+Math.random()*300; f.Q.value=1.2;
+      var f2=c.createBiquadFilter(); f2.type='lowpass'; f2.frequency.value=1800;
+      var gn=c.createGain(); gn.gain.setValueAtTime(VOL,c.currentTime); gn.gain.exponentialRampToValueAtTime(0.001,c.currentTime+dur);
+      src.connect(f); f.connect(f2); f2.connect(gn); gn.connect(c.destination); src.start(); src.stop(c.currentTime+dur);
+    }catch(e){}
+  }
+  function playAlert(){
+    try{
+      var c=getCtx(); var gn=c.createGain(); gn.connect(c.destination);
+      [440,330].forEach(function(freq,idx){
+        var osc=c.createOscillator(); osc.type='sawtooth'; osc.frequency.value=freq; osc.connect(gn);
+        var t=c.currentTime+idx*0.12;
+        gn.gain.setValueAtTime(VOL*0.4,t); gn.gain.exponentialRampToValueAtTime(0.001,t+0.1);
+        osc.start(t); osc.stop(t+0.1);
+      });
+    }catch(e){}
+  }
+  function deniedBurst(c,t,vol){
+    var dur=0.07;
+    var buf=c.createBuffer(1, Math.floor(c.sampleRate*dur), c.sampleRate);
+    var d=buf.getChannelData(0);
+    for(var i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,1.8);
+    var bs=c.createBufferSource(); bs.buffer=buf;
+    var lo=c.createBiquadFilter(); lo.type='bandpass'; lo.frequency.value=320; lo.Q.value=0.9;
+    var gn=c.createGain(); gn.gain.setValueAtTime(vol,t); gn.gain.exponentialRampToValueAtTime(0.001,t+dur);
+    bs.connect(lo); lo.connect(gn); gn.connect(c.destination); bs.start(t); bs.stop(t+dur);
+    var len2=Math.floor(c.sampleRate*0.008);
+    var buf2=c.createBuffer(1,len2,c.sampleRate);
+    var d2=buf2.getChannelData(0);
+    for(var j=0;j<len2;j++) d2[j]=(Math.random()*2-1)*(1-j/len2);
+    var bs2=c.createBufferSource(); bs2.buffer=buf2;
+    var hi=c.createBiquadFilter(); hi.type='bandpass'; hi.frequency.value=3500; hi.Q.value=1.2;
+    var gn2=c.createGain(); gn2.gain.setValueAtTime(vol*0.6,t); gn2.gain.exponentialRampToValueAtTime(0.001,t+0.008);
+    bs2.connect(hi); hi.connect(gn2); gn2.connect(c.destination); bs2.start(t); bs2.stop(t+0.008);
+  }
+  function playDenied(){
+    try{ var c=getCtx(); [0,0.08,0.18].forEach(function(delay,i){ deniedBurst(c, c.currentTime+delay, VOL*[0.9,0.35,0.12][i]); }); }catch(e){}
+  }
+  function playLineStatic(){
+    try{
+      var c=getCtx(), dur=0.035;
+      var buf=c.createBuffer(1, Math.floor(c.sampleRate*dur), c.sampleRate);
+      var d=buf.getChannelData(0);
+      for(var i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*(1-i/d.length);
+      var src=c.createBufferSource(); src.buffer=buf;
+      var flt=c.createBiquadFilter(); flt.type='highpass'; flt.frequency.value=2000;
+      var gn=c.createGain(); gn.gain.setValueAtTime(VOL*0.75,c.currentTime); gn.gain.exponentialRampToValueAtTime(0.001,c.currentTime+dur);
+      src.connect(flt); flt.connect(gn); gn.connect(c.destination); src.start(); src.stop(c.currentTime+dur);
+    }catch(e){}
+  }
+  function playThinkHum(ms){
+    try{
+      var c=getCtx(), dur=Math.min((ms||600)/1000,1.2); if(dur<0.1) dur=0.4;
+      var osc=c.createOscillator(); osc.type='sine'; osc.frequency.value=110;
+      var gn=c.createGain();
+      gn.gain.setValueAtTime(0,c.currentTime);
+      gn.gain.linearRampToValueAtTime(VOL*0.12,c.currentTime+0.08);
+      gn.gain.setValueAtTime(VOL*0.12,c.currentTime+dur-0.08);
+      gn.gain.linearRampToValueAtTime(0,c.currentTime+dur);
+      osc.connect(gn); gn.connect(c.destination); osc.start(); osc.stop(c.currentTime+dur);
+    }catch(e){}
+  }
+  function playEggTone(){
+    try{
+      var c=getCtx();
+      [660,880].forEach(function(f,i){
+        var osc=c.createOscillator(); osc.type='sine'; osc.frequency.value=f;
+        var gn=c.createGain(); var t=c.currentTime+i*0.09;
+        gn.gain.setValueAtTime(VOL*0.25,t); gn.gain.exponentialRampToValueAtTime(0.001,t+0.08);
+        osc.connect(gn); gn.connect(c.destination); osc.start(t); osc.stop(t+0.08);
+      });
+    }catch(e){}
+  }
+  function playIdlePop(){
+    try{
+      var c=getCtx(); var len=Math.floor(c.sampleRate*0.06);
+      var buf=c.createBuffer(1,len,c.sampleRate);
+      var d=buf.getChannelData(0);
+      for(var i=0;i<len;i++) d[i]=(Math.random()*2-1)*Math.exp(-i/(len*0.3));
+      var src=c.createBufferSource(); src.buffer=buf;
+      var flt=c.createBiquadFilter(); flt.type='bandpass'; flt.frequency.value=1200; flt.Q.value=0.5;
+      var gn=c.createGain(); gn.gain.setValueAtTime(VOL*0.35,c.currentTime); gn.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.06);
+      src.connect(flt); flt.connect(gn); gn.connect(c.destination); src.start(); src.stop(c.currentTime+0.06);
+    }catch(e){}
+  }
+
+  // ── AMBIENT BUILDERS ──────────────────────────────────────────────────
+  function archiveDrone(){
+    var c=getCtx();
+    var osc=c.createOscillator(); osc.type='sine'; osc.frequency.value=42;
+    var gn=c.createGain(); gn.gain.value=0;
+    osc.connect(gn); gn.connect(c.destination); osc.start();
+    gn.gain.setTargetAtTime(0.04, c.currentTime, 0.4);
+    return { stop:function(){ gn.gain.setTargetAtTime(0,c.currentTime,0.3); setTimeout(function(){try{osc.stop();}catch(e){}},600); } };
+  }
+  var LIVE_AMBIENT = {
+    l1:{ target:0.18, oscs:[
+      {label:'Ventilation hum', type:'sine', freq:110, volume:0.06},
+      {label:'Engine drone', type:'sawtooth', freq:90, volume:0.045, lfo_rate:0.12, lfo_depth:0.015, filter_type:'lowpass', filter_freq:180},
+      {label:'Noise bed', type:'noise', volume:0.04, filter_type:'lowpass', filter_freq:500}
+    ]},
+    l2:{ target:0.12, oscs:[
+      {label:'Tone A', type:'sine', freq:80, volume:0.025, lfo_rate:0.02, lfo_depth:0.012},
+      {label:'Tone B', type:'sine', freq:121, volume:0.025, lfo_rate:0.035, lfo_depth:0.012},
+      {label:'Tone C', type:'sine', freq:160, volume:0.025, lfo_rate:0.05, lfo_depth:0.012},
+      {label:'Tone D', type:'sine', freq:203, volume:0.025, lfo_rate:0.06, lfo_depth:0.012}
+    ]},
+    l3:{ target:0.05, oscs:[
+      {label:'Sub-bass', type:'sine', freq:38, volume:0.5}
+    ]}
+  };
+  function liveAmbient(levelKey){
+    var c=getCtx();
+    var cfg=LIVE_AMBIENT[levelKey];
+    var master=c.createGain(); master.gain.value=0; master.connect(c.destination);
+    var stops=[];
+    cfg.oscs.forEach(function(o){
+      var gainNode=c.createGain(); gainNode.gain.value=o.volume||0.04;
+      var source;
+      if(o.type==='noise'){
+        var bl=c.sampleRate*2; var buf=c.createBuffer(1,bl,c.sampleRate); var d=buf.getChannelData(0);
+        for(var i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*0.5;
+        source=c.createBufferSource(); source.buffer=buf; source.loop=true;
+      } else {
+        source=c.createOscillator(); source.type=o.type||'sine'; source.frequency.value=o.freq||110;
+      }
+      stops.push(source);
+      var lastNode=source;
+      if(o.filter_type && o.filter_type!=='none'){
+        var flt=c.createBiquadFilter(); flt.type=o.filter_type; flt.frequency.value=o.filter_freq||500;
+        source.connect(flt); lastNode=flt;
+      }
+      if(o.lfo_rate){
+        var lfo=c.createOscillator(); lfo.type='sine'; lfo.frequency.value=o.lfo_rate;
+        var lfoG=c.createGain(); lfoG.gain.value=o.lfo_depth||0.012;
+        lfo.connect(lfoG); lfoG.connect(gainNode.gain); lfo.start(); stops.push(lfo);
+      }
+      lastNode.connect(gainNode); gainNode.connect(master); source.start();
+    });
+    master.gain.setTargetAtTime(cfg.target, c.currentTime, 0.7);
+    return { stop:function(){
+      master.gain.setTargetAtTime(0,c.currentTime,0.6);
+      setTimeout(function(){ stops.forEach(function(n){try{n.stop();}catch(e){}}); try{master.disconnect();}catch(e){} },1400);
+    }};
+  }
+
+  // ── DATA: ONE-SHOT EFFECTS ────────────────────────────────────────────
+  var SFX = [
+    {
+      id:'click', name:'TYPING CLICK', fn:playClick, arg:'a',
+      desc:'A short filtered noise burst — the base per-character sound heard while text types onto the screen or while you type into the input field. Non-punctuation characters only; punctuation reroutes to the Punctuation Click below.',
+      params:['dur 25ms','noise buffer','bandpass 3000–4000Hz (random)','exp decay'],
+      archive:{trig:'Fires per character inside <b>typeLine()</b>, and on every physical keydown in the command input.', refs:['typeLine() char loop','#t-field keydown']},
+      live:{trig:'Same two contexts — the boot/print typewriter effect and raw keydown on the input field.', refs:['typeLine() char loop','#t-field keydown']}
+    },
+    {
+      id:'punct', name:'PUNCTUATION CLICK', fn:playPunctClick,
+      desc:'A softer triangle-wave blip that stands in for the noise click whenever the typed character is punctuation — gives commas, periods, and slashes a lighter, more melodic tick.',
+      params:['200Hz triangle','dur 40ms','exp decay','0.55× volume'],
+      archive:{trig:'Called from inside <b>playClick()</b> whenever the character is in the punctuation set.', refs:['playClick() branch']},
+      live:{trig:'Identical branch inside the live <b>playClick()</b>.', refs:['playClick() branch']}
+    },
+    {
+      id:'enter', name:'ENTER / SUBMIT', fn:playEnter,
+      desc:'A louder, low-pass-filtered thump that plays the instant a command is submitted — the terminal’s "confirm" sound.',
+      params:['dur 55ms','noise buffer','lowpass 800Hz','1.2× volume'],
+      archive:{trig:'Fires once per submitted command.', refs:['submit handler']},
+      live:{trig:'Fires on Enter, and on the Arrow-Right "submit" shortcut.', refs:['Enter keydown','ArrowRight submit']}
+    },
+    {
+      id:'backspace', name:'BACKSPACE', fn:playBackspace,
+      desc:'A textured double-filtered noise tick for deleting a character — slightly duller and shorter than the typing click so it reads as "undo" rather than "type."',
+      params:['dur 32ms','bandpass 900–1200Hz','+ lowpass 1800Hz'],
+      archive:{trig:'Fires on every Backspace keydown in the command input.', refs:['#t-field keydown']},
+      live:{trig:'Fires on Backspace across both live input-handling paths.', refs:['keydown handler A','keydown handler B']}
+    },
+    {
+      id:'alert', name:'ALERT (TWO-TONE)', fn:playAlert,
+      desc:'Two staggered descending sawtooth tones (440Hz → 330Hz) — a classic warning beep used to punctuate alert-flagged lines.',
+      params:['440Hz → 330Hz saw','stagger 120ms','dur 100ms each'],
+      archive:{trig:'Plays before any script line flagged <code style="font-family:inherit">alert</code>, and again before the warning block.', refs:['typeLine() alert flag','warning block']},
+      live:{trig:'Plays on entering the Layer&nbsp;2 and Layer&nbsp;3 warning zones, and at the start of the self-destruct sequence.', refs:['L2 warning entry','L3 warning entry','self-destruct intro']}
+    },
+    {
+      id:'denied', name:'ACCESS DENIED (TRIPLE BURST)', fn:playDenied,
+      desc:'Three descending-volume noise bursts, each layered with a short high-frequency static tick — the terminal’s rejection sound.',
+      params:['3× burst','70ms bandpass @320Hz','+ 8ms static tick @3500Hz','vol 0.9 → 0.35 → 0.12'],
+      archive:{trig:'Fires on a failed/denied input match — one call site.', refs:['denied input branch']},
+      live:{trig:'Reused across invalid selections, fetch errors, offline-data errors, denied command responses, and self-destruct — far more call sites for the same sound.', refs:['invalid selection','fetch errors (×2)','offline errors (×2)','denied responses','self-destruct']}
+    },
+    {
+      id:'static', name:'LINE STATIC (PRINT TICK)', fn:playLineStatic,
+      desc:'A brief high-passed noise pop that punctuates the moment a new line begins printing — a light "static" texture under the typewriter effect.',
+      params:['dur 35ms','noise buffer','highpass 2000Hz','0.75× volume'],
+      archive:{trig:'Fires at the start of every scripted line as it begins typing.', refs:['runScript() line loop']},
+      live:{trig:'Fires at the start of essentially every printed line across the boot script, node bodies, log entries, and warnings — dozens of call sites.', refs:['boot script','node bodies','log overlay','warnings','~10 more sites']}
+    },
+    {
+      id:'hum', name:'THINK HUM', fn:playThinkHum, arg:600,
+      desc:'A 110Hz sine tone that fades in, holds, and fades out over a given duration — an ambient "processing" hum that fills the pause between lines.',
+      params:['110Hz sine','fade in/out 80ms','duration = caller-supplied'],
+      archive:{trig:'Plays during the pause after every scripted line, and again during denied-response playback.', refs:['runScript() pause','denied response loop']},
+      live:{trig:'Plays during the self-destruct readout and during denied-response playback.', refs:['self-destruct readout','denied response loop']}
+    },
+    {
+      id:'egg', name:'EASTER EGG TONE', fn:playEggTone,
+      desc:'Two ascending sine pings (660Hz → 880Hz) — a bright "found something" chime.',
+      params:['660Hz → 880Hz sine','stagger 90ms','dur 80ms each'],
+      archive:{trig:'Fires when typed input matches a hidden easter egg.', refs:['easter egg match']},
+      live:{trig:'Repurposed as a general "discovery" chime — lore fetch, classified fetch, layer-confirmation, and easter eggs.', refs:['lore discovered','classified fetch','layer confirmed','easter egg match']}
+    },
+    {
+      id:'idlepop', name:'IDLE POP', fn:playIdlePop,
+      desc:'A soft band-passed pop — a gentle attention-getter played while the terminal sits idle.',
+      params:['dur 60ms','bandpass 1200Hz','exp decay','0.35× volume'],
+      archive:{trig:'Fires from a blind 15-second inactivity timer that starts the moment audio unlocks — pops with no accompanying message.', refs:['scheduleIdle() 15s timer']},
+      live:{trig:'Fires alongside a randomly chosen idle message; delay is config-driven via <code style="font-family:inherit">idle_delay_ms</code>.', refs:['showIdleMsg()','engine_config.json']}
+    }
+  ];
+
+  var sfxList = document.getElementById('sfxList');
+  SFX.forEach(function(s){
+    var card = document.createElement('div');
+    card.className = 'sfx-card';
+    card.innerHTML =
+      '<div class="sfx-top"><div class="sfx-name">'+s.name+'</div><div class="sfx-meta"><span class="badge identical">Identical DSP</span></div></div>'+
+      '<div class="sfx-desc">'+s.desc+'</div>'+
+      '<div class="sfx-params">'+s.params.map(function(p){return '<span>'+p+'</span>';}).join('')+'</div>'+
+      '<div class="sfx-cols">'+
+        '<div class="sfx-col archive">'+
+          '<div class="sfx-col-head"><span class="sw"></span><span class="lbl">Archive</span></div>'+
+          '<button class="play-btn" data-role="archive" data-id="'+s.id+'"><span class="ic"></span>Play</button>'+
+          '<div class="trig">'+s.archive.trig+'</div>'+
+          '<div class="refs">'+s.archive.refs.map(function(r){return '<span class="ref">'+r+'</span>';}).join('')+'</div>'+
+        '</div>'+
+        '<div class="sfx-col live">'+
+          '<div class="sfx-col-head"><span class="sw"></span><span class="lbl">Live</span></div>'+
+          '<button class="play-btn" data-role="live" data-id="'+s.id+'"><span class="ic"></span>Play</button>'+
+          '<div class="trig">'+s.live.trig+'</div>'+
+          '<div class="refs">'+s.live.refs.map(function(r){return '<span class="ref">'+r+'</span>';}).join('')+'</div>'+
+        '</div>'+
+      '</div>';
+    sfxList.appendChild(card);
+  });
+
+  sfxList.addEventListener('click', function(e){
+    var btn = e.target.closest('.play-btn');
+    if(!btn) return;
+    var s = SFX.find(function(x){ return x.id===btn.dataset.id; });
+    if(!s) return;
+    s.fn(s.arg);
+    btn.classList.add('playing');
+    setTimeout(function(){ btn.classList.remove('playing'); }, 220);
+  });
+
+  // ── AMBIENT UI ────────────────────────────────────────────────────────
+  var AMB = [
+    { id:'archive-drone', kind:'archive', name:'CONSTANT DRONE', tag:'ARCHIVE — ALWAYS ON',
+      desc:'One sine oscillator at 42Hz, gain 0.04. Starts the instant the AudioContext unlocks and runs unchanged for the entire session — no layers, no crossfade.',
+      oscs:[{label:'Drone', v:'42Hz sine · gain 0.04'}], start:archiveDrone },
+    { id:'live-l1', kind:'live', name:'LAYER 1 — BLUE', tag:'LIVE · target 18%',
+      desc:'Default deck ambience — three layered oscillators forming a low mechanical hum.',
+      oscs:LIVE_AMBIENT.l1.oscs.map(function(o){return {label:o.label, v:(o.type==='noise'?'noise':o.freq+'Hz '+o.type)+' · '+o.volume};}),
+      start:function(){ return liveAmbient('l1'); } },
+    { id:'live-l2', kind:'live', name:'LAYER 2 — AMBER', tag:'LIVE · target 12%',
+      desc:'Four slow, independently-LFO’d sine tones — an uneasy, shifting chord.',
+      oscs:LIVE_AMBIENT.l2.oscs.map(function(o){return {label:o.label, v:o.freq+'Hz sine · '+o.volume};}),
+      start:function(){ return liveAmbient('l2'); } },
+    { id:'live-l3', kind:'live', name:'LAYER 3 — RED', tag:'LIVE · target 5%',
+      desc:'A single near-subsonic 38Hz sub-bass rumble — felt more than heard.',
+      oscs:LIVE_AMBIENT.l3.oscs.map(function(o){return {label:o.label, v:o.freq+'Hz sine · internal gain '+o.volume};}),
+      start:function(){ return liveAmbient('l3'); } }
+  ];
+
+  var ambGrid = document.getElementById('ambGrid');
+  var activeAmbient = {}; // id -> handle
+  AMB.forEach(function(a){
+    var card = document.createElement('div');
+    card.className = 'amb-card '+a.kind;
+    card.innerHTML =
+      '<div class="amb-tag">'+a.tag+'</div>'+
+      '<div class="amb-name">'+a.name+'</div>'+
+      '<div class="amb-desc">'+a.desc+'</div>'+
+      '<div class="amb-osc">'+a.oscs.map(function(o){return '<div><span>'+o.label+'</span><span>'+o.v+'</span></div>';}).join('')+'</div>'+
+      '<div class="amb-meter" id="meter-'+a.id+'"><div class="bars"><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div></div></div>'+
+      '<button class="play-btn" data-amb="'+a.id+'"><span class="ic"></span>Play loop</button>';
+    ambGrid.appendChild(card);
+  });
+
+  ambGrid.addEventListener('click', function(e){
+    var btn = e.target.closest('.play-btn');
+    if(!btn) return;
+    var id = btn.dataset.amb;
+    var a = AMB.find(function(x){return x.id===id;});
+    var meter = document.getElementById('meter-'+id);
+    if(activeAmbient[id]){
+      activeAmbient[id].stop();
+      delete activeAmbient[id];
+      btn.classList.remove('playing');
+      btn.innerHTML = '<span class="ic"></span>Play loop';
+      meter.classList.remove('on');
+    } else {
+      activeAmbient[id] = a.start();
+      btn.classList.add('playing');
+      btn.innerHTML = '<span class="ic"></span>Stop';
+      meter.classList.add('on');
+    }
+  });
+
+  // ── DECORATIVE HERO WAVEFORM (idle scribble, no audio analysis) ───────
+  (function(){
+    var canvas = document.getElementById('heroWf');
+    if(!canvas) return;
+    var dpr = Math.min(window.devicePixelRatio||1, 2);
+    function resize(){
+      var r = canvas.getBoundingClientRect();
+      canvas.width = r.width*dpr; canvas.height = r.height*dpr;
+    }
+    resize();
+    window.addEventListener('resize', resize);
+    var g = canvas.getContext('2d');
+    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var t0 = performance.now();
+    function color(varName){
+      return getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
+    }
+    function draw(now){
+      var w=canvas.width, h=canvas.height;
+      g.clearRect(0,0,w,h);
+      var t = reduce ? 0 : (now-t0)/1000;
+      var mid = h/2;
+      g.lineWidth = 1.6*dpr;
+      // live line (cyan)
+      g.strokeStyle = color('--live');
+      g.globalAlpha = 0.85;
+      g.beginPath();
+      for(var x=0;x<=w;x+=4*dpr){
+        var p = x/w;
+        var y = mid + Math.sin(p*14 + t*1.4)*h*0.14*Math.sin(p*3.1+0.4) + Math.sin(p*37+t*3)*h*0.03;
+        if(x===0) g.moveTo(x,y); else g.lineTo(x,y);
+      }
+      g.stroke();
+      // archive line (amber), simpler / flatter — echoes the single-drone vs layered contrast
+      g.strokeStyle = color('--archive');
+      g.globalAlpha = 0.55;
+      g.beginPath();
+      for(var x2=0;x2<=w;x2+=4*dpr){
+        var p2 = x2/w;
+        var y2 = mid + Math.sin(p2*6 + t*0.9)*h*0.07;
+        if(x2===0) g.moveTo(x2,y2); else g.lineTo(x2,y2);
+      }
+      g.stroke();
+      g.globalAlpha = 1;
+      if(!reduce) requestAnimationFrame(draw); else draw(0);
+    }
+    requestAnimationFrame(draw);
+  })();
+
+})();
+</script>
+</body>
+</html>
