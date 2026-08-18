@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NODE GRAPH EDITOR // v5.24</title>
+<title>NODE GRAPH EDITOR // v5.25</title>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
@@ -136,7 +136,7 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
 .out-port.pull:hover{border-color:#c47fc4;background:rgba(196,127,196,0.30);}
 .out-port.flavor{border-color:rgba(196,127,196,0.55);background:#0a020a;border-style:dashed;}
 .out-port.flavor:hover{border-color:#c47fc4;background:rgba(196,127,196,0.30);}
-.in-port{width:13px;height:13px;border-radius:50%;border:1px solid;position:absolute;left:0!important;top:50%!important;transform:translate(-50%,-50%)!important;margin:0!important;z-index:10;transition:background 0.1s,border-color 0.1s;}
+.in-port{width:13px;height:13px;border-radius:50%;border:1px solid;background:#020e1a;position:absolute;left:0!important;top:50%!important;transform:translate(-50%,-50%)!important;margin:0!important;z-index:10;transition:background 0.1s,border-color 0.1s;}
 .gnode.l1c .in-port{border-color:rgba(77,184,150,0.28);background:#000e0a;}
 .gnode.l1_archive .in-port{border-color:rgba(79,195,247,0.28);background:#020e1a;}
 .gnode.l2 .in-port{border-color:rgba(191,124,10,0.38);background:#0e0a00;}
@@ -247,7 +247,7 @@ select.iv-sel option{background:#001220;color:var(--blue);}
 <body>
 <div id="app">
 <div id="hdr">
-  <span class="htitle">NODE GRAPH EDITOR // v5.24</span>
+  <span class="htitle">NODE GRAPH EDITOR // v5.25</span>
   <span id="as-ind">&#10003; SAVED</span>
   <span id="fstat" class="none">NO FILE</span>
   <span id="fver" style="font-size:11px;color:rgba(79,195,247,0.28);letter-spacing:0.06em;"></span>
@@ -350,7 +350,7 @@ select.iv-sel option{background:#001220;color:var(--blue);}
 <script>
 'use strict';
 // ── CONSTANTS ─────────────────────────────────────────────────────────────────
-var EDITOR_VERSION='5.24';
+var EDITOR_VERSION='5.25';
 var EDITOR_CREATED='2026-05-28T12:00:00-05:00';
 var EDITOR_CREATED_HUMAN='May 28, 2026 CT';
 var CANVAS_W=4000, CANVAS_H=3000, NODE_W=220;
@@ -615,9 +615,13 @@ function render(){
     }
     // PINNED: override background with transparent ghost (same effect as layer 4+ nodes)
     if(_ed.pinned){el.style.background=ha(getLC(lyr),0.05);}
+    // LOCKED: same transparent ghost on background only (border unchanged)
+    if(_ed.locked){el.style.background=ha(getLC(lyr),0.05);}
 
     // Input port
     var inp=document.createElement('div');inp.className='in-port';inp.id='inp-'+id;
+    // Dynamic layers: set border-color inline (base CSS provides background fallback)
+    if(!LAYER_COLOR[lyr]){inp.style.borderColor=ha(getLC(lyr),0.35);}
     inp.addEventListener('contextmenu',function(e){e.preventDefault();e.stopPropagation();showInPortCtxMenu(e,id);});
     inp.addEventListener('dblclick',function(e){e.stopPropagation();disconnectAllIncoming(id);});
     el.appendChild(inp);
@@ -1305,7 +1309,14 @@ function showNodeCtxMenu(e,id){
   var isMulti=multiSel.length>1;
   var inGroup=arch&&arch.nodes&&arch.nodes[id]&&arch.nodes[id].group;
   var menu=document.getElementById('ctx-menu');
+  var ed2=arch&&arch.nodes&&arch.nodes[id]&&arch.nodes[id]._editor||{};
   menu.innerHTML=
+    (isMulti?
+      '<div class="ctx-item" onclick="ctxMultiFlag(\'pinned\',true)">&#128204; Pin All ('+multiSel.length+')</div>'+
+      '<div class="ctx-item" onclick="ctxMultiFlag(\'pinned\',false)">&#128203; Unpin All ('+multiSel.length+')</div>'+
+      '<div class="ctx-item" onclick="ctxMultiFlag(\'locked\',true)">&#128274; Lock All ('+multiSel.length+')</div>'+
+      '<div class="ctx-item" onclick="ctxMultiFlag(\'locked\',false)">&#128275; Unlock All ('+multiSel.length+')</div>'+
+      '<div class="ctx-sep"></div>':'')+
     '<div class="ctx-item" onclick="ctxRename()">&#9998; Rename</div>'+
     '<div class="ctx-item" onclick="ctxDuplicate()">&#10064; Duplicate</div>'+
     '<div class="ctx-item" onclick="ctxCopy()">&#128203; Copy</div>'+
@@ -1314,11 +1325,26 @@ function showNodeCtxMenu(e,id){
     '<div class="ctx-item" onclick="hideCtxMenu();runAudit(ctxNodeId)">&#9881; Audit &amp; Fix Node</div>'+
     (isMulti?'<div class="ctx-item g" onclick="ctxGroup()">&#9645; Group Selected ('+multiSel.length+')</div>':'')+(inGroup?'<div class="ctx-item" onclick="ctxUngroup()">&#9643; Ungroup</div>':'')+
     '<div class="ctx-sep"></div>'+
-    (function(){var ed2=arch&&arch.nodes&&arch.nodes[id]&&arch.nodes[id]._editor||{};return'<div class="ctx-item ctx-lock-btn" data-flag="locked" data-nodeid="'+id+'">'+(ed2.locked?'&#128275; Unlock Content':'&#128274; Lock Content')+'</div>'+'<div class="ctx-item ctx-lock-btn" data-flag="pinned" data-nodeid="'+id+'">'+(ed2.pinned?'&#128211; Release Position':'&#128204; Pin Position')+'</div>';})() +
+    '<div class="ctx-item ctx-lock-btn" data-flag="locked" data-nodeid="'+id+'">'+(ed2.locked?'&#128275; Unlock Content':'&#128274; Lock Content')+'</div>'+
+    '<div class="ctx-item ctx-lock-btn" data-flag="pinned" data-nodeid="'+id+'">'+(ed2.pinned?'&#128211; Release Position':'&#128204; Pin Position')+'</div>'+
     '<div class="ctx-sep"></div>'+
     '<div class="ctx-item r" onclick="ctxReset()">&#8635; Clear Node</div>'+
     '<div class="ctx-item r" onclick="ctxDelete()">&#10005; Delete Node</div>';
   posCtxMenu(menu,e);
+}
+
+function ctxMultiFlag(flag,state){
+  hideCtxMenu();
+  var sel=multiSel.length>1?multiSel:(ctxNodeId?[ctxNodeId]:[]);
+  if(!sel.length)return;
+  sel.forEach(function(nid){
+    if(!arch.nodes[nid])return;
+    if(!arch.nodes[nid]._editor)arch.nodes[nid]._editor={locked:false,pinned:false,id_locked:false};
+    arch.nodes[nid]._editor[flag]=state;
+  });
+  pushHist();render();
+  if(selectedNode&&arch.nodes[selectedNode])showInfo(selectedNode);
+  toast((state?(flag==='pinned'?'Pinned':'Locked'):(flag==='pinned'?'Unpinned':'Unlocked'))+' '+sel.length+' nodes');
 }
 function showCanvasCtxMenu(e){
   var menu=document.getElementById('ctx-menu');
@@ -1760,14 +1786,14 @@ var TEMPLATES={
       {label:'[HOME]',description:'return to main index',type:'navigate',target:'__HOME__'}
     ],
     nodes:{
-      BOOT_NODE:{layer:'l1',node_type:'standard',is_root:true,fetch_allowed:false,title:'',breadcrumb:'',footer:'',body:[{type:'text',text:'',cls:'blank'},{type:'text',text:'ECHOES — SHIP SYSTEM TERMINAL',cls:'lo'},{type:'text',text:'> TERMINAL ACTIVATED',cls:'dim'},{type:'text',text:'> ─────────────────────────────────',cls:'lo'},{type:'text',text:'> VERIFYING SUBSYSTEM CONNECTIONS...',cls:'dim'},{type:'dynamic',variable:'file_status.personality',display_label:'  CREW BEHAVIORAL MATRIX  '},{type:'dynamic',variable:'file_status.lore',display_label:'  ARCHIVE LOG DATABASE    '},{type:'dynamic',variable:'file_status.devlogs',display_label:'  DEVELOPMENT RECORDS     '},{type:'dynamic',variable:'file_status.nodes',display_label:'  NAVIGATION ARCHITECTURE '},{type:'dynamic',variable:'file_status.engine',display_label:'  CORE ENGINE PARAMETERS  '},{type:'text',text:'> ─────────────────────────────────',cls:'lo'},{type:'text',text:'',cls:'blank'},{type:'text',text:'> TERMINAL READY',cls:'full'},{type:'text',text:'',cls:'blank'}],_editor:{locked:false,pinned:true,id_locked:true}},
+      BOOT_NODE:{layer:'l1',node_type:'boot',is_root:true,fetch_allowed:false,title:'',breadcrumb:'',footer:'',body:[{type:'text',text:'',cls:'blank'},{type:'text',text:'ECHOES — SHIP SYSTEM TERMINAL',cls:'lo'},{type:'text',text:'> TERMINAL ACTIVATED',cls:'dim'},{type:'text',text:'> ─────────────────────────────────',cls:'lo'},{type:'text',text:'> VERIFYING SUBSYSTEM CONNECTIONS...',cls:'dim'},{type:'dynamic',variable:'file_status.personality',display_label:'  CREW BEHAVIORAL MATRIX  '},{type:'dynamic',variable:'file_status.lore',display_label:'  ARCHIVE LOG DATABASE    '},{type:'dynamic',variable:'file_status.devlogs',display_label:'  DEVELOPMENT RECORDS     '},{type:'dynamic',variable:'file_status.nodes',display_label:'  NAVIGATION ARCHITECTURE '},{type:'dynamic',variable:'file_status.engine',display_label:'  CORE ENGINE PARAMETERS  '},{type:'text',text:'> ─────────────────────────────────',cls:'lo'},{type:'text',text:'',cls:'blank'},{type:'text',text:'> TERMINAL READY',cls:'full'},{type:'text',text:'',cls:'blank'}],_editor:{locked:false,pinned:true,id_locked:true}},
       L1C_ROOT:{layer:'l1',node_type:'chat',is_root:true,fetch_allowed:false,title:'',breadcrumb:'',footer:'',body:[{type:'text',text:'',cls:'blank'},{type:'text',text:'> TYPE [HELP] FOR AVAILABLE COMMANDS',cls:'lo'},{type:'text',text:'',cls:'blank'},{type:'command',cmd_type:'navigation',label:'[ECHO.ARCHIVE]',target:'L1_ROOT',hidden:true}],personality_src:'personality.json',_editor:{locked:false,pinned:true,id_locked:false}},
-      L1C_INTRO:{layer:'l1',node_type:'standard',is_root:false,fetch_allowed:false,title:'',breadcrumb:'',footer:'',body:[],_editor:{locked:false,pinned:false,id_locked:true}},
-      L1_INTRO:{layer:'l1',node_type:'standard',is_root:false,fetch_allowed:false,title:'',breadcrumb:'',footer:'',body:[{type:'text',text:'',cls:'blank'},{type:'text',text:'> ECHO-ARCHIVE ACCESS GRANTED.',cls:'full'},{type:'text',text:'> ─────────────────────────────────',cls:'lo'},{type:'text',text:'',cls:'blank'}],_editor:{locked:false,pinned:false,id_locked:true}},
+      L1C_INTRO:{layer:'l1',node_type:'intro',is_root:false,fetch_allowed:false,title:'',breadcrumb:'',footer:'',body:[],_editor:{locked:false,pinned:false,id_locked:true}},
+      L1_INTRO:{layer:'l1',node_type:'intro',is_root:false,fetch_allowed:false,title:'',breadcrumb:'',footer:'',body:[{type:'text',text:'',cls:'blank'},{type:'text',text:'> ECHO-ARCHIVE ACCESS GRANTED.',cls:'full'},{type:'text',text:'> ─────────────────────────────────',cls:'lo'},{type:'text',text:'',cls:'blank'}],_editor:{locked:false,pinned:false,id_locked:true}},
       L1_ROOT:{layer:'l1',node_type:'standard',is_root:true,fetch_allowed:false,title:'L1 ROOT',breadcrumb:'',footer:'',body:[],_editor:{locked:false,pinned:false,id_locked:false}},
-      L2_INTRO:{layer:'l2',node_type:'standard',is_root:false,fetch_allowed:false,title:'',breadcrumb:'',footer:'',body:[{type:'text',text:'',cls:'blank'},{type:'text',text:'> INITIATING ECHO PROTOCOL...',cls:'full'},{type:'text',text:'  LOADING SUBSYSTEM...',cls:'low'},{type:'text',text:'  CIPHER ENGINE ONLINE...',cls:'low'},{type:'text',text:'  DEEP LOG CHANNEL OPEN...',cls:'low'},{type:'text',text:'> ECHO PROTOCOL ACTIVE.',cls:'full'},{type:'text',text:'> ─────────────────────────────────',cls:'low'},{type:'text',text:'',cls:'blank'}],_editor:{locked:false,pinned:false,id_locked:true}},
+      L2_INTRO:{layer:'l2',node_type:'intro',is_root:false,fetch_allowed:false,title:'',breadcrumb:'',footer:'',body:[{type:'text',text:'',cls:'blank'},{type:'text',text:'> INITIATING ECHO PROTOCOL...',cls:'full'},{type:'text',text:'  LOADING SUBSYSTEM...',cls:'low'},{type:'text',text:'  CIPHER ENGINE ONLINE...',cls:'low'},{type:'text',text:'  DEEP LOG CHANNEL OPEN...',cls:'low'},{type:'text',text:'> ECHO PROTOCOL ACTIVE.',cls:'full'},{type:'text',text:'> ─────────────────────────────────',cls:'low'},{type:'text',text:'',cls:'blank'}],_editor:{locked:false,pinned:false,id_locked:true}},
       L2_ROOT:{layer:'l2',node_type:'standard',is_root:true,fetch_allowed:true,title:'L2 ROOT',breadcrumb:'',footer:'',body:[],_editor:{locked:false,pinned:false,id_locked:false}},
-      L3_INTRO:{layer:'l3',node_type:'standard',is_root:false,fetch_allowed:false,title:'',breadcrumb:'',footer:'',body:[{type:'text',text:'',cls:'blank'},{type:'text',text:'> ACCESSING DEEP ARCHIVE...',cls:'full'},{type:'text',text:'  CHRONO-ZERO PROTOCOL ACTIVE...',cls:'low'},{type:'text',text:'  PRIVATE SECTOR UNLOCKED...',cls:'low'},{type:'text',text:'> DEV.MODE ENGAGED.',cls:'full'},{type:'text',text:'> ─────────────────────────────────',cls:'low'},{type:'text',text:'',cls:'blank'}],_editor:{locked:false,pinned:false,id_locked:true}},
+      L3_INTRO:{layer:'l3',node_type:'intro',is_root:false,fetch_allowed:false,title:'',breadcrumb:'',footer:'',body:[{type:'text',text:'',cls:'blank'},{type:'text',text:'> ACCESSING DEEP ARCHIVE...',cls:'full'},{type:'text',text:'  CHRONO-ZERO PROTOCOL ACTIVE...',cls:'low'},{type:'text',text:'  PRIVATE SECTOR UNLOCKED...',cls:'low'},{type:'text',text:'> DEV.MODE ENGAGED.',cls:'full'},{type:'text',text:'> ─────────────────────────────────',cls:'low'},{type:'text',text:'',cls:'blank'}],_editor:{locked:false,pinned:false,id_locked:true}},
       L3_ROOT:{layer:'l3',node_type:'standard',is_root:true,fetch_allowed:true,title:'L3 ROOT',breadcrumb:'',footer:'',body:[],_editor:{locked:false,pinned:false,id_locked:false}},
       DEV_OVERRIDE_ROOT:{layer:'l1',node_type:'standard',is_root:false,fetch_allowed:false,title:'DEVELOPER OVERRIDE — AUTHORIZED',breadcrumb:'[ DEV.OVERRIDE ]',footer:'',body:[{type:'command',cmd_type:'navigation',label:'[-- JUMP L1]',target:'L1_ROOT',hidden:false},{type:'command',cmd_type:'navigation',label:'[-- JUMP L2]',target:'L2_ROOT',hidden:false},{type:'command',cmd_type:'navigation',label:'[-- JUMP L3]',target:'L3_ROOT',hidden:false}],_editor:{locked:false,pinned:false,id_locked:false}},
       HELP_COMMANDS:{layer:'l1',node_type:'standard',is_root:false,fetch_allowed:false,title:'',breadcrumb:'',footer:'',body:[{type:'text',text:'',cls:'blank'},{type:'text',text:'AVAILABLE COMMANDS',cls:'full'},{type:'text',text:'> ─────────────────────────────────',cls:'low'},{type:'text',text:'  [HELP]       — display this list',cls:'dim'},{type:'text',text:'  [STATUS]     — vessel system status',cls:'dim'},{type:'text',text:'  [SCAN]       — environment scan',cls:'dim'},{type:'text',text:'  [CLEAR]      — clear terminal output',cls:'dim'},{type:'text',text:'> ─────────────────────────────────',cls:'low'},{type:'text',text:'',cls:'blank'}],_editor:{locked:false,pinned:false,id_locked:false}}
