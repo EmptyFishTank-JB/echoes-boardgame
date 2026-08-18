@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NODE GRAPH EDITOR // v5.33</title>
+<title>NODE GRAPH EDITOR // v5.34</title>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
@@ -166,6 +166,10 @@ select.iv-sel option{background:#001220;color:var(--blue);}
 .rbt{background:transparent;border:1px solid rgba(79,195,247,0.25);color:rgba(79,195,247,0.75);font-family:"Share Tech Mono",monospace;font-size:13px;cursor:pointer;padding:0 3px;transition:all 0.12s;line-height:1;}
 .rbt:hover{color:var(--blue);box-shadow:0 0 6px rgba(79,195,247,0.50);}
 .rbt.r:hover{color:#e05050;box-shadow:0 0 6px rgba(224,80,80,0.50);}
+.cls-cycle{background:transparent;border:1px solid rgba(240,192,64,0.22);font-family:"Share Tech Mono",monospace;font-size:10px;cursor:pointer;padding:1px 4px;transition:all 0.12s;line-height:1;flex-shrink:0;}
+.cls-cycle:hover{border-color:rgba(240,192,64,0.55);filter:brightness(1.3);}
+.body-row-dyn{display:flex;flex-direction:column;gap:2px;border:1px solid rgba(240,192,64,0.12);padding:4px 5px;margin-bottom:2px;background:rgba(240,192,64,0.03);}
+.dyn-sub-row{display:flex;align-items:center;gap:4px;}
 .body-type-tag,.add-btn{background:rgba(0,4,10,0.95);border-radius:3px;font-family:"Share Tech Mono",monospace;cursor:pointer;transition:filter 0.15s,box-shadow 0.15s;white-space:nowrap;flex-shrink:0;}
 .body-type-tag{font-size:10px;padding:2px 6px;}
 .add-btn{font-size:11px;padding:3px 8px;}
@@ -235,7 +239,7 @@ select.iv-sel option{background:#001220;color:var(--blue);}
 <body>
 <div id="app">
 <div id="hdr">
-  <span class="htitle">NODE GRAPH EDITOR // v5.33</span>
+  <span class="htitle">NODE GRAPH EDITOR // v5.34</span>
   <span id="as-ind">&#10003; SAVED</span>
   <span id="fstat" class="none">NO FILE</span>
   <span id="fver" style="font-size:11px;color:rgba(79,195,247,0.28);letter-spacing:0.06em;"></span>
@@ -339,7 +343,7 @@ select.iv-sel option{background:#001220;color:var(--blue);}
 <script>
 'use strict';
 // ── CONSTANTS ─────────────────────────────────────────────────────────────────
-var EDITOR_VERSION='5.33';
+var EDITOR_VERSION='5.34';
 var EDITOR_CREATED='2026-05-28T12:00:00-05:00';
 var EDITOR_CREATED_HUMAN='May 28, 2026 CT';
 var CANVAS_W=4000, CANVAS_H=3000, NODE_W=220;
@@ -418,6 +422,8 @@ var CMD_COLOR={navigation:'#cc3311',pull:'#c47fc4',loop:'#6fb06f',flavor:'#c47fc
 var NODE_TYPES=['standard','chat','boot','intro','log_entry','data','global'];
 var NODE_TYPE_LABELS={standard:'STANDARD',chat:'CHAT',boot:'BOOT',intro:'INTRO',log_entry:'LOG ENTRY',data:'DATA',global:'GLOBAL'};
 var CLS_OPTS=['full','dim','low','warn','denied','blank'];
+var CLS_COLOR={full:'#4fc3f7',dim:'rgba(79,195,247,0.65)',low:'rgba(79,195,247,0.40)',warn:'#E8732A',denied:'#e05050',blank:'rgba(79,195,247,0.15)'};
+var CLS_CYCLE_ORDER=['full','dim','low','warn','denied'];
 
 // ── STATE ─────────────────────────────────────────────────────────────────────
 // Default blank arch — editor is ready to use immediately without opening a file
@@ -657,9 +663,9 @@ function render(){
     // Node type badge
     var nt=n.node_type||'standard';
     var badge=document.createElement('span');badge.className='node-type-badge badge-'+nt;badge.textContent=NODE_TYPE_LABELS[nt]||nt;hdr.appendChild(badge);
-    // Global nodes: white dashed border, dark bg, scope label
+    // Global nodes: white solid border, dark bg, scope label
     if(nt==='global'){
-      el.style.borderStyle='dashed';
+      el.style.borderStyle='solid';
       el.style.borderColor='rgba(255,255,255,0.55)';
       el.style.background='rgba(6,6,6,0.97)';
       var scope=n.layer_scope||null;
@@ -1157,14 +1163,32 @@ function showInfo(id){
     var isText=!isDyn&&b.type==='text';
     var ct=b.cmd_type||'navigation';
     if(isDyn){
-      h+='<div class="body-row" id="brow-'+bi+'" draggable="true" data-bi="'+bi+'" data-nodeid="'+esc(id)+'">';
-      h+='<span class="body-grip" title="Drag to reorder">≡</span>';
+      var lCls=b.label_cls||b.cls||'dim';
+      var vCls=b.value_cls||'full';
+      var lCol=CLS_COLOR[lCls]||'rgba(240,192,64,0.65)';
+      var vCol=CLS_COLOR[vCls]||'rgba(240,192,64,0.65)';
+      h+='<div class="body-row-dyn" id="brow-'+bi+'" draggable="true" data-bi="'+bi+'" data-nodeid="'+esc(id)+'">';
+      // Sub-row 1: grip + type badge + variable dropdown + label_cls bucket + action buttons
+      h+='<div class="dyn-sub-row">';
+      h+='<span class="body-grip" title="Drag to reorder" style="font-size:11px;">≡</span>';
       h+='<button class="body-type-tag tag-dyn btype-btn" data-nodeid="'+esc(id)+'" data-bi="'+bi+'" title="Click to change type">DYN</button>';
       h+='<select style="flex:1;background:rgba(0,6,12,0.9);border:1px solid rgba(240,192,64,0.20);color:rgba(240,192,64,0.75);font-family:\'Share Tech Mono\',monospace;font-size:11px;padding:2px 4px;outline:none;" onchange="liveDynVar(\''+esc(id)+'\','+bi+',this.value)">';
       DYN_VARS.forEach(function(dv){h+='<option value="'+dv+'"'+(dv===(b.variable||DYN_VARS[0])?' selected':'')+'>'+dv+'</option>';});
       h+='</select>';
-      h+='<input type="text" value="'+esc(b.display_label||'')+'" placeholder="label" style="flex:3 1 0%;min-width:0;max-width:none;font-size:11px;background:transparent;border:none;border-bottom:1px solid rgba(240,192,64,0.25);color:rgba(240,192,64,0.75);outline:none;" oninput="liveDynLabel(\''+esc(id)+'\','+bi+',this.value)" onchange="pushHist()" autocomplete="off" spellcheck="false">';
-      h+='<div class="body-row-btns"><button class="rbt" onclick="movBody(\''+esc(id)+'\','+bi+',-1)">&#8593;</button><button class="rbt" onclick="movBody(\''+esc(id)+'\','+bi+',1)">&#8595;</button><button class="rbt r" onclick="rmBody(\''+esc(id)+'\','+bi+')">×</button></div></div>';
+      h+='<button class="cls-cycle" style="color:'+lCol+';border-color:'+lCol+';" onclick="cycleLabelCls(\''+esc(id)+'\','+bi+')" title="Label color: '+lCls+'">&#9635; '+lCls+'</button>';
+      h+='<div class="body-row-btns">';
+      h+='<button class="rbt" onclick="movBody(\''+esc(id)+'\','+bi+',-1)" title="Up">&#8593;</button>';
+      h+='<button class="rbt" onclick="movBody(\''+esc(id)+'\','+bi+',1)" title="Down">&#8595;</button>';
+      h+='<button class="rbt" onclick="toggleBodyHidden(\''+esc(id)+'\','+bi+')" title="Toggle hidden" style="'+(b.hidden?'color:#c47fc4;':'')+'">&#128065;</button>';
+      h+='<button class="rbt r" onclick="rmBody(\''+esc(id)+'\','+bi+')" title="Remove">\u00D7</button>';
+      h+='</div></div>';
+      // Sub-row 2: display_label input + value_cls bucket
+      h+='<div class="dyn-sub-row">';
+      h+='<span style="width:13px;flex-shrink:0;"></span>';
+      h+='<input type="text" value="'+esc(b.display_label||'')+'" placeholder="display label" style="flex:1;font-size:11px;background:transparent;border:none;border-bottom:1px solid rgba(240,192,64,0.25);color:rgba(240,192,64,0.75);outline:none;" oninput="liveDynLabel(\''+esc(id)+'\','+bi+',this.value)" onchange="pushHist()" autocomplete="off" spellcheck="false">';
+      h+='<button class="cls-cycle" style="color:'+vCol+';border-color:'+vCol+';" onclick="cycleValueCls(\''+esc(id)+'\','+bi+')" title="Value color: '+vCls+'">&#9635; '+vCls+'</button>';
+      h+='</div>';
+      h+='</div>';
       return;
     }
     h+='<div class="body-row" id="brow-'+bi+'" draggable="true" data-bi="'+bi+'" data-nodeid="'+esc(id)+'">';
@@ -1344,7 +1368,7 @@ function addBody(nodeId,btype){
   else if(btype==='cmd-data')n.body.push({type:'command',cmd_type:'pull',label:'[PULL]',target:''});
   else if(btype==='cmd-pull')n.body.push({type:'command',cmd_type:'pull',label:'[PULL]',target:''});
   else if(btype==='cmd-loop')n.body.push({type:'command',cmd_type:'loop',label:'[ENTER ANOTHER CODE]',target:''});
-  else if(btype==='dyn')n.body.push({type:'dynamic',variable:DYN_VARS[0],display_label:DYN_LABELS[DYN_VARS[0]]||''});
+  else if(btype==='dyn')n.body.push({type:'dynamic',variable:DYN_VARS[0],display_label:DYN_LABELS[DYN_VARS[0]]||'',label_cls:'dim',value_cls:'full'});
   pushHist();render();showInfo(nodeId);
   // Scroll info-body to bottom so new line is visible
   requestAnimationFrame(function(){
@@ -1686,6 +1710,20 @@ var DYN_LABELS={'file_status.personality':'CREW BEHAVIORAL MATRIX','file_status.
 
 function liveDynVar(nodeId,bi,val){var n=arch&&arch.nodes&&arch.nodes[nodeId];if(!n||!n.body[bi])return;n.body[bi].variable=val;if(!n.body[bi].display_label)n.body[bi].display_label=DYN_LABELS[val]||'';render();}
 function liveDynLabel(nodeId,bi,val){var n=arch&&arch.nodes&&arch.nodes[nodeId];if(!n||!n.body[bi])return;n.body[bi].display_label=val;}
+function cycleLabelCls(nodeId,bi){
+  var n=arch&&arch.nodes&&arch.nodes[nodeId];if(!n||!n.body[bi])return;
+  var cur=n.body[bi].label_cls||n.body[bi].cls||'dim';
+  var idx=(CLS_CYCLE_ORDER.indexOf(cur)+1)%CLS_CYCLE_ORDER.length;
+  n.body[bi].label_cls=CLS_CYCLE_ORDER[idx];
+  pushHist();showInfo(nodeId);
+}
+function cycleValueCls(nodeId,bi){
+  var n=arch&&arch.nodes&&arch.nodes[nodeId];if(!n||!n.body[bi])return;
+  var cur=n.body[bi].value_cls||'full';
+  var idx=(CLS_CYCLE_ORDER.indexOf(cur)+1)%CLS_CYCLE_ORDER.length;
+  n.body[bi].value_cls=CLS_CYCLE_ORDER[idx];
+  pushHist();showInfo(nodeId);
+}
 
 // ── PREVIEW PANE ──────────────────────────────────────────────────────────────
 var _pvOpen=false;
