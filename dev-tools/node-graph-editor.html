@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NODE GRAPH EDITOR // v5.18</title>
+<title>NODE GRAPH EDITOR // v5.22</title>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
@@ -43,7 +43,8 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
 .lf-btn.on{opacity:1;}.lf-btn.off{opacity:0.22;}
 
 /* BODY */
-#body{display:flex;flex:1;min-height:0;position:relative;}
+#body{display:flex;flex:1;min-height:0;flex-direction:column;}
+#body-main{display:flex;flex:1;min-height:0;}
 
 /* CANVAS */
 #canvas-wrap{flex:1;overflow:hidden;position:relative;background:var(--outer-bg);border:2px solid var(--canvas-border);box-sizing:border-box;}
@@ -145,7 +146,7 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
 .iphdr-btn:hover{border-color:var(--blue);color:var(--blue);}
 .iphdr-btn.on{border-color:var(--blue);color:var(--blue);background:rgba(79,195,247,0.07);}
 #info-body{flex:1;overflow-y:auto;padding:10px 12px;display:flex;flex-direction:column;gap:8px;}
-#info-code{flex:1;overflow-y:auto;font-size:12px;color:rgba(79,195,247,0.60);white-space:pre;padding:10px 12px;line-height:1.6;display:none;}
+#info-code{flex:1;overflow-y:auto;font-size:14px;color:rgba(79,195,247,0.60);white-space:pre;padding:10px 12px;line-height:1.6;display:none;}
 #info-empty{color:var(--dim);font-size:14px;line-height:2.4;text-align:center;padding:20px 0;}
 .if{display:flex;flex-direction:column;gap:5px;}
 .il{font-size:12px;color:rgba(79,195,247,0.38);letter-spacing:0.08em;}
@@ -163,7 +164,7 @@ select.iv-sel option{background:#001220;color:var(--blue);}
 .body-row select{background:rgba(0,8,14,0.8);border:1px solid rgba(79,195,247,0.14);color:var(--dim);font-family:"Share Tech Mono",monospace;font-size:11px;padding:2px 4px;outline:none;}
 .body-row select option{background:#001220;}
 .body-row-btns{display:flex;gap:2px;flex-shrink:0;}
-.rbt{background:transparent;border:none;color:rgba(79,195,247,0.35);font-family:"Share Tech Mono",monospace;font-size:13px;cursor:pointer;padding:0 3px;transition:color 0.12s;line-height:1;}
+.rbt{background:transparent;border:1px solid rgba(79,195,247,0.25);color:rgba(79,195,247,0.75);font-family:"Share Tech Mono",monospace;font-size:13px;cursor:pointer;padding:0 3px;transition:color 0.12s;line-height:1;}
 .rbt:hover{color:var(--blue);}
 .rbt.r:hover{color:#e05050;}
 .body-type-tag,.add-btn{background:rgba(0,4,10,0.95);border-radius:3px;font-family:"Share Tech Mono",monospace;cursor:pointer;transition:filter 0.15s,box-shadow 0.15s;white-space:nowrap;flex-shrink:0;}
@@ -184,11 +185,17 @@ select.iv-sel option{background:#001220;color:var(--blue);}
 .conn-arrow{color:rgba(79,195,247,0.28);flex-shrink:0;}
 .conn-del{background:transparent;border:none;color:rgba(224,80,80,0.35);font-family:"Share Tech Mono",monospace;font-size:13px;cursor:pointer;padding:0 3px;transition:color 0.12s;flex-shrink:0;}
 .conn-del:hover{color:#e05050;}
-/* LEGEND */
-#legend{padding:8px 12px;border-top:1px solid var(--bdr);font-size:12px;color:rgba(79,195,247,0.30);line-height:2;overflow:hidden;min-height:40px;}
-#panel-resize-handle:hover{background:rgba(79,195,247,0.07);}
-.leg-row{display:flex;align-items:center;gap:7px;}
+/* LEGEND FOOTER */
+#legend-footer{display:flex;align-items:center;gap:0;padding:5px 16px;border-top:1px solid var(--bdr);flex-shrink:0;background:rgba(0,3,8,0.99);overflow:hidden;}
+#leg-layers{display:flex;gap:14px;align-items:center;flex-wrap:wrap;flex:1;}
+.leg-item{display:flex;align-items:center;gap:5px;font-size:12px;color:rgba(79,195,247,1.00);white-space:nowrap;}
 .leg-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+#leg-hints{font-size:12px;color:rgba(79,195,247,1.00);margin-left:14px;white-space:nowrap;}
+/* PREVIEW PANE */
+#preview-hdr{padding:5px 12px;border-top:1px solid var(--bdr);flex-shrink:0;display:flex;align-items:center;justify-content:space-between;cursor:pointer;background:rgba(79,195,247,0.25);user-select:none;}
+#preview-hdr:hover{background:rgba(79,195,247,0.45);}
+#preview-hdr span{font-size:12px;color:rgba(79,195,247,1.00);letter-spacing:0.08em;}
+#preview-pane{overflow-y:auto;padding:10px 12px;font-size:12px;line-height:1.7;display:none;min-height:400px;max-height:400px;resize:vertical;border-top:1px solid var(--bdr);background:rgba(79,195,247,0.10);}
 /* MINIMAP */
 #minimap{position:absolute;bottom:10px;right:0;width:150px;height:90px;border:1px solid rgba(79,195,247,0.16);background:rgba(0,4,10,0.90);pointer-events:none;overflow:hidden;z-index:20;}
 #minimap-canvas{position:absolute;top:0;left:0;}
@@ -215,7 +222,7 @@ select.iv-sel option{background:#001220;color:var(--blue);}
 ::-webkit-scrollbar{width:3px;height:3px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:rgba(79,195,247,0.12);}
 
 .gnode-bline.dyn{color:rgba(240,192,64,0.65);}
-.body-grip{font-size:12px;color:rgba(79,195,247,0.22);cursor:grab;flex-shrink:0;padding:0 2px;user-select:none;line-height:1;}
+.body-grip{font-size:12px;color:rgba(79,195,247,1.00);cursor:grab;flex-shrink:0;padding:0 2px;user-select:none;line-height:1;}
 .body-grip:hover{color:rgba(79,195,247,0.55);}
 .body-row[draggable]{cursor:default;}
 .body-row.drag-over-top{border-top:2px solid #4fc3f7;}
@@ -229,7 +236,7 @@ select.iv-sel option{background:#001220;color:var(--blue);}
 <body>
 <div id="app">
 <div id="hdr">
-  <span class="htitle">NODE GRAPH EDITOR // v5.18</span>
+  <span class="htitle">NODE GRAPH EDITOR // v5.22</span>
   <span id="as-ind">&#10003; SAVED</span>
   <span id="fstat" class="none">NO FILE</span>
   <span id="fver" style="font-size:11px;color:rgba(79,195,247,0.28);letter-spacing:0.06em;"></span>
@@ -259,6 +266,7 @@ select.iv-sel option{background:#001220;color:var(--blue);}
   <div id="layer-filter"></div>
 </div>
 <div id="body">
+<div id="body-main">
   <div id="canvas-wrap">
     <div id="canvas-outer">
       <div id="canvas-inner">
@@ -282,46 +290,33 @@ select.iv-sel option{background:#001220;color:var(--blue);}
     <div id="info-body"><div id="info-empty">Select a node<br>to view details.</div></div>
     <div id="info-code">// No node selected</div>
 
-    <div id="legend">
-      <div class="leg-row"><div class="leg-dot" style="background:#4db896"></div>L1C - LAYER 1 CHAT</div>
-      <div class="leg-row"><div class="leg-dot" style="background:#4fc3f7"></div>L1 - LAYER 1</div>
-      <div class="leg-row"><div class="leg-dot" style="background:#bf7c0a"></div>L2 - LAYER 2</div>
-      <div class="leg-row"><div class="leg-dot" style="background:#e05050"></div>L3 - LAYER 3</div>
-      <div style="margin-top:6px;font-size:11px;line-height:1.9;">
-        &#9679; NAV &nbsp;&#9679; PULL ports<br>
-        Drag port to connect · DBL-click header = edit ID<br>
-        DBL-click field = inline edit · F = fit · DEL = delete<br>
-        Wheel-click = fit · Drag L&#8594;R = window sel<br>
-        Drag R&#8594;L = crossing sel · Right-click = options
-      </div>
-      <div style="margin-top:8px;font-size:10px;color:rgba(79,195,247,0.18);letter-spacing:0.05em;">v5.18 · 2026-05-26</div>
+    <div id="preview-hdr" onclick="togglePreview()">
+      <span>&#9655; PREVIEW</span><span id="preview-arrow" style="font-size:10px;color:rgba(79,195,247,0.25);">&#9660;</span>
     </div>
+    <div id="preview-pane"></div>
   </div>
-  <!-- COLLAPSIBLE RIGHT PANEL TOGGLE — inside #body as flex sibling -->
+  <!-- TERMINAL PANEL TOGGLE -->
   <div id="rpnl-toggle" style="width:22px;flex-shrink:0;display:flex;align-items:stretch;border-left:1px solid rgba(79,195,247,0.10);">
-    <button id="rpnl-btn" onclick="toggleRightPanel()" style="width:100%;background:transparent;border:none;color:rgba(79,195,247,0.40);font-size:10px;cursor:pointer;padding:0;transition:all 0.15s;writing-mode:vertical-rl;" title="Expand right panel">&#9664; PANEL</button>
+    <button id="rpnl-btn" onclick="toggleRightPanel()" style="width:100%;background:transparent;border:none;color:rgba(79,195,247,0.40);font-size:10px;cursor:pointer;padding:0;transition:all 0.15s;writing-mode:vertical-rl;" title="Terminal panel">&#9664; TERMINAL</button>
   </div>
-  <!-- COLLAPSIBLE RIGHT PANEL — starts collapsed -->
+  <!-- TERMINAL PANEL -->
   <div id="rpnl" style="width:0;flex-shrink:0;display:flex;flex-direction:column;border-left:1px solid rgba(79,195,247,0.10);overflow:hidden;transition:width 0.28s cubic-bezier(0.4,0,0.2,1);background:rgba(0,4,10,0.98);">
     <div style="min-width:460px;display:flex;flex-direction:column;flex:1;min-height:0;">
-      <!-- PANEL TABS -->
-      <div style="display:flex;align-items:center;gap:4px;padding:6px 10px;border-bottom:1px solid rgba(79,195,247,0.10);flex-shrink:0;">
-        <button class="iphdr-btn on" id="rpnl-btn-preview" onclick="setRightMode('preview')" style="font-size:12px;padding:3px 8px;">PREVIEW</button>
-        <button class="iphdr-btn" id="rpnl-btn-terminal" onclick="setRightMode('terminal')" style="font-size:12px;padding:3px 8px;">TERMINAL</button>
+      <div style="padding:6px 12px;border-bottom:1px solid rgba(79,195,247,0.10);flex-shrink:0;font-size:13px;color:rgba(79,195,247,0.45);letter-spacing:0.08em;">&#9658; TERMINAL</div>
+      <div style="display:flex;align-items:center;gap:6px;padding:6px 10px;border-bottom:1px solid rgba(79,195,247,0.10);flex-shrink:0;">
+        <input id="term-url" type="text" value="http://localhost:8000/terminal_032.html" style="flex:1;background:rgba(79,195,247,0.04);border:1px solid rgba(79,195,247,0.14);color:#4fc3f7;font-size:11px;padding:3px 7px;outline:none;" autocomplete="off" spellcheck="false">
+        <button onclick="loadTerminalFrame()" style="background:transparent;border:1px solid rgba(79,195,247,0.25);color:#4fc3f7;font-size:11px;padding:3px 9px;cursor:pointer;">LOAD</button>
+        <button onclick="reloadTerminalFrame()" style="background:transparent;border:1px solid rgba(79,195,247,0.14);color:rgba(79,195,247,0.50);font-size:11px;padding:3px 9px;cursor:pointer;">&#8635;</button>
       </div>
-      <!-- PREVIEW -->
-      <div id="rpnl-preview" style="flex:1;overflow-y:auto;padding:10px 12px;font-size:13px;display:block;"></div>
-      <!-- TERMINAL -->
-      <div id="rpnl-terminal" style="flex:1;flex-direction:column;min-height:0;display:none;">
-        <div style="display:flex;align-items:center;gap:6px;padding:6px 10px;border-bottom:1px solid rgba(79,195,247,0.10);flex-shrink:0;">
-          <input id="term-url" type="text" value="http://localhost:8000/terminal.html" style="flex:1;background:rgba(79,195,247,0.04);border:1px solid rgba(79,195,247,0.14);color:#4fc3f7;font-size:11px;padding:3px 7px;outline:none;" autocomplete="off" spellcheck="false">
-          <button onclick="loadTerminalFrame()" style="background:transparent;border:1px solid rgba(79,195,247,0.25);color:#4fc3f7;font-size:11px;padding:3px 9px;cursor:pointer;">LOAD</button>
-          <button onclick="reloadTerminalFrame()" style="background:transparent;border:1px solid rgba(79,195,247,0.14);color:rgba(79,195,247,0.50);font-size:11px;padding:3px 9px;cursor:pointer;">&#8635;</button>
-        </div>
-        <iframe id="term-frame" src="" style="flex:1;border:none;width:100%;background:#000;" allow="autoplay"></iframe>
-      </div>
+      <iframe id="term-frame" src="" style="flex:1;border:none;width:100%;background:#000;" allow="autoplay"></iframe>
     </div>
   </div>
+</div>
+</div>
+<!-- LEGEND FOOTER — full viewport width -->
+<div id="legend-footer">
+  <div id="leg-layers"></div>
+  <div id="leg-hints">Drag port → connect &nbsp;·&nbsp; DBL-click header = edit ID &nbsp;·&nbsp; F = fit &nbsp;·&nbsp; DEL = delete &nbsp;·&nbsp; Wheel-click = fit &nbsp;·&nbsp; L→R = window sel &nbsp;·&nbsp; R→L = crossing sel &nbsp;·&nbsp; Right-click = options</div>
 </div>
 
 <div id="lcp-popup" style="display:none;position:fixed;background:rgba(2,10,20,0.98);border:1px solid rgba(79,195,247,0.24);z-index:1200;padding:14px;flex-direction:column;gap:9px;min-width:240px;box-shadow:0 8px 28px rgba(0,0,0,0.7);">
@@ -344,7 +339,7 @@ select.iv-sel option{background:#001220;color:var(--blue);}
 <script>
 'use strict';
 // ── CONSTANTS ─────────────────────────────────────────────────────────────────
-var EDITOR_VERSION='5.18';
+var EDITOR_VERSION='5.19';
 var EDITOR_CREATED='2026-05-25T09:29:36-05:00';
 var EDITOR_CREATED_HUMAN='May 25, 2026 09:29:36 AM CT';
 var CANVAS_W=4000, CANVAS_H=3000, NODE_W=220;
@@ -592,8 +587,14 @@ function render(){
     var el=document.createElement('div');
     el.className='gnode '+lyr+(isSel?' selected':'')+(isMulti&&!isSel?' multi-sel':'');
     el.id='gn-'+id;el.style.cssText='left:'+pos.x+'px;top:'+pos.y+'px;width:'+NODE_W+'px;position:absolute;';
-    // Chat nodes get a lighter background tint only
-    if((n.node_type||'standard')==='chat'){var _lc=getLC(lyr);el.style.background=ha(_lc,0.13);}
+    // Apply inline styles for dynamic layers (no CSS class exists for them)
+    if(!LAYER_COLOR[lyr]){
+      var _dc=getLC(lyr);
+      el.style.border='1px solid '+ha(_dc,isSel?1:0.45);
+      el.style.background=ha(_dc,0.04);
+      if(isSel)el.style.boxShadow='0 0 0 1px '+_dc+',0 6px 24px '+ha(_dc,0.20);
+      if(isMulti&&!isSel)el.style.boxShadow='0 0 0 2px '+_dc+',0 0 12px '+ha(_dc,0.25);
+    }
 
     // Input port
     var inp=document.createElement('div');inp.className='in-port';inp.id='inp-'+id;
@@ -603,12 +604,22 @@ function render(){
 
     // Header
     var hdr=document.createElement('div');hdr.className='gnode-hdr';
-    if(n.is_root){var dot=document.createElement('div');dot.className='gnode-root-dot';hdr.appendChild(dot);}
-    var idSp=document.createElement('div');idSp.className='gnode-id';idSp.textContent=id;hdr.appendChild(idSp);
+    if(!LAYER_COLOR[lyr]){
+      var _dhc=getLC(lyr);
+      hdr.style.borderBottom='1px solid '+ha(_dhc,0.13);
+    }
+    if(n.is_root){var dot=document.createElement('div');dot.className='gnode-root-dot';
+      if(!LAYER_COLOR[lyr])dot.style.background=getLC(lyr);
+      hdr.appendChild(dot);}
+    var idSp=document.createElement('div');idSp.className='gnode-id';
+    if(!LAYER_COLOR[lyr])idSp.style.color=getLC(lyr);
+    idSp.textContent=id;hdr.appendChild(idSp);
     // Node type badge
     var nt=n.node_type||'standard';
     var badge=document.createElement('span');badge.className='node-type-badge badge-'+nt;badge.textContent=NODE_TYPE_LABELS[nt]||nt;hdr.appendChild(badge);
-    var lyrSp=document.createElement('div');lyrSp.className='gnode-lyr';lyrSp.textContent=LAYER_LABEL[lyr]||lyr;hdr.appendChild(lyrSp);
+    var lyrSp=document.createElement('div');lyrSp.className='gnode-lyr';
+    if(!LAYER_COLOR[lyr])lyrSp.style.color=ha(getLC(lyr),0.40);
+    lyrSp.textContent=LAYER_LABEL[lyr]||lyr.toUpperCase();hdr.appendChild(lyrSp);
     // Lock / pin indicators
     var ed=n._editor||{};
     if(ed.locked){var lk=document.createElement('span');lk.textContent='\uD83D\uDD12';lk.style.cssText='font-size:10px;opacity:0.60;flex-shrink:0;';hdr.appendChild(lk);}
@@ -742,7 +753,7 @@ function drawConnections(nodes){
 }
 
 // ── SELECTION ─────────────────────────────────────────────────────────────────
-function selectNode(id){selectedNode=id;multiSel=[];render();showInfo(id);if(_rpnlOpen&&_rpnlMode==='preview')updateRightPreview(id);}
+function selectNode(id){selectedNode=id;multiSel=[];render();showInfo(id);updatePreview(id);}
 function showEmpty(){
   document.getElementById('info-body').innerHTML='<div id="info-empty">Select a node<br>to view details.</div>';
   document.getElementById('info-body').style.display='flex';
@@ -1556,38 +1567,26 @@ var DYN_LABELS={'file_status.personality':'CREW BEHAVIORAL MATRIX','file_status.
 function liveDynVar(nodeId,bi,val){var n=arch&&arch.nodes&&arch.nodes[nodeId];if(!n||!n.body[bi])return;n.body[bi].variable=val;if(!n.body[bi].display_label)n.body[bi].display_label=DYN_LABELS[val]||'';render();}
 function liveDynLabel(nodeId,bi,val){var n=arch&&arch.nodes&&arch.nodes[nodeId];if(!n||!n.body[bi])return;n.body[bi].display_label=val;}
 
-// ── RIGHT PANEL ───────────────────────────────────────────────────────────────
-var _rpnlOpen=false;
-var _rpnlMode='preview';
-
-function toggleRightPanel(){
-  _rpnlOpen=!_rpnlOpen;
-  var panel=document.getElementById('rpnl');
-  panel.style.width=_rpnlOpen?'480px':'0';
-  var btn=document.getElementById('rpnl-btn');
-  btn.innerHTML=_rpnlOpen?'&#9654; PANEL':'&#9664; PANEL';
-  if(_rpnlOpen)setRightMode(_rpnlMode);
+// ── PREVIEW PANE ──────────────────────────────────────────────────────────────
+var _pvOpen=false;
+function togglePreview(){
+  _pvOpen=!_pvOpen;
+  var pane=document.getElementById('preview-pane');
+  var arrow=document.getElementById('preview-arrow');
+  pane.style.display=_pvOpen?'block':'none';
+  if(arrow)arrow.innerHTML=_pvOpen?'&#9650;':'&#9660;';
+  if(_pvOpen&&selectedNode)updatePreview(selectedNode);
 }
-
-function setRightMode(m){
-  _rpnlMode=m;
-  document.getElementById('rpnl-btn-preview').classList.toggle('on',m==='preview');
-  document.getElementById('rpnl-btn-terminal').classList.toggle('on',m==='terminal');
-  document.getElementById('rpnl-preview').style.display=m==='preview'?'block':'none';
-  document.getElementById('rpnl-terminal').style.display=m==='terminal'?'flex':'none';
-  if(m==='preview'&&selectedNode)updateRightPreview(selectedNode);
-}
-
-function updateRightPreview(id){
-  var pv=document.getElementById('rpnl-preview');if(!pv)return;
+function updatePreview(id){
+  if(!_pvOpen)return;
+  var pv=document.getElementById('preview-pane');if(!pv)return;
   var n=arch&&arch.nodes&&arch.nodes[id];
-  if(!n){pv.innerHTML='<div style="color:rgba(79,195,247,0.30);padding:10px;">Select a node.</div>';return;}
-  var lyr=n.layer||'l1_archive';
-  var col=LAYER_COLOR[lyr]||'#4fc3f7';
-  var CLS_COL={full:col,dim:col+'90',low:col+'60',warn:'#E8732A',denied:'#ff003c',blank:''};
-  var html='';
-  html+='<div style="color:'+col+'60;font-size:11px;margin-bottom:4px;letter-spacing:0.06em;">'+(n.breadcrumb||id)+'</div>';
-  html+='<div style="border-top:1px solid '+col+'25;margin-bottom:6px;"></div>';
+  if(!n){pv.innerHTML='<div style="color:rgba(79,195,247,0.30);font-size:12px;">Select a node.</div>';return;}
+  var lyr=n.layer||'l1';
+  var col=getLC(lyr);
+  var CLS_COL={full:col,dim:ha(col,0.55),low:ha(col,0.40),warn:'#E8732A',denied:'#ff003c',blank:''};
+  var html='<div style="color:'+ha(col,0.40)+';font-size:11px;margin-bottom:4px;">'+(n.breadcrumb||id)+'</div>';
+  html+='<div style="border-top:1px solid '+ha(col,0.20)+';margin-bottom:6px;"></div>';
   if(n.title)html+='<div style="color:'+col+';margin-bottom:4px;font-size:13px;">'+esc(n.title)+'</div>';
   (n.body||[]).forEach(function(b){
     if(b.hidden)return;
@@ -1597,7 +1596,7 @@ function updateRightPreview(id){
       html+='<div style="color:'+lc+';font-size:12px;line-height:1.7;white-space:pre-wrap;">'+esc(b.text||'')+'</div>';
     }else if(b.type==='dynamic'){
       var lbl=(b.display_label||b.variable||'').padEnd(30,' ');
-      html+='<div style="color:'+col+'80;font-size:12px;line-height:1.7;">&gt;&nbsp;&nbsp;'+esc(lbl)+'<span style="color:'+col+';">[?]</span></div>';
+      html+='<div style="color:'+ha(col,0.55)+';font-size:12px;line-height:1.7;">&gt;&nbsp;&nbsp;'+esc(lbl)+'<span style="color:'+col+';">[?]</span></div>';
     }else if(b.type==='command'){
       var ct=b.cmd_type||'navigation';
       var cc=ct==='navigation'?col:(CMD_COLOR[ct]||col);
@@ -1605,9 +1604,21 @@ function updateRightPreview(id){
       else{html+='<div style="color:'+cc+';font-size:12px;line-height:1.7;">&gt; '+esc(b.label||'')+(b.target?'<span style="opacity:0.38;"> → '+esc(b.target)+'</span>':'')+'</div>';}
     }
   });
-  if(n.footer)html+='<div style="border-top:1px solid '+col+'20;margin-top:6px;padding-top:4px;color:'+col+'50;font-size:11px;">'+esc(n.footer)+'</div>';
+  if(n.footer)html+='<div style="border-top:1px solid '+ha(col,0.15)+';margin-top:6px;padding-top:4px;color:'+ha(col,0.40)+';font-size:11px;">'+esc(n.footer)+'</div>';
   pv.innerHTML=html;
 }
+
+// ── TERMINAL PANEL ────────────────────────────────────────────────────────────
+var _rpnlOpen=false;
+function toggleRightPanel(){
+  _rpnlOpen=!_rpnlOpen;
+  var panel=document.getElementById('rpnl');
+  panel.style.width=_rpnlOpen?'480px':'0';
+  var btn=document.getElementById('rpnl-btn');
+  btn.innerHTML=_rpnlOpen?'&#9654; TERMINAL':'&#9664; TERMINAL';
+}
+
+// updateRightPreview replaced by updatePreview()
 
 function loadTerminalFrame(){
   var inp=document.getElementById('term-url');if(!inp)return;
@@ -1821,6 +1832,7 @@ function onSearch(){searchStr=document.getElementById('srch').value.trim().toLow
 function rebuildLayerFilter(){
   if(!arch||!arch.layers)return;
   var ids=Object.keys(arch.layers);
+  // Layer filter buttons
   var lf=document.getElementById('layer-filter');lf.innerHTML='';
   ids.forEach(function(lid){
     var col=getLC(lid);
@@ -1832,6 +1844,15 @@ function rebuildLayerFilter(){
     btn.textContent=lid.toUpperCase().replace('_ARCHIVE','');
     btn.onclick=(function(l){return function(){toggleLayer(l);};})(lid);
     lf.appendChild(btn);
+  });
+  // Legend footer
+  var ll=document.getElementById('leg-layers');if(!ll)return;
+  ll.innerHTML='';
+  ids.forEach(function(lid){
+    var col=getLC(lid);
+    var item=document.createElement('div');item.className='leg-item';
+    item.innerHTML='<span class="leg-dot" style="background:'+col+'"></span>'+esc(lid.toUpperCase().replace('_ARCHIVE',''));
+    ll.appendChild(item);
   });
 }
 function _lcpLabel(lid){
