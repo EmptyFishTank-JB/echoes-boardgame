@@ -256,7 +256,12 @@ select.iv-sel option{background:#001220;color:var(--blue);}
   <input id="srch" type="text" placeholder="SEARCH..." oninput="onSearch()" autocomplete="off" spellcheck="false">
   <button class="tbtn" id="btn-lcp" onclick="showLCP(event)" title="Edit layer colors">&#9632; LAYER COLORS</button>
   <div class="tsep"></div>
-  <div id="layer-filter"></div>
+  <div id="layer-filter">
+    <button class="lf-btn on" id="lf-l1c" style="color:#4db896;border-color:rgba(77,184,150,0.40);" onclick="toggleLayer('l1c')">L1C</button>
+    <button class="lf-btn on" id="lf-l1_archive" style="color:#4fc3f7;border-color:rgba(79,195,247,0.35);" onclick="toggleLayer('l1_archive')">L1</button>
+    <button class="lf-btn on" id="lf-l2" style="color:#bf7c0a;border-color:rgba(191,124,10,0.40);" onclick="toggleLayer('l2')">L2</button>
+    <button class="lf-btn on" id="lf-l3" style="color:#e05050;border-color:rgba(224,80,80,0.40);" onclick="toggleLayer('l3')">L3</button>
+  </div>
 </div>
 <div id="body">
   <div id="canvas-wrap">
@@ -283,8 +288,8 @@ select.iv-sel option{background:#001220;color:var(--blue);}
     <div id="info-code">// No node selected</div>
 
     <div id="legend">
-      <div class="leg-row"><div class="leg-dot" style="background:#4db896"></div>L1 — TERMINAL</div>
-      <div class="leg-row"><div class="leg-dot" style="background:#4fc3f7"></div>L1 — ARCHIVE</div>
+      <div class="leg-row"><div class="leg-dot" style="background:#4db896"></div>L1C - LAYER 1 CHAT</div>
+      <div class="leg-row"><div class="leg-dot" style="background:#4fc3f7"></div>L1 - LAYER 1</div>
       <div class="leg-row"><div class="leg-dot" style="background:#bf7c0a"></div>L2 - LAYER 2</div>
       <div class="leg-row"><div class="leg-dot" style="background:#e05050"></div>L3 - LAYER 3</div>
       <div style="margin-top:6px;font-size:11px;line-height:1.9;">
@@ -324,12 +329,11 @@ select.iv-sel option{background:#001220;color:var(--blue);}
   </div>
 </div>
 
-<!-- LAYER COLORS POPUP -->
-<div id="lcp-popup" style="display:none;position:fixed;background:rgba(2,10,20,0.98);border:1px solid rgba(79,195,247,0.24);z-index:1200;padding:14px;flex-direction:column;gap:9px;min-width:260px;box-shadow:0 8px 28px rgba(0,0,0,0.7);">
+<div id="lcp-popup" style="display:none;position:fixed;background:rgba(2,10,20,0.98);border:1px solid rgba(79,195,247,0.24);z-index:1200;padding:14px;flex-direction:column;gap:9px;min-width:240px;box-shadow:0 8px 28px rgba(0,0,0,0.7);">
   <div style="font-size:12px;letter-spacing:0.10em;color:rgba(79,195,247,0.55);margin-bottom:2px;">&#9632; LAYER COLORS</div>
   <div id="lcp-rows"></div>
   <button onclick="resetLayerColorsDefault()" style="background:transparent;border:1px solid rgba(79,195,247,0.14);color:rgba(79,195,247,0.40);font-family:'Share Tech Mono',monospace;font-size:12px;padding:5px;cursor:pointer;width:100%;margin-top:2px;">&#8635; RESET DEFAULTS</button>
-  <button onclick="closeLCP()" style="background:transparent;border:1px solid rgba(79,195,247,0.30);color:var(--blue);font-family:'Share Tech Mono',monospace;font-size:12px;padding:5px;cursor:pointer;width:100%;">&#10003; DONE</button>
+  <button onclick="closeLCP()" style="background:transparent;border:1px solid rgba(79,195,247,0.30);color:#4fc3f7;font-family:'Share Tech Mono',monospace;font-size:12px;padding:5px;cursor:pointer;width:100%;">&#10003; DONE</button>
 </div>
 <div id="ctx-menu"></div>
 <div id="color-popup">
@@ -345,61 +349,55 @@ select.iv-sel option{background:#001220;color:var(--blue);}
 'use strict';
 // ── CONSTANTS ─────────────────────────────────────────────────────────────────
 var EDITOR_VERSION='5.17';
-var EDITOR_CREATED='2026-05-26T00:00:00-05:00';
-var EDITOR_CREATED_HUMAN='May 26, 2026';
+var EDITOR_CREATED='2026-05-25T09:29:36-05:00';
+var EDITOR_CREATED_HUMAN='May 25, 2026 09:29:36 AM CT';
 var CANVAS_W=4000, CANVAS_H=3000, NODE_W=220;
-// ── LAYER COLOR SYSTEM ─────────────────────────────────────────────────────────
-// Default palette assigned by index when a layer has no stored _color
+// Default layer color palette (index 0-4, fallback for 5+)
 var LAYER_DEFAULT_COLORS=['#4fc3f7','#bf7c0a','#e05050','#4db896','#a78bfa'];
-var LAYER_FALLBACK_COLOR='#9ca3af'; // grey for layer 6+
-// Runtime map: layerId -> hex color. Populated by syncLayerColors() on load.
-var layerColors={};
+var LAYER_FALLBACK_COLOR='#9ca3af';
+// Runtime color map — populated by syncLayerColors() on load
+var layerColors={l1c:'#4fc3f7',l1_archive:'#4fc3f7',l2:'#bf7c0a',l3:'#e05050'};
 
+// Get stored or default color for a layer id
 function getLC(lid){ return layerColors[lid]||LAYER_FALLBACK_COLOR; }
 
-// Chat nodes render lighter tint of their layer color
-function chatTint(hex){
-  if(!hex||hex.length<7)return'#ffffff';
-  var r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
-  r=Math.min(255,Math.round(r*0.50+255*0.50));
-  g=Math.min(255,Math.round(g*0.50+255*0.50));
-  b=Math.min(255,Math.round(b*0.50+255*0.50));
-  return'#'+[r,g,b].map(function(v){return('0'+v.toString(16)).slice(-2);}).join('');
-}
-function nodeColor(n){
-  var c=getLC(n.layer||'l1');
-  return(n.node_type==='chat')?chatTint(c):c;
-}
-// rgba helper
+// rgba helper — convert hex+alpha to rgba string
 function ha(hex,a){
   if(!hex||hex.length<7)return'rgba(79,195,247,'+a+')';
   var r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
   return'rgba('+r+','+g+','+b+','+a+')';
 }
 
-// Sync layerColors from arch.layers._color, filling missing slots with defaults
+// Sync layerColors from arch.layers._color, assign defaults for new layers
 function syncLayerColors(){
-  var ids=getLayerIds();
+  if(!arch||!arch.layers)return;
+  var ids=Object.keys(arch.layers);
   ids.forEach(function(lid,i){
-    var stored=arch&&arch.layers&&arch.layers[lid]&&arch.layers[lid]._color;
-    if(stored){ layerColors[lid]=stored; }
-    else if(!layerColors[lid]){ layerColors[lid]=LAYER_DEFAULT_COLORS[i]||LAYER_FALLBACK_COLOR; }
-    if(typeof layerVis[lid]==='undefined') layerVis[lid]=true;
+    if(arch.layers[lid]&&arch.layers[lid]._color){
+      layerColors[lid]=arch.layers[lid]._color;
+    } else if(!layerColors[lid]){
+      layerColors[lid]=LAYER_DEFAULT_COLORS[i]||LAYER_FALLBACK_COLOR;
+    }
   });
 }
-// Write current colors back into arch.layers so they persist on save
+
+// Write current colors back into arch.layers so they persist on export
 function persistLayerColors(){
   if(!arch||!arch.layers)return;
   Object.keys(layerColors).forEach(function(lid){
     if(arch.layers[lid]) arch.layers[lid]._color=layerColors[lid];
   });
 }
-function getLayerIds(){ return(arch&&arch.layers)?Object.keys(arch.layers):['l1','l2','l3']; }
-function getLayerLabel(lid){
-  return(arch&&arch.layers&&arch.layers[lid]&&arch.layers[lid].header_title)||lid.toUpperCase();
+
+function getLayerIds(){
+  if(arch&&arch.layers) return Object.keys(arch.layers);
+  return['l1c','l1_archive','l2','l3'];
 }
 
-var CMD_COLOR={pull:'#c47fc4',loop:'#6fb06f',flavor:'#c47fc4'};
+var LAYER_COLOR={l1c:'#4db896',l1_archive:'#4fc3f7',l2:'#bf7c0a',l3:'#e05050'};
+var LAYER_LABEL={l1c:'L1C',l1_archive:'L1',l2:'L2',l3:'L3'};
+var LAYER_FULL={l1c:'L1C',l1_archive:'L1',l2:'L2',l3:'L3'};
+var CMD_COLOR={navigation:'#cc3311',pull:'#c47fc4',loop:'#6fb06f',flavor:'#c47fc4'};
 var NODE_TYPES=['standard','chat','boot','intro','log_entry','data'];
 var NODE_TYPE_LABELS={standard:'STANDARD',chat:'CHAT',boot:'BOOT',intro:'INTRO',log_entry:'LOG ENTRY',data:'DATA'};
 var CLS_OPTS=['full','dim','low','warn','denied','blank'];
@@ -407,7 +405,7 @@ var CLS_OPTS=['full','dim','low','warn','denied','blank'];
 // ── STATE ─────────────────────────────────────────────────────────────────────
 var arch=null, positions={}, selectedNode=null, multiSel=[];
 var tool='select', pan={x:80,y:80}, zoom=1.0;
-var layerVis={}, searchStr='';
+var layerVis={l1c:true,l1_archive:true,l2:true,l3:true}, searchStr='';
 var fileHandle=null, infoMode='details';
 var hist=[], histIdx=-1;
 var ctxNodeId=null, clipboard=null, cpTarget=null;
@@ -435,27 +433,21 @@ function updHistUI(){document.getElementById('undo-btn').disabled=histIdx<=0;doc
 function migrateNode(n){
   if(!n.body)n.body=[];
   if(!n.node_type)n.node_type=n.type||'standard';
+  // If has old options[] and body is empty or has no commands, migrate
   if(n.options&&n.options.length){
     var hasCmd=n.body.some(function(b){return b.type==='command';});
-    if(!hasCmd){n.options.forEach(function(o){n.body.push({type:'command',cmd_type:'navigation',label:o.label||'',target:o.target||''});});}
+    if(!hasCmd){
+      n.options.forEach(function(o){
+        n.body.push({type:'command',cmd_type:'navigation',label:o.label||'',target:o.target||''});
+      });
+    }
   }
   if(!n._editor)n._editor={locked:false,pinned:false,id_locked:false};
-  // Layer rename: l1c + l1_archive → l1
-  if(n.layer==='l1c'||n.layer==='l1_archive') n.layer='l1';
   return n;
 }
 function migrateArch(){
-  if(!arch)return;
-  // Rename layers object keys
-  if(arch.layers){
-    if(arch.layers.l1c&&!arch.layers.l1){ arch.layers.l1=arch.layers.l1c; }
-    delete arch.layers.l1c;
-    if(arch.layers.l1_archive&&!arch.layers.l1){ arch.layers.l1=arch.layers.l1_archive; }
-    delete arch.layers.l1_archive;
-    // Ensure l1 exists
-    if(!arch.layers.l1) arch.layers.l1={theme:'blue',header_title:'TERMINAL',ambient:'l1'};
-  }
-  if(arch.nodes) Object.keys(arch.nodes).forEach(function(id){arch.nodes[id]=migrateNode(arch.nodes[id]);});
+  if(!arch||!arch.nodes)return;
+  Object.keys(arch.nodes).forEach(function(id){arch.nodes[id]=migrateNode(arch.nodes[id]);});
 }
 
 // ── FILE I/O ──────────────────────────────────────────────────────────────────
@@ -470,7 +462,7 @@ function loadArch(raw,name,cls){
   syncLayerColors();
   var saved=(arch.meta&&arch.meta.node_positions)||{};
   Object.keys(arch.nodes||{}).forEach(function(id){if(saved[id])positions[id]={x:saved[id].x,y:saved[id].y};});
-  autoLayout();pushHist();rebuildLayerUI();render();resetView();
+  autoLayout();pushHist();render();resetView();
   setFstat(name,cls);toast('Loaded '+Object.keys(arch.nodes||{}).length+' nodes');
 }
 function setFstat(n,cls){
@@ -501,26 +493,25 @@ function showSaved(){var i=document.getElementById('as-ind');i.classList.add('sh
 function autoLayout(){
   if(!arch||!arch.nodes)return;
   var nodes=arch.nodes;
-  var lids=getLayerIds(),cols={};
-  lids.forEach(function(lid){cols[lid]=[];});
-  Object.keys(nodes).forEach(function(id){if(!positions[id]){var lyr=nodes[id].layer||lids[0]||'l1';(cols[lyr]=cols[lyr]||[]).push(id);}});
-  lids.forEach(function(lid,i){
-    var cx=10+i*300,list=cols[lid]||[];
-    var roots=list.filter(function(id){return nodes[id].is_root;});
-    var rest=list.filter(function(id){return !nodes[id].is_root;});
-    roots.concat(rest).forEach(function(id,j){positions[id]={x:cx,y:60+j*200};});
+  var cols={l1c:[],l1_archive:[],l2:[],l3:[]};
+  Object.keys(nodes).forEach(function(id){if(!positions[id]){var lyr=nodes[id].layer||'l1_archive';(cols[lyr]=cols[lyr]||[]).push(id);}});
+  var COL_X={l1c:-180,l1_archive:100,l2:400,l3:700};
+  Object.keys(cols).forEach(function(lyr){
+    var roots=cols[lyr].filter(function(id){return nodes[id].is_root;});
+    var rest=cols[lyr].filter(function(id){return !nodes[id].is_root;});
+    roots.concat(rest).forEach(function(id,i){positions[id]={x:Math.max(10,COL_X[lyr]||100),y:60+i*200};});
   });
 }
 
 function autoOrganize(){
   if(!arch||!arch.nodes)return;
   var nodes=arch.nodes;
-  var lids2=getLayerIds(),byLayer={};
-  lids2.forEach(function(lid){byLayer[lid]=[];});
-  Object.keys(nodes).forEach(function(id){var lyr=nodes[id].layer||lids2[0]||'l1';(byLayer[lyr]=byLayer[lyr]||[]).push(id);});
+  var byLayer={l1c:[],l1_archive:[],l2:[],l3:[]};
+  Object.keys(nodes).forEach(function(id){var lyr=nodes[id].layer||'l1_archive';(byLayer[lyr]=byLayer[lyr]||[]).push(id);});
+  var COL_X={l1c:10,l1_archive:260,l2:560,l3:860};
   var ROW_H=200,PAD_Y=60;
-  lids2.forEach(function(lyr,li){
-    var ids=byLayer[lyr]||[],COL_X=10+li*260;
+  Object.keys(byLayer).forEach(function(lyr){
+    var ids=byLayer[lyr];
     var roots=ids.filter(function(id){return nodes[id].is_root;});
     var rest=ids.filter(function(id){return !nodes[id].is_root;});
     var visited={},order=[];
@@ -528,7 +519,7 @@ function autoOrganize(){
     roots.forEach(bfs);rest.forEach(function(id){if(!visited[id])bfs(id);});
     order.forEach(function(id,i){
       var ed=nodes[id]._editor||{};
-      if(!ed.pinned)positions[id]={x:COL_X,y:PAD_Y+i*ROW_H};
+      if(!ed.pinned)positions[id]={x:COL_X[lyr]||100,y:PAD_Y+i*ROW_H};
     });
   });
   pushHist();render();resetView();toast('Nodes organized');
@@ -597,30 +588,24 @@ function render(){
     var pos=positions[id]||{x:0,y:0};
     var isSel=selectedNode===id, isMulti=multiSel.indexOf(id)>=0;
 
-    var nCol=nodeColor(n),lCol=getLC(lyr);
-    var bdrCol=isSel?nCol:ha(nCol,0.45);
-    var shadow=isSel?('0 0 0 1px '+nCol+',0 6px 24px '+ha(nCol,0.20)):(isMulti&&!isSel?'0 0 0 2px '+lCol+',0 0 12px '+ha(lCol,0.25):'none');
     var el=document.createElement('div');
-    el.className='gnode';
-    el.id='gn-'+id;
-    el.style.cssText='left:'+pos.x+'px;top:'+pos.y+'px;width:'+NODE_W+'px;position:absolute;border:1px solid '+bdrCol+';background:'+ha(nCol,isSel?0.06:0.03)+';box-shadow:'+shadow+';';
+    el.className='gnode '+lyr+(isSel?' selected':'')+(isMulti&&!isSel?' multi-sel':'');
+    el.id='gn-'+id;el.style.cssText='left:'+pos.x+'px;top:'+pos.y+'px;width:'+NODE_W+'px;position:absolute;';
 
     // Input port
     var inp=document.createElement('div');inp.className='in-port';inp.id='inp-'+id;
-    inp.style.borderColor=ha(nCol,0.28);inp.style.background=ha(nCol,0.04);
     inp.addEventListener('contextmenu',function(e){e.preventDefault();e.stopPropagation();showInPortCtxMenu(e,id);});
     inp.addEventListener('dblclick',function(e){e.stopPropagation();disconnectAllIncoming(id);});
     el.appendChild(inp);
 
     // Header
     var hdr=document.createElement('div');hdr.className='gnode-hdr';
-    hdr.style.borderBottom='1px solid '+ha(nCol,0.13);
-    if(n.is_root){var dot=document.createElement('div');dot.className='gnode-root-dot';dot.style.background=nCol;hdr.appendChild(dot);}
-    var idSp=document.createElement('div');idSp.className='gnode-id';idSp.style.color=nCol;idSp.textContent=id;hdr.appendChild(idSp);
+    if(n.is_root){var dot=document.createElement('div');dot.className='gnode-root-dot';hdr.appendChild(dot);}
+    var idSp=document.createElement('div');idSp.className='gnode-id';idSp.textContent=id;hdr.appendChild(idSp);
     // Node type badge
     var nt=n.node_type||'standard';
     var badge=document.createElement('span');badge.className='node-type-badge badge-'+nt;badge.textContent=NODE_TYPE_LABELS[nt]||nt;hdr.appendChild(badge);
-    var lyrSp=document.createElement('div');lyrSp.className='gnode-lyr';lyrSp.style.color=ha(nCol,0.40);lyrSp.textContent=lyr.toUpperCase().replace('_ARCHIVE','');hdr.appendChild(lyrSp);
+    var lyrSp=document.createElement('div');lyrSp.className='gnode-lyr';lyrSp.textContent=LAYER_LABEL[lyr]||lyr;hdr.appendChild(lyrSp);
     // Lock / pin indicators
     var ed=n._editor||{};
     if(ed.locked){var lk=document.createElement('span');lk.textContent='\uD83D\uDD12';lk.style.cssText='font-size:10px;opacity:0.60;flex-shrink:0;';hdr.appendChild(lk);}
@@ -633,7 +618,7 @@ function render(){
     // Title preview
     if(n.title){
       var tDiv=document.createElement('div');
-      tDiv.style.cssText='padding:3px 12px;font-size:11px;color:'+ha(nCol,0.45)+';border-bottom:1px solid '+ha(nCol,0.06)+';overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
+      tDiv.style.cssText='padding:3px 12px;font-size:11px;color:rgba(79,195,247,0.45);border-bottom:1px solid rgba(79,195,247,0.06);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
       tDiv.textContent=n.title;el.appendChild(tDiv);
     }
 
@@ -647,24 +632,17 @@ function render(){
         var isHidden=b.hidden||false;
         if(b.type==='text'){
           row.className='gnode-bline text'+(isHidden?' bline-hidden':'');
-          row.style.color=ha(nCol,isHidden?0.22:0.55);
-          var ldot=document.createElement('span');ldot.className='bline-type-dot';ldot.style.background=isHidden?ha(nCol,0.12):ha(nCol,0.28);row.appendChild(ldot);
+          var ldot=document.createElement('span');ldot.className='bline-type-dot';ldot.style.background=isHidden?'rgba(79,195,247,0.12)':'rgba(79,195,247,0.25)';row.appendChild(ldot);
           var ltxt=document.createElement('span');ltxt.className='bline-lbl';ltxt.textContent=b.text||'';ltxt.style.opacity=isHidden?'0.35':'1';row.appendChild(ltxt);
         } else if(b.type==='command'){
           var ct=b.cmd_type||'navigation';
-          var lineCol=ct==='navigation'?nCol:(CMD_COLOR[ct]||nCol);
           row.className='gnode-bline cmd-'+ct+(isHidden?' bline-hidden':'');
-          row.style.color=ha(lineCol,isHidden?0.22:0.85);
-          var cdot=document.createElement('span');cdot.className='bline-type-dot';cdot.style.background=ct==='navigation'?ha(nCol,isHidden?0.12:0.35):(CMD_COLOR[ct]||nCol);row.appendChild(cdot);
+          var cdot=document.createElement('span');cdot.className='bline-type-dot';cdot.style.background=isHidden?'rgba(79,195,247,0.12)':(CMD_COLOR[ct]||'#4fc3f7');row.appendChild(cdot);
           var clbl=document.createElement('span');clbl.className='bline-lbl';clbl.textContent=(isHidden?'[hidden] ':'')+( b.label||'');clbl.style.opacity=isHidden?'0.35':'1';row.appendChild(clbl);
+          // Out port for nav/data/flavor commands (still shown even if hidden)
           if(ct==='navigation'||ct==='pull'||ct==='flavor'){
             var port=document.createElement('div');
-            if(ct==='navigation'){
-              port.className='out-port';
-              port.style.borderColor=ha(nCol,0.55);port.style.background=ha(nCol,0.04);
-              port.addEventListener('mouseover',function(){this.style.background=ha(nCol,0.28);this.style.borderColor=nCol;});
-              port.addEventListener('mouseout',function(){this.style.background=ha(nCol,0.04);this.style.borderColor=ha(nCol,0.55);});
-            }else{ port.className='out-port '+ct; }
+            port.className='out-port '+ct+(ct==='navigation'?' '+lyr:'');
             port.style.opacity=isHidden?'0.30':'1';
             port.dataset.nodeid=id;port.dataset.bodyidx=bi;port.dataset.portidx=portIdx;
             port.addEventListener('mousedown',function(e){e.stopPropagation();e.preventDefault();startConnect(e,id,parseInt(this.dataset.bodyidx));});
@@ -736,7 +714,7 @@ function drawConnections(nodes){
   svg.querySelectorAll('.cp,.ca').forEach(function(e){e.remove();});
   Object.keys(nodes).forEach(function(id){
     var n=nodes[id],lyr=n.layer||'l1_archive';
-    if(layerVis[lyr]===false||!document.getElementById('gn-'+id))return;
+    if(!layerVis[lyr]||!document.getElementById('gn-'+id))return;
     (n.body||[]).forEach(function(b,bi){
       if(b.type!=='command')return;
       var ct=b.cmd_type||'navigation';
@@ -745,7 +723,8 @@ function drawConnections(nodes){
       var p1=getPortPos(id,bi);
       var p2=getInPortPos(tgt);
       var isSel=(id===selectedNode||tgt===selectedNode||multiSel.indexOf(id)>=0||multiSel.indexOf(tgt)>=0);
-      var col=ct==='navigation'?nodeColor(n):(CMD_COLOR[ct]||getLC(lyr));
+      // NAV wire follows source layer color; pull/flavor use CMD_COLOR
+      var col=ct==='navigation'?getLC(lyr):(CMD_COLOR[ct]||'#4fc3f7');
       var cp=Math.max(60,Math.abs(p2.x-p1.x)*0.5);
       var path=document.createElementNS('http://www.w3.org/2000/svg','path');
       path.classList.add('cp');
@@ -895,8 +874,8 @@ document.addEventListener('mousemove',function(e){
     var cp=Math.max(60,Math.abs(mx-p1.x)*0.5);
     // Color by command type
     var bdy=arch.nodes[connecting.fromNode]&&arch.nodes[connecting.fromNode].body[connecting.fromBodyIdx];
-    var _srcN=arch.nodes[connecting.fromNode]||{};
-    var wCol=bdy?(bdy.cmd_type==='navigation'?nodeColor(_srcN):(CMD_COLOR[bdy.cmd_type]||getLC(_srcN.layer||'l1'))):'#4fc3f7';
+    var _fl=arch.nodes[connecting.fromNode]&&arch.nodes[connecting.fromNode].layer||'l1_archive';
+    var wCol=bdy?(bdy.cmd_type==='navigation'?getLC(_fl):(CMD_COLOR[bdy.cmd_type]||'#4fc3f7')):'#4fc3f7';
     var path=document.createElementNS('http://www.w3.org/2000/svg','path');
     path.id='tmp-wire';
     path.setAttribute('d','M'+p1.x+','+p1.y+' C'+(p1.x+cp)+','+p1.y+' '+(mx-cp)+','+my+' '+mx+','+my);
@@ -980,7 +959,7 @@ function startPanelDrag(e){
 // ── FIT VIEW ─────────────────────────────────────────────────────────────────
 function resetView(){
   if(!arch||!arch.nodes)return;
-  var ids=Object.keys(arch.nodes).filter(function(id){return positions[id]&&layerVis[(arch.nodes[id].layer||'l1')]!==false;});
+  var ids=Object.keys(arch.nodes).filter(function(id){return positions[id]&&layerVis[(arch.nodes[id].layer||'l1_archive')];});
   if(!ids.length)return;
   var minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
   ids.forEach(function(id){var p=positions[id];minX=Math.min(minX,p.x);minY=Math.min(minY,p.y);maxX=Math.max(maxX,p.x+NODE_W);maxY=Math.max(maxY,p.y+180);});
@@ -1009,7 +988,7 @@ function addNode(cx,cy){
     id='NEW_NODE_'+Date.now();
   }
   arch.nodes[id]={
-    layer:getLayerIds()[0]||'l1',node_type:newType,is_root:false,
+    layer:'l1_archive',node_type:newType,is_root:false,
     fetch_allowed:false,title:'NEW NODE',breadcrumb:'',
     footer:'',body:[],personality_src:null,
     _editor:{locked:false,pinned:false,id_locked:idLocked}
@@ -1046,7 +1025,7 @@ function showInfo(id){
   h+='<div class="if"><div class="il">NODE ID</div><input type="text" class="iv-inp" id="fi-id" value="'+esc(id)+'" autocomplete="off" spellcheck="false"></div>';
   // Layer
   h+='<div class="if"><div class="il">LAYER</div><select class="iv-sel" id="fi-layer">';
-  getLayerIds().forEach(function(lv){h+='<option value="'+lv+'"'+(lv===lyr?' selected':'')+'>'+lv.toUpperCase().replace('_ARCHIVE','')+'</option>';});
+  ['l1c','l1_archive','l2','l3'].forEach(function(lv){h+='<option value="'+lv+'"'+(lv===lyr?' selected':'')+'>'+LAYER_FULL[lv]+'</option>';});
   h+='</select></div>';
   // Node type
   h+='<div class="if"><div class="il">NODE TYPE</div><select class="iv-sel" id="fi-ntype">';
@@ -1123,8 +1102,7 @@ function showInfo(id){
   if(incoming.length){
     h+='<div class="if sec-div"><div class="il">INCOMING ('+incoming.length+')</div><div class="conn-list">';
     incoming.forEach(function(c){
-      var _fromN=arch.nodes[c.from]||{layer:'l1'};
-      var col=c.cmd_type==='navigation'?nodeColor(_fromN):(CMD_COLOR[c.cmd_type]||getLC(_fromN.layer||'l1'));
+      var col=CMD_COLOR[c.cmd_type]||'#4fc3f7';
       h+='<div class="conn-row"><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;">'+esc(c.from)+'</span><span class="conn-arrow" style="color:'+col+';">&#8594;</span><span style="font-size:11px;color:'+col+';opacity:0.70;">'+esc(c.cmd_type)+'</span></div>';
     });
     h+='</div></div>';
@@ -1466,8 +1444,8 @@ function updateMinimap(){
   ctx.clearRect(0,0,150,90);
   var sc=Math.min(140/CANVAS_W,82/CANVAS_H);var ox=5,oy=4;
   Object.keys(arch.nodes).forEach(function(id){
-    var n=arch.nodes[id],lyr=n.layer||'l1';if(layerVis[lyr]===false)return;
-    var p=positions[id]||{x:0,y:0};var col=nodeColor(n);
+    var n=arch.nodes[id],lyr=n.layer||'l1_archive';if(!layerVis[lyr])return;
+    var p=positions[id]||{x:0,y:0};var col=LAYER_COLOR[lyr]||'#4fc3f7';
     ctx.fillStyle=col;ctx.globalAlpha=id===selectedNode?0.90:multiSel.indexOf(id)>=0?0.70:0.35;
     ctx.fillRect(ox+p.x*sc,oy+p.y*sc,NODE_W*sc,32*sc);ctx.globalAlpha=1;
   });
@@ -1661,8 +1639,6 @@ function auditNode(id, n, report){
   }
   // Ensure required fields
   if(!n.node_type){n.node_type='standard';changes++;report.push('  '+id+': set node_type=standard');}
-  // Layer rename
-  if(n.layer==='l1c'||n.layer==='l1_archive'){var _ol=n.layer;n.layer='l1';changes++;report.push('  '+id+': layer '+_ol+' → l1');}
   if(!n._editor){n._editor={locked:false,pinned:false,id_locked:false};changes++;report.push('  '+id+': added _editor');}
   if(typeof n._editor.locked==='undefined')n._editor.locked=false;
   if(typeof n._editor.pinned==='undefined')n._editor.pinned=false;
@@ -1676,7 +1652,6 @@ function auditNode(id, n, report){
   }
   // Fix cls values in body[]
   (n.body||[]).forEach(function(b,bi){
-    // Migrate old layer names on body lines (shouldn't exist but safety net)
     if(b.type==='text'&&b.cls==='lo'){b.cls='low';changes++;report.push('  '+id+' body['+bi+']: cls lo→low');}
     if(b.type==='command'&&b.cmd_type==='data'){b.cmd_type='pull';changes++;report.push('  '+id+' body['+bi+']: cmd_type data→pull');}
     // Remove unknown fields from body items
@@ -1714,8 +1689,8 @@ var TEMPLATES={
   'Blank (4 root nodes)':{
     meta:{version:'1.0',description:'ECHOES Node Architecture — Blank Template'},
     layers:{
-      
-      l1:{theme:'blue',header_title:'TERMINAL',ambient:'l1'},
+      l1c:{theme:'teal',header_title:'TERMINAL',ambient:'l1c'},
+      l1_archive:{theme:'blue',header_title:'ECHO-ARCHIVE',ambient:'l1'},
       l2:{theme:'amber',header_title:'ECHO-ARCHIVE',ambient:'l2'},
       l3:{theme:'red',header_title:'DEEP ARCHIVE',ambient:'l3'}
     },
@@ -1727,8 +1702,8 @@ var TEMPLATES={
       {label:'[HOME]',description:'return to main index',type:'navigate',target:'__HOME__'}
     ],
     nodes:{
-      L1C_ROOT:{layer:'l1',node_type:'chat',is_root:true,fetch_allowed:false,title:'',breadcrumb:'',footer:'',body:[],personality_src:null,_editor:{locked:false,pinned:false,id_locked:false}},
-      L1_ROOT:{layer:'l1',node_type:'standard',is_root:true,fetch_allowed:false,title:'',breadcrumb:'',footer:'',body:[],_editor:{locked:false,pinned:false,id_locked:false}},
+      L1C_ROOT:{layer:'l1c',node_type:'chat',is_root:true,fetch_allowed:false,title:'',breadcrumb:'',footer:'',body:[],personality_src:null,_editor:{locked:false,pinned:false,id_locked:false}},
+      L1_ROOT:{layer:'l1_archive',node_type:'standard',is_root:true,fetch_allowed:false,title:'',breadcrumb:'',footer:'',body:[],_editor:{locked:false,pinned:false,id_locked:false}},
       L2_ROOT:{layer:'l2',node_type:'standard',is_root:true,fetch_allowed:true,title:'',breadcrumb:'',footer:'',body:[],_editor:{locked:false,pinned:false,id_locked:false}},
       L3_ROOT:{layer:'l3',node_type:'standard',is_root:true,fetch_allowed:true,title:'',breadcrumb:'',footer:'',body:[],_editor:{locked:false,pinned:false,id_locked:false}}
     },
@@ -1737,8 +1712,8 @@ var TEMPLATES={
   'Full Global Nodes':{
     meta:{version:'1.0',description:'ECHOES Node Architecture — Full Template'},
     layers:{
-      
-      l1:{theme:'blue',header_title:'TERMINAL',ambient:'l1'},
+      l1c:{theme:'teal',header_title:'TERMINAL',ambient:'l1c'},
+      l1_archive:{theme:'blue',header_title:'ECHO-ARCHIVE',ambient:'l1'},
       l2:{theme:'amber',header_title:'ECHO-ARCHIVE',ambient:'l2'},
       l3:{theme:'red',header_title:'DEEP ARCHIVE',ambient:'l3'}
     },
@@ -1750,17 +1725,17 @@ var TEMPLATES={
       {label:'[HOME]',description:'return to main index',type:'navigate',target:'__HOME__'}
     ],
     nodes:{
-      BOOT_NODE:{layer:'l1',node_type:'standard',is_root:true,fetch_allowed:false,title:'',breadcrumb:'',footer:'',body:[{type:'text',text:'',cls:'blank'},{type:'text',text:'ECHOES — SHIP SYSTEM TERMINAL',cls:'lo'},{type:'text',text:'> TERMINAL ACTIVATED',cls:'dim'},{type:'text',text:'> ─────────────────────────────────',cls:'lo'},{type:'text',text:'> VERIFYING SUBSYSTEM CONNECTIONS...',cls:'dim'},{type:'dynamic',variable:'file_status.personality',display_label:'  CREW BEHAVIORAL MATRIX  '},{type:'dynamic',variable:'file_status.lore',display_label:'  ARCHIVE LOG DATABASE    '},{type:'dynamic',variable:'file_status.devlogs',display_label:'  DEVELOPMENT RECORDS     '},{type:'dynamic',variable:'file_status.nodes',display_label:'  NAVIGATION ARCHITECTURE '},{type:'dynamic',variable:'file_status.engine',display_label:'  CORE ENGINE PARAMETERS  '},{type:'text',text:'> ─────────────────────────────────',cls:'lo'},{type:'text',text:'',cls:'blank'},{type:'text',text:'> TERMINAL READY',cls:'full'},{type:'text',text:'',cls:'blank'}],_editor:{locked:false,pinned:true,id_locked:true}},
-      L1C_ROOT:{layer:'l1',node_type:'chat',is_root:true,fetch_allowed:false,title:'',breadcrumb:'',footer:'',body:[{type:'text',text:'',cls:'blank'},{type:'text',text:'> TYPE [HELP] FOR AVAILABLE COMMANDS',cls:'lo'},{type:'text',text:'',cls:'blank'},{type:'command',cmd_type:'navigation',label:'[ECHO.ARCHIVE]',target:'L1_ROOT',hidden:true}],personality_src:'personality.json',_editor:{locked:false,pinned:true,id_locked:false}},
-      L1C_INTRO:{layer:'l1',node_type:'standard',is_root:false,fetch_allowed:false,title:'',breadcrumb:'',footer:'',body:[],_editor:{locked:false,pinned:false,id_locked:true}},
-      L1_INTRO:{layer:'l1',node_type:'standard',is_root:false,fetch_allowed:false,title:'',breadcrumb:'',footer:'',body:[{type:'text',text:'',cls:'blank'},{type:'text',text:'> ECHO-ARCHIVE ACCESS GRANTED.',cls:'full'},{type:'text',text:'> ─────────────────────────────────',cls:'lo'},{type:'text',text:'',cls:'blank'}],_editor:{locked:false,pinned:false,id_locked:true}},
-      L1_ROOT:{layer:'l1',node_type:'standard',is_root:true,fetch_allowed:false,title:'L1 ROOT',breadcrumb:'',footer:'',body:[],_editor:{locked:false,pinned:false,id_locked:false}},
+      BOOT_NODE:{layer:'l1c',node_type:'standard',is_root:true,fetch_allowed:false,title:'',breadcrumb:'',footer:'',body:[{type:'text',text:'',cls:'blank'},{type:'text',text:'ECHOES — SHIP SYSTEM TERMINAL',cls:'lo'},{type:'text',text:'> TERMINAL ACTIVATED',cls:'dim'},{type:'text',text:'> ─────────────────────────────────',cls:'lo'},{type:'text',text:'> VERIFYING SUBSYSTEM CONNECTIONS...',cls:'dim'},{type:'dynamic',variable:'file_status.personality',display_label:'  CREW BEHAVIORAL MATRIX  '},{type:'dynamic',variable:'file_status.lore',display_label:'  ARCHIVE LOG DATABASE    '},{type:'dynamic',variable:'file_status.devlogs',display_label:'  DEVELOPMENT RECORDS     '},{type:'dynamic',variable:'file_status.nodes',display_label:'  NAVIGATION ARCHITECTURE '},{type:'dynamic',variable:'file_status.engine',display_label:'  CORE ENGINE PARAMETERS  '},{type:'text',text:'> ─────────────────────────────────',cls:'lo'},{type:'text',text:'',cls:'blank'},{type:'text',text:'> TERMINAL READY',cls:'full'},{type:'text',text:'',cls:'blank'}],_editor:{locked:false,pinned:true,id_locked:true}},
+      L1C_ROOT:{layer:'l1c',node_type:'chat',is_root:true,fetch_allowed:false,title:'',breadcrumb:'',footer:'',body:[{type:'text',text:'',cls:'blank'},{type:'text',text:'> TYPE [HELP] FOR AVAILABLE COMMANDS',cls:'lo'},{type:'text',text:'',cls:'blank'},{type:'command',cmd_type:'navigation',label:'[ECHO.ARCHIVE]',target:'L1_ROOT',hidden:true}],personality_src:'personality.json',_editor:{locked:false,pinned:true,id_locked:false}},
+      L1C_INTRO:{layer:'l1c',node_type:'standard',is_root:false,fetch_allowed:false,title:'',breadcrumb:'',footer:'',body:[],_editor:{locked:false,pinned:false,id_locked:true}},
+      L1_INTRO:{layer:'l1_archive',node_type:'standard',is_root:false,fetch_allowed:false,title:'',breadcrumb:'',footer:'',body:[{type:'text',text:'',cls:'blank'},{type:'text',text:'> ECHO-ARCHIVE ACCESS GRANTED.',cls:'full'},{type:'text',text:'> ─────────────────────────────────',cls:'lo'},{type:'text',text:'',cls:'blank'}],_editor:{locked:false,pinned:false,id_locked:true}},
+      L1_ROOT:{layer:'l1_archive',node_type:'standard',is_root:true,fetch_allowed:false,title:'L1 ROOT',breadcrumb:'',footer:'',body:[],_editor:{locked:false,pinned:false,id_locked:false}},
       L2_INTRO:{layer:'l2',node_type:'standard',is_root:false,fetch_allowed:false,title:'',breadcrumb:'',footer:'',body:[{type:'text',text:'',cls:'blank'},{type:'text',text:'> INITIATING ECHO PROTOCOL...',cls:'full'},{type:'text',text:'  LOADING SUBSYSTEM...',cls:'low'},{type:'text',text:'  CIPHER ENGINE ONLINE...',cls:'low'},{type:'text',text:'  DEEP LOG CHANNEL OPEN...',cls:'low'},{type:'text',text:'> ECHO PROTOCOL ACTIVE.',cls:'full'},{type:'text',text:'> ─────────────────────────────────',cls:'low'},{type:'text',text:'',cls:'blank'}],_editor:{locked:false,pinned:false,id_locked:true}},
       L2_ROOT:{layer:'l2',node_type:'standard',is_root:true,fetch_allowed:true,title:'L2 ROOT',breadcrumb:'',footer:'',body:[],_editor:{locked:false,pinned:false,id_locked:false}},
       L3_INTRO:{layer:'l3',node_type:'standard',is_root:false,fetch_allowed:false,title:'',breadcrumb:'',footer:'',body:[{type:'text',text:'',cls:'blank'},{type:'text',text:'> ACCESSING DEEP ARCHIVE...',cls:'full'},{type:'text',text:'  CHRONO-ZERO PROTOCOL ACTIVE...',cls:'low'},{type:'text',text:'  PRIVATE SECTOR UNLOCKED...',cls:'low'},{type:'text',text:'> DEV.MODE ENGAGED.',cls:'full'},{type:'text',text:'> ─────────────────────────────────',cls:'low'},{type:'text',text:'',cls:'blank'}],_editor:{locked:false,pinned:false,id_locked:true}},
       L3_ROOT:{layer:'l3',node_type:'standard',is_root:true,fetch_allowed:true,title:'L3 ROOT',breadcrumb:'',footer:'',body:[],_editor:{locked:false,pinned:false,id_locked:false}},
-      DEV_OVERRIDE_ROOT:{layer:'l1',node_type:'standard',is_root:false,fetch_allowed:false,title:'DEVELOPER OVERRIDE — AUTHORIZED',breadcrumb:'[ DEV.OVERRIDE ]',footer:'',body:[{type:'command',cmd_type:'navigation',label:'[-- JUMP L1]',target:'L1_ROOT',hidden:false},{type:'command',cmd_type:'navigation',label:'[-- JUMP L2]',target:'L2_ROOT',hidden:false},{type:'command',cmd_type:'navigation',label:'[-- JUMP L3]',target:'L3_ROOT',hidden:false}],_editor:{locked:false,pinned:false,id_locked:false}},
-      HELP_COMMANDS:{layer:'l1',node_type:'standard',is_root:false,fetch_allowed:false,title:'',breadcrumb:'',footer:'',body:[{type:'text',text:'',cls:'blank'},{type:'text',text:'AVAILABLE COMMANDS',cls:'full'},{type:'text',text:'> ─────────────────────────────────',cls:'low'},{type:'text',text:'  [HELP]       — display this list',cls:'dim'},{type:'text',text:'  [STATUS]     — vessel system status',cls:'dim'},{type:'text',text:'  [SCAN]       — environment scan',cls:'dim'},{type:'text',text:'  [CLEAR]      — clear terminal output',cls:'dim'},{type:'text',text:'> ─────────────────────────────────',cls:'low'},{type:'text',text:'',cls:'blank'}],_editor:{locked:false,pinned:false,id_locked:false}}
+      DEV_OVERRIDE_ROOT:{layer:'l1_archive',node_type:'standard',is_root:false,fetch_allowed:false,title:'DEVELOPER OVERRIDE — AUTHORIZED',breadcrumb:'[ DEV.OVERRIDE ]',footer:'',body:[{type:'command',cmd_type:'navigation',label:'[-- JUMP L1]',target:'L1_ROOT',hidden:false},{type:'command',cmd_type:'navigation',label:'[-- JUMP L2]',target:'L2_ROOT',hidden:false},{type:'command',cmd_type:'navigation',label:'[-- JUMP L3]',target:'L3_ROOT',hidden:false}],_editor:{locked:false,pinned:false,id_locked:false}},
+      HELP_COMMANDS:{layer:'l1c',node_type:'standard',is_root:false,fetch_allowed:false,title:'',breadcrumb:'',footer:'',body:[{type:'text',text:'',cls:'blank'},{type:'text',text:'AVAILABLE COMMANDS',cls:'full'},{type:'text',text:'> ─────────────────────────────────',cls:'low'},{type:'text',text:'  [HELP]       — display this list',cls:'dim'},{type:'text',text:'  [STATUS]     — vessel system status',cls:'dim'},{type:'text',text:'  [SCAN]       — environment scan',cls:'dim'},{type:'text',text:'  [CLEAR]      — clear terminal output',cls:'dim'},{type:'text',text:'> ─────────────────────────────────',cls:'low'},{type:'text',text:'',cls:'blank'}],_editor:{locked:false,pinned:false,id_locked:false}}
     },
     dev_override_commands:[],boot_script:[],groups:{}
   }
@@ -1839,57 +1814,62 @@ function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').
 var toastT=null;
 function toast(msg){var el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');clearTimeout(toastT);toastT=setTimeout(function(){el.classList.remove('show');},2600);}
 function onSearch(){searchStr=document.getElementById('srch').value.trim().toLowerCase();render();}
-function rebuildLayerUI(){
-  var ids=getLayerIds();
-  var lf=document.getElementById('layer-filter');lf.innerHTML='';
-  ids.forEach(function(lid){
-    var col=getLC(lid);
-    var btn=document.createElement('button');
-    btn.className='lf-btn '+(layerVis[lid]!==false?'on':'off');
-    btn.id='lf-'+lid;
-    btn.style.color=col;btn.style.borderColor=ha(col,0.40);
-    btn.textContent=lid.toUpperCase().replace('_ARCHIVE','');
-    btn.onclick=(function(l){return function(){toggleLayer(l);};})(lid);
-    lf.appendChild(btn);
-  });
-  // legend
-  var leg=document.getElementById('legend');
-  if(leg){
-    var rows=leg.querySelectorAll('.leg-row');
-    rows.forEach(function(r){r.remove();});
-    var ins=leg.firstChild;
-    ids.forEach(function(lid){
-      var div=document.createElement('div');div.className='leg-row';
-      div.innerHTML='<div class="leg-dot" style="background:'+getLC(lid)+'"></div>'+esc(lid.toUpperCase().replace('_ARCHIVE',''))+' — '+esc(getLayerLabel(lid));
-      leg.insertBefore(div,ins);
-    });
-  }
+function _lcpLabel(lid){
+  // Simple display name: L1C, L1, L2, L3... stripped of underscores
+  return lid.toUpperCase().replace('_ARCHIVE','').replace('_',' ');
 }
 function showLCP(e){
   var ids=getLayerIds();
   var rows=document.getElementById('lcp-rows');rows.innerHTML='';
+  // Sort: l1c first, then l1_archive, then l2, l3...
   ids.forEach(function(lid){
     var col=getLC(lid);
-    var row=document.createElement('div');row.style.cssText='display:flex;align-items:center;gap:10px;padding:3px 0;';
-    var lbl=document.createElement('span');lbl.style.cssText='flex:1;font-size:13px;color:rgba(79,195,247,0.60);';lbl.textContent=lid.toUpperCase().replace('_ARCHIVE','')+' — '+getLayerLabel(lid);
+    var row=document.createElement('div');
+    row.style.cssText='display:flex;align-items:center;gap:10px;padding:3px 0;';
+    var lbl=document.createElement('span');
+    lbl.style.cssText='flex:1;font-size:13px;color:rgba(79,195,247,0.60);letter-spacing:0.06em;';
+    lbl.textContent=_lcpLabel(lid);
     var sw=document.createElement('input');sw.type='color';sw.value=col;sw.dataset.lid=lid;
-    sw.style.cssText='width:36px;height:26px;border:1px solid rgba(79,195,247,0.20);cursor:pointer;padding:0;background:transparent;';
-    sw.addEventListener('input',function(){layerColors[this.dataset.lid]=this.value;persistLayerColors();rebuildLayerUI();render();});
+    sw.style.cssText='width:36px;height:26px;border:1px solid rgba(79,195,247,0.20);cursor:pointer;padding:0;';
+    sw.addEventListener('input',function(){
+      var l=this.dataset.lid;
+      layerColors[l]=this.value;
+      persistLayerColors();
+      // Update layer filter button color live
+      var btn=document.getElementById('lf-'+l);
+      if(btn){btn.style.color=this.value;btn.style.borderColor=ha(this.value,0.40);}
+      // Redraw wires
+      if(arch)render();
+    });
     row.appendChild(lbl);row.appendChild(sw);rows.appendChild(row);
   });
   var popup=document.getElementById('lcp-popup');
   var rect=document.getElementById('btn-lcp').getBoundingClientRect();
-  popup.style.cssText='display:flex;flex-direction:column;gap:9px;position:fixed;left:'+rect.left+'px;top:'+(rect.bottom+6)+'px;z-index:1200;padding:14px;min-width:260px;background:rgba(2,10,20,0.98);border:1px solid rgba(79,195,247,0.24);box-shadow:0 8px 28px rgba(0,0,0,0.7);';
+  var top=rect.bottom+6, left=rect.left;
+  if(left+260>window.innerWidth)left=window.innerWidth-268;
+  popup.style.cssText='display:flex;flex-direction:column;gap:9px;position:fixed;left:'+left+'px;top:'+top+'px;z-index:1200;padding:14px;min-width:240px;background:rgba(2,10,20,0.98);border:1px solid rgba(79,195,247,0.24);box-shadow:0 8px 28px rgba(0,0,0,0.7);';
 }
 function closeLCP(){document.getElementById('lcp-popup').style.display='none';}
 function resetLayerColorsDefault(){
-  getLayerIds().forEach(function(lid,i){layerColors[lid]=LAYER_DEFAULT_COLORS[i]||LAYER_FALLBACK_COLOR;});
-  persistLayerColors();rebuildLayerUI();render();
-  document.querySelectorAll('#lcp-rows input[type=color]').forEach(function(s){s.value=layerColors[s.dataset.lid]||LAYER_FALLBACK_COLOR;});
-  toast('Layer colors reset to defaults');
+  var ids=getLayerIds();
+  ids.forEach(function(lid,i){layerColors[lid]=LAYER_DEFAULT_COLORS[i]||LAYER_FALLBACK_COLOR;});
+  persistLayerColors();
+  // Refresh swatches
+  document.querySelectorAll('#lcp-rows input[type=color]').forEach(function(sw){
+    sw.value=layerColors[sw.dataset.lid]||LAYER_FALLBACK_COLOR;
+  });
+  // Refresh layer filter button colors
+  ids.forEach(function(lid){
+    var btn=document.getElementById('lf-'+lid);
+    if(btn){btn.style.color=getLC(lid);btn.style.borderColor=ha(getLC(lid),0.40);}
+  });
+  if(arch)render();
+  toast('Layer colors reset');
 }
-document.addEventListener('click',function(e){if(!e.target.closest('#lcp-popup')&&!e.target.closest('#btn-lcp'))closeLCP();});
-function toggleLayer(lyr){layerVis[lyr]=!(layerVis[lyr]!==false);var btn=document.getElementById('lf-'+lyr);if(btn){btn.classList.toggle('on',layerVis[lyr]!==false);btn.classList.toggle('off',layerVis[lyr]===false);}render();}
+document.addEventListener('click',function(e){
+  if(!e.target.closest('#lcp-popup')&&!e.target.closest('#btn-lcp'))closeLCP();
+});
+function toggleLayer(lyr){layerVis[lyr]=!layerVis[lyr];document.getElementById('lf-'+lyr).classList.toggle('on',layerVis[lyr]);document.getElementById('lf-'+lyr).classList.toggle('off',!layerVis[lyr]);render();}
 function setTool(t){tool=t;document.getElementById('btn-sel').classList.toggle('on',t==='select');document.getElementById('btn-pan').classList.toggle('on',t==='pan');}
 
 // ── INIT ─────────────────────────────────────────────────────────────────────
@@ -1911,12 +1891,7 @@ sizeCanvas();
 drawGrid();
 setTool('select');
 window.addEventListener('resize',function(){sizeCanvas();if(arch)updateMinimap();});
-// Default UI before any file loads
-(function(){
-  var _dl={l1:{theme:'blue',header_title:'TERMINAL',ambient:'l1'},l2:{theme:'amber',header_title:'ECHO-ARCHIVE',ambient:'l2'},l3:{theme:'red',header_title:'DEEP ARCHIVE',ambient:'l3'}};
-  arch={layers:_dl,nodes:{}};syncLayerColors();rebuildLayerUI();arch=null;
-})();
-(function(){try{var s=sessionStorage.getItem('ng_autosave');var fn=sessionStorage.getItem('ng_filename')||'(recovered)';if(s){var d=JSON.parse(s);arch=d.arch;positions=d.positions;migrateArch();syncLayerColors();rebuildLayerUI();pushHist();render();resetView();setFstat(fn,'ro');toast('Session restored');}}catch(ex){}})();
+(function(){try{var s=sessionStorage.getItem('ng_autosave');var fn=sessionStorage.getItem('ng_filename')||'(recovered)';if(s){var d=JSON.parse(s);arch=d.arch;positions=d.positions;migrateArch();pushHist();render();resetView();setFstat(fn,'ro');toast('Session restored');}}catch(ex){}})();
 
 /*
  * ── PALETTE INJECTOR INJECTION POINT ────────────────────────────────────────
