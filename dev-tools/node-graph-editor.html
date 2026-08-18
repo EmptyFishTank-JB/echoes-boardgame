@@ -549,30 +549,41 @@ function migrateArch(){
 
 // ── FILE I/O ──────────────────────────────────────────────────────────────────
 var GH_RAW_BASE='https://raw.githubusercontent.com/EmptyFishTank-JB/echoes-boardgame/main/terminal-data/';
+var GH_COMMITS_API='https://api.github.com/repos/EmptyFishTank-JB/echoes-boardgame/commits?per_page=1&path=';
+function fetchLatestSha(repoPath){
+  return fetch(GH_COMMITS_API+encodeURIComponent(repoPath))
+    .then(function(r){return r.ok?r.json():null;})
+    .then(function(d){return(d&&d.length)?d[0].sha.slice(0,7):null;})
+    .catch(function(){return null;});
+}
 async function loadFromGitHub(){
   fileHandle=null;
   try{
     var r=await fetch(GH_RAW_BASE+'nodes.json?v='+Date.now());
     if(!r.ok)throw new Error('HTTP '+r.status);
-    loadArch(JSON.parse(await r.text()),'nodes.json','ro');
+    var raw=JSON.parse(await r.text());
+    var sha=await fetchLatestSha('terminal-data/nodes.json');
+    loadArch(raw,'nodes.json','ro',sha);
   }catch(e){toast('GitHub fetch failed: '+e.message);}
 }
 async function openFile(){
-  if(window.showOpenFilePicker){try{var[h]=await window.showOpenFilePicker({types:[{description:'JSON',accept:{'application/json':['.json']}}]});fileHandle=h;var f=await h.getFile();loadArch(JSON.parse(await f.text()),f.name,'rw');}catch(e){if(e.name!=='AbortError')document.getElementById('fi').click();}}
+  if(window.showOpenFilePicker){try{var[h]=await window.showOpenFilePicker({types:[{description:'JSON',accept:{'application/json':['.json']}}]});fileHandle=h;var f=await h.getFile();loadArch(JSON.parse(await f.text()),f.name,'rw',null);}catch(e){if(e.name!=='AbortError')document.getElementById('fi').click();}}
   else document.getElementById('fi').click();
 }
-function onFileIn(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(ev){try{loadArch(JSON.parse(ev.target.result),f.name,'ro');}catch(ex){toast('Parse error: '+ex.message);}};r.readAsText(f);e.target.value='';}
-function loadArch(raw,name,cls){
+function onFileIn(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(ev){try{loadArch(JSON.parse(ev.target.result),f.name,'ro',null);}catch(ex){toast('Parse error: '+ex.message);}};r.readAsText(f);e.target.value='';}
+function loadArch(raw,name,cls,sha){
   arch=raw;positions={};
   migrateArch();
   syncLayerColors();sortLayers();rebuildLayerFilter();
   var saved=(arch.meta&&arch.meta.node_positions)||{};
   Object.keys(arch.nodes||{}).forEach(function(id){if(saved[id])positions[id]={x:saved[id].x,y:saved[id].y};});
   autoLayout();pushHist();render();resetView();
-  setFstat(name,cls);toast('Loaded '+Object.keys(arch.nodes||{}).length+' nodes');
+  setFstat(name,cls,sha);toast('Loaded '+Object.keys(arch.nodes||{}).length+' nodes');
 }
-function setFstat(n,cls){
-  var el=document.getElementById('fstat');el.textContent=n;el.className=cls;
+function setFstat(n,cls,sha){
+  var el=document.getElementById('fstat');
+  el.textContent=(sha!==undefined)?('['+n+'] ['+(sha||'—')+']'):n;
+  el.className=cls;
   var fv=document.getElementById('fver');
   if(fv&&arch&&arch.meta&&arch.meta.version)fv.textContent='file: '+arch.meta.version;
   else if(fv)fv.textContent='';
