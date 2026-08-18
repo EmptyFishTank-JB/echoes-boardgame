@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NODE GRAPH EDITOR // v5.31</title>
+<title>NODE GRAPH EDITOR // v5.32</title>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
@@ -65,7 +65,11 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
 .badge-chat{background:rgba(77,184,150,0.14);color:#4db896;}
 .badge-boot{background:rgba(240,192,64,0.14);color:#f0c040;}
 .badge-intro{background:rgba(111,176,111,0.14);color:#6fb06f;}
-.badge-global{background:rgba(196,127,196,0.18);color:#c47fc4;border:1px solid rgba(196,127,196,0.30);}
+.badge-global{background:rgba(255,255,255,0.10);color:#ffffff;border:1px solid rgba(255,255,255,0.25);}
+.out-port.navigation.global{border-color:rgba(255,255,255,0.55);background:#0a0a0a;}
+.out-port.navigation.global:hover{border-color:#ffffff;background:rgba(255,255,255,0.20);}
+.out-port.pull.global{border-color:rgba(255,255,255,0.55);background:#0a0a0a;}
+.out-port.pull.global:hover{border-color:#ffffff;background:rgba(255,255,255,0.20);}
 
 /* NODES */
 .gnode{position:absolute;min-width:210px;border-radius:2px;cursor:default;user-select:none;transition:box-shadow 0.12s;}
@@ -231,7 +235,7 @@ select.iv-sel option{background:#001220;color:var(--blue);}
 <body>
 <div id="app">
 <div id="hdr">
-  <span class="htitle">NODE GRAPH EDITOR // v5.31</span>
+  <span class="htitle">NODE GRAPH EDITOR // v5.32</span>
   <span id="as-ind">&#10003; SAVED</span>
   <span id="fstat" class="none">NO FILE</span>
   <span id="fver" style="font-size:11px;color:rgba(79,195,247,0.28);letter-spacing:0.06em;"></span>
@@ -290,6 +294,7 @@ select.iv-sel option{background:#001220;color:var(--blue);}
     </div>
     <div id="preview-pane"></div>
   </div>
+  <div class="drag-handle" id="dh-info" onmousedown="startInfoDrag(event)" title="Drag to resize info panel"></div>
   <!-- TERMINAL PANEL TOGGLE -->
   <div id="rpnl-toggle" style="width:22px;flex-shrink:0;display:flex;align-items:stretch;border-left:1px solid rgba(79,195,247,0.10);">
     <button id="rpnl-btn" onclick="toggleRightPanel()" style="width:100%;background:transparent;border:none;color:rgba(79,195,247,0.40);font-size:10px;cursor:pointer;padding:0;transition:all 0.15s;writing-mode:vertical-rl;" title="Terminal panel">&#9664; TERMINAL</button>
@@ -334,7 +339,7 @@ select.iv-sel option{background:#001220;color:var(--blue);}
 <script>
 'use strict';
 // ── CONSTANTS ─────────────────────────────────────────────────────────────────
-var EDITOR_VERSION='5.31';
+var EDITOR_VERSION='5.32';
 var EDITOR_CREATED='2026-05-28T12:00:00-05:00';
 var EDITOR_CREATED_HUMAN='May 28, 2026 CT';
 var CANVAS_W=4000, CANVAS_H=3000, NODE_W=220;
@@ -431,7 +436,7 @@ var layerVis={}, searchStr='';
 var fileHandle=null, infoMode='details';
 var hist=[], histIdx=-1;
 var ctxNodeId=null, clipboard=null, cpTarget=null;
-var nodeDrag=null, panDrag=null, panelDrag=null, connecting=null, selBoxStart=null;
+var nodeDrag=null, panDrag=null, panelDrag=null, infoDrag=null, connecting=null, selBoxStart=null;
 
 // ── FAVICON ───────────────────────────────────────────────────────────────────
 (function(){var s='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><circle cx="8" cy="16" r="5" fill="#4fc3f7" opacity="0.9"/><circle cx="24" cy="8" r="5" fill="#bf7c0a" opacity="0.9"/><circle cx="24" cy="24" r="5" fill="#e05050" opacity="0.9"/><line x1="13" y1="14" x2="19" y2="10" stroke="#4fc3f7" stroke-width="1.5" opacity="0.6"/><line x1="13" y1="18" x2="19" y2="22" stroke="#4fc3f7" stroke-width="1.5" opacity="0.6"/></svg>';var el=document.createElement('link');el.rel='icon';el.type='image/svg+xml';el.href='data:image/svg+xml;base64,'+btoa(s);document.head.appendChild(el);})();
@@ -652,14 +657,14 @@ function render(){
     // Node type badge
     var nt=n.node_type||'standard';
     var badge=document.createElement('span');badge.className='node-type-badge badge-'+nt;badge.textContent=NODE_TYPE_LABELS[nt]||nt;hdr.appendChild(badge);
-    // Global nodes: show scope label, dashed border, no in-port
+    // Global nodes: white dashed border, dark bg, scope label
     if(nt==='global'){
       el.style.borderStyle='dashed';
-      el.style.borderColor='rgba(196,127,196,0.55)';
-      el.style.background='rgba(10,2,10,0.97)';
+      el.style.borderColor='rgba(255,255,255,0.55)';
+      el.style.background='rgba(6,6,6,0.97)';
       var scope=n.layer_scope||null;
       var scopeEl=document.createElement('span');
-      scopeEl.style.cssText='font-size:10px;color:rgba(196,127,196,0.55);flex-shrink:0;letter-spacing:0.06em;';
+      scopeEl.style.cssText='font-size:10px;color:rgba(255,255,255,0.50);flex-shrink:0;letter-spacing:0.06em;';
       scopeEl.textContent=scope?scope.toUpperCase():'GLOBAL';
       hdr.appendChild(scopeEl);
     }
@@ -702,7 +707,7 @@ function render(){
           // Out port for nav/data/flavor commands (still shown even if hidden)
           if(ct==='navigation'||ct==='pull'||ct==='flavor'){
             var port=document.createElement('div');
-            port.className='out-port '+ct+(ct==='navigation'?' '+lyr:'');
+            port.className='out-port '+ct+(ct==='navigation'?' '+lyr:'')+(nt==='global'?' global':'');
             port.style.opacity=isHidden?'0.30':'1';
             port.dataset.nodeid=id;port.dataset.bodyidx=bi;port.dataset.portidx=portIdx;
             port.addEventListener('mousedown',function(e){e.stopPropagation();e.preventDefault();startConnect(e,id,parseInt(this.dataset.bodyidx));});
@@ -788,8 +793,8 @@ function drawConnections(nodes){
       var p1=getPortPos(id,bi);
       var p2=getInPortPos(tgt);
       var isSel=(id===selectedNode||tgt===selectedNode||multiSel.indexOf(id)>=0||multiSel.indexOf(tgt)>=0);
-      // NAV wire follows source layer color; pull/flavor use CMD_COLOR
-      var col=ct==='navigation'?getLC(lyr):(CMD_COLOR[ct]||'#4fc3f7');
+      // NAV wire follows source layer color; pull/flavor use CMD_COLOR; global nodes use white
+      var col=nt==='global'?'rgba(255,255,255,0.85)':(ct==='navigation'?getLC(lyr):(CMD_COLOR[ct]||'#4fc3f7'));
       var cp=Math.max(60,Math.abs(p2.x-p1.x)*0.5);
       var path=document.createElementNS('http://www.w3.org/2000/svg','path');
       path.classList.add('cp');
@@ -923,6 +928,7 @@ document.addEventListener('mousemove',function(e){
   }
   if(panDrag){pan.x=panDrag.startPX+(e.clientX-panDrag.startX);pan.y=panDrag.startPY+(e.clientY-panDrag.startY);applyTransform();updateMinimap();return;}
   if(panelDrag){document.getElementById('info').style.width=Math.max(200,Math.min(800,panelDrag.startW+(panelDrag.startX-e.clientX)))+'px';return;}
+  if(infoDrag){document.getElementById('info').style.width=Math.max(200,Math.min(800,infoDrag.startW+(e.clientX-infoDrag.startX)))+'px';return;}
   if(selBoxStart){
     var dx3=e.clientX-selBoxStart.clientX,dy3=e.clientY-selBoxStart.clientY;
     var isWin=dx3>0;
@@ -961,6 +967,7 @@ document.addEventListener('mouseup',function(e){
   if(nodeDrag){pushHist();nodeDrag=null;}
   if(panDrag){panDrag=null;document.getElementById('canvas-wrap').classList.remove('grabbing');}
   if(panelDrag){panelDrag=null;}
+  if(infoDrag){infoDrag=null;document.getElementById('dh-info').classList.remove('dragging');}
   if(selBoxStart){
     var dx=e.clientX-selBoxStart.clientX,dy=e.clientY-selBoxStart.clientY;
     var isWin=dx>0;
@@ -1024,6 +1031,12 @@ function startPanelDrag(e){
   panelDrag={startX:e.clientX,startW:document.getElementById('info').offsetWidth};
   document.getElementById('dh-r').classList.add('dragging');
   document.addEventListener('mouseup',function(){document.getElementById('dh-r').classList.remove('dragging');},{once:true});
+}
+// Drag handle between info column and terminal panel (right side of info)
+function startInfoDrag(e){
+  e.preventDefault();
+  infoDrag={startX:e.clientX,startW:document.getElementById('info').offsetWidth};
+  document.getElementById('dh-info').classList.add('dragging');
 }
 
 // ── FIT VIEW ─────────────────────────────────────────────────────────────────
@@ -1169,16 +1182,11 @@ function showInfo(id){
   h+='</div>';
   // Add buttons
   h+='<div class="add-body-btns">';
-  if(isGlobal){
-    h+='<button class="add-btn nav" onclick="addBody(\''+esc(id)+'\',\'cmd-nav\')">+ NAV</button>';
-    h+='<button class="add-btn pull" onclick="addBody(\''+esc(id)+'\',\'cmd-pull\')">+ PULL</button>';
-  }else{
-    h+='<button class="add-btn txt" onclick="addBody(\''+esc(id)+'\',\'text\')">+ TEXT</button>';
-    h+='<button class="add-btn nav" onclick="addBody(\''+esc(id)+'\',\'cmd-nav\')">+ NAV</button>';
-    h+='<button class="add-btn pull" onclick="addBody(\''+esc(id)+'\',\'cmd-pull\')">+ PULL</button>';
-    h+='<button class="add-btn loop" onclick="addBody(\''+esc(id)+'\',\'cmd-loop\')">+ LOOP</button>';
-    h+='<button class="add-btn dyn" onclick="addBody(\''+esc(id)+'\',\'dyn\')">+ DYN</button>';
-  }
+  h+='<button class="add-btn txt" onclick="addBody(\''+esc(id)+'\',\'text\')">+ TEXT</button>';
+  h+='<button class="add-btn nav" onclick="addBody(\''+esc(id)+'\',\'cmd-nav\')">+ NAV</button>';
+  h+='<button class="add-btn pull" onclick="addBody(\''+esc(id)+'\',\'cmd-pull\')">+ PULL</button>';
+  h+='<button class="add-btn loop" onclick="addBody(\''+esc(id)+'\',\'cmd-loop\')">+ LOOP</button>';
+  h+='<button class="add-btn dyn" onclick="addBody(\''+esc(id)+'\',\'dyn\')">+ DYN</button>';
   h+='</div></div>';
 
   // Incoming
@@ -1194,8 +1202,8 @@ function showInfo(id){
   document.getElementById('info-body').innerHTML=h;
   document.getElementById('info-body').style.display='flex';
 
-  // Update right panel preview if open
-  if(_rpnlOpen&&_rpnlMode==='preview')updateRightPreview(id);
+  // Update bottom preview pane if open
+  updatePreview(id);
   
   // DISABLE ALL EDITS IF NODE IS LOCKED
   var isLocked=n._editor&&n._editor.locked;
