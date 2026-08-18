@@ -1,19 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+CiAgPHN0eWxlPgogICAgQGtleWZyYW1lcyBmewogICAgICAwJXtvcGFjaXR5OjF9CiAgICAgIDQwJXtvcGFjaXR5OjF9CiAgICAgIDUwJXtvcGFjaXR5OjAuNH0KICAgICAgNjAle29wYWNpdHk6MX0KICAgICAgMTAwJXtvcGFjaXR5OjF9CiAgICB9CiAgPC9zdHlsZT4KICAgICAgPGcgc3R5bGU9ImFuaW1hdGlvbjpmIDVzIDAuMDAwcyBpbmZpbml0ZSI+CiAgICAgICAgPHJlY3QgeD0iMC4wIiB5PSI1LjAiCiAgICAgICAgICAgICAgd2lkdGg9IjguMCIgaGVpZ2h0PSIyMi4wIgogICAgICAgICAgICAgIHJ4PSIyLjAiCiAgICAgICAgICAgICAgZmlsbD0iIzRmYzNmNyIgb3BhY2l0eT0iMC42Ii8+CiAgICAgICAgPHJlY3QgeD0iMS4wIiB5PSI2LjAiCiAgICAgICAgICAgICAgd2lkdGg9IjYiIGhlaWdodD0iMjAuMCIKICAgICAgICAgICAgICByeD0iMSIgZmlsbD0iIzRmYzNmNyIvPgogICAgICA8L2c+CiAgICAgIDxnIHN0eWxlPSJhbmltYXRpb246ZiA1cyAwLjM1MHMgaW5maW5pdGUiPgogICAgICAgIDxyZWN0IHg9IjEyLjAiIHk9IjAuMCIKICAgICAgICAgICAgICB3aWR0aD0iOC4wIiBoZWlnaHQ9IjMyLjAiCiAgICAgICAgICAgICAgcng9IjIuMCIKICAgICAgICAgICAgICBmaWxsPSIjNGZjM2Y3IiBvcGFjaXR5PSIwLjYiLz4KICAgICAgICA8cmVjdCB4PSIxMy4wIiB5PSIxLjAiCiAgICAgICAgICAgICAgd2lkdGg9IjYiIGhlaWdodD0iMzAuMCIKICAgICAgICAgICAgICByeD0iMSIgZmlsbD0iIzRmYzNmNyIvPgogICAgICA8L2c+CiAgICAgIDxnIHN0eWxlPSJhbmltYXRpb246ZiA1cyAwLjcwMHMgaW5maW5pdGUiPgogICAgICAgIDxyZWN0IHg9IjI0LjAiIHk9IjYuMCIKICAgICAgICAgICAgICB3aWR0aD0iOC4wIiBoZWlnaHQ9IjIwLjAiCiAgICAgICAgICAgICAgcng9IjIuMCIKICAgICAgICAgICAgICBmaWxsPSIjNGZjM2Y3IiBvcGFjaXR5PSIwLjYiLz4KICAgICAgICA8cmVjdCB4PSIyNS4wIiB5PSI3LjAiCiAgICAgICAgICAgICAgd2lkdGg9IjYiIGhlaWdodD0iMTguMCIKICAgICAgICAgICAgICByeD0iMSIgZmlsbD0iIzRmYzNmNyIvPgogICAgICA8L2c+Cjwvc3ZnPg==">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ECHO LORE EDITOR // v4.2.6.026.06</title>
+<title>ECHO LORE EDITOR // v4.2.6.026.07</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+CiAgPHN0eWxlPgogICAgQGtleWZyYW1lcyBmewogICAgICAwJXtvcGFjaXR5OjF9CiAgICAgIDQwJXtvcGFjaXR5OjF9CiAgICAgIDUwJXtvcGFjaXR5OjAuNH0KICAgICAgNjAle29wYWNpdHk6MX0KICAgICAgMTAwJXtvcGFjaXR5OjF9CiAgICB9CiAgPC9zdHlsZT4KICAgICAgPGcgc3R5bGU9ImFuaW1hdGlvbjpmIDVzIDAuMDAwcyBpbmZpbml0ZSI+CiAgICAgICAgPHJlY3QgeD0iMC4wIiB5PSI1LjAiCiAgICAgICAgICAgICAgd2lkdGg9IjguMCIgaGVpZ2h0PSIyMi4wIgogICAgICAgICAgICAgIHJ4PSIyLjAiCiAgICAgICAgICAgICAgZmlsbD0iIzRmYzNmNyIgb3BhY2l0eT0iMC42Ii8+CiAgICAgICAgPHJlY3QgeD0iMS4wIiB5PSI2LjAiCiAgICAgICAgICAgICAgd2lkdGg9IjYiIGhlaWdodD0iMjAuMCIKICAgICAgICAgICAgICByeD0iMSIgZmlsbD0iIzRmYzNmNyIvPgogICAgICA8L2c+CiAgICAgIDxnIHN0eWxlPSJhbmltYXRpb246ZiA1cyAwLjM1MHMgaW5maW5pdGUiPgogICAgICAgIDxyZWN0IHg9IjEyLjAiIHk9IjAuMCIKICAgICAgICAgICAgICB3aWR0aD0iOC4wIiBoZWlnaHQ9IjMyLjAiCiAgICAgICAgICAgICAgcng9IjIuMCIKICAgICAgICAgICAgICBmaWxsPSIjNGZjM2Y3IiBvcGFjaXR5PSIwLjYiLz4KICAgICAgICA8cmVjdCB4PSIxMy4wIiB5PSIxLjAiCiAgICAgICAgICAgICAgd2lkdGg9IjYiIGhlaWdodD0iMzAuMCIKICAgICAgICAgICAgICByeD0iMSIgZmlsbD0iIzRmYzNmNyIvPgogICAgICA8L2c+CiAgICAgIDxnIHN0eWxlPSJhbmltYXRpb246ZiA1cyAwLjcwMHMgaW5maW5pdGUiPgogICAgICAgIDxyZWN0IHg9IjI0LjAiIHk9IjYuMCIKICAgICAgICAgICAgICB3aWR0aD0iOC4wIiBoZWlnaHQ9IjIwLjAiCiAgICAgICAgICAgICAgcng9IjIuMCIKICAgICAgICAgICAgICBmaWxsPSIjNGZjM2Y3IiBvcGFjaXR5PSIwLjYiLz4KICAgICAgICA8cmVjdCB4PSIyNS4wIiB5PSI3LjAiCiAgICAgICAgICAgICAgd2lkdGg9IjYiIGhlaWdodD0iMTguMCIKICAgICAgICAgICAgICByeD0iMSIgZmlsbD0iIzRmYzNmNyIvPgogICAgICA8L2c+Cjwvc3ZnPg==">
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
 
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 :root{
   --blue:#4fc3f7;--amber:#bf7c0a;--red:#e05050;--green:#6fb06f;
-  --dim:rgba(79,195,247,0.40);--bg:#00080e;--bdr:rgba(79,195,247,0.10);
+  --bg:#001220;--dark:#00080e;
+  --dim:rgba(79,195,247,0.40);--bdr:rgba(79,195,247,0.10);
 }
-html,body{height:100%;background:var(--bg);color:var(--blue);
+html,body{height:100%;background:var(--dark);color:var(--blue);
   font-family:"Share Tech Mono",monospace;font-size:13px;overflow:hidden;}
 #app{display:flex;flex-direction:column;height:100vh;}
 
@@ -21,73 +22,123 @@ html,body{height:100%;background:var(--bg);color:var(--blue);
 #hdr{display:flex;justify-content:space-between;align-items:center;
   padding:7px 16px;border-bottom:1px solid var(--bdr);
   flex-shrink:0;background:rgba(0,4,10,0.98);gap:10px;flex-wrap:wrap;}
-.htitle{font-size:11px;letter-spacing:0.14em;}
-.hright{display:flex;align-items:center;gap:10px;font-size:10px;color:var(--dim);}
+.htitle{font-size:12px;letter-spacing:0.14em;}
+.hright{display:flex;align-items:center;gap:10px;font-size:11px;color:var(--dim);}
 #as-ind{color:var(--green);opacity:0;transition:opacity 0.4s;}
 #as-ind.show{opacity:1;}
-#fstat{font-size:10px;padding:2px 8px;border:1px solid;letter-spacing:0.06em;}
+#fstat{font-size:11px;padding:2px 8px;border:1px solid;letter-spacing:0.06em;}
 #fstat.none{border-color:rgba(79,195,247,0.10);color:var(--dim);}
 #fstat.ro  {border-color:rgba(191,124,10,0.28);color:var(--amber);}
 #fstat.rw  {border-color:rgba(111,176,111,0.35);color:var(--green);}
 .hbtn{background:transparent;border:1px solid rgba(79,195,247,0.16);
   color:var(--dim);font-family:"Share Tech Mono",monospace;
-  font-size:10px;letter-spacing:0.07em;padding:3px 10px;cursor:pointer;transition:all 0.15s;}
+  font-size:11px;letter-spacing:0.07em;padding:3px 10px;cursor:pointer;transition:all 0.15s;}
 .hbtn:hover{border-color:var(--blue);color:var(--blue);}
 
 /* BODY */
 #body{display:flex;flex:1;min-height:0;}
 
-/* ENTRIES COLUMN — collapsible */
+/* ENTRIES COLUMN */
 #ecol{
-  width:350px;flex-shrink:0;display:flex;flex-direction:column;
+  width:360px;flex-shrink:0;display:flex;flex-direction:column;
   border-right:1px solid var(--bdr);overflow:hidden;
   transition:width 0.28s cubic-bezier(0.4,0,0.2,1);
-  position:relative;
 }
-#ecol.collapsed{width:24px;}
-#etgl{
-  position:absolute;right:0;top:0;height:30px;width:24px;
-  background:rgba(79,195,247,0.05);border:none;border-left:1px solid var(--bdr);
-  color:var(--dim);font-family:"Share Tech Mono",monospace;font-size:11px;
-  cursor:pointer;transition:all 0.15s;z-index:10;display:flex;
-  align-items:center;justify-content:center;
-}
-#etgl:hover{background:rgba(79,195,247,0.10);color:var(--blue);}
-.ecol-content{display:flex;flex-direction:column;flex:1;min-height:0;min-width:326px;}
-.phdr{padding:7px 12px 7px 12px;font-size:10px;letter-spacing:0.12em;
+#ecol.collapsed{width:0;}
+.phdr{padding:7px 12px;font-size:12px;letter-spacing:0.12em;
   color:var(--dim);border-bottom:1px solid var(--bdr);flex-shrink:0;
-  display:flex;justify-content:space-between;align-items:center;}
+  display:flex;align-items:center;gap:8px;white-space:nowrap;}
+#etgl{background:transparent;border:none;color:var(--dim);
+  font-family:"Share Tech Mono",monospace;font-size:12px;
+  cursor:pointer;transition:color 0.15s;padding:0;flex-shrink:0;line-height:1;}
+#etgl:hover{color:var(--blue);}
+#etgl-outer{
+  width:28px;flex-shrink:0;display:flex;align-items:stretch;
+  border-right:1px solid var(--bdr);
+}
+#etgl-outer button{
+  width:100%;background:transparent;border:none;
+  color:var(--dim);font-family:"Share Tech Mono",monospace;font-size:11px;
+  cursor:pointer;transition:all 0.15s;padding:0;
+}
+#etgl-outer button:hover{background:rgba(79,195,247,0.06);color:var(--blue);}
+
+.ecol-inner{display:flex;flex-direction:column;flex:1;min-height:0;min-width:332px;}
 #esrch{background:rgba(79,195,247,0.03);border:none;border-bottom:1px solid var(--bdr);
-  color:var(--blue);font-family:"Share Tech Mono",monospace;font-size:11px;
-  padding:6px 12px;outline:none;width:100%;letter-spacing:0.05em;flex-shrink:0;}
-#esrch::placeholder{color:rgba(79,195,247,0.26);}
+  color:var(--blue);font-family:"Share Tech Mono",monospace;font-size:12px;
+  padding:6px 12px;outline:none;width:100%;flex-shrink:0;}
+#esrch::placeholder{color:rgba(79,195,247,0.24);}
 #elist{flex:1;overflow-y:auto;}
 .erow{padding:7px 10px;border-bottom:1px solid rgba(79,195,247,0.05);
   cursor:pointer;transition:background 0.10s;position:relative;}
 .erow:hover{background:rgba(79,195,247,0.04);}
 .erow.active{background:rgba(79,195,247,0.08);border-left:2px solid var(--blue);}
-.er-code{font-size:10px;color:var(--dim);letter-spacing:0.05em;margin-bottom:3px;}
-.er-mid{display:flex;align-items:center;gap:5px;margin-bottom:3px;}
-.etbadge{font-size:9px;padding:1px 5px;border:1px solid rgba(79,195,247,0.16);
-  color:var(--dim);flex-shrink:0;white-space:nowrap;}
-.etbadge.virus{border-color:rgba(224,80,80,0.35);color:var(--red);}
-.etbadge.classified{border-color:rgba(191,124,10,0.35);color:var(--amber);}
-.etbadge.partial,.etbadge.degraded,.etbadge.corrupted{
-  border-color:rgba(191,124,10,0.18);color:rgba(191,124,10,0.55);}
-.er-lbl{font-size:11px;color:rgba(79,195,247,0.55);
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.er-code{font-size:11px;color:var(--dim);letter-spacing:0.05em;margin-bottom:3px;}
+.er-mid{display:flex;align-items:center;gap:5px;margin-bottom:3px;flex-wrap:wrap;}
+.er-lbl{font-size:12px;color:rgba(79,195,247,0.55);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:22px;}
 .erm{position:absolute;top:7px;right:6px;background:transparent;
   border:1px solid rgba(224,80,80,0.18);color:rgba(224,80,80,0.40);
   font-family:"Share Tech Mono",monospace;font-size:10px;
   padding:1px 5px;cursor:pointer;transition:all 0.12s;line-height:1;}
 .erm:hover{border-color:var(--red);color:var(--red);}
-#eno{padding:14px;font-size:11px;color:var(--dim);text-align:center;}
-#ecount{padding:5px 12px;font-size:10px;color:var(--dim);
+#ecount{padding:5px 12px;font-size:11px;color:var(--dim);
   border-top:1px solid var(--bdr);flex-shrink:0;display:none;}
 
-/* EDITOR */
+/* ── BADGE VISUAL EFFECTS ─────────────────────────────────────────────────── */
+.etbadge{
+  font-size:11px;padding:2px 6px;border:1px solid rgba(79,195,247,0.16);
+  color:var(--dim);flex-shrink:0;white-space:nowrap;
+  position:relative;overflow:hidden;
+  display:inline-block;
+}
+.etbadge .bt{position:relative;z-index:1;}
+
+/* FULL */
+.etbadge.full{border-color:rgba(79,195,247,0.22);color:var(--blue);}
+
+/* PARTIAL — diagonal fill lower-left→upper-right, text inverts */
+.etbadge.partial{border-color:rgba(79,195,247,0.40);}
+.etbadge.partial::before{content:'';position:absolute;inset:0;
+  background:linear-gradient(to top right,var(--blue) 50%,transparent 50%);
+  pointer-events:none;}
+.etbadge.partial .bt{
+  background:linear-gradient(to top right,#00080e 50%,var(--blue) 50%);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}
+
+/* DEGRAD. — V-shape fill, lower-left + lower-right corners */
+.etbadge.degraded{border-color:rgba(79,195,247,0.30);}
+.etbadge.degraded::before{content:'';position:absolute;inset:0;
+  background:
+    linear-gradient(to top left,var(--blue) 50%,transparent 50%) right / 50% 100% no-repeat,
+    linear-gradient(to top right,var(--blue) 50%,transparent 50%) left / 50% 100% no-repeat;
+  pointer-events:none;}
+.etbadge.degraded .bt{
+  background:
+    linear-gradient(to top left,#00080e 50%,var(--blue) 50%) right / 50% 100% no-repeat,
+    linear-gradient(to top right,#00080e 50%,var(--blue) 50%) left / 50% 100% no-repeat;
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}
+
+/* CORRUPT — hatched amber, dashed border */
+.etbadge.corrupted{
+  border-color:rgba(191,124,10,0.45);border-style:dashed;color:var(--amber);}
+.etbadge.corrupted::before{content:'';position:absolute;inset:0;
+  background:repeating-linear-gradient(-45deg,
+    rgba(191,124,10,0.12),rgba(191,124,10,0.12) 2px,
+    transparent 2px,transparent 7px);
+  pointer-events:none;}
+
+/* CLASSIFIED */
+.etbadge.classified{border-color:rgba(191,124,10,0.40);color:var(--amber);}
+
+/* VIRUS */
+.etbadge.virus{border-color:rgba(224,80,80,0.40);color:var(--red);}
+
+/* EDITOR COLUMN */
 #editor{flex:1;min-width:0;display:flex;flex-direction:column;
   border-right:1px solid var(--bdr);}
+.ephdr{padding:7px 12px;font-size:12px;letter-spacing:0.12em;
+  color:var(--dim);border-bottom:1px solid var(--bdr);flex-shrink:0;}
 #escroll{flex:1;overflow-y:auto;padding:11px 13px;
   display:flex;flex-direction:column;gap:10px;}
 
@@ -95,45 +146,40 @@ html,body{height:100%;background:var(--bg);color:var(--blue);
 #sdp{border:1px solid rgba(79,195,247,0.11);background:rgba(79,195,247,0.02);padding:9px 11px;}
 .sdr{display:flex;align-items:center;gap:7px;margin-bottom:5px;}
 .sdr:last-of-type{margin-bottom:0;}
-.sdl{font-size:10px;color:var(--dim);min-width:66px;flex-shrink:0;}
-.sdv{flex:1;font-size:12px;letter-spacing:0.05em;}
+.sdl{font-size:12px;color:var(--dim);min-width:70px;flex-shrink:0;}
+.sdv{flex:1;font-size:13px;letter-spacing:0.05em;}
 .sdv.rl{color:var(--blue);}.sdv.ft{color:var(--amber);}
 .inj{background:transparent;border:1px solid rgba(79,195,247,0.15);
   color:var(--dim);font-family:"Share Tech Mono",monospace;
-  font-size:10px;padding:2px 7px;cursor:pointer;transition:all 0.15s;flex-shrink:0;}
+  font-size:11px;padding:2px 8px;cursor:pointer;transition:all 0.15s;flex-shrink:0;}
 .inj:hover{border-color:var(--blue);color:var(--blue);background:rgba(79,195,247,0.05);}
 .inj.a{border-color:rgba(191,124,10,0.18);color:rgba(191,124,10,0.45);}
 .inj.a:hover{border-color:var(--amber);color:var(--amber);background:rgba(191,124,10,0.05);}
 
-/* SETTINGS */
-#set-bar{display:flex;align-items:center;gap:8px;font-size:10px;color:var(--dim);}
-#set-bar input[type=date]{width:140px;font-size:10px;padding:3px 6px;background:rgba(79,195,247,0.03);
-  border:1px solid rgba(79,195,247,0.12);color:var(--blue);font-family:"Share Tech Mono",monospace;outline:none;}
-#set-bar label{flex-shrink:0;letter-spacing:0.07em;}
-
 /* FIELDS */
-.fg{display:flex;flex-direction:column;gap:4px;}
-.fl{font-size:10px;letter-spacing:0.09em;color:rgba(79,195,247,0.43);}
+.fg{display:flex;flex-direction:column;gap:5px;}
+.fl{font-size:12px;letter-spacing:0.08em;color:rgba(79,195,247,0.46);}
 .fr{display:flex;gap:6px;align-items:stretch;}
-input[type=text],input[type=number],textarea,select{
+input[type=text],input[type=number],input[type=date],textarea,select{
   background:rgba(79,195,247,0.04);border:1px solid rgba(79,195,247,0.12);
   color:var(--blue);font-family:"Share Tech Mono",monospace;
-  font-size:13px;letter-spacing:0.04em;padding:6px 9px;
+  font-size:13px;letter-spacing:0.04em;padding:7px 9px;
   outline:none;transition:border-color 0.2s;width:100%;}
 input:focus,textarea:focus,select:focus{border-color:rgba(79,195,247,0.35);}
 select option{background:#001220;color:var(--blue);}
+input[type=date]{color-scheme:dark;}
 #codef{text-transform:uppercase;letter-spacing:0.13em;}
 #codef.valid{border-color:rgba(111,176,111,0.55);}
 #codef.dupe {border-color:rgba(224,80,80,0.55);}
-#codest{font-size:10px;margin-top:3px;letter-spacing:0.05em;color:var(--dim);}
+#codest{font-size:11px;margin-top:3px;letter-spacing:0.05em;color:var(--dim);}
 #codest.ok {color:var(--green);}
 #codest.bad{color:var(--red);}
 
 /* TOGGLES */
 .tgg{display:flex;}
-.tg{flex:1;background:transparent;border:1px solid rgba(79,195,247,0.11);
+.tg{flex:1;background:transparent;border:1px solid rgba(79,195,247,0.12);
   color:var(--dim);font-family:"Share Tech Mono",monospace;
-  font-size:10px;letter-spacing:0.06em;padding:5px 0;cursor:pointer;
+  font-size:12px;letter-spacing:0.06em;padding:5px 0;cursor:pointer;
   transition:all 0.15s;margin-left:-1px;}
 .tg:first-child{margin-left:0;}
 .tg:hover{color:var(--blue);border-color:rgba(79,195,247,0.30);z-index:1;}
@@ -143,28 +189,26 @@ select option{background:#001220;color:var(--blue);}
 
 /* CODE GEN */
 #cgen{border:1px solid rgba(79,195,247,0.10);background:rgba(79,195,247,0.015);
-  padding:9px 11px;display:flex;flex-direction:column;gap:7px;}
+  padding:9px 11px;display:flex;flex-direction:column;gap:8px;}
 .cgrow{display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
-.cglbl{font-size:10px;color:var(--dim);letter-spacing:0.07em;}
-select.ss{flex:1;padding:4px 6px;font-size:10px;
+.cglbl{font-size:12px;color:var(--dim);letter-spacing:0.06em;}
+select.ss{flex:1;padding:5px 7px;font-size:12px;
   background:rgba(79,195,247,0.04);border:1px solid rgba(79,195,247,0.12);
   color:var(--blue);font-family:"Share Tech Mono",monospace;outline:none;min-width:0;}
 
-/* TYPE DISPLAY */
-#type-badge{font-size:10px;padding:2px 8px;border:1px solid var(--bdr);color:var(--dim);flex-shrink:0;}
+/* DISPLAY BADGES (type + clearance in form) */
+#type-badge{font-size:12px;padding:3px 9px;border:1px solid var(--bdr);color:var(--dim);flex-shrink:0;}
 #type-badge.full{border-color:rgba(79,195,247,0.24);color:var(--blue);}
-#type-badge.partial,.type-badge.degraded,.type-badge.corrupted{
-  border-color:rgba(191,124,10,0.28);color:rgba(191,124,10,0.65);}
 #type-badge.classified{border-color:rgba(191,124,10,0.42);color:var(--amber);}
 #type-badge.virus{border-color:rgba(224,80,80,0.42);color:var(--red);}
-#clr-badge{font-size:10px;padding:2px 8px;border:1px solid rgba(79,195,247,0.13);
+#clr-badge{font-size:12px;padding:3px 9px;border:1px solid rgba(79,195,247,0.13);
   color:var(--dim);flex-shrink:0;}
 
 /* BUTTONS */
 .btn{background:transparent;border:1px solid rgba(79,195,247,0.17);
   color:var(--blue);font-family:"Share Tech Mono",monospace;
-  font-size:11px;letter-spacing:0.07em;padding:5px 11px;cursor:pointer;
-  transition:all 0.15s;white-space:nowrap;}
+  font-size:12px;letter-spacing:0.07em;
+  padding:5px 12px;cursor:pointer;transition:all 0.15s;white-space:nowrap;}
 .btn:hover{border-color:var(--blue);background:rgba(79,195,247,0.05);}
 .btn.a{border-color:rgba(191,124,10,0.24);color:var(--amber);}
 .btn.a:hover{border-color:var(--amber);background:rgba(191,124,10,0.05);}
@@ -172,52 +216,66 @@ select.ss{flex:1;padding:4px 6px;font-size:10px;
 .btn.g:hover{border-color:var(--green);background:rgba(111,176,111,0.05);}
 .btn.r{border-color:rgba(224,80,80,0.18);color:rgba(224,80,80,0.50);}
 .btn.r:hover{border-color:var(--red);color:var(--red);background:rgba(224,80,80,0.05);}
-.btn.sm{font-size:10px;padding:3px 9px;}
+.btn.sm{font-size:11px;padding:3px 9px;}
 .btn:disabled{opacity:0.28;cursor:not-allowed;}
 #brow{display:flex;gap:6px;flex-wrap:wrap;}
 
-/* TEXT */
+/* TEXT AREAS */
 #logtxt{resize:vertical;min-height:150px;max-height:280px;line-height:1.75;}
 #l1pre{resize:vertical;min-height:65px;line-height:1.7;}
 #l1preg{display:none;}
-.cct{font-size:10px;color:var(--dim);text-align:right;margin-top:2px;}
+.cct{font-size:11px;color:var(--dim);text-align:right;margin-top:2px;}
 
-/* DROP */
+/* SETTINGS BAR */
+.set-bar{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--dim);flex-wrap:wrap;}
+.set-bar input[type=date]{width:150px;font-size:12px;padding:4px 7px;}
+.set-bar label{flex-shrink:0;letter-spacing:0.06em;}
+
+/* TEMPLATE EDITOR */
+#tpl-editor{border:1px solid rgba(79,195,247,0.10);
+  background:rgba(79,195,247,0.015);padding:9px 11px;
+  display:flex;flex-direction:column;gap:8px;}
+.tpl-ed-hdr{font-size:12px;color:var(--dim);letter-spacing:0.08em;
+  display:flex;justify-content:space-between;align-items:center;}
+#tpl-name{font-size:12px;padding:5px 8px;}
+#tpl-body{resize:vertical;min-height:80px;font-size:12px;line-height:1.65;}
+
+/* DROP ZONE */
 #dz{border:1px dashed rgba(79,195,247,0.16);padding:12px;
   text-align:center;cursor:pointer;transition:all 0.2s;
-  color:var(--dim);font-size:10px;letter-spacing:0.06em;}
+  color:var(--dim);font-size:12px;letter-spacing:0.06em;}
 #dz:hover,#dz.ov{border-color:var(--blue);color:var(--blue);background:rgba(79,195,247,0.03);}
 #dz.ov{border-style:solid;}
-#fi{display:none;}
-#pasta{resize:vertical;min-height:44px;font-size:11px;color:rgba(79,195,247,0.34);}
+#fi{display:none;} #fit{display:none;}
+#pasta{resize:vertical;min-height:44px;font-size:12px;color:rgba(79,195,247,0.34);}
 
-/* RIGHT COL */
-#rcol{flex:1;min-width:0;display:flex;flex-direction:column;}
+/* PREVIEW + JSON */
+#rcol{flex:1;min-width:200px;display:flex;flex-direction:column;}
 #pw{flex:1;min-height:0;display:flex;flex-direction:column;border-bottom:1px solid var(--bdr);}
-.pvhdr{padding:7px 13px;font-size:10px;letter-spacing:0.12em;
+.pvhdr{padding:7px 13px;font-size:12px;letter-spacing:0.12em;
   color:rgba(191,124,10,0.42);border-bottom:1px solid rgba(191,124,10,0.08);
   flex-shrink:0;background:rgba(191,124,10,0.015);
   display:flex;justify-content:space-between;align-items:center;}
-#mbadge{font-size:9px;letter-spacing:0.07em;padding:2px 6px;border:1px solid;}
+#mbadge{font-size:10px;letter-spacing:0.07em;padding:2px 6px;border:1px solid;}
 #mbadge.lore{border-color:rgba(191,124,10,0.36);color:var(--amber);}
 #mbadge.dev{border-color:rgba(224,80,80,0.36);color:var(--red);}
 #preview{flex:1;overflow-y:auto;padding:13px 13px 8px;
-  color:#bf7c0a;line-height:1.9;white-space:pre-wrap;word-break:break-word;font-size:12px;}
+  color:#bf7c0a;line-height:1.9;white-space:pre-wrap;word-break:break-word;font-size:13px;}
 #preview.dv{color:#e05050;background:rgba(0,0,0,0.18);}
 .ps{color:rgba(191,124,10,0.25);}.pq{color:#d9962a;}
 .pd{color:rgba(191,124,10,0.36);}.pdc{color:rgba(191,124,10,0.52);}
 .pe{color:#c84040;}
 #jw{height:185px;display:flex;flex-direction:column;flex-shrink:0;}
-.jhdr{padding:7px 13px;font-size:10px;letter-spacing:0.12em;
+.jhdr{padding:7px 13px;font-size:12px;letter-spacing:0.12em;
   color:var(--dim);border-bottom:1px solid var(--bdr);
   flex-shrink:0;display:flex;justify-content:space-between;align-items:center;}
 #jo{flex:1;overflow-y:auto;padding:9px 13px;
-  color:rgba(79,195,247,0.58);line-height:1.6;white-space:pre;font-size:11px;}
+  color:rgba(79,195,247,0.58);line-height:1.6;white-space:pre;font-size:12px;}
 
 /* UNDO BAR */
 #urbar{display:flex;align-items:center;gap:7px;padding:5px 13px;
   border-bottom:1px solid var(--bdr);flex-shrink:0;flex-wrap:wrap;}
-#urinfo{font-size:10px;color:var(--dim);flex:1;min-width:60px;}
+#urinfo{font-size:11px;color:var(--dim);flex:1;min-width:60px;}
 
 /* SCROLLBARS */
 ::-webkit-scrollbar{width:3px;}::-webkit-scrollbar-track{background:transparent;}
@@ -226,7 +284,7 @@ select.ss{flex:1;padding:4px 6px;font-size:10px;
 /* TOAST */
 #toast{position:fixed;bottom:16px;right:16px;
   background:rgba(2,8,16,0.96);border:1px solid rgba(79,195,247,0.22);
-  color:var(--blue);padding:6px 13px;font-size:11px;letter-spacing:0.05em;
+  color:var(--blue);padding:6px 13px;font-size:12px;letter-spacing:0.05em;
   opacity:0;transition:opacity 0.22s;pointer-events:none;z-index:200;}
 #toast.show{opacity:1;}
 
@@ -236,22 +294,20 @@ select.ss{flex:1;padding:4px 6px;font-size:10px;
 
 <div id="app">
 
-<!-- HEADER -->
 <div id="hdr">
-  <span class="htitle">ECHO LORE EDITOR // v4.2.6.026.06</span>
+  <span class="htitle">ECHO LORE EDITOR // v4.2.6.026.07</span>
   <div class="hright">
     <span id="as-ind">&#10003; AUTOSAVED</span>
     <span id="fstat" class="none">NO FILE OPEN</span>
-    <button class="hbtn" onclick="openFile()" id="open-btn">&#8213; OPEN FILE</button>
+    <button class="hbtn" onclick="openFile()">&#8213; OPEN FILE</button>
   </div>
 </div>
 
-<!-- UNDO/REDO BAR -->
 <div id="urbar">
-  <button class="btn sm" onclick="undo()" id="undo-btn" disabled title="Ctrl+Z">&#8617; UNDO</button>
-  <button class="btn sm" onclick="redo()" id="redo-btn" disabled title="Ctrl+Y / Ctrl+Shift+Z">&#8618; REDO</button>
+  <button class="btn sm" onclick="undo()" id="undo-btn" disabled>&#8617; UNDO</button>
+  <button class="btn sm" onclick="redo()" id="redo-btn" disabled>&#8618; REDO</button>
   <span id="urinfo">No changes yet</span>
-  <button class="btn sm g" onclick="saveEntry()" title="Add or update this entry in JSON">&#8629; SAVE ENTRY</button>
+  <button class="btn sm g" onclick="saveEntry()">&#8629; SAVE ENTRY</button>
   <button class="btn sm r" onclick="removeEntry()">&#8722; REMOVE</button>
   <button class="btn sm a" onclick="saveToFile()" id="stf-btn">&#8681; SAVE TO FILE</button>
   <button class="btn sm" onclick="dlJSON()">&#8595; DOWNLOAD</button>
@@ -259,23 +315,27 @@ select.ss{flex:1;padding:4px 6px;font-size:10px;
 
 <div id="body">
 
-<!-- LEFT: ENTRY BROWSER (collapsible) -->
-<div id="ecol">
-  <button id="etgl" onclick="toggleEcol()" title="Collapse / expand entries panel">&#9664;</button>
-  <div class="ecol-content">
-    <div class="phdr">
-      &#9658; ENTRIES <span id="ect" style="color:rgba(79,195,247,0.32)">&#8212; 0</span>
+<!-- ENTRIES COLUMN + TOGGLE OUTER -->
+<div style="display:flex;flex-shrink:0;border-right:1px solid var(--bdr);">
+  <div id="etgl-outer">
+    <button onclick="toggleEcol()" id="etgl-btn" title="Collapse / expand entries">&#9664;</button>
+  </div>
+  <div id="ecol">
+    <div class="ecol-inner">
+      <div class="phdr">
+        &#9658; ENTRIES <span id="ect" style="color:rgba(79,195,247,0.30)">&#8212; 0</span>
+      </div>
+      <input id="esrch" type="text" placeholder="SEARCH CODE OR LABEL..."
+             oninput="filterEnts()" autocomplete="off" spellcheck="false">
+      <div id="elist"><div id="eno" class="pd" style="padding:14px;font-size:12px;text-align:center">Load a JSON file to browse entries</div></div>
+      <div id="ecount"></div>
     </div>
-    <input id="esrch" type="text" placeholder="SEARCH CODE OR LABEL..."
-           oninput="filterEnts()" autocomplete="off" spellcheck="false">
-    <div id="elist"><div id="eno" class="pd">Load a JSON file to browse entries</div></div>
-    <div id="ecount"></div>
   </div>
 </div>
 
-<!-- MIDDLE: EDITOR -->
+<!-- EDITOR -->
 <div id="editor">
-  <div class="phdr">&#9658; ENTRY EDITOR</div>
+  <div class="ephdr">&#9658; ENTRY EDITOR</div>
   <div id="escroll">
 
     <!-- STARDATE -->
@@ -292,18 +352,17 @@ select.ss{flex:1;padding:4px 6px;font-size:10px;
       </div>
     </div>
 
-    <!-- SETTINGS: signature + project start date -->
-    <div id="set-bar">
+    <!-- SETTINGS -->
+    <div class="set-bar">
       <label>SIGNATURE</label>
       <input type="text" id="sigf" placeholder="Dev. J. Betancourt"
-             style="flex:1;font-size:11px;padding:4px 7px"
+             style="flex:1;min-width:120px;font-size:12px;padding:4px 8px"
              autocomplete="off" oninput="savSet()">
       <label>PROJECT DAY 1</label>
-      <input type="date" id="startd" oninput="savSet();updDayDisp()"
-             title="Set your project start date to auto-calculate the current day">
+      <input type="date" id="startd" oninput="savSet();updDayDisp()">
     </div>
 
-    <!-- MODE TOGGLE -->
+    <!-- MODE -->
     <div class="fg">
       <div class="fl">ENTRY MODE</div>
       <div class="tgg" id="mtg">
@@ -312,7 +371,7 @@ select.ss{flex:1;padding:4px 6px;font-size:10px;
       </div>
     </div>
 
-    <!-- TYPE TOGGLE -->
+    <!-- TYPE -->
     <div class="fg">
       <div class="fl">ENTRY TYPE</div>
       <div class="tgg" id="ttg">
@@ -334,40 +393,53 @@ select.ss{flex:1;padding:4px 6px;font-size:10px;
       </div>
     </div>
 
-    <!-- TEMPLATE -->
+    <!-- TEMPLATE SELECTOR + EDITOR -->
     <div class="fg">
       <div class="fl">LOG TEMPLATE</div>
       <div class="fr">
-        <select id="tpls">
-          <option value="">&#8212; select template &#8212;</option>
-          <option value="captains">CAPTAIN'S LOG</option>
-          <option value="research">RESEARCH NOTES &#8212; DR. OSEI</option>
-          <option value="engineering">ENGINEERING REPORT</option>
-          <option value="incident">INCIDENT REPORT</option>
-          <option value="personal">PERSONAL LOG</option>
-          <option value="comms">INTERCEPTED TRANSMISSION</option>
-          <option value="field">FIELD NOTES</option>
-          <option value="medical">MEDICAL LOG</option>
-          <option value="creator">CREATOR'S LOG</option>
-        </select>
+        <select id="tpls" onchange="onTplChange()"></select>
         <button class="btn sm" style="flex-shrink:0" onclick="applyTpl()">APPLY</button>
       </div>
     </div>
 
-    <!-- LOG ID + AUTO DAY -->
+    <div id="tpl-editor">
+      <div class="tpl-ed-hdr">
+        <span>&#9658; TEMPLATE EDITOR</span>
+        <div style="display:flex;gap:6px">
+          <button class="btn sm" onclick="newTpl()">&#43; NEW</button>
+          <button class="btn sm r" onclick="delTpl()">&#8722; DELETE</button>
+          <button class="btn sm g" onclick="saveTpl()">&#10003; SAVE TPL</button>
+          <button class="btn sm a" onclick="dlTpls()">&#8595; EXPORT</button>
+        </div>
+      </div>
+      <div class="fg">
+        <div class="fl">TEMPLATE NAME</div>
+        <input type="text" id="tpl-name" placeholder="e.g. CAPTAIN'S LOG" autocomplete="off">
+      </div>
+      <div class="fg">
+        <div class="fl">TEMPLATE BODY &#8212; Use {ID} {SD} {DAY} {SIG} as placeholders</div>
+        <textarea id="tpl-body" placeholder="[Log {ID} | Stardate {SD}]&#10;CAPTAIN'S LOG &#8212; DAY {DAY}&#10;&#10;[Your entry here]&#10;&#10;    &#8212;&#8212; Capt. {SIG}"></textarea>
+      </div>
+    </div>
+
+    <!-- LOG ID + DAY COUNTER -->
     <div class="fg">
-      <div class="fl">LOG ID (XX-A) &#160;&#160; CURRENT PROJECT DAY (AUTO)</div>
+      <div class="fl">LOG ID (A-00) &#160;&#160; PROJECT DAY</div>
       <div class="fr" style="align-items:center;gap:8px">
-        <input type="text" id="lidn" maxlength="2" placeholder="01"
-               style="width:50px;flex-shrink:0;text-align:center;letter-spacing:0.12em"
+        <input type="text" id="lidl" maxlength="1" placeholder="A"
+               style="width:44px;flex-shrink:0;text-align:center;text-transform:uppercase;letter-spacing:0.14em"
                oninput="fmtLid()" autocomplete="off">
         <span style="color:var(--dim);font-size:14px;flex-shrink:0">&#8212;</span>
-        <input type="text" id="lidl" maxlength="1" placeholder="A"
-               style="width:40px;flex-shrink:0;text-align:center;text-transform:uppercase;letter-spacing:0.14em"
+        <input type="text" id="lidn" maxlength="2" placeholder="00"
+               style="width:50px;flex-shrink:0;text-align:center;letter-spacing:0.12em"
                oninput="fmtLid()" autocomplete="off">
-        <span style="color:var(--dim);font-size:11px;padding:0 4px;flex-shrink:0">|</span>
-        <span style="font-size:10px;color:var(--dim);flex-shrink:0">DAY</span>
-        <span id="daydisp" style="color:var(--amber);font-size:14px;letter-spacing:0.05em;flex-shrink:0">&#8212;</span>
+        <span style="color:var(--dim);font-size:12px;padding:0 6px;flex-shrink:0">|</span>
+        <span style="font-size:12px;color:var(--dim);flex-shrink:0">DAY</span>
+        <input type="number" id="dayf" min="1" placeholder="206"
+               style="width:70px;flex-shrink:0;color:rgba(79,195,247,0.45);
+                      font-size:13px;text-align:center;border-color:rgba(79,195,247,0.08)"
+               oninput="updJ()" autocomplete="off"
+               title="Auto-calculated from project start date. Editable.">
         <button class="btn sm" style="flex-shrink:0;margin-left:auto" onclick="autoLbl()">AUTO LABEL</button>
       </div>
     </div>
@@ -383,10 +455,10 @@ select.ss{flex:1;padding:4px 6px;font-size:10px;
 
     <!-- CODE GENERATOR -->
     <div id="cgen">
-      <div style="font-size:10px;color:var(--dim);letter-spacing:0.08em">&#9658; CODE GENERATOR</div>
+      <div style="font-size:12px;color:var(--dim);letter-spacing:0.08em">&#9658; CODE GENERATOR</div>
       <div class="cgrow">
         <button class="btn sm" onclick="genRand()">&#8853; RANDOM</button>
-        <button class="btn sm" onclick="genNext()" title="Increment current code, or next after highest loaded">&#8853; NEXT</button>
+        <button class="btn sm" onclick="genNext()">&#8853; NEXT</button>
         <button class="btn sm a" onclick="cpCode()">COPY CODE</button>
       </div>
       <div class="cgrow" style="flex-direction:column;align-items:flex-start;gap:5px">
@@ -401,12 +473,12 @@ select.ss{flex:1;padding:4px 6px;font-size:10px;
 
     <!-- TYPE DISPLAY + LABEL -->
     <div class="fg">
-      <div class="fl">TYPE &#160;&#160; LABEL &#8212; INTERNAL REFERENCE (NOT SHOWN IN TERMINAL)</div>
+      <div class="fl">TYPE &#160;&#160; LABEL &#8212; INTERNAL REFERENCE</div>
       <div class="fr" style="align-items:center;gap:6px">
         <span id="type-badge" class="full" style="flex-shrink:0">FULL</span>
         <span id="clr-badge" style="flex-shrink:0">L1</span>
         <input type="text" id="labf"
-               placeholder="Creator's Log 01-A | Stardate 2026.135.1428"
+               placeholder="Creator's Log A-00 | Stardate 2026.135.1428"
                autocomplete="off" oninput="updJ()" style="flex:1">
       </div>
     </div>
@@ -415,18 +487,18 @@ select.ss{flex:1;padding:4px 6px;font-size:10px;
     <div class="fg">
       <div class="fl">LOG TEXT &#8212; PRESS ENTER FOR NEW LINES</div>
       <textarea id="logtxt"
-        placeholder="[Log 01-A | Stardate 2026.135.1428]&#10;CREATOR'S LOG &#8212; DAY 206&#10;&#10;[Your entry here]&#10;&#10;    -- Dev. J. Betancourt&#10;[END OF LOG]"></textarea>
+        placeholder="[Log A-00 | Stardate 2026.135.1428]&#10;CREATOR'S LOG &#8212; DAY 206&#10;&#10;[Your entry here]&#10;&#10;    -- Dev. J. Betancourt&#10;[END OF LOG]"></textarea>
       <div class="cct"><span id="cct">0</span> CHARS</div>
     </div>
 
-    <!-- L1 PREVIEW (classified only) -->
+    <!-- L1 PREVIEW (classified) -->
     <div class="fg" id="l1preg">
       <div class="fl">L1 REDACTED PREVIEW &#8212; SHOWN IN L1 BEFORE FULL L2 ACCESS</div>
       <textarea id="l1pre"
         placeholder="[REDACTED] discovered something in the lower [REDACTED]&#10;on day [REDACTED]. This entry requires L2 access."></textarea>
     </div>
 
-    <!-- MAIN BUTTONS -->
+    <!-- BUTTONS -->
     <div id="brow">
       <button class="btn" onclick="updPrev()">&#9658; PREVIEW</button>
       <button class="btn a" onclick="cpJSON()">&#8853; COPY JSON</button>
@@ -440,17 +512,17 @@ select.ss{flex:1;padding:4px 6px;font-size:10px;
            ondragover="dzov(event)" ondragleave="dzlv(event)" ondrop="dzdp(event)">
         <input type="file" id="fi" accept=".json" onchange="fiCh(event)">
         &#8595; DROP .JSON HERE OR CLICK TO BROWSE (read-only)<br>
-        <span style="font-size:9px;color:rgba(79,195,247,0.24)">Use OPEN FILE above for write access</span>
+        <span style="font-size:10px;color:rgba(79,195,247,0.22)">Use OPEN FILE above for write access</span>
       </div>
       <textarea id="pasta"
         placeholder='{ "CODE": { "label": "...", "type": "full", "text": "..." } }'
         oninput="tryImp(this.value)"></textarea>
     </div>
 
-  </div><!-- /escroll -->
-</div><!-- /editor -->
+  </div>
+</div>
 
-<!-- RIGHT: PREVIEW + JSON -->
+<!-- PREVIEW + JSON -->
 <div id="rcol">
   <div id="pw">
     <div class="pvhdr">
@@ -463,7 +535,7 @@ select.ss{flex:1;padding:4px 6px;font-size:10px;
     <div class="jhdr">
       <span>&#9658; JSON SNIPPET</span>
       <div style="display:flex;gap:6px;align-items:center">
-        <span id="tgtf" style="font-size:9px;color:var(--dim)">&#8594; lore.json</span>
+        <span id="tgtf" style="font-size:10px;color:var(--dim)">&#8594; lore.json</span>
         <button class="btn sm" onclick="cpJSON()">COPY</button>
       </div>
     </div>
@@ -471,26 +543,27 @@ select.ss{flex:1;padding:4px 6px;font-size:10px;
   </div>
 </div>
 
-</div><!-- /body -->
-</div><!-- /app -->
+</div>
+</div>
 <div id="toast"></div>
 
 <script>
 
 'use strict';
 
-// GLOBALS
+// ── STATE ──────────────────────────────────────────────────────────────────────
 var mode='lore', typ='full', clr=1;
-var iData={}, fileHandle=null, activeCode=null, ecolOpen=true;
+var iData={}, fileHandle=null, activeCode=null;
 var CHARS='0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 var PROJECT_START_DEFAULT='2025-10-23';
 
-// UNDO/REDO
+// ── UNDO/REDO ─────────────────────────────────────────────────────────────────
 var hist=[], histIdx=-1;
 function pushHist(){
-  var snap=JSON.parse(JSON.stringify(iData));
-  hist=hist.slice(0,histIdx+1); hist.push(snap);
-  if(hist.length>60)hist.shift(); histIdx=hist.length-1; updUrUI();
+  hist=hist.slice(0,histIdx+1);
+  hist.push(JSON.parse(JSON.stringify(iData)));
+  if(hist.length>60)hist.shift();
+  histIdx=hist.length-1; updUrUI();
 }
 function undo(){
   if(histIdx<=0){toast('Nothing to undo');return;}
@@ -505,28 +578,28 @@ function redo(){
 function updUrUI(){
   document.getElementById('undo-btn').disabled=histIdx<=0;
   document.getElementById('redo-btn').disabled=histIdx>=hist.length-1;
-  document.getElementById('urinfo').textContent=hist.length?
-    (histIdx+1)+' / '+hist.length+' states':'No changes yet';
+  document.getElementById('urinfo').textContent=
+    hist.length?(histIdx+1)+' / '+hist.length+' states':'No changes yet';
 }
 document.addEventListener('keydown',function(e){
   if((e.ctrlKey||e.metaKey)&&e.key==='z'&&!e.shiftKey){e.preventDefault();undo();}
   if((e.ctrlKey||e.metaKey)&&(e.key==='y'||(e.key==='z'&&e.shiftKey))){e.preventDefault();redo();}
 });
 
-// ENTRIES COLUMN TOGGLE
+// ── ENTRIES COLUMN TOGGLE ─────────────────────────────────────────────────────
+var ecolOpen=true;
 function toggleEcol(){
   ecolOpen=!ecolOpen;
-  var ec=document.getElementById('ecol');
-  ec.classList.toggle('collapsed',!ecolOpen);
-  document.getElementById('etgl').innerHTML=ecolOpen?'&#9664;':'&#9654;';
+  document.getElementById('ecol').classList.toggle('collapsed',!ecolOpen);
+  document.getElementById('etgl-btn').innerHTML=ecolOpen?'&#9664;':'&#9654;';
 }
 
-// STARDATE
+// ── STARDATE ──────────────────────────────────────────────────────────────────
 function getSD(y){
   var n=new Date(), s=new Date(n.getFullYear(),0,0);
   var d=Math.floor((n-s)/864e5);
   return y+'.'+String(d).padStart(3,'0')+'.'+
-         String(n.getHours()).padStart(2,'0')+String(n.getMinutes()).padStart(2,'0');
+    String(n.getHours()).padStart(2,'0')+String(n.getMinutes()).padStart(2,'0');
 }
 function updClocks(){
   document.getElementById('sdrl').textContent=getSD(new Date().getFullYear());
@@ -543,38 +616,148 @@ function inj(w){
   ta.focus(); updCct(); toast('Inserted: '+v);
 }
 
-// PROJECT DAY (auto-calculated)
+// ── DAY COUNTER ───────────────────────────────────────────────────────────────
 function getProjectDay(){
-  var stored=localStorage.getItem('echo_set');
-  var sd=PROJECT_START_DEFAULT;
-  if(stored){try{sd=JSON.parse(stored).startd||sd;}catch(e){}}
-  var start=new Date(sd+'T00:00:00');
-  var elapsed=Math.floor((new Date()-start)/864e5);
-  return elapsed+1;
+  var sd=document.getElementById('startd').value||PROJECT_START_DEFAULT;
+  var elapsed=Math.floor((new Date()-new Date(sd+'T00:00:00'))/864e5);
+  return elapsed+1>0?elapsed+1:1;
 }
 function updDayDisp(){
-  var d=getProjectDay();
-  document.getElementById('daydisp').textContent=d>0?d:'--';
+  var el=document.getElementById('dayf');
+  // Only update if user hasn't manually edited it
+  if(!el.dataset.manual){
+    el.value=getProjectDay();
+    el.style.color='rgba(79,195,247,0.45)';
+  }
 }
-setInterval(updDayDisp,60000); updDayDisp();
+document.getElementById('dayf').addEventListener('input',function(){
+  this.dataset.manual='1';
+  this.style.color='var(--blue)';
+  updJ();
+});
+// Reset manual flag on double-click to re-sync
+document.getElementById('dayf').addEventListener('dblclick',function(){
+  delete this.dataset.manual;
+  this.value=getProjectDay();
+  this.style.color='rgba(79,195,247,0.45)';
+  updJ();
+});
+setInterval(function(){
+  if(!document.getElementById('dayf').dataset.manual) updDayDisp();
+},60000);
 
-// SETTINGS
+// ── SETTINGS ──────────────────────────────────────────────────────────────────
 function savSet(){
   try{localStorage.setItem('echo_set',JSON.stringify({
     sig:document.getElementById('sigf').value,
     startd:document.getElementById('startd').value
   }));}catch(e){}
+  updDayDisp();
 }
 function lodSet(){
-  try{var s=JSON.parse(localStorage.getItem('echo_set')||'{}');
+  try{
+    var s=JSON.parse(localStorage.getItem('echo_set')||'{}');
     if(s.sig)document.getElementById('sigf').value=s.sig;
-    if(s.startd)document.getElementById('startd').value=s.startd;
-    else document.getElementById('startd').value=PROJECT_START_DEFAULT;
+    document.getElementById('startd').value=s.startd||PROJECT_START_DEFAULT;
   }catch(e){document.getElementById('startd').value=PROJECT_START_DEFAULT;}
   updDayDisp();
 }
 
-// MODE / TYPE / CLEARANCE
+// ── TEMPLATES ─────────────────────────────────────────────────────────────────
+var TPLS={
+  'captains':  {name:"CAPTAIN'S LOG",         body:"[Log {ID} | Stardate {SD}]\nCAPTAIN\u2019S LOG \u2014 DAY {DAY}\n\n[Your entry here]\n\n    \u2014\u2014 Capt. {SIG}"},
+  'research':  {name:"RESEARCH NOTES \u2014 DR. OSEI", body:"[Log {ID} | Stardate {SD}]\nRESEARCH NOTES \u2014 DAY {DAY}\n\n[Your observations here]\n\n    \u2014\u2014 Dr. {SIG}"},
+  'engineering':{name:"ENGINEERING REPORT",   body:"[Log {ID} | Stardate {SD}]\nENGINEERING REPORT \u2014 DAY {DAY}\n\nSYSTEMS STATUS:\n[Status here]\n\nNOTES:\n[Notes here]\n\n    \u2014\u2014 Chief Engineer {SIG}"},
+  'incident':  {name:"INCIDENT REPORT",       body:"[INCIDENT REPORT {ID} | Stardate {SD}]\nCLASSIFICATION: [CLEARANCE LEVEL]\nDAY: {DAY}\n\nDESCRIPTION:\n[Details here]\n\nCASUALTIES: [REDACTED]\nSTATUS: [REDACTED]\n\n    \u2014\u2014 {SIG}"},
+  'personal':  {name:"PERSONAL LOG",          body:"[Log {ID} | Stardate {SD}]\nPERSONAL LOG \u2014 DAY {DAY}\n\n[Your entry here]"},
+  'comms':     {name:"INTERCEPTED TRANSMISSION", body:"[INTERCEPTED TRANSMISSION | Stardate {SD}]\nORIGIN: [CORRUPTED]\nINTEGRITY: PARTIAL\n\n[TRANSMISSION BEGINS]\n\n[Content here]\n\n[END TRANSMISSION]"},
+  'field':     {name:"FIELD NOTES",           body:"[Field Notes {ID} | Stardate {SD}]\nLOCATION: [SECTOR]\nDAY: {DAY}\n\nOBSERVATIONS:\n[Notes here]\n\n    \u2014\u2014 {SIG}"},
+  'medical':   {name:"MEDICAL LOG",           body:"[MEDICAL LOG {ID} | Stardate {SD}]\nDAY: {DAY}\nPATIENT: [REDACTED]\nCONDITION: [REDACTED]\n\n[Medical notes here]\n\n    \u2014\u2014 Medical Officer {SIG}"},
+  'creator':   {name:"CREATOR'S LOG",         body:"[Log {ID} | Stardate {SD}]\nCREATOR\u2019S LOG \u2014 DAY {DAY}\n\n[Your entry here]\n\n    \u2014\u2014 {SIG}\n[END OF LOG]"}
+};
+
+function rebuildTplSelect(selectVal){
+  var sel=document.getElementById('tpls');
+  sel.innerHTML='<option value="">\u2014 select template \u2014</option>';
+  Object.keys(TPLS).forEach(function(k){
+    var o=document.createElement('option');
+    o.value=k; o.textContent=TPLS[k].name; sel.appendChild(o);
+  });
+  if(selectVal)sel.value=selectVal;
+}
+
+function onTplChange(){
+  var k=document.getElementById('tpls').value;
+  if(!k){document.getElementById('tpl-name').value='';document.getElementById('tpl-body').value='';return;}
+  document.getElementById('tpl-name').value=TPLS[k].name;
+  document.getElementById('tpl-body').value=TPLS[k].body;
+}
+
+function applyTpl(){
+  var k=document.getElementById('tpls').value;
+  if(!k){toast('Select a template first');return;}
+  var body=document.getElementById('tpl-body').value||TPLS[k].body;
+  var id=getLid();
+  var sd=mode==='dev'?getSD(new Date().getFullYear()):getSD(2143);
+  var day=document.getElementById('dayf').value||getProjectDay();
+  var sig=document.getElementById('sigf').value.trim()||'[SIG]';
+  document.getElementById('logtxt').value=body
+    .replace(/\{ID\}/g,id).replace(/\{SD\}/g,sd)
+    .replace(/\{DAY\}/g,day).replace(/\{SIG\}/g,sig);
+  updCct(); autoLbl(); updJ(); toast('Template applied');
+}
+
+function saveTpl(){
+  var k=document.getElementById('tpls').value;
+  var name=document.getElementById('tpl-name').value.trim();
+  var body=document.getElementById('tpl-body').value;
+  if(!name){toast('Enter a template name');return;}
+  if(!body){toast('Template body cannot be empty');return;}
+  // Use slugified name as key if new
+  var newKey=k||(name.toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/_+$/,''));
+  TPLS[newKey]={name:name,body:body};
+  rebuildTplSelect(newKey); onTplChange();
+  toast('Template saved: '+name);
+  saveTplsLocal();
+}
+
+function newTpl(){
+  document.getElementById('tpls').value='';
+  document.getElementById('tpl-name').value='NEW TEMPLATE';
+  document.getElementById('tpl-body').value='[Log {ID} | Stardate {SD}]\n{DAY}\n\n[Your entry here]\n\n    \u2014\u2014 {SIG}';
+}
+
+function delTpl(){
+  var k=document.getElementById('tpls').value;
+  if(!k){toast('Select a template to delete');return;}
+  if(!confirm('Delete template "'+TPLS[k].name+'"?'))return;
+  delete TPLS[k];
+  rebuildTplSelect(''); onTplChange();
+  toast('Template deleted');
+  saveTplsLocal();
+}
+
+function saveTplsLocal(){
+  try{localStorage.setItem('echo_tpls',JSON.stringify(TPLS));}catch(e){}
+}
+
+function lodTplsLocal(){
+  try{
+    var s=JSON.parse(localStorage.getItem('echo_tpls')||'{}');
+    if(Object.keys(s).length) TPLS=s;
+  }catch(e){}
+  rebuildTplSelect('');
+}
+
+function dlTpls(){
+  var blob=new Blob([JSON.stringify(TPLS,null,2)],{type:'application/json'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a'); a.href=url; a.download='entry_templates.json';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url); toast('Downloaded entry_templates.json');
+}
+
+// ── MODE / TYPE / CLEARANCE ───────────────────────────────────────────────────
 function setMode(m){
   mode=m;
   document.querySelectorAll('#mtg .tg').forEach(function(b){b.classList.toggle('on',b.dataset.v===m);});
@@ -584,19 +767,13 @@ function setMode(m){
   if(m==='dev'){
     mb.className='dev'; mb.textContent='DEV LOG';
     pv.classList.add('dv'); tf.textContent='\u2192 dev_logs.json';
-    ['ttg','clrg'].forEach(function(id){
-      document.getElementById(id).style.opacity='0.30';
-      document.getElementById(id).style.pointerEvents='none';});
-    setTyp('full');
   }else{
     mb.className='lore'; mb.textContent='LORE';
     pv.classList.remove('dv'); tf.textContent='\u2192 lore.json';
-    ['ttg','clrg'].forEach(function(id){
-      document.getElementById(id).style.opacity='';
-      document.getElementById(id).style.pointerEvents='';});
   }
   updJ();
 }
+
 function setTyp(t){
   typ=t;
   document.querySelectorAll('#ttg .tg').forEach(function(b){
@@ -608,18 +785,17 @@ function setTyp(t){
   document.getElementById('l1preg').style.display=t==='classified'?'flex':'none';
   if(t==='classified')setClr(2);
   var tb=document.getElementById('type-badge');
-  tb.className=t; tb.textContent=t.toUpperCase();
-  updJ();
+  tb.className=t; tb.textContent=t.toUpperCase(); updJ();
 }
+
 function setClr(v){
   clr=v;
   document.querySelectorAll('#ctg .tg').forEach(function(b){
     b.classList.toggle('on',parseInt(b.dataset.v)===v);});
-  document.getElementById('clr-badge').textContent='L'+v;
-  updJ();
+  document.getElementById('clr-badge').textContent='L'+v; updJ();
 }
 
-// LOG ID
+// ── LOG ID (format A-00) ──────────────────────────────────────────────────────
 function fmtLid(){
   var n=document.getElementById('lidn');
   var l=document.getElementById('lidl');
@@ -628,12 +804,12 @@ function fmtLid(){
   updJ();
 }
 function getLid(){
-  var n=document.getElementById('lidn').value||'01';
-  var l=document.getElementById('lidl').value||'A';
-  return n.padStart(2,'0')+'-'+l.toUpperCase();
+  var l=document.getElementById('lidl').value.toUpperCase()||'A';
+  var n=document.getElementById('lidn').value||'00';
+  return l+'-'+n.padStart(2,'0');
 }
 
-// CODE FIELD
+// ── CODE FIELD ────────────────────────────────────────────────────────────────
 document.getElementById('codef').addEventListener('input',function(){
   var raw=this.value.replace(/[^A-Z0-9]/gi,'').toUpperCase().slice(0,20);
   var f=''; for(var i=0;i<raw.length;i++){if(i>0&&i%5===0)f+='-';f+=raw[i];}
@@ -643,33 +819,29 @@ function valC(raw){
   var el=document.getElementById('codest');
   var inp=document.getElementById('codef');
   inp.classList.remove('valid','dupe');
-  if(!raw){el.textContent='Enter a 20-character alphanumeric code';el.className='';return false;}
-  if(raw.length<20){el.textContent=raw.length+'/20 characters';el.className='';return false;}
-  var fc=fmtC(raw);
-  var dup=iData.hasOwnProperty(fc);
+  if(!raw){el.textContent='Enter a 20-character alphanumeric code';el.className='';return;}
+  if(raw.length<20){el.textContent=raw.length+'/20 characters';el.className='';return;}
+  var fc=fmtC(raw), dup=iData.hasOwnProperty(fc);
   if(dup){
     var editing=activeCode===fc;
-    el.textContent='\u26a0 '+( editing?'Currently editing this entry':'EXISTS \u2014 saving will overwrite');
-    el.className=editing?'ok':'bad';
-    inp.classList.add(editing?'valid':'dupe');
+    el.textContent='\u26a0 '+(editing?'Currently editing':'EXISTS \u2014 saving will overwrite');
+    el.className=editing?'ok':'bad'; inp.classList.add(editing?'valid':'dupe');
   }else{
     el.textContent='\u2713 Available: '+fc; el.className='ok'; inp.classList.add('valid');
   }
-  return true;
 }
 function fmtC(r){r=r.slice(0,20);return[r.slice(0,5),r.slice(5,10),r.slice(10,15),r.slice(15,20)].join('-');}
 function getRaw(){return document.getElementById('codef').value.replace(/-/g,'');}
 function getFmt(){var r=getRaw();return r.length===20?fmtC(r):null;}
 
-// CODE GENERATOR
+// ── CODE GENERATOR ────────────────────────────────────────────────────────────
 function setCode(c){document.getElementById('codef').value=c;valC(c.replace(/-/g,''));updJ();}
 function genRand(){
   var att=0,code,raw;
   do{raw='';for(var i=0;i<20;i++)raw+=CHARS[Math.floor(Math.random()*36)];
     code=fmtC(raw);att++;}while(iData.hasOwnProperty(code)&&att<500);
   if(att>=500){toast('Cannot generate unique code');return;}
-  setCode(code);
-  toast(att>1?'Generated (avoided '+att+' duplicates)':'Random code generated');
+  setCode(code); toast(att>1?'Generated (avoided '+att+' dupes)':'Random code generated');
 }
 function inc36(s){
   var a=s.split('').reverse(),c=1;
@@ -684,7 +856,6 @@ function genNext(){
   var hi=keys.map(function(k){return k.replace(/-/g,'');}).sort().pop();
   setCode(fmtC(inc36(hi))); toast('Next after highest loaded entry');
 }
-// Midpoint — pure string arithmetic, no BigInt (mobile-safe)
 function b36add(a,b){
   var res=[],c=0;
   for(var i=19;i>=0;i--){
@@ -707,8 +878,8 @@ function genBetween(){
   var ra=a.replace(/-/g,''), rb=b.replace(/-/g,'');
   if(ra>rb){var t=ra;ra=rb;rb=t;}
   var mid=fmtC(b36half(b36add(ra,rb)));
-  if(mid===fmtC(ra)||mid===fmtC(rb)){toast('Codes are adjacent \u2014 no midpoint available');return;}
-  setCode(mid); toast('Midpoint code generated');
+  if(mid===fmtC(ra)||mid===fmtC(rb)){toast('Codes are adjacent \u2014 no midpoint');return;}
+  setCode(mid); toast('Midpoint generated');
 }
 function cpCode(){
   var c=getFmt()||document.getElementById('codef').value;
@@ -717,51 +888,18 @@ function cpCode(){
     .catch(function(){toast('Copy failed');});
 }
 
-// AUTO LABEL
+// ── AUTO LABEL ────────────────────────────────────────────────────────────────
 function autoLbl(){
   var id=getLid();
   var sd=mode==='dev'?getSD(new Date().getFullYear()):getSD(2143);
   var tt=typ!=='full'?' | '+typ.toUpperCase():'';
   document.getElementById('labf').value=
-    mode==='dev'?("Creator's Log "+id+" | Stardate "+sd):('Log '+id+' | Stardate '+sd+tt);
+    mode==='dev'?"Creator's Log "+id+" | Stardate "+sd
+               :"Log "+id+" | Stardate "+sd+tt;
   updJ();
 }
 
-// TEMPLATES (double-quoted JS strings to avoid apostrophe escaping)
-var TPLS={
-  captains:{f:function(id,sd,day,sig){
-    return "[Log "+id+" | Stardate "+sd+"]\nCAPTAIN'S LOG \u2014 DAY "+day+"\n\n[Your entry here]\n\n    \u2014\u2014 Capt. "+(sig||"E. Harrow");}},
-  research:{f:function(id,sd,day,sig){
-    return "[Log "+id+" | Stardate "+sd+"]\nRESEARCH NOTES \u2014 DAY "+day+"\n\n[Your observations here]\n\n    \u2014\u2014 Dr. "+(sig||"N. Osei");}},
-  engineering:{f:function(id,sd,day,sig){
-    return "[Log "+id+" | Stardate "+sd+"]\nENGINEERING REPORT \u2014 DAY "+day+"\n\nSYSTEMS STATUS:\n[Status here]\n\nNOTES:\n[Notes here]\n\n    \u2014\u2014 Chief Engineer "+(sig||"[NAME]");}},
-  incident:{f:function(id,sd,day,sig){
-    return "[INCIDENT REPORT "+id+" | Stardate "+sd+"]\nCLASSIFICATION: [CLEARANCE LEVEL]\nDAY: "+day+"\n\nDESCRIPTION:\n[Details here]\n\nCASUALTIES: [REDACTED]\nSTATUS: [REDACTED]\n\n    \u2014\u2014 "+(sig||"Reporting Officer");}},
-  personal:{f:function(id,sd,day,sig){
-    return "[Log "+id+" | Stardate "+sd+"]\nPERSONAL LOG \u2014 DAY "+day+"\n\n[Your entry here]";}},
-  comms:{f:function(id,sd,day,sig){
-    return "[INTERCEPTED TRANSMISSION | Stardate "+sd+"]\nORIGIN: [CORRUPTED]\nINTEGRITY: PARTIAL\n\n[TRANSMISSION BEGINS]\n\n[Content here]\n\n[END TRANSMISSION]";}},
-  field:{f:function(id,sd,day,sig){
-    return "[Field Notes "+id+" | Stardate "+sd+"]\nLOCATION: [SECTOR / DESIGNATION]\nDAY: "+day+"\n\nOBSERVATIONS:\n[Notes here]\n\n    \u2014\u2014 "+(sig||"[CREW MEMBER]");}},
-  medical:{f:function(id,sd,day,sig){
-    return "[MEDICAL LOG "+id+" | Stardate "+sd+"]\nDAY: "+day+"\nPATIENT: [REDACTED]\nCONDITION: [REDACTED]\n\n[Medical notes here]\n\n    \u2014\u2014 Medical Officer "+(sig||"[NAME]");}},
-  creator:{f:function(id,sd,day,sig){
-    return "[Log "+id+" | Stardate "+sd+"]\nCREATOR'S LOG \u2014 DAY "+day+"\n\n[Your entry here]\n\n    \u2014\u2014 "+(sig||"Dev. J. Betancourt")+"\n[END OF LOG]";}}
-};
-function applyTpl(){
-  var sel=document.getElementById('tpls').value;
-  if(!sel){toast('Select a template first');return;}
-  var tpl=TPLS[sel]; if(!tpl)return;
-  if(sel==='creator'&&mode!=='dev')setMode('dev');
-  var id=getLid();
-  var sd=mode==='dev'?getSD(new Date().getFullYear()):getSD(2143);
-  var day=getProjectDay();
-  var sig=document.getElementById('sigf').value.trim();
-  document.getElementById('logtxt').value=tpl.f(id,sd,day,sig);
-  updCct(); autoLbl(); updJ(); toast('Template applied');
-}
-
-// PREVIEW
+// ── PREVIEW ───────────────────────────────────────────────────────────────────
 function updPrev(){
   var code=getFmt(), text=document.getElementById('logtxt').value;
   var pv=document.getElementById('preview'), isDev=mode==='dev';
@@ -787,22 +925,23 @@ function updPrev(){
     ['> WARNING: UNAUTHORIZED PROCESS DETECTED',
      '> FOREIGN SIGNAL INJECTED INTO ARCHIVE READ',
      '> SIGNAL ORIGIN: UNKNOWN','> SYSTEM INTEGRITY: CRITICAL']
-      .forEach(function(t){ls.push({t:t,c:'pe'});});
+    .forEach(function(t){ls.push({t:t,c:'pe'});});
     ls.push({t:'',c:''});
     ls.push({t:'> SESSION TERMINATED \u2014 EXTERNAL INTERFERENCE',c:'pe'});
-    ls.push({t:'',c:''}); ls.push({t:'[TERMINAL RETURNS TO POWER ON SCREEN]',c:'pd'});
+    ls.push({t:'',c:''});
+    ls.push({t:'[TERMINAL RETURNS TO POWER ON SCREEN]',c:'pd'});
   }else{
-    if(text)text.split('\n').forEach(function(ln){ls.push({t:ln,c:''});});
+    if(text)text.split('\n').forEach(function(ln){ls.push({t:ln,c:'nc'});});
   }
   if(code||text)ls.push({t:SEP,c:'ps'});
   pv.innerHTML=ls.map(function(l){
-    var a=l.c?' class="'+l.c+'"':'';
+    var a=(l.c&&l.c!=='nc')?' class="'+l.c+'"':'';
     return '<div'+a+'>'+esc(l.t||'\u00a0')+'</div>';
   }).join('');
   updJ();
 }
 
-// JSON
+// ── JSON ──────────────────────────────────────────────────────────────────────
 function buildSnip(){
   var code=getFmt(), lbl=document.getElementById('labf').value.trim();
   var text=document.getElementById('logtxt').value;
@@ -810,7 +949,9 @@ function buildSnip(){
   var o={label:lbl||''};
   if(mode==='lore'){o.type=typ;o.clearance=clr;
     if(typ==='classified')o.l1_preview=document.getElementById('l1pre').value.trim()||'[REDACTED]';
-  }else{o.type='full';}
+  }else{
+    o.type=typ;  // dev logs now also use type
+  }
   o.text=text;
   var ls=['  '+JSON.stringify(code)+': {'];
   Object.keys(o).forEach(function(k){
@@ -826,7 +967,7 @@ function updJ(){
 function cpJSON(){
   updPrev(); var snip=buildSnip();
   if(!snip){toast('Fill in code and log text first');return;}
-  navigator.clipboard.writeText(snip).then(function(){toast('Copied to clipboard');})
+  navigator.clipboard.writeText(snip).then(function(){toast('Copied');})
     .catch(function(){var t=document.createElement('textarea');t.value=snip;
       document.body.appendChild(t);t.select();document.execCommand('copy');
       document.body.removeChild(t);toast('Copied');});
@@ -835,7 +976,7 @@ function updCct(){document.getElementById('cct').textContent=document.getElement
 document.getElementById('logtxt').addEventListener('input',function(){updCct();updJ();});
 document.getElementById('labf').addEventListener('input',updJ);
 
-// ENTRY MANAGEMENT
+// ── ENTRY MANAGEMENT ─────────────────────────────────────────────────────────
 function saveEntry(){
   var code=getFmt();
   if(!code){toast('Enter a valid 20-character code first');return;}
@@ -844,9 +985,8 @@ function saveEntry(){
   var isUp=iData.hasOwnProperty(code);
   pushHist();
   var entry={label:document.getElementById('labf').value.trim()||''};
-  if(mode==='lore'){entry.type=typ;entry.clearance=clr;
-    if(typ==='classified')entry.l1_preview=document.getElementById('l1pre').value.trim()||'[REDACTED]';
-  }else{entry.type='full';}
+  entry.type=typ; entry.clearance=clr;
+  if(typ==='classified')entry.l1_preview=document.getElementById('l1pre').value.trim()||'[REDACTED]';
   entry.text=text;
   iData[code]=entry; activeCode=code;
   syncAll(); highlightRow(code);
@@ -856,55 +996,50 @@ function removeEntry(){
   var code=getFmt();
   if(!code){toast('No code in field');return;}
   if(!iData.hasOwnProperty(code)){toast(code+' not in JSON');return;}
-  if(!confirm('Remove '+code+'?\nThis can be undone.'))return;
+  if(!confirm('Remove '+code+'? (Undoable)'))return;
   pushHist(); delete iData[code];
   if(activeCode===code)activeCode=null;
   syncAll(); toast('Removed: '+code);
 }
 function rmRow(code){
-  if(!confirm('Remove '+code+'?\nThis can be undone.'))return;
+  if(!confirm('Remove '+code+'? (Undoable)'))return;
   pushHist(); delete iData[code];
   if(activeCode===code)activeCode=null;
   syncAll(); toast('Removed: '+code);
 }
 
-// FILE OPERATIONS
+// ── FILE OPERATIONS ───────────────────────────────────────────────────────────
 async function openFile(){
-  if(!window.showOpenFilePicker){
-    toast('Not supported in this browser. Use drag & drop instead.');return;}
+  if(!window.showOpenFilePicker){toast('Not supported. Use drag & drop.');return;}
   try{
-    var picks=await window.showOpenFilePicker({
-      types:[{description:'JSON',accept:{'application/json':['.json']}}],multiple:false});
+    var picks=await window.showOpenFilePicker(
+      {types:[{description:'JSON',accept:{'application/json':['.json']}}],multiple:false});
     fileHandle=picks[0];
     var file=await fileHandle.getFile();
-    var text=await file.text();
-    parseImp(text,file.name);
-    updFstat('rw',file.name); toast('Opened: '+file.name+' (read/write)');
+    parseImp(await file.text(),file.name);
+    updFstat('rw',file.name); toast('Opened: '+file.name);
   }catch(e){if(e.name!=='AbortError')toast('Error: '+e.message);}
 }
 async function saveToFile(){
   if(!fileHandle){toast('No file with write access. Use OPEN FILE or DOWNLOAD.');return;}
   try{
-    var sorted={};
-    Object.keys(iData).sort().forEach(function(k){sorted[k]=iData[k];});
+    var sorted={}; Object.keys(iData).sort().forEach(function(k){sorted[k]=iData[k];});
     var w=await fileHandle.createWritable();
     await w.write(JSON.stringify(sorted,null,2)); await w.close();
     var i=document.getElementById('as-ind');
-    i.classList.add('show'); setTimeout(function(){i.classList.remove('show');},2000);
+    i.classList.add('show');setTimeout(function(){i.classList.remove('show');},2000);
     toast('Saved to '+fileHandle.name);
   }catch(e){toast('Save failed: '+e.message);}
 }
 function dlJSON(){
   if(!Object.keys(iData).length){toast('No entries to download');return;}
-  var sorted={};
-  Object.keys(iData).sort().forEach(function(k){sorted[k]=iData[k];});
+  var sorted={}; Object.keys(iData).sort().forEach(function(k){sorted[k]=iData[k];});
   var blob=new Blob([JSON.stringify(sorted,null,2)],{type:'application/json'});
   var url=URL.createObjectURL(blob);
   var a=document.createElement('a'); a.href=url;
   a.download=mode==='dev'?'dev_logs.json':'lore.json';
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-  toast('Downloaded: '+a.download+' ('+Object.keys(iData).length+' entries)');
+  URL.revokeObjectURL(url); toast('Downloaded: '+a.download);
 }
 function updFstat(state,name){
   var el=document.getElementById('fstat');
@@ -914,7 +1049,7 @@ function updFstat(state,name){
   else{el.className='none';el.textContent='NO FILE OPEN';stf.disabled=true;}
 }
 
-// IMPORT / DROP
+// ── IMPORT / DROP ─────────────────────────────────────────────────────────────
 function dzov(e){e.preventDefault();document.getElementById('dz').classList.add('ov');}
 function dzlv(e){document.getElementById('dz').classList.remove('ov');}
 function dzdp(e){e.preventDefault();dzlv(e);
@@ -935,12 +1070,9 @@ function parseImp(text,src){
   }catch(e){toast('JSON parse error \u2014 check format');}
 }
 
-// ENTRY BROWSER
+// ── ENTRY BROWSER ─────────────────────────────────────────────────────────────
 var filterText='';
-function filterEnts(){
-  filterText=document.getElementById('esrch').value.toUpperCase().trim();
-  renderEnts();
-}
+function filterEnts(){filterText=document.getElementById('esrch').value.toUpperCase().trim();renderEnts();}
 function updCounts(){
   var n=Object.keys(iData).length;
   document.getElementById('ect').textContent='\u2014 '+n;
@@ -948,45 +1080,43 @@ function updCounts(){
   if(n){ec.style.display='';ec.textContent=n+' entries \u2014 sorted by code';}
   else{ec.style.display='none';}
 }
+function mkBadge(t){
+  var tc=(['virus','classified','partial','degraded','corrupted'].indexOf(t)>=0)?t:'full';
+  return '<span class="etbadge '+tc+'"><span class="bt">'+t.toUpperCase()+'</span></span>';
+}
 function renderEnts(){
   var list=document.getElementById('elist'); list.innerHTML='';
   var keys=Object.keys(iData).sort();
   if(!keys.length){
-    list.innerHTML='<div id="eno" class="pd">No entries loaded</div>'; return;}
+    list.innerHTML='<div style="padding:14px;font-size:12px;color:rgba(79,195,247,0.35);text-align:center">No entries loaded</div>';
+    return;}
   var shown=0;
   keys.forEach(function(code){
-    var e=iData[code];
-    var lbl=(e.label||'').toUpperCase();
+    var e=iData[code], lbl=(e.label||'').toUpperCase();
     if(filterText&&code.indexOf(filterText)<0&&lbl.indexOf(filterText)<0)return;
     shown++;
-    var t=e.type||'full';
-    var tc=t==='virus'?'virus':t==='classified'?'classified':
-           (t==='partial'||t==='degraded'||t==='corrupted')?t:'';
     var row=document.createElement('div');
     row.className='erow'+(activeCode===code?' active':'');
     row.dataset.code=code;
     var rm=document.createElement('button');
     rm.className='erm'; rm.textContent='\u00d7'; rm.title='Remove';
     rm.onclick=function(ev){ev.stopPropagation();rmRow(code);};
+    var t=e.type||'full';
     row.innerHTML=
       '<div class="er-code">'+code+'</div>'+
-      '<div class="er-mid">'+
-        '<span class="etbadge '+(tc||'full')+'">'+t.toUpperCase()+'</span>'+
-        '<span style="font-size:9px;color:rgba(79,195,247,0.24);">L'+(e.clearance||1)+'</span>'+
-      '</div>'+
+      '<div class="er-mid">'+mkBadge(t)+
+        '<span style="font-size:10px;color:rgba(79,195,247,0.24);">L'+(e.clearance||1)+'</span></div>'+
       '<div class="er-lbl">'+esc(e.label||'\u2014')+'</div>';
     row.appendChild(rm);
     row.onclick=function(){lodEnt(code,e);};
     list.appendChild(row);
   });
   if(shown===0&&filterText){
-    list.innerHTML='<div id="eno" class="pd">No matches for "'+esc(filterText)+'"</div>';}
+    list.innerHTML='<div style="padding:14px;font-size:12px;color:rgba(79,195,247,0.35);text-align:center">No matches</div>';}
   updCounts();
 }
 function highlightRow(code){
-  document.querySelectorAll('.erow').forEach(function(r){
-    r.classList.toggle('active',r.dataset.code===code);});
-}
+  document.querySelectorAll('.erow').forEach(function(r){r.classList.toggle('active',r.dataset.code===code);});}
 function lodEnt(code,e){
   activeCode=code;
   document.getElementById('codef').value=code;
@@ -997,10 +1127,10 @@ function lodEnt(code,e){
   if(e.type)setTyp(e.type);
   if(e.clearance)setClr(e.clearance);
   updCct(); updPrev(); highlightRow(code);
-  var dayM=(e.label||'').match(/DAY (\d+)/i)||(e.text||'').match(/DAY (\d+)/i);
-  var idM=(e.label||'').match(/Log (\d+)-([A-Z])/i)||(e.label||'').match(/Log (\d+)-([a-z])/i);
-  if(idM){document.getElementById('lidn').value=idM[1];
-          document.getElementById('lidl').value=idM[2].toUpperCase();}
+  // Auto-parse log ID from label (A-00 format)
+  var idM=(e.label||'').match(/([A-Z])-(\d+)/i);
+  if(idM){document.getElementById('lidl').value=idM[1].toUpperCase();
+          document.getElementById('lidn').value=idM[2];}
   toast('Loaded: '+code);
 }
 function popBetween(){
@@ -1010,16 +1140,18 @@ function popBetween(){
     s.innerHTML='<option value="">\u2014 Code \u2014</option>';
     keys.forEach(function(k){
       var o=document.createElement('option');
-      o.value=k; o.textContent=k+' \u2014 '+(iData[k].label||'').substring(0,24);
+      o.value=k; o.textContent=k+' \u2014 '+(iData[k].label||'').substring(0,22);
       s.appendChild(o);});
     if(pv)s.value=pv;});
 }
 
-// CLEAR FORM — clears ALL fillable fields including signature
+// ── CLEAR FORM ────────────────────────────────────────────────────────────────
 function clrForm(){
   if(!confirm('Clear all fields including signature?'))return;
   ['codef','labf','logtxt','l1pre','lidn','lidl','sigf'].forEach(function(id){
     document.getElementById(id).value='';});
+  delete document.getElementById('dayf').dataset.manual;
+  updDayDisp();
   document.getElementById('codest').textContent='Enter a 20-character alphanumeric code';
   document.getElementById('codest').className='';
   document.getElementById('codef').className='';
@@ -1028,29 +1160,30 @@ function clrForm(){
   document.getElementById('cct').textContent='0';
   activeCode=null;
   document.querySelectorAll('.erow').forEach(function(r){r.classList.remove('active');});
-  try{localStorage.removeItem('echo_ed26');}catch(e){}
+  try{localStorage.removeItem('echo_ed27');}catch(e){}
 }
 
-// AUTOSAVE
+// ── AUTOSAVE ──────────────────────────────────────────────────────────────────
 var asT=null;
 function autoSave(){
   clearTimeout(asT);
   asT=setTimeout(function(){
-    try{localStorage.setItem('echo_ed26',JSON.stringify({
+    try{localStorage.setItem('echo_ed27',JSON.stringify({
       mode:mode,typ:typ,clr:clr,
       code:document.getElementById('codef').value,
       lbl:document.getElementById('labf').value,
       text:document.getElementById('logtxt').value,
       l1p:document.getElementById('l1pre').value,
       lidn:document.getElementById('lidn').value,
-      lidl:document.getElementById('lidl').value
+      lidl:document.getElementById('lidl').value,
+      day:document.getElementById('dayf').dataset.manual?document.getElementById('dayf').value:''
     }));
     var i=document.getElementById('as-ind');
     i.classList.add('show');setTimeout(function(){i.classList.remove('show');},1500);
     }catch(e){}},1200);
 }
 function restore(){
-  try{var s=JSON.parse(localStorage.getItem('echo_ed26')||'{}');
+  try{var s=JSON.parse(localStorage.getItem('echo_ed27')||'{}');
     if(s.mode)setMode(s.mode);if(s.typ)setTyp(s.typ);if(s.clr)setClr(s.clr);
     if(s.code){document.getElementById('codef').value=s.code;valC(s.code.replace(/-/g,''));}
     if(s.lbl)document.getElementById('labf').value=s.lbl;
@@ -1058,21 +1191,29 @@ function restore(){
     if(s.l1p)document.getElementById('l1pre').value=s.l1p;
     if(s.lidn)document.getElementById('lidn').value=s.lidn;
     if(s.lidl)document.getElementById('lidl').value=s.lidl;
+    if(s.day){
+      document.getElementById('dayf').value=s.day;
+      document.getElementById('dayf').dataset.manual='1';
+      document.getElementById('dayf').style.color='var(--blue)';
+    }
     updCct();updJ();
     if(s.text||s.code)toast('Session restored');
   }catch(e){}
 }
 
-// SYNC / UTIL
+// ── UTIL ──────────────────────────────────────────────────────────────────────
 function syncAll(){renderEnts();popBetween();updCounts();updUrUI();autoSave();}
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function toast(msg){var t=document.getElementById('toast');t.textContent=msg;
   t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2400);}
 
-// INIT
+// ── INIT ──────────────────────────────────────────────────────────────────────
 updFstat('none','');
 document.getElementById('stf-btn').disabled=true;
-updUrUI(); lodSet(); restore();
+updUrUI();
+lodSet();
+lodTplsLocal();
+restore();
 
 </script>
 </body>
