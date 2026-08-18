@@ -364,15 +364,27 @@ function drawGrid(){
   var gc=document.getElementById('grid-canvas');
   gc.width=CANVAS_W;gc.height=CANVAS_H;gc.style.width=CANVAS_W+'px';gc.style.height=CANVAS_H+'px';
   var ctx=gc.getContext('2d');ctx.clearRect(0,0,CANVAS_W,CANVAS_H);
-  var cs=getComputedStyle(document.documentElement);
-  var minor=cs.getPropertyValue('--grid-minor').trim()||'rgba(79,195,247,0.06)';
-  var major=cs.getPropertyValue('--grid-major').trim()||'rgba(79,195,247,0.13)';
+  var GLX=3000,GLY=2200; // grid covers this area; beyond is darker
+  // Beyond-grid fill
+  var beyondCol=window._beyondGridColor||'#0a0f14';
+  ctx.fillStyle=beyondCol;ctx.fillRect(0,0,CANVAS_W,CANVAS_H);
+  // Grid area fill (lighter canvas bg)
+  var canvasBg=getComputedStyle(document.documentElement).getPropertyValue('--canvas-bg').trim()||'#152230';
+  ctx.fillStyle=canvasBg;ctx.fillRect(0,0,GLX,GLY);
+  // Dashed boundary between grid area and beyond
+  ctx.strokeStyle='rgba(79,195,247,0.20)';ctx.lineWidth=1;ctx.setLineDash([6,4]);
+  ctx.beginPath();ctx.moveTo(GLX,0);ctx.lineTo(GLX,GLY);ctx.lineTo(0,GLY);ctx.stroke();
+  ctx.setLineDash([]);
+  // Minor grid lines
+  var minor=window._gridMinorColor||'rgba(79,195,247,0.06)';
   ctx.strokeStyle=minor;ctx.lineWidth=1;
-  for(var x=0;x<=CANVAS_W;x+=20){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,CANVAS_H);ctx.stroke();}
-  for(var y=0;y<=CANVAS_H;y+=20){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(CANVAS_W,y);ctx.stroke();}
+  for(var x=0;x<=GLX;x+=20){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,GLY);ctx.stroke();}
+  for(var y=0;y<=GLY;y+=20){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(GLX,y);ctx.stroke();}
+  // Major grid lines
+  var major=window._gridMajorColor||'rgba(79,195,247,0.13)';
   ctx.strokeStyle=major;ctx.lineWidth=1;
-  for(var x2=0;x2<=CANVAS_W;x2+=100){ctx.beginPath();ctx.moveTo(x2,0);ctx.lineTo(x2,CANVAS_H);ctx.stroke();}
-  for(var y2=0;y2<=CANVAS_H;y2+=100){ctx.beginPath();ctx.moveTo(0,y2);ctx.lineTo(CANVAS_W,y2);ctx.stroke();}
+  for(var x2=0;x2<=GLX;x2+=100){ctx.beginPath();ctx.moveTo(x2,0);ctx.lineTo(x2,GLY);ctx.stroke();}
+  for(var y2=0;y2<=GLY;y2+=100){ctx.beginPath();ctx.moveTo(0,y2);ctx.lineTo(GLX,y2);ctx.stroke();}
 }
 
 // ── RENDER ────────────────────────────────────────────────────────────────────
@@ -634,10 +646,11 @@ document.addEventListener('mousemove',function(e){
     var dx3=e.clientX-selBoxStart.clientX,dy3=e.clientY-selBoxStart.clientY;
     var sb=document.getElementById('sel-box');
     var isWindow=dx3>0; // L→R = window, R→L = crossing
-    sb.style.display='block';
-    var x=Math.min(e.clientX,selBoxStart.clientX),y=Math.min(e.clientY,selBoxStart.clientY);
-    var w=Math.abs(dx3),h=Math.abs(dy3);
-    sb.style.cssText='display:block;position:absolute;left:'+x+'px;top:'+y+'px;width:'+w+'px;height:'+h+'px;pointer-events:none;z-index:50;'
+    var wrapRect=document.getElementById('canvas-wrap').getBoundingClientRect();
+    var sx=Math.min(e.clientX,selBoxStart.clientX)-wrapRect.left;
+    var sy=Math.min(e.clientY,selBoxStart.clientY)-wrapRect.top;
+    var sw=Math.abs(dx3),sh=Math.abs(dy3);
+    sb.style.cssText='display:block;position:absolute;left:'+sx+'px;top:'+sy+'px;width:'+sw+'px;height:'+sh+'px;pointer-events:none;z-index:50;'
       +(isWindow?'border:2px solid #4fc3f7;background:rgba(79,195,247,0.08);':'border:2px dashed #6fb06f;background:rgba(111,176,111,0.08);');
     return;
   }
@@ -875,7 +888,9 @@ function showCanvasCtxMenu(e){
     '<div class="ctx-item" onclick="autoOrganize()">&#9783; Auto-Organize</div>'+
     '<div class="ctx-sep"></div>'+
     '<div class="ctx-item" onclick="showColorPicker(\'canvas\','+e.clientX+','+e.clientY+')">&#9632; Canvas Background Color</div>'+
-    '<div class="ctx-item" onclick="showColorPicker(\'outer\','+e.clientX+','+e.clientY+')">&#9632; Outer Background Color</div>'+
+    '<div class="ctx-item" onclick="showColorPicker(\'gridarea\','+e.clientX+','+e.clientY+')">&#9632; Beyond-Grid Area Color</div>'+
+    '<div class="ctx-item" onclick="showColorPicker(\'gridminor\','+e.clientX+','+e.clientY+')">&#9632; Grid Line Color (minor)</div>'+
+    '<div class="ctx-item" onclick="showColorPicker(\'gridmajor\','+e.clientX+','+e.clientY+')">&#9632; Grid Line Color (major)</div>'+
     '<div class="ctx-item" onclick="showColorPicker(\'border\','+e.clientX+','+e.clientY+')">&#9632; Canvas Border Color</div>';
   posCtxMenu(menu,e);
 }
@@ -921,12 +936,26 @@ function showColorPicker(target,x,y){
 }
 function applyColorPopup(){
   if(!cpTarget)return;
-  var vars={canvas:'--canvas-bg',outer:'--outer-bg',border:'--canvas-border'};
   var col=document.getElementById('cp-color').value;
-  document.documentElement.style.setProperty(vars[cpTarget],col);
-  if(cpTarget==='canvas'){document.getElementById('canvas-outer').style.background=col;drawGrid();}
-  if(cpTarget==='outer'){document.getElementById('canvas-wrap').style.background=col;}
-  if(cpTarget==='border'){document.getElementById('canvas-outer').style.borderColor=col;}
+  if(cpTarget==='canvas'){
+    document.documentElement.style.setProperty('--canvas-bg',col);
+    document.getElementById('canvas-outer').style.background=col;
+    drawGrid();
+  } else if(cpTarget==='gridarea'){
+    window._beyondGridColor=col;
+    drawGrid();
+  } else if(cpTarget==='gridminor'){
+    document.documentElement.style.setProperty('--grid-minor','rgba(0,0,0,0)'); // placeholder
+    // store as hex for drawGrid
+    window._gridMinorColor=col;
+    drawGrid();
+  } else if(cpTarget==='gridmajor'){
+    window._gridMajorColor=col;
+    drawGrid();
+  } else if(cpTarget==='border'){
+    document.documentElement.style.setProperty('--canvas-border',col);
+    document.getElementById('canvas-outer').style.borderColor=col;
+  }
   closeColorPopup();toast('Color updated');
 }
 function closeColorPopup(){document.getElementById('color-popup').style.display='none';cpTarget=null;}
