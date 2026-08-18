@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NODE GRAPH EDITOR // v5.26</title>
+<title>NODE GRAPH EDITOR // v5.27</title>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
@@ -247,7 +247,7 @@ select.iv-sel option{background:#001220;color:var(--blue);}
 <body>
 <div id="app">
 <div id="hdr">
-  <span class="htitle">NODE GRAPH EDITOR // v5.26</span>
+  <span class="htitle">NODE GRAPH EDITOR // v5.27</span>
   <span id="as-ind">&#10003; SAVED</span>
   <span id="fstat" class="none">NO FILE</span>
   <span id="fver" style="font-size:11px;color:rgba(79,195,247,0.28);letter-spacing:0.06em;"></span>
@@ -350,7 +350,7 @@ select.iv-sel option{background:#001220;color:var(--blue);}
 <script>
 'use strict';
 // ── CONSTANTS ─────────────────────────────────────────────────────────────────
-var EDITOR_VERSION='5.26';
+var EDITOR_VERSION='5.27';
 var EDITOR_CREATED='2026-05-28T12:00:00-05:00';
 var EDITOR_CREATED_HUMAN='May 28, 2026 CT';
 var CANVAS_W=4000, CANVAS_H=3000, NODE_W=220;
@@ -613,9 +613,8 @@ function render(){
       if(isSel)el.style.boxShadow='0 0 0 1px '+_dc+',0 6px 24px '+ha(_dc,0.20);
       if(isMulti&&!isSel)el.style.boxShadow='0 0 0 2px '+_dc+',0 0 12px '+ha(_dc,0.25);
     }
-    // PINNED: override background with transparent ghost (same effect as layer 4+ nodes)
-    if(_ed.pinned){el.style.background=ha(getLC(lyr),0.05);}
-    // LOCKED: same transparent ghost on background only (border unchanged)
+    // PINNED: dashed border only (CSS .gnode.pinned handles border-style)
+    // LOCKED: transparent ghost body — border unchanged
     if(_ed.locked){el.style.background=ha(getLC(lyr),0.05);}
 
     // Input port
