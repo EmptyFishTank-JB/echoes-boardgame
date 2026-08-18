@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ECHO DEV TOOLS</title>
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+CiAgPHJlY3QgeD0iNSIgeT0iNiIgd2lkdGg9IjYiIGhlaWdodD0iMTAiIHJ4PSIxIiBmaWxsPSIjZTg3MzJhIiBvcGFjaXR5PSIwLjkiLz4KICA8cmVjdCB4PSIxMyIgeT0iMiIgd2lkdGg9IjYiIGhlaWdodD0iMTQiIHJ4PSIxIiBmaWxsPSIjZTg3MzJhIi8+CiAgPHJlY3QgeD0iMjEiIHk9IjYiIHdpZHRoPSI2IiBoZWlnaHQ9IjEwIiByeD0iMSIgZmlsbD0iI2U4NzMyYSIgb3BhY2l0eT0iMC45Ii8+CiAgPHJlY3QgeD0iMSIgeT0iMTciIHdpZHRoPSIxMyIgaGVpZ2h0PSIxMyIgcng9IjIuNSIgZmlsbD0iI2Q4MWYyZiIvPgogIDxjaXJjbGUgY3g9IjQuMyIgY3k9IjIwLjMiIHI9IjEuMyIgZmlsbD0iI2ZmZiIvPgogIDxjaXJjbGUgY3g9IjcuNSIgY3k9IjIzLjUiIHI9IjEuMyIgZmlsbD0iI2ZmZiIvPgogIDxjaXJjbGUgY3g9IjEwLjciIGN5PSIyNi43IiByPSIxLjMiIGZpbGw9IiNmZmYiLz4KICA8cmVjdCB4PSIxOCIgeT0iMTciIHdpZHRoPSIxMyIgaGVpZ2h0PSIxMyIgcng9IjIuNSIgZmlsbD0iIzFjOGZjNyIvPgogIDxjaXJjbGUgY3g9IjI3LjciIGN5PSIyMC4zIiByPSIxLjMiIGZpbGw9IiNmZmYiLz4KICA8Y2lyY2xlIGN4PSIyMS4zIiBjeT0iMjYuNyIgcj0iMS4zIiBmaWxsPSIjZmZmIi8+Cjwvc3ZnPgo=">
+<link rel="icon" type="image/svg+xml" id="fav-link">
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
@@ -95,6 +95,46 @@ footer{margin-top:40px;font-size:10px;color:rgba(79,195,247,0.25);letter-spacing
       .then(function(d){if(d&&d.length)el.textContent='v.'+d[0].sha.slice(0,7);})
       .catch(function(){});
   });
+})();
+
+/* ── FAVICON ANIMATION — glowing/pulsing </> (same mechanism as the main
+   site favicon: JS-driven, since Chrome doesn't animate SVG <style>
+   @keyframes inside a favicon), blue instead of orange. ── */
+(function(){
+  var favicon=document.getElementById('fav-link');
+  if(!favicon) return;
+
+  var DUR=5000, STAG=1000;
+  function ease(t){
+    if(t<0.40) return 1.0;
+    if(t<0.50) return 1.0-(1.0-0.4)*((t-0.40)/0.10);
+    if(t<0.60) return 0.4+(1.0-0.4)*((t-0.50)/0.10);
+    return 1.0;
+  }
+  function op(offset){ return ease(((Date.now()-offset)%DUR)/DUR); }
+
+  var C='#4fc3f7';
+  var LT='M11 6 L3 16 L11 26';
+  var RT='M21 6 L29 16 L21 26';
+  var PULSE='M11 16 L13 16 L14.25 12.5 L15.5 16 L16.75 6.5 L18 24.5 L19.25 17.5 L20.25 19.5 L21 16';
+  function glowPath(d,w1,w2,o){
+    return '<g opacity="'+o.toFixed(3)+'">'
+      +'<path d="'+d+'" stroke="'+C+'" stroke-width="'+w1+'" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/>'
+      +'<path d="'+d+'" stroke="'+C+'" stroke-width="'+w2+'" fill="none" stroke-linecap="round" stroke-linejoin="round"/>'
+      +'</g>';
+  }
+  function buildSVG(){
+    var o=[op(0),op(STAG),op(STAG*2)];
+    return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">'
+      +glowPath(LT,5,2.6,o[0])
+      +glowPath(PULSE,3.4,1.7,o[1])
+      +glowPath(RT,5,2.6,o[2])
+      +'</svg>';
+  }
+
+  setInterval(function(){
+    try{ favicon.href='data:image/svg+xml;base64,'+btoa(buildSVG()); }catch(e){}
+  }, 50);
 })();
 </script>
 
