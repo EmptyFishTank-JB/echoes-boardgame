@@ -23,14 +23,14 @@
   --theme-glow-a:rgba(15,55,80,0.38);
   --theme-glow-b:rgba(8,30,50,0.18);
 }
-body.layer-2{
+body.layer-2a{
   --theme-full:#bf7c0a;--theme-dim:rgba(191,124,10,0.70);--theme-lo:rgba(191,124,10,0.45);
   --theme-warn:#c8a020;--theme-denied:#c84040;--theme-user:rgba(191,124,10,0.55);
   --theme-bg:rgba(2,2,6,0.97);--theme-border:rgba(191,124,10,0.18);
   --theme-irow:rgba(191,124,10,0.10);--theme-bc:rgba(191,124,10,0.36);
   --theme-bgsolid:#0a0700;--theme-glow-a:rgba(80,55,15,0.32);--theme-glow-b:rgba(50,30,8,0.18);
 }
-body.layer-3{
+body.layer-3a{
   --theme-full:#e05050;--theme-dim:rgba(224,80,80,0.70);--theme-lo:rgba(224,80,80,0.40);
   --theme-warn:#ff8800;--theme-denied:#ff0000;--theme-user:rgba(224,80,80,0.50);
   --theme-bg:rgba(0,0,0,1.0);--theme-border:rgba(180,30,30,0.18);
@@ -160,7 +160,7 @@ body::after{content:"";position:fixed;inset:-50%;z-index:2;pointer-events:none;
 }
 </style>
 </head>
-<body class="layer-1">
+<body class="layer-1a">
 <canvas id="bg-canvas"></canvas>
 <div id="vignette"></div>
 <div id="power-overlay">
@@ -276,8 +276,8 @@ function _buildL3Amb(ctx){
 function buildAmbFromConfig(ctx, lvKey){
   var lvCfg = typeof CFG_AMBIENT !== 'undefined' && CFG_AMBIENT && CFG_AMBIENT[lvKey];
   if(!lvCfg||!lvCfg.oscillators||!lvCfg.oscillators.length){
-    if(lvKey==='l1') return _buildL1Amb(ctx);
-    if(lvKey==='l2') return _buildL2Amb(ctx);
+    if(lvKey==='l1a') return _buildL1Amb(ctx);
+    if(lvKey==='l2a') return _buildL2Amb(ctx);
     return _buildL3Amb(ctx);
   }
   var master=ctx.createGain();master.gain.value=0;master.connect(ctx.destination);var stops=[];
@@ -297,7 +297,7 @@ function buildAmbFromConfig(ctx, lvKey){
 
 function crossfadeAmbient(level){
   try{
-    var ctx=getCtx();var prev=ambNodes;var lvKey=level===1?'l1':level===2?'l2':'l3';
+    var ctx=getCtx();var prev=ambNodes;var lvKey=level===1?'l1a':level===2?'l2a':'l3a';
     var fresh=buildAmbFromConfig(ctx,lvKey);
     var lvCfg=typeof CFG_AMBIENT!=='undefined'&&CFG_AMBIENT&&CFG_AMBIENT[lvKey];
     var target=lvCfg&&lvCfg.target_volume!=null?lvCfg.target_volume:(level===1?0.18:level===2?0.12:0.05);
@@ -364,7 +364,7 @@ async function printTyped(lines){
 
 // ── BOOT SCRIPT ───────────────────────────────────────────────────────────────
 // File readiness checks — used to wait for async file loads before rendering
-// Display labels come from L1C_ROOT body[] dynamic lines, not from here
+// Display labels come from L1AC_ROOT body[] dynamic lines, not from here
 var FILE_CHECK_MAP = [
   {ready:function(){return _perReady;},  ok:function(){return !!personality;}},
   {ready:function(){return _lorReady;},  ok:function(){return !!loreData;}},
@@ -410,7 +410,7 @@ async function runScript(){
 
   // ── PHASE 3: find L1 chat root node and render its body[] inline ──────────
   if(!typingAbort){
-    var chatNodeId=findChatRootNode('l1');
+    var chatNodeId=findChatRootNode('l1a');
     if(chatNodeId&&archData&&archData.nodes[chatNodeId]){
       var chatNode=archData.nodes[chatNodeId];
       if(chatNode.body&&chatNode.body.length){
@@ -653,7 +653,7 @@ function applyEngineConfig(c){
   if(c.version_string)    CFG_VERSION      = c.version_string;
   if(c.terminal_title)    CFG_TITLE        = c.terminal_title;
   if(c.terminal_strings)  Object.assign(CFG_STRINGS, c.terminal_strings);
-  // l2_intro, l3_intro removed — content lives in L2_INTRO/L3_INTRO nodes in nodes.json
+  // l2a_intro, l3a_intro removed — content lives in L2A_INTRO/L3A_INTRO nodes in nodes.json
   // Update visible UI if already rendered
   var btn=document.getElementById('power-btn');if(btn&&CFG_POWER_BTN) btn.textContent=CFG_POWER_BTN;
   // Version display is the live commit ID only — engine_config's
@@ -670,17 +670,20 @@ function applyEngineConfig(c){
 
 function applyThemeColors(theme){
   function hexToRgb(hex){hex=(hex||'#000').replace('#','');if(hex.length===3)hex=hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];return parseInt(hex.slice(0,2),16)+','+parseInt(hex.slice(2,4),16)+','+parseInt(hex.slice(4,6),16);}
-  var layerMap={l1:'layer-1',l2:'layer-2',l3:'layer-3'};
-  var varMap={l1:'',l2:'body.layer-2',l3:'body.layer-3'};
+  var layerMap={l1a:'layer-1a',l2a:'layer-2a',l3a:'layer-3a'};
+  var varMap={l1a:'',l2a:'body.layer-2a',l3a:'body.layer-3a'};
   var existing=document.getElementById('theme-overrides');if(existing)existing.remove();
   var css='';
   Object.keys(theme).forEach(function(lv){
     var t=theme[lv];var p=t.primary;if(!p)return;
-    var rgb=hexToRgb(p);var selector=lv==='l1'?':root':'body.layer-'+lv.slice(1);
-    // l1 is :root, l2 is body.layer-2, l3 is body.layer-3
-    var sel=lv==='l1'?':root':'body.layer-'+(lv==='l2'?'2':'3');
+    var rgb=hexToRgb(p);
+    // l1a is :root; every other layer key gets its own body.layer-<suffix> block —
+    // this must stay per-key (not a hardcoded 3-way branch), or any extra keys
+    // beyond l1a/l2a/l3a (e.g. unused l4/l5 placeholders) silently collide on
+    // the same selector and clobber each other's CSS in object-key order.
+    var selector=lv==='l1a'?':root':'body.layer-'+lv.slice(1);
     var dimOp=t.dim_opacity||0.70;var loOp=t.lo_opacity||0.40;var bdrOp=t.border_opacity||0.12;
-    css+=sel+'{';
+    css+=selector+'{';
     if(p)css+='--theme-full:'+p+';';
     if(p)css+='--theme-dim:rgba('+rgb+','+dimOp+');';
     if(p)css+='--theme-lo:rgba('+rgb+','+loOp+');';
@@ -741,7 +744,7 @@ var titleEl      = document.getElementById('t-title');
 
 function setBreadcrumb(text){if(!text){breadcrumbEl.textContent='';breadcrumbEl.classList.remove('visible');}else{breadcrumbEl.textContent=text;breadcrumbEl.classList.add('visible');}}
 function setHeaderTitle(text){titleEl.style.opacity='0';setTimeout(function(){titleEl.textContent=text;titleEl.style.opacity='1';},280);}
-function applyLayerClass(level){document.body.classList.remove('layer-1','layer-2','layer-3');document.body.classList.add('layer-'+level);currentLevel=level;}
+function applyLayerClass(level){document.body.classList.remove('layer-1a','layer-2a','layer-3a');document.body.classList.add('layer-'+level+'a');currentLevel=level;}
 
 // ── DISCOVERED ────────────────────────────────────────────────────────────────
 function markDiscovered(code){var sd=getStardate();discovered[code]={sd:sd,ts:Date.now()};lastRecoveredCode=code;lastRecoveredSd=sd;try{localStorage.setItem('echo_disc',JSON.stringify(discovered));}catch(e){}}
@@ -776,7 +779,7 @@ function buildParentMap(){
 
 // Find the root node for a given layer ID by looking for is_root:true in nodes.json
 function layerRootId(layerIdOrLevel){
-  var lid=typeof layerIdOrLevel==='number'?'l'+layerIdOrLevel:layerIdOrLevel;
+  var lid=typeof layerIdOrLevel==='number'?'l'+layerIdOrLevel+'a':layerIdOrLevel;
   if(!archData||!archData.nodes) return null;
   var found=null;
   Object.keys(archData.nodes).forEach(function(nid){
@@ -1008,21 +1011,21 @@ function getLayerTitle(layerId,fallback){
 async function enterEchoArchive(){
   if(l1ChatBackup===null) l1ChatBackup=output.innerHTML;
   output.classList.add('dim-out');await sleep(getFade());output.innerHTML='';cursorEl=null;output.classList.remove('dim-out');
-  setHeaderTitle(getLayerTitle('l1',''));applyLayerClass(1);await sleep(40);
-  await renderIntroLines('L1_INTRO');
+  setHeaderTitle(getLayerTitle('l1a',''));applyLayerClass(1);await sleep(40);
+  await renderIntroLines('L1A_INTRO');
 }
 async function transitionToL2(){
   playAlert();
-  applyLayerClass(2);setHeaderTitle(getLayerTitle('l2',''));crossfadeAmbient(2);
+  applyLayerClass(2);setHeaderTitle(getLayerTitle('l2a',''));crossfadeAmbient(2);
   await sleep(200);
-  await renderIntroLines('L2_INTRO');
+  await renderIntroLines('L2A_INTRO');
   await sleep(400);await sleep(1100);
 }
 async function transitionToL3(){
   playAlert();
-  applyLayerClass(3);setHeaderTitle(getLayerTitle('l3',''));crossfadeAmbient(3);
+  applyLayerClass(3);setHeaderTitle(getLayerTitle('l3a',''));crossfadeAmbient(3);
   await sleep(200);
-  await renderIntroLines('L3_INTRO');
+  await renderIntroLines('L3A_INTRO');
   if(!l3Visited){l3Visited=true;try{localStorage.setItem('echo_l3_visited','1');}catch(e){}}
   await sleep(400);
 }
@@ -1031,8 +1034,8 @@ async function transitionToL3(){
 async function handleExit(){
   isResponding=true;
   output.classList.add('dim-out');await sleep(getFade());output.innerHTML='';cursorEl=null;output.classList.remove('dim-out');
-  if(currentLevel===3){applyLayerClass(2);setHeaderTitle(getLayerTitle('l2',''));crossfadeAmbient(2);await sleep(40);isResponding=false;var r2=layerRootId('l2');if(r2)await renderArchivePage(r2);}
-  else if(currentLevel===2){applyLayerClass(1);setHeaderTitle(archData&&archData.layers&&archData.layers.l1?archData.layers.l1.header_title||'':'');crossfadeAmbient(1);await sleep(40);isResponding=false;var r1=layerRootId('l1');if(r1)await renderArchivePage(r1);}
+  if(currentLevel===3){applyLayerClass(2);setHeaderTitle(getLayerTitle('l2a',''));crossfadeAmbient(2);await sleep(40);isResponding=false;var r2=layerRootId('l2a');if(r2)await renderArchivePage(r2);}
+  else if(currentLevel===2){applyLayerClass(1);setHeaderTitle(archData&&archData.layers&&archData.layers.l1a?archData.layers.l1a.header_title||'':'');crossfadeAmbient(1);await sleep(40);isResponding=false;var r1=layerRootId('l1a');if(r1)await renderArchivePage(r1);}
   else{
     setHeaderTitle('');setBreadcrumb('');
     if(l1ChatBackup!==null){output.innerHTML=l1ChatBackup;l1ChatBackup=null;}
@@ -1070,8 +1073,8 @@ async function handleArchiveInput(val){
       if(target==='__EXIT__'){await handleExit();}
       else if(target==='__BACK__'){await handleBack();}
       else if(target==='__ROOT__'){await handleRoot();}
-      else if(target==='__TRANSITION_L2__'){if(l1ChatBackup===null)l1ChatBackup=output.innerHTML;await transitionToL2();isResponding=false;var r2=layerRootId('l2');if(r2)await renderArchivePage(r2);}
-      else if(target==='__TRANSITION_L3__'){await transitionToL3();isResponding=false;var r3=layerRootId('l3');if(r3)await renderArchivePage(r3);}
+      else if(target==='__TRANSITION_L2A__'){if(l1ChatBackup===null)l1ChatBackup=output.innerHTML;await transitionToL2();isResponding=false;var r2=layerRootId('l2a');if(r2)await renderArchivePage(r2);}
+      else if(target==='__TRANSITION_L3A__'){await transitionToL3();isResponding=false;var r3=layerRootId('l3a');if(r3)await renderArchivePage(r3);}
       else if(target==='__FETCH__'){if(!isFetchRootState()){isResponding=false;await showFetchNodeError();}else{unlockMisc('fetch');isResponding=false;await startFetchStep2();}}
       else if(archData.nodes[target]){isResponding=false;await renderArchivePage(target);}
       else{isResponding=false;await showInvalidSelection();}
@@ -1243,7 +1246,7 @@ async function tryL1Command(val){
     if(cmd.target==='__ECHO_ARCHIVE__'||cmd.target==='__ENTER_ARCHIVE__'){
       playEggTone();var ac=addLine('full');if(CFG_STRINGS.layer_enter_confirmed){await typeLine(ac,CFG_STRINGS.layer_enter_confirmed);}else{await sleep(280);}await sleep(280);
       isResponding=false;await enterEchoArchive();
-      var r1=layerRootId('l1');if(r1)await renderArchivePage(r1);return true;
+      var r1=layerRootId('l1a');if(r1)await renderArchivePage(r1);return true;
     }
     if(cmd.target==='__CLEAR__'){output.innerHTML='';isResponding=false;termInput.focus();return true;}
     return false;
@@ -1271,7 +1274,7 @@ async function handleL1Bracket(val){
   if(handled) return;
 
   // 2. L1 chat root node body[] commands (hidden or visible — all active in chat state)
-  var chatNodeId=findChatRootNode('l1');
+  var chatNodeId=findChatRootNode('l1a');
   if(chatNodeId&&archData.nodes[chatNodeId]){
     var chatNode=archData.nodes[chatNodeId];var chatMatch=null;
     (chatNode.body||[]).forEach(function(b){
@@ -1286,8 +1289,8 @@ async function handleL1Bracket(val){
       }else{
         // Navigation — enter archive mode
         if(tgt==='__EXIT__'||tgt==='__BACK__'||!tgt){isResponding=false;termInput.focus();return;}
-        if(tgt==='__TRANSITION_L2__'){if(l1ChatBackup===null)l1ChatBackup=output.innerHTML;await transitionToL2();isResponding=false;var rr2=layerRootId('l2');if(rr2)await renderArchivePage(rr2);return;}
-        if(tgt==='__TRANSITION_L3__'){await transitionToL3();isResponding=false;var rr3=layerRootId('l3');if(rr3)await renderArchivePage(rr3);return;}
+        if(tgt==='__TRANSITION_L2A__'){if(l1ChatBackup===null)l1ChatBackup=output.innerHTML;await transitionToL2();isResponding=false;var rr2=layerRootId('l2a');if(rr2)await renderArchivePage(rr2);return;}
+        if(tgt==='__TRANSITION_L3A__'){await transitionToL3();isResponding=false;var rr3=layerRootId('l3a');if(rr3)await renderArchivePage(rr3);return;}
         if(archData.nodes[tgt]){await enterEchoArchive();isResponding=false;await renderArchivePage(tgt);return;}
       }
     }
@@ -1353,7 +1356,7 @@ async function handleL1Input(val){
 
 // ── GLOBAL COMMAND SYSTEM ─────────────────────────────────────────────────────
 // Returns the layer ID string for the current terminal level
-function currentLayerId(){return'l'+currentLevel;}
+function currentLayerId(){return'l'+currentLevel+'a';}
 
 // Scan all global nodes for a matching command label, respecting layer scope.
 // Caller is responsible for user echo and isResponding — this function does neither.
@@ -1382,10 +1385,10 @@ async function checkGlobalCommand(val){
     if(!target||!archData.nodes[target]){
       var errG=addLine('denied');await typeLine(errG,CFG_STRINGS.error_target_not_found);
     }else{
-      var tNode=archData.nodes[target];var tLid=tNode.layer||'l1';
+      var tNode=archData.nodes[target];var tLid=tNode.layer||'l1a';
       if(tLid!==lid){
-        if(tLid==='l2'){if(l1ChatBackup===null)l1ChatBackup=output.innerHTML;await transitionToL2();}
-        else if(tLid==='l3'){await transitionToL3();}
+        if(tLid==='l2a'){if(l1ChatBackup===null)l1ChatBackup=output.innerHTML;await transitionToL2();}
+        else if(tLid==='l3a'){await transitionToL3();}
       }
       await renderArchivePage(target);
     }
