@@ -302,13 +302,12 @@ select.iv-sel option{background:#001220;color:var(--blue);}
       </div>
     </div>
   </div>
-</div>
-  <!-- COLLAPSIBLE RIGHT PANEL TOGGLE -->
-  <div id="rpnl-toggle" style="width:28px;flex-shrink:0;display:flex;align-items:stretch;border-left:1px solid rgba(79,195,247,0.10);">
-    <button id="rpnl-btn" onclick="toggleRightPanel()" style="width:100%;background:transparent;border:none;color:rgba(79,195,247,0.40);font-size:11px;cursor:pointer;padding:0;transition:all 0.15s;" title="Collapse / expand right panel">&#9654;</button>
+  <!-- COLLAPSIBLE RIGHT PANEL TOGGLE — inside #body as flex sibling -->
+  <div id="rpnl-toggle" style="width:22px;flex-shrink:0;display:flex;align-items:stretch;border-left:1px solid rgba(79,195,247,0.10);">
+    <button id="rpnl-btn" onclick="toggleRightPanel()" style="width:100%;background:transparent;border:none;color:rgba(79,195,247,0.40);font-size:10px;cursor:pointer;padding:0;transition:all 0.15s;writing-mode:vertical-rl;" title="Expand right panel">&#9664; PANEL</button>
   </div>
-  <!-- COLLAPSIBLE RIGHT PANEL -->
-  <div id="rpnl" style="width:480px;flex-shrink:0;display:flex;flex-direction:column;border-left:1px solid rgba(79,195,247,0.10);overflow:hidden;transition:width 0.28s cubic-bezier(0.4,0,0.2,1);background:rgba(0,4,10,0.98);">
+  <!-- COLLAPSIBLE RIGHT PANEL — starts collapsed -->
+  <div id="rpnl" style="width:0;flex-shrink:0;display:flex;flex-direction:column;border-left:1px solid rgba(79,195,247,0.10);overflow:hidden;transition:width 0.28s cubic-bezier(0.4,0,0.2,1);background:rgba(0,4,10,0.98);">
     <div style="min-width:460px;display:flex;flex-direction:column;flex:1;min-height:0;">
       <!-- PANEL TABS -->
       <div style="display:flex;align-items:center;gap:4px;padding:6px 10px;border-bottom:1px solid rgba(79,195,247,0.10);flex-shrink:0;">
@@ -316,11 +315,11 @@ select.iv-sel option{background:#001220;color:var(--blue);}
         <button class="iphdr-btn" id="rpnl-btn-terminal" onclick="setRightMode('terminal')" style="font-size:12px;padding:3px 8px;">TERMINAL</button>
       </div>
       <!-- PREVIEW -->
-      <div id="rpnl-preview" style="flex:1;overflow-y:auto;padding:10px 12px;font-family:'Share Tech Mono',monospace;font-size:13px;display:block;"></div>
+      <div id="rpnl-preview" style="flex:1;overflow-y:auto;padding:10px 12px;font-size:13px;display:block;"></div>
       <!-- TERMINAL -->
       <div id="rpnl-terminal" style="flex:1;flex-direction:column;min-height:0;display:none;">
         <div style="display:flex;align-items:center;gap:6px;padding:6px 10px;border-bottom:1px solid rgba(79,195,247,0.10);flex-shrink:0;">
-          <input id="term-url" type="text" value="http://localhost:8000/terminal_031.html" style="flex:1;background:rgba(79,195,247,0.04);border:1px solid rgba(79,195,247,0.14);color:#4fc3f7;font-size:11px;padding:3px 7px;outline:none;" autocomplete="off" spellcheck="false">
+          <input id="term-url" type="text" value="http://localhost:8000/terminal.html" style="flex:1;background:rgba(79,195,247,0.04);border:1px solid rgba(79,195,247,0.14);color:#4fc3f7;font-size:11px;padding:3px 7px;outline:none;" autocomplete="off" spellcheck="false">
           <button onclick="loadTerminalFrame()" style="background:transparent;border:1px solid rgba(79,195,247,0.25);color:#4fc3f7;font-size:11px;padding:3px 9px;cursor:pointer;">LOAD</button>
           <button onclick="reloadTerminalFrame()" style="background:transparent;border:1px solid rgba(79,195,247,0.14);color:rgba(79,195,247,0.50);font-size:11px;padding:3px 9px;cursor:pointer;">&#8635;</button>
         </div>
@@ -328,7 +327,6 @@ select.iv-sel option{background:#001220;color:var(--blue);}
       </div>
     </div>
   </div>
-</div>
 </div>
 
 <div id="ctx-menu"></div>
@@ -1019,7 +1017,7 @@ function showInfo(id){
   h+='<div class="add-body-btns">';
   h+='<button class="add-btn" onclick="addBody(\''+esc(id)+'\',\'text\')">+ TEXT</button>';
   h+='<button class="add-btn nav" onclick="addBody(\''+esc(id)+'\',\'cmd-nav\')">+ NAV</button>';
-  h+='<button class="add-btn data-cmd" onclick="addBody(\''+esc(id)+'\',\'cmd-data\')">+ DATA</button>';
+  h+='<button class="add-btn data-cmd" onclick="addBody(\''+esc(id)+'\',\'cmd-pull\')">+ PULL</button>';
   h+='<button class="add-btn loop" onclick="addBody(\''+esc(id)+'\',\'cmd-loop\')">+ LOOP</button>';
   // FLAVOR removed — use personality_src field
   h+='<button class="add-btn dyn" onclick="addBody(\''+esc(id)+'\',\'dyn\')">+ DYN</button>';
@@ -1425,7 +1423,8 @@ function toggleRightPanel(){
   _rpnlOpen=!_rpnlOpen;
   var panel=document.getElementById('rpnl');
   panel.style.width=_rpnlOpen?'480px':'0';
-  document.getElementById('rpnl-btn').innerHTML=_rpnlOpen?'&#9654;':'&#9664;';
+  var btn=document.getElementById('rpnl-btn');
+  btn.innerHTML=_rpnlOpen?'&#9654; PANEL':'&#9664; PANEL';
   if(_rpnlOpen)setRightMode(_rpnlMode);
 }
 
