@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Dice Style Comparison</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:         #050709;
+    --panel:      rgba(15,18,24,0.72);
+    --text:       #eef0f5;
+    --text-dim:   rgba(238,240,245,0.5);
+    --border:     rgba(238,240,245,0.12);
+    --red:        #ff4d5e;
+    --blue:       #4fc3f7;
+    --orange:     #e8732a;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Barlow Condensed', sans-serif;
+    min-height: 100%;
+  }
+  body {
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 0%, rgba(79,195,247,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse 70% 50% at 50% 100%, rgba(232,115,42,0.06) 0%, transparent 60%),
+      linear-gradient(160deg, #030508 0%, #070b12 45%, #05080d 100%);
+    padding: 40px 20px 80px;
+  }
+  main {
+    max-width: 720px;
+    margin: 0 auto;
+  }
+  header {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+  .eyebrow {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px; letter-spacing: 0.28em; text-transform: uppercase;
+    color: var(--orange); opacity: 0.85; margin-bottom: 10px;
+  }
+  h1 {
+    font-weight: 900; letter-spacing: 0.04em; text-transform: uppercase;
+    font-size: clamp(28px, 6vw, 42px);
+    text-wrap: balance;
+  }
+  .lede {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px; color: var(--text-dim); line-height: 1.8;
+    max-width: 480px; margin: 14px auto 0;
+  }
+
+  .row {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 22px 24px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  .row-info { flex: 1 1 220px; min-width: 200px; }
+  .row-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--orange); margin-bottom: 6px;
+  }
+  .row-name {
+    font-weight: 700; font-size: 20px; letter-spacing: 0.02em;
+    margin-bottom: 6px;
+  }
+  .row-note {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11.5px; color: var(--text-dim); line-height: 1.7;
+  }
+
+  .dice-cluster { display: flex; align-items: center; gap: 18px; }
+  .die-wrap { text-align: center; }
+  .die-label {
+    font-family: 'Share Tech Mono', monospace; font-size: 9px;
+    letter-spacing: 0.18em; text-transform: uppercase; margin-top: 6px;
+    color: var(--text-dim);
+  }
+
+  .die {
+    position: relative;
+    width: 60px; height: 60px;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.55);
+  }
+  .die.rolling { animation: shake 0.4s ease; }
+  @keyframes shake {
+    0%,100% { transform: rotate(0deg); }
+    25% { transform: rotate(-10deg); }
+    50% { transform: rotate(8deg); }
+    75% { transform: rotate(-5deg); }
+  }
+  .pip-grid {
+    position: absolute; inset: 0;
+    display: grid; grid-template-columns: repeat(3,1fr); grid-template-rows: repeat(3,1fr);
+    padding: 11px; gap: 2px;
+    z-index: 2;
+  }
+  .pip-dot { border-radius: 50%; }
+  .pip-dot.on { background: #fff; box-shadow: 0 0 3px rgba(0,0,0,0.5); }
+
+  /* ── STYLE D: current flat gradient (baseline) ── */
+  .die.baseline.red { background: linear-gradient(145deg, #ff6270, #c11f30); }
+  .die.baseline.blue { background: linear-gradient(145deg, #6fd4ff, #1c8fc7); }
+
+  /* ── STYLE A: translucent fill + opaque outline (Dead Signal style) ── */
+  .die.flat-glass.red { background: rgba(255,77,94,0.18); border: 2px solid var(--red); }
+  .die.flat-glass.blue { background: rgba(79,195,247,0.18); border: 2px solid var(--blue); }
+
+  /* ── STYLE B: CSS layered-gradient marble (no SVG) ── */
+  .die.css-marble.red {
+    background:
+      radial-gradient(circle at 22% 18%, rgba(0,0,0,0.6) 0%, transparent 36%),
+      radial-gradient(circle at 78% 28%, rgba(0,0,0,0.45) 0%, transparent 30%),
+      radial-gradient(circle at 38% 78%, rgba(0,0,0,0.55) 0%, transparent 38%),
+      radial-gradient(circle at 82% 82%, rgba(255,77,94,0.55) 0%, transparent 42%),
+      radial-gradient(circle at 12% 55%, rgba(255,77,94,0.4) 0%, transparent 38%),
+      linear-gradient(160deg, rgba(110,10,20,0.6), rgba(8,4,5,0.88));
+    border: 2px solid rgba(255,77,94,0.65);
+  }
+  .die.css-marble.blue {
+    background:
+      radial-gradient(circle at 22% 18%, rgba(0,0,0,0.6) 0%, transparent 36%),
+      radial-gradient(circle at 78% 28%, rgba(0,0,0,0.45) 0%, transparent 30%),
+      radial-gradient(circle at 38% 78%, rgba(0,0,0,0.55) 0%, transparent 38%),
+      radial-gradient(circle at 82% 82%, rgba(79,195,247,0.55) 0%, transparent 42%),
+      radial-gradient(circle at 12% 55%, rgba(79,195,247,0.4) 0%, transparent 38%),
+      linear-gradient(160deg, rgba(10,55,80,0.6), rgba(4,7,8,0.88));
+    border: 2px solid rgba(79,195,247,0.65);
+  }
+
+  /* ── STYLE C: SVG turbulence swirl (true marbled resin) ── */
+  .die.svg-marble { border: 2px solid; }
+  .die.svg-marble.red { border-color: var(--red); background: #1a0507; }
+  .die.svg-marble.blue { border-color: var(--blue); background: #051419; }
+  .die.svg-marble svg { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; }
+
+  .btn {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: #05080d; background: var(--orange);
+    border: none; border-radius: 3px; padding: 10px 16px;
+    cursor: pointer; font-weight: 700; transition: 0.15s;
+    white-space: nowrap;
+  }
+  .btn:hover { filter: brightness(1.15); }
+
+  footer {
+    text-align: center; margin-top: 30px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: rgba(238,240,245,0.3);
+  }
+
+  @media (max-width: 480px) {
+    .row { flex-direction: column; align-items: stretch; text-align: center; }
+    .dice-cluster { justify-content: center; }
+  }
+</style>
+</head>
+<body>
+
+<main>
+  <header>
+    <div class="eyebrow">// Material Test — Not Live</div>
+    <h1>Dice Style Comparison</h1>
+    <p class="lede">Four candidate looks for the Red/Blue coordinate dice, aiming for the resin-cast physical version — a translucent swirl of color and black. Roll each row a few times; texture reads differently across pip counts.</p>
+  </header>
+
+  <div class="row" data-style="baseline">
+    <div class="row-info">
+      <div class="row-label">Style D — Current</div>
+      <div class="row-name">Flat Gradient</div>
+      <div class="row-note">What's live today. Solid, glossy, no translucency — the baseline to compare against.</div>
+    </div>
+    <div class="dice-cluster">
+      <div class="die-wrap">
+        <div class="die baseline red" id="d-baseline-red"><div class="pip-grid"></div></div>
+        <div class="die-label">Red</div>
+      </div>
+      <div class="die-wrap">
+        <div class="die baseline blue" id="d-baseline-blue"><div class="pip-grid"></div></div>
+        <div class="die-label">Blue</div>
+      </div>
+    </div>
+    <button class="btn" data-roll="baseline">Roll</button>
+  </div>
+
+  <div class="row" data-style="flat-glass">
+    <div class="row-info">
+      <div class="row-label">Style A — Simplest</div>
+      <div class="row-name">Translucent + Outline</div>
+      <div class="row-note">Same language already used for Dead Signal's signal slots. Flat tinted glass, solid color rim. Cheapest to build, most consistent with the rest of the site.</div>
+    </div>
+    <div class="dice-cluster">
+      <div class="die-wrap">
+        <div class="die flat-glass red" id="d-flat-glass-red"><div class="pip-grid"></div></div>
+        <div class="die-label">Red</div>
+      </div>
+      <div class="die-wrap">
+        <div class="die flat-glass blue" id="d-flat-glass-blue"><div class="pip-grid"></div></div>
+        <div class="die-label">Blue</div>
+      </div>
+    </div>
+    <button class="btn" data-roll="flat-glass">Roll</button>
+  </div>
+
+  <div class="row" data-style="css-marble">
+    <div class="row-info">
+      <div class="row-label">Style B — Middle Ground</div>
+      <div class="row-name">Layered Gradient Marble</div>
+      <div class="row-note">Pure CSS, no SVG — overlapping radial gradients fake mottled color-in-resin. Cheap to render, reads as textured rather than truly swirled.</div>
+    </div>
+    <div class="dice-cluster">
+      <div class="die-wrap">
+        <div class="die css-marble red" id="d-css-marble-red"><div class="pip-grid"></div></div>
+        <div class="die-label">Red</div>
+      </div>
+      <div class="die-wrap">
+        <div class="die css-marble blue" id="d-css-marble-blue"><div class="pip-grid"></div></div>
+        <div class="die-label">Blue</div>
+      </div>
+    </div>
+    <button class="btn" data-roll="css-marble">Roll</button>
+  </div>
+
+  <div class="row" data-style="svg-marble">
+    <div class="row-info">
+      <div class="row-label">Style C — Closest to Real</div>
+      <div class="row-name">SVG Turbulence Swirl</div>
+      <div class="row-note">Procedural noise filter tinted per-die and streaked anisotropically for a true poured-resin look. Most authentic, most expensive to render/tune.</div>
+    </div>
+    <div class="dice-cluster">
+      <div class="die-wrap">
+        <div class="die svg-marble red" id="d-svg-marble-red">
+          <svg viewBox="0 0 60 60"><rect width="60" height="60" filter="url(#marble-red)"/></svg>
+          <div class="pip-grid"></div>
+        </div>
+        <div class="die-label">Red</div>
+      </div>
+      <div class="die-wrap">
+        <div class="die svg-marble blue" id="d-svg-marble-blue">
+          <svg viewBox="0 0 60 60"><rect width="60" height="60" filter="url(#marble-blue)"/></svg>
+          <div class="pip-grid"></div>
+        </div>
+        <div class="die-label">Blue</div>
+      </div>
+    </div>
+    <button class="btn" data-roll="svg-marble">Roll</button>
+  </div>
+
+  <footer>ECHOES · Dice Material Prototype · Nothing here is wired into the live games</footer>
+</main>
+
+<!-- Shared SVG filter defs for Style C -->
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <filter id="marble-red" x="-20%" y="-20%" width="140%" height="140%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.01 0.09" numOctaves="4" seed="7" result="swirl"/>
+      <feDisplacementMap in="swirl" in2="swirl" scale="18" xChannelSelector="R" yChannelSelector="G" result="warped"/>
+      <feColorMatrix in="warped" type="matrix" values="
+        0 0 0 0 0.85
+        0 0 0 0 0.08
+        0 0 0 0 0.12
+        0 0 0 0.85 0" result="tintedRed"/>
+      <feFlood flood-color="#1a0507" result="base"/>
+      <feMerge>
+        <feMergeNode in="base"/>
+        <feMergeNode in="tintedRed"/>
+      </feMerge>
+    </filter>
+    <filter id="marble-blue" x="-20%" y="-20%" width="140%" height="140%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.01 0.09" numOctaves="4" seed="19" result="swirl"/>
+      <feDisplacementMap in="swirl" in2="swirl" scale="18" xChannelSelector="R" yChannelSelector="G" result="warped"/>
+      <feColorMatrix in="warped" type="matrix" values="
+        0 0 0 0 0.14
+        0 0 0 0 0.55
+        0 0 0 0 0.85
+        0 0 0 0.85 0" result="tintedBlue"/>
+      <feFlood flood-color="#051419" result="base"/>
+      <feMerge>
+        <feMergeNode in="base"/>
+        <feMergeNode in="tintedBlue"/>
+      </feMerge>
+    </filter>
+  </defs>
+</svg>
+
+<script>
+(function(){
+  const DOTS = {
+    1: [4],
+    2: [0,8],
+    3: [0,4,8],
+    4: [0,2,6,8],
+    5: [0,2,4,6,8],
+    6: [0,2,3,5,6,8]
+  };
+
+  function renderDie(el, value){
+    const grid = el.querySelector('.pip-grid');
+    grid.innerHTML = '';
+    for (let i = 0; i < 9; i++){
+      const d = document.createElement('div');
+      d.className = 'pip-dot' + (DOTS[value].includes(i) ? ' on' : '');
+      grid.appendChild(d);
+    }
+  }
+
+  const styles = ['baseline', 'flat-glass', 'css-marble', 'svg-marble'];
+  styles.forEach(style => {
+    renderDie(document.getElementById('d-' + style + '-red'), 1 + Math.floor(Math.random()*6));
+    renderDie(document.getElementById('d-' + style + '-blue'), 1 + Math.floor(Math.random()*6));
+  });
+
+  document.querySelectorAll('[data-roll]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const style = btn.dataset.roll;
+      const redEl = document.getElementById('d-' + style + '-red');
+      const blueEl = document.getElementById('d-' + style + '-blue');
+      redEl.classList.add('rolling');
+      blueEl.classList.add('rolling');
+      let ticks = 0;
+      const spin = setInterval(() => {
+        renderDie(redEl, 1 + Math.floor(Math.random()*6));
+        renderDie(blueEl, 1 + Math.floor(Math.random()*6));
+        ticks++;
+        if (ticks > 6){
+          clearInterval(spin);
+          redEl.classList.remove('rolling');
+          blueEl.classList.remove('rolling');
+        }
+      }, 60);
+    });
+  });
+})();
+</script>
+
+</body>
+</html>

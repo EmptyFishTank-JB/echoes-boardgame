@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SFX Test Rig</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  :root {
+    --bg:        #050709;
+    --panel:     #10141c;
+    --panel2:    #151a23;
+    --border:    rgba(238,240,245,0.12);
+    --text:      #eef0f5;
+    --text-dim:  rgba(238,240,245,0.48);
+    --accent:    #4fc3f7;
+    --orange:    #e8732a;
+    --red:       #ff4d5e;
+    --good:      #4fe0a1;
+  }
+  :root[data-theme="dark"] {
+    --bg:        #050709;
+    --panel:     #10141c;
+    --panel2:    #151a23;
+    --border:    rgba(238,240,245,0.12);
+    --text:      #eef0f5;
+    --text-dim:  rgba(238,240,245,0.48);
+    --accent:    #4fc3f7;
+    --orange:    #e8732a;
+    --red:       #ff4d5e;
+    --good:      #4fe0a1;
+  }
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      --bg:        #f4f5f7;
+      --panel:     #ffffff;
+      --panel2:    #eef0f3;
+      --border:    rgba(10,14,20,0.12);
+      --text:      #10141c;
+      --text-dim:  rgba(16,20,28,0.55);
+      --accent:    #1c8fc7;
+      --orange:    #b85a1e;
+      --red:       #c72f3e;
+      --good:      #1f9c6c;
+    }
+  }
+  :root[data-theme="light"] {
+    --bg:        #f4f5f7;
+    --panel:     #ffffff;
+    --panel2:    #eef0f3;
+    --border:    rgba(10,14,20,0.12);
+    --text:      #10141c;
+    --text-dim:  rgba(16,20,28,0.55);
+    --accent:    #1c8fc7;
+    --orange:    #b85a1e;
+    --red:       #c72f3e;
+    --good:      #1f9c6c;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: ui-monospace, 'SF Mono', 'Cascadia Code', 'Courier New', monospace;
+    padding: 32px 20px 80px;
+    min-height: 100vh;
+  }
+  .wrap { max-width: 900px; margin: 0 auto; }
+
+  header { margin-bottom: 36px; }
+  .eyebrow {
+    font-size: 11px; letter-spacing: 0.28em; text-transform: uppercase;
+    color: var(--orange); margin-bottom: 10px;
+  }
+  h1 {
+    font-size: clamp(26px, 4vw, 36px);
+    font-weight: 700; letter-spacing: 0.01em;
+    text-wrap: balance;
+  }
+  .lede {
+    color: var(--text-dim); font-size: 13px; line-height: 1.7;
+    margin-top: 10px; max-width: 62ch;
+  }
+  .lede strong { color: var(--text); }
+
+  section { margin-bottom: 40px; }
+  .sec-head {
+    display: flex; align-items: baseline; gap: 12px;
+    margin-bottom: 6px; padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  .sec-num {
+    font-size: 11px; color: var(--orange); letter-spacing: 0.1em;
+  }
+  .sec-title {
+    font-size: 15px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+  }
+  .sec-note {
+    font-size: 12px; color: var(--text-dim); margin: 10px 0 18px; line-height: 1.7; max-width: 68ch;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 10px;
+  }
+
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px 16px 16px;
+  }
+  .card-name {
+    font-size: 12.5px; font-weight: 700; letter-spacing: 0.04em;
+    text-transform: uppercase; margin-bottom: 3px;
+  }
+  .card-desc {
+    font-size: 11px; color: var(--text-dim); line-height: 1.5; margin-bottom: 12px;
+    min-height: 32px;
+  }
+  .btn-row { display: flex; gap: 6px; flex-wrap: wrap; }
+
+  button {
+    font-family: inherit;
+    font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--text); background: var(--panel2);
+    border: 1px solid var(--border); border-radius: 4px;
+    padding: 7px 10px; cursor: pointer;
+    transition: border-color 0.12s, color 0.12s, transform 0.08s;
+  }
+  button:hover { border-color: var(--accent); color: var(--accent); }
+  button:active { transform: scale(0.96); }
+  button.play-all {
+    color: var(--orange); border-color: rgba(232,115,42,0.4);
+  }
+  button.play-all:hover { border-color: var(--orange); }
+  button.bad { color: var(--red); border-color: rgba(255,77,94,0.35); }
+  button.bad:hover { border-color: var(--red); }
+  button.toggle-on { color: var(--good); border-color: var(--good); }
+
+  .single-card {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  }
+  .single-card .btn-row { flex-shrink: 0; }
+
+  footer {
+    margin-top: 50px; padding-top: 18px; border-top: 1px solid var(--border);
+    font-size: 11px; color: var(--text-dim); text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">// Echoes — Audio Prototyping</div>
+    <h1>SFX Test Rig</h1>
+    <p class="lede">
+      Everything here is synthesized live with the Web Audio API — no sample files, same approach
+      as the sounds already wired into the mini-games. Section 1 is the main event: seven candidate
+      replacements for Cascade Failure's <strong>14 / 18 / 21 threshold chime</strong>, each played at
+      the same three pitches so they're easy to A/B. The rest is for browsing — sounds from
+      <strong>terminal.html</strong> that never made it into a game, and the sounds already live today,
+      side by side for reference.
+    </p>
+  </header>
+
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">01</span>
+      <span class="sec-title">Threshold Chime Candidates</span>
+    </div>
+    <p class="sec-note">Each card is one synthesis approach. "Low / Mid / High" map to hitting 14, 18, and 21. "Play All" runs them in sequence so you can hear the rise.</p>
+    <div class="grid" id="chimeGrid"></div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">02</span>
+      <span class="sec-title">Bust / Overload Alert Candidates</span>
+    </div>
+    <p class="sec-note">Plays when the gauge passes 21. First card is what's live now.</p>
+    <div class="grid" id="bustGrid"></div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">03</span>
+      <span class="sec-title">Currently Live In-Game</span>
+    </div>
+    <p class="sec-note">What's already wired into the five mini-games today, for reference while you compare candidates above.</p>
+    <div class="grid" id="liveGrid"></div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">04</span>
+      <span class="sec-title">Unused Sounds From terminal.html</span>
+    </div>
+    <p class="sec-note">Built for the terminal's synth engine but never ported into a mini-game.</p>
+    <div class="grid" id="termGrid"></div>
+  </section>
+
+  <footer>Click any button — audio starts on first interaction per browser policy.</footer>
+</div>
+
+<script>
+(function(){
+  let ctx;
+  function getCtx(){
+    if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
+    if (ctx.state === 'suspended') ctx.resume();
+    return ctx;
+  }
+  const VOL = 0.18;
+  const NOTES = { low: 261.63, mid: 329.63, high: 440 };
+
+  function noiseBurst(dur, filterType, freq, q, vol, envPow){
+    try {
+      const c = getCtx();
+      const buf = c.createBuffer(1, Math.floor(c.sampleRate*dur), c.sampleRate);
+      const d = buf.getChannelData(0);
+      for (let i=0;i<d.length;i++) d[i] = (Math.random()*2-1)*Math.pow(1-i/d.length, envPow||1);
+      const src = c.createBufferSource(); src.buffer = buf;
+      const flt = c.createBiquadFilter(); flt.type = filterType; flt.frequency.value = freq; if (q) flt.Q.value = q;
+      const gn = c.createGain();
+      gn.gain.setValueAtTime(vol, c.currentTime);
+      gn.gain.exponentialRampToValueAtTime(0.001, c.currentTime+dur);
+      src.connect(flt); flt.connect(gn); gn.connect(c.destination);
+      src.start(); src.stop(c.currentTime+dur);
+    } catch(e) {}
+  }
+
+  /* ── 01 — THRESHOLD CHIME CANDIDATES ── */
+  const chimes = {
+    triangle(freq){ // current live version
+      try {
+        const c = getCtx();
+        const osc = c.createOscillator(); osc.type='triangle'; osc.frequency.value=freq;
+        const gn = c.createGain();
+        gn.gain.setValueAtTime(0, c.currentTime);
+        gn.gain.linearRampToValueAtTime(VOL*0.4, c.currentTime+0.015);
+        gn.gain.exponentialRampToValueAtTime(0.001, c.currentTime+0.22);
+        osc.connect(gn); gn.connect(c.destination);
+        osc.start(); osc.stop(c.currentTime+0.22);
+      } catch(e) {}
+    },
+    bell(freq){
+      try {
+        const c = getCtx();
+        const gn = c.createGain(); gn.connect(c.destination);
+        gn.gain.setValueAtTime(VOL*0.3, c.currentTime);
+        gn.gain.exponentialRampToValueAtTime(0.001, c.currentTime+0.55);
+        [1, 2.41, 3.9].forEach((ratio, i) => {
+          const osc = c.createOscillator(); osc.type='sine'; osc.frequency.value = freq*ratio;
+          const og = c.createGain(); og.gain.value = i === 0 ? 1 : 0.28/i;
+          osc.connect(og); og.connect(gn);
+          osc.start(); osc.stop(c.currentTime+0.55);
+        });
+      } catch(e) {}
+    },
+    arcade(freq){
+      try {
+        const c = getCtx();
+        const osc = c.createOscillator(); osc.type='square'; osc.frequency.setValueAtTime(freq, c.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(freq*0.94, c.currentTime+0.09);
+        const gn = c.createGain();
+        gn.gain.setValueAtTime(VOL*0.22, c.currentTime);
+        gn.gain.exponentialRampToValueAtTime(0.001, c.currentTime+0.1);
+        osc.connect(gn); gn.connect(c.destination);
+        osc.start(); osc.stop(c.currentTime+0.1);
+      } catch(e) {}
+    },
+    sonar(freq){
+      try {
+        const c = getCtx();
+        [0, 0.12].forEach((delay, i) => {
+          const t = c.currentTime+delay;
+          const osc = c.createOscillator(); osc.type='sine'; osc.frequency.value=freq;
+          const lfo = c.createOscillator(); lfo.type='sine'; lfo.frequency.value=7;
+          const lfoGain = c.createGain(); lfoGain.gain.value = 4;
+          lfo.connect(lfoGain); lfoGain.connect(osc.frequency);
+          const gn = c.createGain();
+          gn.gain.setValueAtTime(VOL*(i===0?0.35:0.15), t);
+          gn.gain.exponentialRampToValueAtTime(0.001, t+0.4);
+          osc.connect(gn); gn.connect(c.destination);
+          osc.start(t); lfo.start(t); osc.stop(t+0.4); lfo.stop(t+0.4);
+        });
+      } catch(e) {}
+    },
+    glass(freq){
+      try {
+        const c = getCtx();
+        const gn = c.createGain(); gn.connect(c.destination);
+        gn.gain.setValueAtTime(VOL*0.32, c.currentTime);
+        gn.gain.exponentialRampToValueAtTime(0.001, c.currentTime+0.14);
+        [2, 3.01].forEach((ratio) => {
+          const osc = c.createOscillator(); osc.type='sine'; osc.frequency.value=freq*ratio;
+          osc.connect(gn);
+          osc.start(); osc.stop(c.currentTime+0.14);
+        });
+      } catch(e) {}
+    },
+    pluck(freq){
+      try {
+        const c = getCtx();
+        const osc = c.createOscillator(); osc.type='triangle'; osc.frequency.value=freq;
+        const flt = c.createBiquadFilter(); flt.type='lowpass';
+        flt.frequency.setValueAtTime(freq*8, c.currentTime);
+        flt.frequency.exponentialRampToValueAtTime(freq*1.2, c.currentTime+0.3);
+        flt.Q.value = 4;
+        const gn = c.createGain();
+        gn.gain.setValueAtTime(VOL*0.5, c.currentTime);
+        gn.gain.exponentialRampToValueAtTime(0.001, c.currentTime+0.32);
+        osc.connect(flt); flt.connect(gn); gn.connect(c.destination);
+        osc.start(); osc.stop(c.currentTime+0.32);
+      } catch(e) {}
+    },
+    fm(freq){
+      try {
+        const c = getCtx();
+        const carrier = c.createOscillator(); carrier.type='sine'; carrier.frequency.value=freq;
+        const modulator = c.createOscillator(); modulator.type='sine'; modulator.frequency.value=freq*1.5;
+        const modGain = c.createGain(); modGain.gain.setValueAtTime(freq*1.8, c.currentTime);
+        modGain.gain.exponentialRampToValueAtTime(1, c.currentTime+0.3);
+        modulator.connect(modGain); modGain.connect(carrier.frequency);
+        const gn = c.createGain();
+        gn.gain.setValueAtTime(VOL*0.35, c.currentTime);
+        gn.gain.exponentialRampToValueAtTime(0.001, c.currentTime+0.35);
+        carrier.connect(gn); gn.connect(c.destination);
+        carrier.start(); modulator.start();
+        carrier.stop(c.currentTime+0.35); modulator.stop(c.currentTime+0.35);
+      } catch(e) {}
+    }
+  };
+
+  const CHIME_META = [
+    { key: 'triangle', name: 'Current — Triangle', desc: 'What’s live today. Bare triangle wave, quick attack.' },
+    { key: 'bell', name: 'Soft Bell', desc: 'Sine + two quiet inharmonic partials. Rounder, longer tail.' },
+    { key: 'arcade', name: 'Arcade Blip', desc: 'Square wave with a tiny downward pitch snap. Chip-tune feel.' },
+    { key: 'sonar', name: 'Sonar Ping', desc: 'Sine with light vibrato plus a soft echo repeat.' },
+    { key: 'glass', name: 'Glass Tap', desc: 'Two high sine partials, very fast decay. Crisp, small.' },
+    { key: 'pluck', name: 'Synth Pluck', desc: 'Triangle through a filter sweep — plucked-string character.' },
+    { key: 'fm', name: 'FM Chime', desc: 'Two-oscillator FM. Metallic, electric-piano-ish.' }
+  ];
+
+  const chimeGrid = document.getElementById('chimeGrid');
+  CHIME_META.forEach(({key, name, desc}) => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = '<div class="card-name">'+name+'</div><div class="card-desc">'+desc+'</div>';
+    const row = document.createElement('div');
+    row.className = 'btn-row';
+    ['low','mid','high'].forEach(level => {
+      const b = document.createElement('button');
+      b.textContent = level;
+      b.addEventListener('click', () => chimes[key](NOTES[level]));
+      row.appendChild(b);
+    });
+    const all = document.createElement('button');
+    all.className = 'play-all';
+    all.textContent = 'Play All';
+    all.addEventListener('click', () => {
+      chimes[key](NOTES.low);
+      setTimeout(() => chimes[key](NOTES.mid), 260);
+      setTimeout(() => chimes[key](NOTES.high), 520);
+    });
+    row.appendChild(all);
+    card.appendChild(row);
+    chimeGrid.appendChild(card);
+  });
+
+  /* ── 02 — BUST ALERT CANDIDATES ── */
+  const busts = {
+    beat(){
+      try {
+        const c = getCtx();
+        const gn = c.createGain(); gn.connect(c.destination);
+        gn.gain.setValueAtTime(VOL*0.5, c.currentTime);
+        gn.gain.exponentialRampToValueAtTime(0.001, c.currentTime+0.22);
+        [110,116].forEach((freq) => {
+          const osc = c.createOscillator(); osc.type='sawtooth'; osc.frequency.value=freq;
+          osc.connect(gn);
+          osc.start(); osc.stop(c.currentTime+0.22);
+        });
+      } catch(e) {}
+    },
+    thud(){
+      noiseBurst(0.16, 'bandpass', 140, 1.1, VOL*0.7, 1.6);
+    },
+    descend(){
+      try {
+        const c = getCtx();
+        const osc = c.createOscillator(); osc.type='square';
+        osc.frequency.setValueAtTime(220, c.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(70, c.currentTime+0.18);
+        const gn = c.createGain();
+        gn.gain.setValueAtTime(VOL*0.3, c.currentTime);
+        gn.gain.exponentialRampToValueAtTime(0.001, c.currentTime+0.2);
+        osc.connect(gn); gn.connect(c.destination);
+        osc.start(); osc.stop(c.currentTime+0.2);
+      } catch(e) {}
+    }
+  };
+  const BUST_META = [
+    { key: 'beat', name: 'Current — Detune Beat', desc: 'Two close sawtooth tones (110/116Hz) beating against each other.' },
+    { key: 'thud', name: 'Impact Thud', desc: 'Filtered noise burst, low and blunt. Physical rather than tonal.' },
+    { key: 'descend', name: 'Descending Square', desc: 'Square wave sliding down in pitch. Classic arcade "fail" gesture.' }
+  ];
+  const bustGrid = document.getElementById('bustGrid');
+  BUST_META.forEach(({key, name, desc}) => {
+    const card = document.createElement('div');
+    card.className = 'card single-card';
+    card.innerHTML = '<div><div class="card-name">'+name+'</div><div class="card-desc" style="min-height:auto;">'+desc+'</div></div>';
+    const row = document.createElement('div');
+    row.className = 'btn-row';
+    const b = document.createElement('button');
+    b.className = 'bad';
+    b.textContent = 'Play';
+    b.addEventListener('click', () => busts[key]());
+    row.appendChild(b);
+    card.appendChild(row);
+    bustGrid.appendChild(card);
+  });
+
+  /* ── 03 — CURRENTLY LIVE IN-GAME ── */
+  const live = {
+    tick(){ noiseBurst(0.025, 'bandpass', 3000+Math.random()*1000, 0.8, VOL, 1); },
+    settle(){ noiseBurst(0.055, 'lowpass', 800, null, VOL*1.2, 0.25); },
+    hover(){
+      try {
+        const c = getCtx();
+        const osc = c.createOscillator(); osc.type='sine'; osc.frequency.value=1800;
+        const gn = c.createGain();
+        gn.gain.setValueAtTime(VOL*0.06, c.currentTime);
+        gn.gain.exponentialRampToValueAtTime(0.001, c.currentTime+0.02);
+        osc.connect(gn); gn.connect(c.destination);
+        osc.start(); osc.stop(c.currentTime+0.02);
+      } catch(e) {}
+    },
+    select(){
+      try {
+        const c = getCtx();
+        const osc = c.createOscillator(); osc.type='triangle'; osc.frequency.value=260;
+        const gn = c.createGain();
+        gn.gain.setValueAtTime(VOL*0.6, c.currentTime);
+        gn.gain.exponentialRampToValueAtTime(0.001, c.currentTime+0.045);
+        osc.connect(gn); gn.connect(c.destination);
+        osc.start(); osc.stop(c.currentTime+0.045);
+      } catch(e) {}
+    },
+    lock(){
+      noiseBurst(0.09, 'bandpass', 350, 1.2, VOL*0.9, 1.4);
+    },
+    barTick(){
+      noiseBurst(0.03, 'highpass', 2600, null, VOL*0.35, 1);
+    },
+    confirm(){
+      try {
+        const c = getCtx();
+        const osc = c.createOscillator(); osc.type='sine'; osc.frequency.value=740;
+        const gn = c.createGain();
+        gn.gain.setValueAtTime(VOL*0.25, c.currentTime);
+        gn.gain.exponentialRampToValueAtTime(0.001, c.currentTime+0.09);
+        osc.connect(gn); gn.connect(c.destination);
+        osc.start(); osc.stop(c.currentTime+0.09);
+      } catch(e) {}
+    },
+    surge(){
+      try {
+        const c = getCtx();
+        const gn = c.createGain(); gn.connect(c.destination);
+        [330,440].forEach((freq,idx) => {
+          const osc = c.createOscillator(); osc.type='sawtooth'; osc.frequency.value=freq;
+          osc.connect(gn);
+          const t = c.currentTime+idx*0.1;
+          gn.gain.setValueAtTime(VOL*0.35, t);
+          gn.gain.exponentialRampToValueAtTime(0.001, t+0.1);
+          osc.start(t); osc.stop(t+0.1);
+        });
+      } catch(e) {}
+    },
+    win(){
+      try {
+        const c = getCtx();
+        [660,880].forEach((f,i) => {
+          const osc = c.createOscillator(); osc.type='sine'; osc.frequency.value=f;
+          const gn = c.createGain();
+          const t = c.currentTime+i*0.09;
+          gn.gain.setValueAtTime(VOL*0.25, t);
+          gn.gain.exponentialRampToValueAtTime(0.001, t+0.08);
+          osc.connect(gn); gn.connect(c.destination);
+          osc.start(t); osc.stop(t+0.08);
+        });
+      } catch(e) {}
+    },
+    fail(){
+      try {
+        const c = getCtx();
+        [0, 0.08, 0.18].forEach((delay, i) => {
+          const t = c.currentTime+delay;
+          const vol = VOL*[0.9,0.35,0.12][i];
+          noiseBurstAt(t, 0.07, 'bandpass', 320, 0.9, vol, 1.8);
+        });
+      } catch(e) {}
+    }
+  };
+  function noiseBurstAt(t, dur, filterType, freq, q, vol, envPow){
+    try {
+      const c = getCtx();
+      const buf = c.createBuffer(1, Math.floor(c.sampleRate*dur), c.sampleRate);
+      const d = buf.getChannelData(0);
+      for (let i=0;i<d.length;i++) d[i] = (Math.random()*2-1)*Math.pow(1-i/d.length, envPow||1);
+      const src = c.createBufferSource(); src.buffer = buf;
+      const flt = c.createBiquadFilter(); flt.type = filterType; flt.frequency.value = freq; if (q) flt.Q.value = q;
+      const gn = c.createGain();
+      gn.gain.setValueAtTime(vol, t);
+      gn.gain.exponentialRampToValueAtTime(0.001, t+dur);
+      src.connect(flt); flt.connect(gn); gn.connect(c.destination);
+      src.start(t); src.stop(t+dur);
+    } catch(e) {}
+  }
+
+  const LIVE_META = [
+    { key: 'tick', name: 'Tick', desc: 'Every spin frame while dice are cycling.' },
+    { key: 'settle', name: 'Settle', desc: 'Dice stop, real result lands.' },
+    { key: 'hover', name: 'Hover', desc: 'Mouse over any resource / tier / grid cell.' },
+    { key: 'select', name: 'Select', desc: 'Clicking a resource, tier, cell, or roll button.' },
+    { key: 'lock', name: 'Lock', desc: 'Wager/tier/grid locking after the first roll.' },
+    { key: 'barTick', name: 'Bar Tick', desc: 'Cascade Failure gauge filling, one bar at a time.' },
+    { key: 'confirm', name: 'Confirm', desc: 'A fuse cut, or a Dead Signal value confirmed.' },
+    { key: 'surge', name: 'Surge', desc: 'Pull the Fuse — doubles rolled, bonus pick unlocked.' },
+    { key: 'win', name: 'Win', desc: 'Any win / partial-win outcome.' },
+    { key: 'fail', name: 'Fail', desc: 'Any loss, bust, or overload outcome.' }
+  ];
+  const liveGrid = document.getElementById('liveGrid');
+  LIVE_META.forEach(({key, name, desc}) => {
+    const card = document.createElement('div');
+    card.className = 'card single-card';
+    card.innerHTML = '<div><div class="card-name">'+name+'</div><div class="card-desc" style="min-height:auto;">'+desc+'</div></div>';
+    const row = document.createElement('div');
+    row.className = 'btn-row';
+    const b = document.createElement('button');
+    b.textContent = 'Play';
+    b.addEventListener('click', () => live[key]());
+    row.appendChild(b);
+    card.appendChild(row);
+    liveGrid.appendChild(card);
+  });
+
+  /* ── 04 — UNUSED TERMINAL SOUNDS ── */
+  let ambientOsc = null, ambientGn = null;
+  const term = {
+    ambient(btn){
+      const c = getCtx();
+      if (ambientOsc){
+        try { ambientOsc.stop(); } catch(e) {}
+        ambientOsc = null; ambientGn = null;
+        btn.textContent = 'Start Drone';
+        btn.classList.remove('toggle-on');
+        return;
+      }
+      ambientOsc = c.createOscillator(); ambientOsc.type='sine'; ambientOsc.frequency.value=42;
+      ambientGn = c.createGain(); ambientGn.gain.value = 0.04;
+      ambientOsc.connect(ambientGn); ambientGn.connect(c.destination);
+      ambientOsc.start();
+      btn.textContent = 'Stop Drone';
+      btn.classList.add('toggle-on');
+    },
+    idlePop(){
+      noiseBurst(0.06, 'bandpass', 1200, 0.5, VOL*0.35, 1);
+      // exp-ramp variant closer to original (uses default linear-ish decay above already)
+    },
+    thinkHum(){
+      try {
+        const c = getCtx();
+        const dur = 1.0;
+        const osc = c.createOscillator(); osc.type='sine'; osc.frequency.value=110;
+        const gn = c.createGain();
+        gn.gain.setValueAtTime(0, c.currentTime);
+        gn.gain.linearRampToValueAtTime(VOL*0.12, c.currentTime+0.08);
+        gn.gain.setValueAtTime(VOL*0.12, c.currentTime+dur-0.08);
+        gn.gain.linearRampToValueAtTime(0, c.currentTime+dur);
+        osc.connect(gn); gn.connect(c.destination);
+        osc.start(); osc.stop(c.currentTime+dur);
+      } catch(e) {}
+    },
+    alertOriginal(){
+      try {
+        const c = getCtx();
+        const gn = c.createGain(); gn.connect(c.destination);
+        [440,330].forEach(function(freq,idx) {
+          const osc = c.createOscillator(); osc.type='sawtooth'; osc.frequency.value=freq;
+          osc.connect(gn);
+          const t = c.currentTime+idx*0.12;
+          gn.gain.setValueAtTime(VOL*0.4, t);
+          gn.gain.exponentialRampToValueAtTime(0.001, t+0.1);
+          osc.start(t); osc.stop(t+0.1);
+        });
+      } catch(e) {}
+    }
+  };
+  const TERM_META = [
+    { key: 'ambient', name: 'Ambient Drone', desc: '42Hz sine, continuous background hum. Toggle on/off.', toggle: true },
+    { key: 'idlePop', name: 'Idle Pop', desc: 'Fires after 15s of no terminal input — a static "still here" tick.' },
+    { key: 'thinkHum', name: 'Think Hum', desc: 'Low hum during a terminal "thinking" pause.' },
+    { key: 'alertOriginal', name: 'Alert (original)', desc: 'Terminal’s two-tone descending warning — the basis for the game’s "surge" sound, ascending instead.' }
+  ];
+  const termGrid = document.getElementById('termGrid');
+  TERM_META.forEach(({key, name, desc, toggle}) => {
+    const card = document.createElement('div');
+    card.className = 'card single-card';
+    card.innerHTML = '<div><div class="card-name">'+name+'</div><div class="card-desc" style="min-height:auto;">'+desc+'</div></div>';
+    const row = document.createElement('div');
+    row.className = 'btn-row';
+    const b = document.createElement('button');
+    b.textContent = toggle ? 'Start Drone' : 'Play';
+    b.addEventListener('click', () => term[key](b));
+    row.appendChild(b);
+    card.appendChild(row);
+    termGrid.appendChild(card);
+  });
+})();
+</script>
+
+</body>
+</html>
