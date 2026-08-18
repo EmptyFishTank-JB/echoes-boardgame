@@ -99,7 +99,7 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
 .gnode.l2 .gnode-bline.text{color:rgba(191,124,10,0.65);}
 .gnode.l3 .gnode-bline.text{color:rgba(224,80,80,0.65);}
 .gnode.l1c .gnode-bline.text{color:rgba(77,184,150,0.70);}
-.gnode-bline.cmd-nav{color:rgba(79,195,247,0.80);position:relative;}
+.gnode-bline.cmd-nav{color:rgba(79,195,247,0.80);position:relative;overflow:visible;}
 .gnode.l2 .gnode-bline.cmd-nav{color:rgba(191,124,10,0.90);}
 .gnode.l3 .gnode-bline.cmd-nav{color:rgba(224,80,80,0.90);}
 .gnode.l1c .gnode-bline.cmd-nav{color:rgba(77,184,150,0.90);}
@@ -166,57 +166,13 @@ select.iv-sel option{background:#001220;color:var(--blue);}
 .rbt:hover{color:var(--blue);}
 .rbt.r:hover{color:#e05050;}
 .body-type-tag{font-size:10px;padding:1px 4px;border-radius:1px;flex-shrink:0;white-space:nowrap;}
-.tag-text{background:rgba(79,195,247,0.08);color:rgba(79,195,247,0.50);}
-.tag-nav{background:rgba(79,195,247,0.18);color:#4fc3f7;border:1px solid rgba(79,195,247,0.35);}
-.tag-data{background:rgba(196,127,196,0.12);color:#c47fc4;}
-.tag-loop{background:rgba(111,176,111,0.12);color:#6fb06f;}
-.tag-dyn{background:rgba(255,200,80,0.12);color:#f0c040;border:1px solid rgba(255,200,80,0.25);}
-.tag-flavor{background:rgba(196,127,196,0.12);color:#c47fc4;}
-.add-body-btns{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px;}
-.add-btn{background:transparent;border:1px solid rgba(79,195,247,0.14);color:var(--dim);font-family:"Share Tech Mono",monospace;font-size:11px;padding:3px 7px;cursor:pointer;transition:all 0.15s;}
-.add-btn:hover{border-color:var(--blue);color:var(--blue);}
-.add-btn.nav{border-color:rgba(79,195,247,0.25);color:rgba(79,195,247,0.60);}
-.add-btn.data-cmd{border-color:rgba(196,127,196,0.25);color:rgba(196,127,196,0.60);}
-.add-btn.loop{border-color:rgba(111,176,111,0.25);color:rgba(111,176,111,0.60);}
-.add-btn.flavor{border-color:rgba(196,127,196,0.25);color:rgba(196,127,196,0.60);border-style:dashed;}
-/* CONN LIST */
-.conn-list{display:flex;flex-direction:column;gap:3px;margin-top:4px;}
-.conn-row{font-size:13px;padding:4px 7px;border:1px solid rgba(79,195,247,0.10);color:rgba(79,195,247,0.60);display:flex;gap:5px;align-items:center;}
-.conn-arrow{color:rgba(79,195,247,0.28);flex-shrink:0;}
-.conn-del{background:transparent;border:none;color:rgba(224,80,80,0.35);font-family:"Share Tech Mono",monospace;font-size:13px;cursor:pointer;padding:0 3px;transition:color 0.12s;flex-shrink:0;}
-.conn-del:hover{color:#e05050;}
-/* LEGEND */
-#legend{padding:8px 12px;border-top:1px solid var(--bdr);flex-shrink:0;font-size:12px;color:rgba(79,195,247,0.30);line-height:2;}
-.leg-row{display:flex;align-items:center;gap:7px;}
-.leg-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
-/* MINIMAP */
-#minimap{position:absolute;bottom:10px;right:0;width:150px;height:90px;border:1px solid rgba(79,195,247,0.16);background:rgba(0,4,10,0.90);pointer-events:none;overflow:hidden;z-index:20;}
-#minimap-canvas{position:absolute;top:0;left:0;}
-#minimap-vp{position:absolute;border:1px solid rgba(79,195,247,0.50);pointer-events:none;}
-/* SELECTION BOX */
-#sel-box{position:absolute;pointer-events:none;z-index:50;display:none;}
-/* CONTEXT MENU */
-#ctx-menu{position:fixed;background:rgba(2,10,20,0.98);border:1px solid rgba(79,195,247,0.24);z-index:1000;min-width:190px;display:none;box-shadow:0 8px 28px rgba(0,0,0,0.7);}
-.ctx-item{padding:8px 16px;font-size:14px;color:rgba(79,195,247,0.78);cursor:pointer;letter-spacing:0.05em;transition:background 0.1s;}
-.ctx-item:hover{background:rgba(79,195,247,0.08);color:var(--blue);}
-.ctx-item.r{color:rgba(224,80,80,0.72);}.ctx-item.r:hover{background:rgba(224,80,80,0.07);color:#e05050;}
-.ctx-item.g{color:rgba(111,176,111,0.78);}.ctx-item.g:hover{background:rgba(111,176,111,0.07);color:var(--green);}
-.ctx-sep{height:1px;background:rgba(79,195,247,0.09);margin:3px 0;}
-/* COLOR POPUP */
-#color-popup{position:fixed;background:rgba(2,10,20,0.98);border:1px solid rgba(79,195,247,0.24);z-index:1100;padding:14px;display:none;flex-direction:column;gap:10px;min-width:220px;box-shadow:0 8px 28px rgba(0,0,0,0.7);}
-.cp-row{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--dim);}
-.cp-row label{flex:1;}
-.cp-row input[type=color]{width:36px;height:28px;border:1px solid rgba(79,195,247,0.18);background:transparent;cursor:pointer;padding:1px;}
-.cp-row input[type=range]{flex:1;accent-color:var(--blue);}
-.cp-apply{background:transparent;border:1px solid rgba(79,195,247,0.28);color:var(--blue);font-family:"Share Tech Mono",monospace;font-size:13px;padding:5px;cursor:pointer;width:100%;transition:all 0.15s;}
-.cp-apply:hover{border-color:var(--blue);background:rgba(79,195,247,0.07);}
-#toast{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);background:rgba(2,8,16,0.97);border:1px solid rgba(79,195,247,0.24);color:var(--blue);padding:6px 16px;font-size:14px;letter-spacing:0.05em;opacity:0;transition:opacity 0.22s;pointer-events:none;z-index:2000;}
-#toast.show{opacity:1;}
-::-webkit-scrollbar{width:3px;height:3px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:rgba(79,195,247,0.12);}
-
-/* HIDDEN BODY LINES */
-.bline-hidden{opacity:0.42;background:rgba(79,195,247,0.015)!important;}
-/* TYPE CYCLE BUTTON */
+.tag-text{background:rgba(0,8,14,0.9);color:rgba(79,195,247,0.60);border:1px solid rgba(79,195,247,0.22);}
+.tag-nav{background:rgba(0,8,14,0.9);color:#4fc3f7;border:1px solid #4fc3f7;}
+.tag-pull{background:rgba(0,8,14,0.9);color:#c47fc4;border:1px solid #c47fc4;}
+.tag-data{background:rgba(0,8,14,0.9);color:#c47fc4;border:1px solid #c47fc4;}
+.tag-loop{background:rgba(0,8,14,0.9);color:#6fb06f;border:1px solid #6fb06f;}
+.tag-flavor{background:rgba(0,8,14,0.9);color:#c47fc4;border:1px solid rgba(196,127,196,0.50);border-style:dashed;}
+.tag-dyn{background:rgba(0,8,14,0.9);color:#f0c040;border:1px solid #f0c040;}
 .btype-btn{cursor:pointer;border:none;font-family:"Share Tech Mono",monospace;letter-spacing:0.05em;transition:all 0.12s;outline:none;}
 .btype-btn:hover{filter:brightness(1.4);}
 </style>
@@ -227,6 +183,7 @@ select.iv-sel option{background:#001220;color:var(--blue);}
   <span class="htitle">NODE GRAPH EDITOR // v5</span>
   <span id="as-ind">&#10003; SAVED</span>
   <span id="fstat" class="none">NO FILE</span>
+  <span id="fver" style="font-size:11px;color:rgba(79,195,247,0.28);letter-spacing:0.06em;"></span>
   <div class="hright">
     <button class="hbtn" onclick="openFile()">&#8213; OPEN</button>
     <button class="hbtn" onclick="saveToFile()">&#8679; SAVE</button>
@@ -385,7 +342,12 @@ function loadArch(raw,name,cls){
   autoLayout();pushHist();render();resetView();
   setFstat(name,cls);toast('Loaded '+Object.keys(arch.nodes||{}).length+' nodes');
 }
-function setFstat(n,c){var el=document.getElementById('fstat');el.textContent=n;el.className=c;}
+function setFstat(n,cls){
+  var el=document.getElementById('fstat');el.textContent=n;el.className=cls;
+  var fv=document.getElementById('fver');
+  if(fv&&arch&&arch.meta&&arch.meta.version){fv.textContent='file: '+arch.meta.version;}
+  else if(fv){fv.textContent='';}
+}
 function buildExport(){
   if(!arch)return'{}';
   if(!arch.meta)arch.meta={};
@@ -808,7 +770,29 @@ document.addEventListener('mousemove',function(e){
 });
 
 document.addEventListener('mouseup',function(e){
-  if(nodeDrag){pushHist();nodeDrag=null;}
+  if(nodeDrag){
+    // Recompute port cache for dragged node (and group members)
+    var toCache=[nodeDrag.id];
+    if(nodeDrag.groupOffsets)Object.keys(nodeDrag.groupOffsets).forEach(function(gid){toCache.push(gid);});
+    toCache.forEach(function(nid){
+      var nel=document.getElementById('gn-'+nid);if(!nel)return;
+      var inpEl=document.getElementById('inp-'+nid);
+      if(inpEl){
+        var itop=0,icur=inpEl;while(icur&&icur!==nel){itop+=icur.offsetTop;icur=icur.offsetParent;}
+        itop+=inpEl.offsetHeight/2;
+        if(!_portCache[nid])_portCache[nid]={};
+        _portCache[nid].__in={x:(positions[nid]?positions[nid].x:0),y:(positions[nid]?positions[nid].y:0)+itop};
+      }
+      nel.querySelectorAll('.out-port').forEach(function(port){
+        var bi=parseInt(port.dataset.bodyidx);if(isNaN(bi))return;
+        var ptop=0,pcur=port;while(pcur&&pcur!==nel){ptop+=pcur.offsetTop;pcur=pcur.offsetParent;}
+        ptop+=port.offsetHeight/2;
+        if(!_portCache[nid])_portCache[nid]={};
+        _portCache[nid][bi]={x:(positions[nid]?positions[nid].x:0)+NODE_W,y:(positions[nid]?positions[nid].y:0)+ptop};
+      });
+    });
+    pushHist();nodeDrag=null;
+  }
   if(panDrag){panDrag=null;document.getElementById('canvas-wrap').classList.remove('grabbing');}
   if(panelDrag){panelDrag=null;}
   if(selBoxStart){
@@ -916,6 +900,7 @@ function setInfoMode(m){
   document.getElementById('info-body').style.display=m==='details'?'flex':'none';
   document.getElementById('info-preview').style.display=m==='preview'?'block':'none';
   document.getElementById('info-code').style.display=m==='code'?'block':'none';
+  if(m==='preview'&&selectedNode){renderPreviewPanel(selectedNode);return;}
   if(selectedNode)showInfo(selectedNode);else showAllCode();
 }
 
@@ -1000,7 +985,7 @@ function showInfo(id){
   h+='<button class="add-btn nav" onclick="addBody(\''+esc(id)+'\',\'cmd-nav\')">+ NAV</button>';
   h+='<button class="add-btn data-cmd" onclick="addBody(\''+esc(id)+'\',\'cmd-pull\')">+ PULL</button>';
   h+='<button class="add-btn loop" onclick="addBody(\''+esc(id)+'\',\'cmd-loop\')">+ LOOP</button>';
-  h+='<button class="add-btn flavor" onclick="addBody(\''+esc(id)+'\',\'cmd-flavor\')">+ FLAVOR</button>';
+  // FLAVOR removed — use personality_src field instead
   h+='<button class="add-btn" style="border-color:rgba(240,192,64,0.25);color:rgba(240,192,64,0.60);" onclick="addBody(\''+esc(id)+'\',\'dyn\')">+ DYN</button>';
   h+='</div></div>';
 
@@ -1017,7 +1002,8 @@ function showInfo(id){
   document.getElementById('info-body').innerHTML=h;
   document.getElementById('info-body').style.display='flex';
   // Render preview if that tab is active
-  if(infoMode==='preview')renderPreviewPanel(id);
+  // Always update preview (tab switch will show it)
+  renderPreviewPanel(id);
 
   // Wire up live updates
   var fiId=document.getElementById('fi-id');
@@ -1118,8 +1104,11 @@ function renameNode(oldId,newId){
 
 // ── CONTEXT MENUS ─────────────────────────────────────────────────────────────
 function showNodeCtxMenu(e,id){
-  ctxNodeId=id;selectNode(id);
+  ctxNodeId=id;
+  // Don't call selectNode here — it clears multiSel which breaks group detection
+  if(!multiSel.length||multiSel.indexOf(id)<0){selectNode(id);}
   var isMulti=multiSel.length>1;
+  var inGroup=arch&&arch.nodes&&arch.nodes[id]&&arch.nodes[id].group;
   var menu=document.getElementById('ctx-menu');
   menu.innerHTML=
     '<div class="ctx-item" onclick="ctxRename()">&#9998; Rename</div>'+
@@ -1128,7 +1117,7 @@ function showNodeCtxMenu(e,id){
     '<div class="ctx-item" onclick="ctxSetRoot()">&#9733; Toggle Root</div>'+
     '<div class="ctx-item" onclick="ctxValidate()">&#10003; Validate Paths</div>'+
     (isMulti?'<div class="ctx-item g" onclick="ctxGroup()">&#9645; Group Selected ('+multiSel.length+')</div>':'')+ 
-    (arch&&arch.nodes&&arch.nodes[id]&&arch.nodes[id].group?'<div class="ctx-item" onclick="ctxUngroup()">&#9643; Ungroup</div>':'')+
+    (inGroup?'<div class="ctx-item" onclick="ctxUngroup()">&#9643; Ungroup</div>':'')+
     '<div class="ctx-sep"></div>'+
     '<div class="ctx-item r" onclick="ctxReset()">&#8635; Clear Node</div>'+
     '<div class="ctx-item r" onclick="ctxDelete()">&#10005; Delete Node</div>';
@@ -1213,6 +1202,9 @@ function ctxGroup(){
   var name=prompt('Group name:','GROUP_'+Date.now());if(!name)return;
   name=name.trim().toUpperCase().replace(/\s+/g,'_');
   if(!arch.groups)arch.groups={};
+  // Push state BEFORE mutation so undo restores pre-group state
+  pushHist();
+  if(!arch.groups)arch.groups={};
   arch.groups[name]={nodes:sel.slice(),label:name};
   sel.forEach(function(id){if(arch.nodes[id])arch.nodes[id].group=name;});
   pushHist();render();toast('Grouped '+sel.length+' nodes as '+name);
@@ -1222,6 +1214,7 @@ function ctxUngroup(){
   var id=ctxNodeId||selectedNode;if(!id||!arch.nodes[id])return;
   var grp=arch.nodes[id].group;if(!grp)return;
   var members=(arch.groups&&arch.groups[grp]&&arch.groups[grp].nodes)||[];
+  pushHist(); // push before mutation for proper undo
   members.forEach(function(mid){if(arch.nodes[mid])delete arch.nodes[mid].group;});
   if(arch.groups)delete arch.groups[grp];
   multiSel=[];pushHist();render();toast('Ungrouped '+grp);
@@ -1290,7 +1283,7 @@ function updateMinimap(){
 
 // ── BODY TYPE CYCLING ────────────────────────────────────────────────────────
 var BODY_CYCLE_TEXT=['text'];
-var BODY_CYCLE_CMD=['navigation','pull','loop','flavor'];
+var BODY_CYCLE_CMD=['navigation','pull','loop'];
 
 function cycleBodyType(nodeId,bi){
   var n=arch&&arch.nodes&&arch.nodes[nodeId];if(!n||!n.body[bi])return;
