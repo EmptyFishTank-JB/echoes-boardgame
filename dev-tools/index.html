@@ -19,10 +19,18 @@ body{padding:40px 24px 60px;display:flex;flex-direction:column;align-items:cente
 header{width:100%;max-width:760px;margin-bottom:32px;}
 .back{font-size:11px;color:var(--dim);text-decoration:none;letter-spacing:0.08em;}
 .back:hover{color:var(--blue);}
-h1{font-size:20px;letter-spacing:0.14em;margin-top:14px;color:var(--blue);}
+h1{font-size:20px;letter-spacing:0.14em;margin-top:14px;color:var(--blue);display:flex;align-items:baseline;gap:10px;}
+.page-ver{font-size:11px;letter-spacing:0.06em;color:var(--amber);}
 .sub{font-size:11px;color:var(--dim);letter-spacing:0.08em;margin-top:6px;}
 
-.grid{width:100%;max-width:760px;display:flex;flex-direction:column;gap:14px;}
+.section{width:100%;max-width:760px;}
+.section + .section{margin-top:36px;}
+.section-head{display:flex;align-items:baseline;gap:10px;margin-bottom:14px;
+  padding-bottom:8px;border-bottom:1px solid var(--bdr);}
+.section-label{font-size:12px;letter-spacing:0.18em;color:var(--blue);}
+.section-note{font-size:10.5px;color:var(--dim);letter-spacing:0.04em;}
+
+.grid{display:flex;flex-direction:column;gap:14px;}
 .card{border:1px solid var(--bdr);background:rgba(8,10,14,0.6);padding:18px 20px;
   text-decoration:none;color:inherit;display:block;transition:border-color 0.15s,background 0.15s;}
 .card:hover{border-color:var(--blue);background:rgba(79,195,247,0.05);}
@@ -31,6 +39,15 @@ h1{font-size:20px;letter-spacing:0.14em;margin-top:14px;color:var(--blue);}
 .card-ver{font-size:11px;color:var(--amber);letter-spacing:0.06em;}
 .card-desc{font-size:12px;color:var(--dim);margin-top:8px;line-height:1.5;}
 
+.linklist{display:flex;flex-direction:column;gap:2px;margin-top:12px;}
+.linkrow{display:flex;align-items:baseline;gap:14px;padding:9px 2px;
+  text-decoration:none;color:inherit;border-bottom:1px solid rgba(79,195,247,0.06);flex-wrap:wrap;}
+.linkrow:last-child{border-bottom:none;}
+.linkrow:hover .linkrow-name{color:var(--blue);}
+.linkrow-name{font-size:12.5px;letter-spacing:0.05em;color:rgba(79,195,247,0.75);
+  text-decoration:underline;text-decoration-color:rgba(79,195,247,0.25);flex-shrink:0;transition:color 0.15s;}
+.linkrow-desc{font-size:11px;color:var(--dim);flex:1;min-width:180px;}
+
 footer{margin-top:40px;font-size:10px;color:rgba(79,195,247,0.25);letter-spacing:0.1em;}
 </style>
 </head>
@@ -38,50 +55,71 @@ footer{margin-top:40px;font-size:10px;color:rgba(79,195,247,0.25);letter-spacing
 
 <header>
   <a class="back" href="../index.html">&larr; ECHOES</a>
-  <h1>ECHO DEV TOOLS</h1>
+  <h1>ECHO DEV TOOLS <span class="page-ver card-ver" data-path="dev-tools/index.html">v.&mdash;</span></h1>
   <div class="sub">// local editors for the terminal's content JSON — read live from GitHub, edits export as a download</div>
 </header>
 
-<div class="grid">
-  <a class="card" href="lore-devlog-editor.html">
-    <div class="card-top">
-      <span class="card-name">LORE // DEV LOG EDITOR</span>
-      <span class="card-ver" data-path="dev-tools/lore-devlog-editor.html">v.&mdash;</span>
-    </div>
-    <div class="card-desc">Edits terminal-data/lore.json and dev_logs.json — the terminal's discoverable lore entries and developer log content.</div>
-  </a>
+<div class="section">
+  <div class="section-head"><span class="section-label">TOOLS</span></div>
+  <div class="grid">
+    <a class="card" href="lore-devlog-editor.html">
+      <div class="card-top">
+        <span class="card-name">LORE // DEV LOG EDITOR</span>
+        <span class="card-ver" data-path="dev-tools/lore-devlog-editor.html">v.&mdash;</span>
+      </div>
+      <div class="card-desc">Edits terminal-data/lore.json and dev_logs.json — the terminal's discoverable lore entries and developer log content.</div>
+    </a>
 
-  <a class="card" href="node-graph-editor.html">
-    <div class="card-top">
-      <span class="card-name">NODE GRAPH EDITOR</span>
-      <span class="card-ver" data-path="dev-tools/node-graph-editor.html">v.&mdash;</span>
-    </div>
-    <div class="card-desc">Edits terminal-data/nodes.json — the terminal's layer/node navigation tree, laid out as a visual graph.</div>
-  </a>
+    <a class="card" href="node-graph-editor.html">
+      <div class="card-top">
+        <span class="card-name">NODE GRAPH EDITOR</span>
+        <span class="card-ver" data-path="dev-tools/node-graph-editor.html">v.&mdash;</span>
+      </div>
+      <div class="card-desc">Edits terminal-data/nodes.json — the terminal's layer/node navigation tree, laid out as a visual graph.</div>
+    </a>
 
-  <a class="card" href="personality-lab.html">
-    <div class="card-top">
-      <span class="card-name">PERSONALITY LAB</span>
-      <span class="card-ver" data-path="dev-tools/personality-lab.html">v.&mdash;</span>
-    </div>
-    <div class="card-desc">Edits terminal-data/personality.json — easter eggs, denied responses, admin triggers, self-destruct sequence.</div>
-  </a>
+    <a class="card" href="personality-lab.html">
+      <div class="card-top">
+        <span class="card-name">PERSONALITY LAB</span>
+        <span class="card-ver" data-path="dev-tools/personality-lab.html">v.&mdash;</span>
+      </div>
+      <div class="card-desc">Edits terminal-data/personality.json — easter eggs, denied responses, admin triggers, self-destruct sequence.</div>
+    </a>
 
-  <a class="card" href="terminal-engine-editor.html">
-    <div class="card-top">
-      <span class="card-name">TERMINAL ENGINE EDITOR</span>
-      <span class="card-ver" data-path="dev-tools/terminal-engine-editor.html">v.&mdash;</span>
-    </div>
-    <div class="card-desc">Edits terminal-data/engine_config.json — idle messages, typing/audio timing, theme, boot behavior.</div>
-  </a>
+    <a class="card" href="terminal-engine-editor.html">
+      <div class="card-top">
+        <span class="card-name">TERMINAL ENGINE EDITOR</span>
+        <span class="card-ver" data-path="dev-tools/terminal-engine-editor.html">v.&mdash;</span>
+      </div>
+      <div class="card-desc">Edits terminal-data/engine_config.json — idle messages, typing/audio timing, theme, boot behavior.</div>
+    </a>
+  </div>
+</div>
 
-  <a class="card" href="artifacts/terminal-audio-compendium.html">
-    <div class="card-top">
-      <span class="card-name">TERMINAL AUDIO COMPENDIUM</span>
-      <span class="card-ver" data-path="dev-tools/artifacts/terminal-audio-compendium.html">v.&mdash;</span>
-    </div>
-    <div class="card-desc">Reference, not an editor — every synthesized sound effect from the archived and live terminals, playable side by side.</div>
-  </a>
+<div class="section">
+  <div class="section-head">
+    <span class="section-label">ARTIFACTS</span>
+    <span class="section-note">// reference &amp; prototypes, not editors</span>
+  </div>
+  <div class="grid">
+    <a class="card" href="artifacts/terminal-audio-compendium.html">
+      <div class="card-top">
+        <span class="card-name">TERMINAL AUDIO COMPENDIUM</span>
+        <span class="card-ver" data-path="dev-tools/artifacts/terminal-audio-compendium.html">v.&mdash;</span>
+      </div>
+      <div class="card-desc">Every synthesized sound effect from the archived and live terminals, playable side by side. Growing — new effects get added here as they're built.</div>
+    </a>
+  </div>
+  <div class="linklist">
+    <a class="linkrow" href="artifacts/dice-style-comparison.html">
+      <span class="linkrow-name">Dice Style Comparison</span>
+      <span class="linkrow-desc">Four candidate looks for the Red/Blue coordinate dice — flat gradient, translucent glass, CSS marble, SVG turbulence swirl.</span>
+    </a>
+    <a class="linkrow" href="artifacts/sfx-test-rig.html">
+      <span class="linkrow-name">SFX Test Rig</span>
+      <span class="linkrow-desc">A/B candidates for Cascade Failure's threshold chime and bust alert, plus every sound currently live in the mini-games and unused terminal sounds.</span>
+    </a>
+  </div>
 </div>
 
 <footer>ECHOES // internal tooling — not linked from the public site</footer>
