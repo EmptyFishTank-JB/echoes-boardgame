@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ECHO ENGINE LAB // v4.1</title>
+<title>ECHO ENGINE LAB // v4.2</title>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
@@ -104,12 +104,14 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;heigh
 <body>
 <div id="app">
 <div id="hdr">
-  <span class="htitle">ECHO ENGINE LAB // v4.1</span>
+  <span class="htitle">ECHO ENGINE LAB // v4.2</span>
   <div class="hright">
     <span id="as-ind">&#10003; SAVED</span>
     <span id="fstat-nodes" class="fstat none">NO NODES FILE</span>
+    <button class="hbtn" onclick="loadNodesFromGitHub()">&#8681; NODES (GITHUB)</button>
     <button class="hbtn" onclick="openNodesFile()">&#8213; LOAD NODES</button>
     <span id="fstat" class="fstat none">NO ENGINE FILE</span>
+    <button class="hbtn" onclick="loadCfgFromGitHub()">&#8681; CONFIG (GITHUB)</button>
     <button class="hbtn" onclick="openFile()">&#8213; OPEN ENGINE CONFIG</button>
   </div>
 </div>
@@ -223,6 +225,15 @@ function syncLayersToConfig(){
 })();
 
 // ── FILE I/O — ENGINE CONFIG ───────────────────────────────────────────────────
+var GH_RAW_BASE='https://raw.githubusercontent.com/EmptyFishTank-JB/echoes-boardgame/main/terminal-data/';
+async function loadCfgFromGitHub(){
+  fileHandle=null;
+  try{
+    var r=await fetch(GH_RAW_BASE+'engine_config.json?v='+Date.now());
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    loadCfg(JSON.parse(await r.text()),'engine_config.json','ro');
+  }catch(e){toast('GitHub fetch failed: '+e.message);}
+}
 async function openFile(){
   if(window.showOpenFilePicker){
     try{var[h]=await window.showOpenFilePicker({types:[{description:'JSON',accept:{'application/json':['.json']}}]});fileHandle=h;var f=await h.getFile();loadCfg(JSON.parse(await f.text()),f.name,'rw');}
@@ -240,6 +251,14 @@ function loadCfg(raw,name,cls){
 function setFstat(n,c){var el=document.getElementById('fstat');el.textContent=n;el.className='fstat '+c;document.getElementById('stf-btn').disabled=(c==='ro');}
 
 // ── FILE I/O — NODES.JSON ──────────────────────────────────────────────────────
+async function loadNodesFromGitHub(){
+  nodesFileHandle=null;
+  try{
+    var r=await fetch(GH_RAW_BASE+'nodes.json?v='+Date.now());
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    loadNodes(JSON.parse(await r.text()),'nodes.json');
+  }catch(e){toast('GitHub fetch failed: '+e.message);}
+}
 async function openNodesFile(){
   if(window.showOpenFilePicker){
     try{var[h]=await window.showOpenFilePicker({types:[{description:'JSON',accept:{'application/json':['.json']}}]});nodesFileHandle=h;var f=await h.getFile();loadNodes(JSON.parse(await f.text()),f.name);}
