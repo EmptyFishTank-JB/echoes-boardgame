@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+CiAgPHJlY3QgeD0iNSIgeT0iNiIgd2lkdGg9IjYiIGhlaWdodD0iMTAiIHJ4PSIxIiBmaWxsPSIjZTg3MzJhIiBvcGFjaXR5PSIwLjkiLz4KICA8cmVjdCB4PSIxMyIgeT0iMiIgd2lkdGg9IjYiIGhlaWdodD0iMTQiIHJ4PSIxIiBmaWxsPSIjZTg3MzJhIi8+CiAgPHJlY3QgeD0iMjEiIHk9IjYiIHdpZHRoPSI2IiBoZWlnaHQ9IjEwIiByeD0iMSIgZmlsbD0iI2U4NzMyYSIgb3BhY2l0eT0iMC45Ii8+CiAgPHJlY3QgeD0iMSIgeT0iMTciIHdpZHRoPSIxMyIgaGVpZ2h0PSIxMyIgcng9IjIuNSIgZmlsbD0iI2Q4MWYyZiIvPgogIDxjaXJjbGUgY3g9IjQuMyIgY3k9IjIwLjMiIHI9IjEuMyIgZmlsbD0iI2ZmZiIvPgogIDxjaXJjbGUgY3g9IjcuNSIgY3k9IjIzLjUiIHI9IjEuMyIgZmlsbD0iI2ZmZiIvPgogIDxjaXJjbGUgY3g9IjEwLjciIGN5PSIyNi43IiByPSIxLjMiIGZpbGw9IiNmZmYiLz4KICA8cmVjdCB4PSIxOCIgeT0iMTciIHdpZHRoPSIxMyIgaGVpZ2h0PSIxMyIgcng9IjIuNSIgZmlsbD0iIzFjOGZjNyIvPgogIDxjaXJjbGUgY3g9IjI3LjciIGN5PSIyMC4zIiByPSIxLjMiIGZpbGw9IiNmZmYiLz4KICA8Y2lyY2xlIGN4PSIyMS4zIiBjeT0iMjYuNyIgcj0iMS4zIiBmaWxsPSIjZmZmIi8+Cjwvc3ZnPgo=">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ECHOES // Core Stabilization</title>
+<title>ECHOES // Pull the Fuse</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -17,7 +17,6 @@
     --blue:       #4fc3f7;
     --good:       #4fe0a1;
     --bad:        #ff4d5e;
-    --violet:     #b98aff;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body {
@@ -106,10 +105,10 @@
     opacity: 0.7;
   }
 
-  /* ── WAGER ── */
+  /* ── STAKE SCREEN ── */
   .stake-row {
     display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;
-    margin: 18px 0 4px;
+    margin: 18px 0 22px;
   }
   .resource-btn {
     font-family: 'Share Tech Mono', monospace;
@@ -148,6 +147,8 @@
     border: 1px solid var(--border);
   }
   .btn.secondary:hover:not(:disabled) { color: var(--text); border-color: var(--text-dim); }
+
+  /* ── GAME SCREEN ── */
   .status-bar {
     display: flex; justify-content: center; align-items: center;
     font-family: 'Share Tech Mono', monospace; font-size: 11px;
@@ -159,125 +160,49 @@
   .pip { width: 9px; height: 9px; border-radius: 2px; background: rgba(255,255,255,0.12); border: 1px solid var(--border); }
   .pip.used { background: var(--orange); border-color: var(--orange); }
 
-  /* ── ALIGNMENT GAUGE ── */
-  .gauge-wrap { margin-bottom: 22px; transition: opacity 0.2s; }
-  .gauge-wrap.disabled { opacity: 0.3; }
-  .gauge-value-row {
-    display: flex; justify-content: center; align-items: baseline; gap: 8px;
-    margin-bottom: 10px;
+  .fuse-row {
+    display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px;
+    margin-bottom: 26px;
+    transition: opacity 0.2s;
   }
-  .gauge-value-label {
-    font-family: 'Share Tech Mono', monospace; font-size: 10px;
-    letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-dim);
-  }
-  .gauge-value {
-    font-family: 'Share Tech Mono', monospace; font-size: 22px; font-weight: 700;
-    color: var(--text); transition: color 0.3s;
-  }
-  /* Green fades out with distance from zero (0 = brightest) through
-     +/-3; +/-4 and beyond is a flat, unshaded red — no gradient, since
-     that's already Hull Fracture territory. */
-  .gauge-value.mag-0 { color: #4fe0a1; }
-  .gauge-value.mag-1 { color: rgba(79,224,161,0.82); }
-  .gauge-value.mag-2 { color: rgba(79,224,161,0.6); }
-  .gauge-value.mag-3 { color: rgba(79,224,161,0.4); }
-  .gauge-value.mag-fail { color: var(--bad); }
-
-  .gauge-track-wrap {
-    position: relative;
-    border-radius: 4px;
+  .fuse-row.disabled { opacity: 0.3; pointer-events: none; }
+  .fuse {
+    aspect-ratio: 1; border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: clamp(18px, 4vw, 26px); font-weight: 700;
     background: rgba(255,255,255,0.04);
     border: 1px solid var(--border);
-    padding: 3px;
-    margin: 10px 0 14px;
+    color: var(--text);
+    position: relative; overflow: hidden;
+    transition: 0.3s;
   }
-  .gauge-segments {
-    display: grid;
-    grid-template-columns: repeat(13, 1fr);
-    gap: 2px;
-    height: 22px;
+  .fuse.shut {
+    background: rgba(255,77,94,0.08);
+    border-color: var(--bad);
+    color: var(--bad);
   }
-  /* Every bar carries its zone tint all the time — dim by default,
-     the live position brightens with .current. Nothing ever resets
-     to blank; the highlighted bar just slides between positions. */
-  .gauge-seg {
-    position: relative;
-    border-radius: 2px;
-    transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
-  }
-  .gauge-seg.zone-zero {
-    background: rgba(79,224,161,0.07); border: 1px solid rgba(79,224,161,0.3);
-  }
-  .gauge-seg.zone-zero.current { background: rgba(79,224,161,0.28); border-color: var(--good); box-shadow: 0 0 8px rgba(79,224,161,0.55); }
-  /* Reticle marking the target — always visible but dim, lighting up
-     bright the moment the live position lands on (or leaves) zero. */
-  .gauge-seg.zone-zero::before,
-  .gauge-seg.zone-zero::after {
-    content: ""; position: absolute; left: 50%; width: 0; height: 0;
-    border-left: 4px solid transparent; border-right: 4px solid transparent;
-    transform: translateX(-50%);
-    transition: border-color 0.2s, filter 0.2s;
-  }
-  .gauge-seg.zone-zero::before { top: -8px; border-top: 5px solid rgba(79,224,161,0.35); }
-  .gauge-seg.zone-zero::after { bottom: -8px; border-bottom: 5px solid rgba(79,224,161,0.35); }
-  .gauge-seg.zone-zero.current::before {
-    border-top-color: var(--good);
-    filter: drop-shadow(0 0 4px rgba(79,224,161,0.7));
-  }
-  .gauge-seg.zone-zero.current::after {
-    border-bottom-color: var(--good);
-    filter: drop-shadow(0 0 4px rgba(79,224,161,0.7));
-  }
-
-  /* Red/blue shades dim the further from zero (shade-1 = +/-1 is
-     brightest, shade-3 = +/-3 is dimmest) — reads as "fading out of
-     safety," even though +/-1..+/-3 are all still red/blue rather
-     than the fracture treatment. */
-  .gauge-seg.zone-red.shade-1 { background: rgba(255,77,94,0.19); border: 1px solid rgba(255,77,94,0.5); }
-  .gauge-seg.zone-red.shade-2 { background: rgba(255,77,94,0.12); border: 1px solid rgba(255,77,94,0.34); }
-  .gauge-seg.zone-red.shade-3 { background: rgba(255,77,94,0.06); border: 1px solid rgba(255,77,94,0.22); }
-  .gauge-seg.zone-blue.shade-1 { background: rgba(79,195,247,0.19); border: 1px solid rgba(79,195,247,0.5); }
-  .gauge-seg.zone-blue.shade-2 { background: rgba(79,195,247,0.12); border: 1px solid rgba(79,195,247,0.34); }
-  .gauge-seg.zone-blue.shade-3 { background: rgba(79,195,247,0.06); border: 1px solid rgba(79,195,247,0.22); }
-  .gauge-seg.zone-red.current { background: rgba(255,77,94,0.28); border-color: var(--red); box-shadow: 0 0 8px rgba(255,77,94,0.55); }
-  .gauge-seg.zone-blue.current { background: rgba(79,195,247,0.28); border-color: var(--accent); box-shadow: 0 0 8px rgba(79,195,247,0.55); }
-
-  /* +/-4 and beyond (Hull Fracture territory) — same bust treatment as
-     Cascade Failure's overflow bars, but grey by default and orange
-     only once the current value actually lands there. */
-  .gauge-seg.zone-fracture { background: rgba(255,255,255,0.04); border: 1px solid var(--border); }
-  .gauge-seg.zone-fracture::after {
+  .fuse.shut::after {
     content: "";
-    position: absolute; inset: 0;
-    border-radius: 1px;
-    opacity: 0.4;
-    background: repeating-linear-gradient(135deg,
-      rgba(238,240,245,0.3) 0px, rgba(238,240,245,0.3) 3px,
-      transparent 3px, transparent 6px);
+    position: absolute; left: -10%; top: 50%; width: 120%; height: 2px;
+    background: var(--bad); transform: translateY(-50%) rotate(-18deg);
   }
-  .gauge-seg.zone-fracture.current { background: rgba(232,115,42,0.28); border-color: var(--orange); box-shadow: 0 0 8px rgba(232,115,42,0.55); }
-  .gauge-seg.zone-fracture.current::after {
-    opacity: 1;
-    background: repeating-linear-gradient(135deg,
-      var(--orange) 0px, var(--orange) 3px,
-      transparent 3px, transparent 6px);
+  .fuse.just-shut { animation: cut 0.5s ease; }
+  @keyframes cut {
+    0% { transform: scale(1.15); box-shadow: 0 0 18px rgba(255,77,94,0.6); }
+    100% { transform: scale(1); box-shadow: none; }
   }
-  /* A roll that overshoots the +/-6 cap flashes the pinned edge bar,
-     so the cap reads as an event even without reading the log text. */
-  @keyframes capFlash {
-    0%, 100% { box-shadow: 0 0 8px rgba(232,115,42,0.55); filter: brightness(1); }
-    50% { box-shadow: 0 0 20px 4px rgba(232,115,42,1); filter: brightness(1.5); }
+  .fuse-row.surge-pick .fuse:not(.shut) {
+    cursor: pointer;
+    border-color: var(--orange);
+    background: rgba(232,115,42,0.12);
+    animation: surge-pulse 1s ease-in-out infinite;
   }
-  .gauge-seg.cap-flash { animation: capFlash 0.4s ease-in-out 2; }
-
-  .gauge-ticks {
-    display: grid;
-    grid-template-columns: repeat(13, 1fr);
-    gap: 2px;
-    font-family: 'Share Tech Mono', monospace; font-size: 9px;
-    color: var(--text-dim); margin-bottom: 14px; padding: 0 3px;
+  @keyframes surge-pulse {
+    0%, 100% { box-shadow: 0 0 0 rgba(232,115,42,0); }
+    50% { box-shadow: 0 0 12px rgba(232,115,42,0.55); }
   }
-  .gauge-ticks span { text-align: center; }
+  .math-line .surge { color: var(--orange); font-weight: 700; }
 
   .dice-stage {
     display: flex; align-items: center; justify-content: center; gap: 28px;
@@ -289,7 +214,6 @@
     letter-spacing: 0.2em; text-transform: uppercase; margin-top: 8px;
     color: var(--text-dim);
   }
-  .die-label .sign { font-weight: 700; }
   .die {
     width: 64px; height: 64px; border-radius: 10px;
     display: grid; grid-template-columns: repeat(3,1fr); grid-template-rows: repeat(3,1fr);
@@ -315,8 +239,7 @@
     margin-bottom: 22px; min-height: 18px;
   }
   .math-line .val { color: var(--text); font-weight: 700; }
-  .math-line .val-blue { color: var(--blue); font-weight: 700; }
-  .math-line .val-red { color: var(--red); font-weight: 700; }
+  .math-line .cut { color: var(--bad); }
 
   .log {
     font-family: 'Share Tech Mono', monospace; font-size: 11px;
@@ -339,11 +262,9 @@
   }
   .result-banner .big {
     font-weight: 900; letter-spacing: 0.05em; text-transform: uppercase;
-    font-size: clamp(24px, 5vw, 36px); margin-bottom: 10px;
+    font-size: clamp(26px, 5vw, 38px); margin-bottom: 10px;
   }
   .result-banner.win .big { color: var(--good); }
-  .result-banner.partial .big { color: var(--violet); }
-  .result-banner.neutral .big { color: var(--accent); }
   .result-banner.fail .big { color: var(--bad); }
   .result-detail {
     font-family: 'Share Tech Mono', monospace; font-size: 12px;
@@ -372,19 +293,19 @@
 <body>
 
 <nav>
-  <a href="index.html">&larr; Echoes</a>
+  <a href="../index.html">&larr; Echoes</a>
   <span class="sep">//</span>
-  <a href="rules.html">Rules &amp; Design</a>
+  <a href="../rules.html">Rules &amp; Design</a>
   <span class="sep">//</span>
-  <a href="echo-events.html">Echo Events</a>
+  <a href="../echo-events.html">Echo Events</a>
   <span class="sep">//</span>
-  <a href="assets.html">Assets</a>
+  <a href="../assets.html">Assets</a>
   <span class="sep">//</span>
-  <a href="terminal.html">Terminal</a>
+  <a href="../terminal.html">Terminal</a>
 </nav>
 
 <nav class="games-nav">
-  <a href="pull-the-fuse.html">Pull the Fuse</a>
+  <a href="pull-the-fuse.html" style="color:var(--accent);">Pull the Fuse</a>
   <span class="sep">//</span>
   <a href="dead-reckoning.html">Dead Reckoning</a>
   <span class="sep">//</span>
@@ -394,22 +315,22 @@
   <span class="sep">//</span>
   <a href="dead-signal.html">Dead Signal</a>
   <span class="sep">//</span>
-  <a href="core-stabilization.html" style="color:var(--accent);">Core Stabilization</a>
+  <a href="core-stabilization.html">Core Stabilization</a>
 </nav>
 
 <header class="title-block">
-  <div class="eyebrow">// Echo Event 06 — Balance Control</div>
-  <h1>Core Stabilization</h1>
-  <p class="subtitle">The gravity tether is out of alignment, violently swinging the ship's center of mass. Ride out three pulses of correction and hope the tether settles near true neutral before the stress tears the bulkhead apart.</p>
+  <div class="eyebrow">// Echo Event 02 — Puzzle Solving</div>
+  <h1>Pull the Fuse</h1>
+  <p class="subtitle">Two coordinate dice — Red and Blue. Cut all six fuses using each die's face, their sum, or their difference before you run out of rolls.</p>
 </header>
 
 <div class="panel">
 
   <div class="rules-mini">
     <div><strong>Wager:</strong> Stake one resource before rolling. No resource = automatic failure.</div>
-    <div><strong>Each Pulse:</strong> Roll both dice. The net (Blue &minus; Red) applies to the running total automatically &mdash; no choice, just the dice.</div>
-    <div><strong>Perfect Balance (0):</strong> Wager tripled. <strong>Glancing Save (&plusmn;1):</strong> Wager doubled. <strong>Steadied (&plusmn;2):</strong> Wager returned, no bonus.</div>
-    <div><strong>Leveled Out (&plusmn;3):</strong> Wager lost, no Noise. <strong>Hull Fracture (&plusmn;4 or beyond):</strong> Wager lost, +1 Noise per point away from zero.</div>
+    <div><strong>Win:</strong> All 6 fuses cut within 3 rolls &mdash; wager returned, doubled.</div>
+    <div><strong>System Surge:</strong> Rolling doubles cuts the matching fuse, plus lets you pick one more open fuse to shut.</div>
+    <div><strong>Fail:</strong> Rolls exhausted with fuses still open &mdash; wager lost, +1 Noise per open fuse.</div>
   </div>
 
   <div class="stake-row" id="resourceRow">
@@ -420,47 +341,32 @@
   </div>
   <div class="status-bar"><span class="wager" id="wagerLabel">No wager staked</span></div>
 
+  <div class="fuse-row disabled" id="fuseRow"></div>
+
   <div class="pips" id="pips">
     <div class="pip"></div><div class="pip"></div><div class="pip"></div>
-  </div>
-
-  <div class="gauge-wrap disabled" id="gaugeWrap">
-    <div class="gauge-value-row">
-      <span class="gauge-value-label">Alignment</span>
-      <span class="gauge-value" id="gaugeValue">0</span>
-    </div>
-    <div class="gauge-track-wrap">
-      <div class="gauge-segments" id="gaugeSegments"></div>
-    </div>
-    <div class="gauge-ticks">
-      <span style="grid-column:1;">-6</span>
-      <span style="grid-column:4;">-3</span>
-      <span style="grid-column:7;">0</span>
-      <span style="grid-column:10;">+3</span>
-      <span style="grid-column:13;">+6</span>
-    </div>
   </div>
 
   <div class="dice-stage">
     <div class="die-wrap">
       <div class="die red" id="dieRed"></div>
-      <div class="die-label">Red <span class="sign">(&minus;)</span></div>
+      <div class="die-label">Red</div>
     </div>
     <div class="die-wrap">
       <div class="die blue" id="dieBlue"></div>
-      <div class="die-label">Blue <span class="sign">(+)</span></div>
+      <div class="die-label">Blue</div>
     </div>
   </div>
 
-  <div class="math-line" id="mathLine">Stake a resource to bring the tether online.</div>
+  <div class="math-line" id="mathLine">Stake a resource to unlock the fuse board.</div>
 
   <div class="log" id="log"></div>
 
-  <div id="actionRow" class="btn-row">
+  <div class="btn-row">
     <button class="btn" id="rollBtn" disabled>Roll the Dice</button>
   </div>
 
-  <!-- RESULT (appears below everything once pulses are spent) -->
+  <!-- RESULT (appears below everything once rolls are spent) -->
   <div id="resultScreen" class="hidden">
     <div class="result-banner" id="resultBanner">
       <div class="big" id="resultBig"></div>
@@ -468,7 +374,7 @@
     </div>
     <div class="btn-row">
       <button class="btn" id="againBtn">Run Again</button>
-      <button class="btn secondary" id="closeBtn" onclick="window.location.href='rules.html#mini-games'">Back to Echoes</button>
+      <button class="btn secondary" id="closeBtn" onclick="window.location.href='../rules.html#mini-games'">Back to Echoes</button>
     </div>
   </div>
 
@@ -579,6 +485,22 @@
           src.start(); src.stop(c.currentTime+dur);
         } catch(e) {}
       },
+      barTick(progress){
+        try {
+          const c = getCtx();
+          const dur = 0.03;
+          const buf = c.createBuffer(1, Math.floor(c.sampleRate*dur), c.sampleRate);
+          const d = buf.getChannelData(0);
+          for (let i=0;i<d.length;i++) d[i] = (Math.random()*2-1)*(1-i/d.length);
+          const src = c.createBufferSource(); src.buffer = buf;
+          const flt = c.createBiquadFilter(); flt.type='highpass'; flt.frequency.value = 1800 + (progress||0)*2200;
+          const gn = c.createGain();
+          gn.gain.setValueAtTime(VOL*0.35, c.currentTime);
+          gn.gain.exponentialRampToValueAtTime(0.001, c.currentTime+dur);
+          src.connect(flt); flt.connect(gn); gn.connect(c.destination);
+          src.start(); src.stop(c.currentTime+dur);
+        } catch(e) {}
+      },
       confirm(){
         try {
           const c = getCtx();
@@ -590,34 +512,18 @@
           osc.start(); osc.stop(c.currentTime+0.09);
         } catch(e) {}
       },
-      // Plays where the gauge lands each pulse: a clean descending note
-      // for 0/1/2/3 (0 = highest, brightest pitch), and a dissonant
-      // detune buzz for Hull Fracture territory (+/-4 and beyond).
-      tierChime(mag){
-        if (mag >= 4){
-          try {
-            const c = getCtx();
-            const gn = c.createGain(); gn.connect(c.destination);
-            gn.gain.setValueAtTime(VOL*0.5, c.currentTime);
-            gn.gain.exponentialRampToValueAtTime(0.001, c.currentTime+0.22);
-            [110,116].forEach((freq) => {
-              const osc = c.createOscillator(); osc.type='sawtooth'; osc.frequency.value=freq;
-              osc.connect(gn);
-              osc.start(); osc.stop(c.currentTime+0.22);
-            });
-          } catch(e) {}
-          return;
-        }
+      surge(){
         try {
           const c = getCtx();
-          const freqs = [880, 659, 523, 392];
-          const osc = c.createOscillator(); osc.type='triangle'; osc.frequency.value = freqs[mag];
-          const gn = c.createGain();
-          gn.gain.setValueAtTime(0, c.currentTime);
-          gn.gain.linearRampToValueAtTime(VOL*0.4, c.currentTime+0.015);
-          gn.gain.exponentialRampToValueAtTime(0.001, c.currentTime+0.22);
-          osc.connect(gn); gn.connect(c.destination);
-          osc.start(); osc.stop(c.currentTime+0.22);
+          const gn = c.createGain(); gn.connect(c.destination);
+          [330,440].forEach((freq,idx) => {
+            const osc = c.createOscillator(); osc.type='sawtooth'; osc.frequency.value=freq;
+            osc.connect(gn);
+            const t = c.currentTime+idx*0.1;
+            gn.gain.setValueAtTime(VOL*0.35, t);
+            gn.gain.exponentialRampToValueAtTime(0.001, t+0.1);
+            osc.start(t); osc.stop(t+0.1);
+          });
         } catch(e) {}
       }
     };
@@ -633,27 +539,24 @@
   };
 
   const MAX_ROLLS = 3;
-  const RANGE = 6; // hard cap — the tether can't be pushed past +/-6
-  const GAUGE_SEGMENTS = RANGE * 2 + 1;
-  const FILL_STEP_MS = 70;
+  const NUMS = [1,2,3,4,5,6];
 
   let wager = null;
-  let total = 0;
-  let pulsesUsed = 0;
+  let fuseOpen = {};
+  let rollsUsed = 0;
   let gameOver = false;
+  let surgeActive = false;
 
-  const resourceRow   = document.getElementById('resourceRow');
-  const wagerLabel    = document.getElementById('wagerLabel');
-  const pipsEl        = document.getElementById('pips');
-  const gaugeWrap     = document.getElementById('gaugeWrap');
-  const gaugeValue    = document.getElementById('gaugeValue');
-  const gaugeSegments = document.getElementById('gaugeSegments');
+  const resultScreen = document.getElementById('resultScreen');
+  const resourceRow  = document.getElementById('resourceRow');
+  const wagerLabel   = document.getElementById('wagerLabel');
+  const pipsEl       = document.getElementById('pips');
+  const fuseRow      = document.getElementById('fuseRow');
   const dieRed       = document.getElementById('dieRed');
   const dieBlue      = document.getElementById('dieBlue');
   const mathLine     = document.getElementById('mathLine');
   const logEl        = document.getElementById('log');
-  const actionRow    = document.getElementById('actionRow');
-  const resultScreen = document.getElementById('resultScreen');
+  const rollBtn      = document.getElementById('rollBtn');
   const resultBanner = document.getElementById('resultBanner');
   const resultBig    = document.getElementById('resultBig');
   const resultDetail = document.getElementById('resultDetail');
@@ -668,9 +571,20 @@
     }
   }
 
+  function buildFuseRow(){
+    fuseRow.innerHTML = '';
+    NUMS.forEach(n => {
+      const el = document.createElement('div');
+      el.className = 'fuse';
+      el.textContent = n;
+      el.id = 'fuse-' + n;
+      fuseRow.appendChild(el);
+    });
+  }
+
   function updatePips(){
     const pips = pipsEl.querySelectorAll('.pip');
-    pips.forEach((p, i) => p.classList.toggle('used', i < pulsesUsed));
+    pips.forEach((p, i) => p.classList.toggle('used', i < rollsUsed));
   }
 
   function log(msg){
@@ -680,115 +594,17 @@
     logEl.scrollTop = logEl.scrollHeight;
   }
 
-  function zoneOf(t){
-    if (t === 0) return 'zero';
-    if (Math.abs(t) === 1) return 'glancing';
-    if (Math.abs(t) === 2) return 'steadied';
-    if (Math.abs(t) === 3) return 'leveled';
-    return 'fracture';
-  }
-
-  // Segment coloring: negative side reads red (matches the Red die),
-  // positive side reads blue (matches the Blue die), zero is the target.
-  // +/-4 and beyond is Hull Fracture territory and gets the diagonal-
-  // slash "bust" treatment (grey by default, orange once the value is
-  // actually there).
-  function segZoneClass(pos){
-    if (pos === 0) return 'zone-zero';
-    if (Math.abs(pos) >= 4) return 'zone-fracture';
-    return (pos < 0 ? 'zone-red' : 'zone-blue') + ' shade-' + Math.abs(pos);
-  }
-
-  // Every bar gets its zone tint permanently at build time — the track
-  // never goes blank. Only the .current modifier (added/removed as the
-  // live position moves) changes afterward.
-  function buildGaugeSegments(){
-    gaugeSegments.innerHTML = '';
-    for (let pos = -RANGE; pos <= RANGE; pos++){
-      const seg = document.createElement('div');
-      seg.className = 'gauge-seg ' + segZoneClass(pos);
-      seg.dataset.pos = pos;
-      gaugeSegments.appendChild(seg);
-    }
-  }
-
-  function segByPos(pos){
-    return gaugeSegments.children[pos + RANGE];
-  }
-
-  // Value readout color: green fading out from 0 through +/-3, flat
-  // red from +/-4 on (Hull Fracture) — independent of the win/lose
-  // zone naming, which still drives the result screen separately.
-  function valueMagClass(t){
-    const mag = Math.abs(t);
-    return mag <= 3 ? 'mag-' + mag : 'mag-fail';
-  }
-
-  function resetGaugeVisual(){
-    Array.from(gaugeSegments.children).forEach(seg => seg.classList.remove('current'));
-    const zeroSeg = segByPos(0);
-    if (zeroSeg) zeroSeg.classList.add('current');
-    gaugeValue.textContent = '0';
-    gaugeValue.className = 'gauge-value mag-0';
-  }
-
-  function flashCap(pos){
-    const seg = segByPos(pos);
-    if (!seg) return;
-    seg.classList.remove('cap-flash');
-    void seg.offsetWidth; // restart the animation if it's still running
-    seg.classList.add('cap-flash');
-    setTimeout(() => seg.classList.remove('cap-flash'), 800);
-  }
-
-  // Slides the live-position highlight from fromPos to toPos one bar at
-  // a time, instead of clearing the track and refilling from zero. If
-  // the roll was fully absorbed by the +/-6 cap (fromPos === toPos), it
-  // just gives a soft tick with no movement — unless the roll itself
-  // hit the cap, in which case the pinned edge bar flashes to say so.
-  function moveGaugeTo(fromPos, toPos, wasCapped){
-    gaugeValue.textContent = (toPos > 0 ? '+' : '') + toPos;
-    gaugeValue.className = 'gauge-value ' + valueMagClass(toPos);
-
-    const dir = toPos > fromPos ? 1 : (toPos < fromPos ? -1 : 0);
-    if (dir === 0){
-      if (wasCapped){
-        SFX.tierChime(Math.abs(toPos));
-        flashCap(toPos);
-      } else {
-        SFX.tick();
-      }
-      return;
-    }
-    let pos = fromPos;
-    function step(){
-      const curSeg = segByPos(pos);
-      if (curSeg) curSeg.classList.remove('current');
-      pos += dir;
-      const nextSeg = segByPos(pos);
-      if (nextSeg) nextSeg.classList.add('current');
-      if (pos === toPos){
-        SFX.tierChime(Math.abs(toPos));
-        if (wasCapped) flashCap(toPos);
-      } else {
-        SFX.tick();
-        setTimeout(step, FILL_STEP_MS);
-      }
-    }
-    step();
-  }
-
-  function updateGate(){
-    gaugeWrap.classList.toggle('disabled', !wager);
+  function openFuseCount(){
+    return NUMS.filter(n => fuseOpen[n]).length;
   }
 
   resourceRow.addEventListener('pointerenter', (e) => {
     const btn = e.target.closest && e.target.closest('.resource-btn');
-    if (btn && !gameOver && pulsesUsed === 0) SFX.hover();
+    if (btn && rollsUsed === 0 && !gameOver) SFX.hover();
   }, true);
 
   resourceRow.addEventListener('click', (e) => {
-    if (gameOver || pulsesUsed > 0) return;
+    if (rollsUsed > 0 || gameOver) return;
     const btn = e.target.closest('.resource-btn');
     if (!btn) return;
     SFX.select();
@@ -796,27 +612,16 @@
     btn.classList.add('selected');
     wager = btn.dataset.resource;
     wagerLabel.textContent = 'Wager: ' + wager;
-    mathLine.textContent = 'Tether online. Roll when ready.';
-    updateGate();
-    renderActions();
+    fuseRow.classList.remove('disabled');
+    mathLine.textContent = 'Roll to reveal Red, Blue, Sum, and Difference.';
+    rollBtn.disabled = false;
   });
 
-  function renderActions(){
-    actionRow.innerHTML = '';
-    if (gameOver) return;
-    const roll = document.createElement('button');
-    roll.className = 'btn';
-    roll.id = 'rollBtn';
-    roll.textContent = pulsesUsed === 0 ? 'Roll the Dice' : 'Roll Again (' + (MAX_ROLLS - pulsesUsed) + ' left)';
-    roll.disabled = !wager;
-    roll.addEventListener('click', () => { SFX.select(); doRoll(); });
-    actionRow.appendChild(roll);
-  }
-
-  function doRoll(){
-    if (gameOver || pulsesUsed >= MAX_ROLLS) return;
-    actionRow.querySelectorAll('button').forEach(b => b.disabled = true);
-    if (pulsesUsed === 0){
+  rollBtn.addEventListener('click', () => {
+    if (gameOver || !wager || rollsUsed >= MAX_ROLLS) return;
+    SFX.select();
+    rollBtn.disabled = true;
+    if (rollsUsed === 0){
       resourceRow.querySelectorAll('.resource-btn').forEach(b => b.classList.add('locked'));
       SFX.lock();
     }
@@ -834,96 +639,143 @@
         resolveRoll();
       }
     }, 60);
-  }
+  });
 
   function resolveRoll(){
     dieRed.classList.remove('rolling');
     dieBlue.classList.remove('rolling');
     SFX.settle();
 
-    const blue = 1 + Math.floor(Math.random()*6);
     const red = 1 + Math.floor(Math.random()*6);
+    const blue = 1 + Math.floor(Math.random()*6);
+    const sum = red + blue;
+    const diff = Math.abs(red - blue);
     renderDie(dieRed, red);
     renderDie(dieBlue, blue);
-
-    const net = blue - red;
-    const prevTotal = total;
-    const uncapped = total + net;
-    total = Math.max(-RANGE, Math.min(RANGE, uncapped));
-    const wasCapped = uncapped !== total;
-    pulsesUsed++;
+    rollsUsed++;
     updatePips();
-    moveGaugeTo(prevTotal, total, wasCapped);
 
-    mathLine.innerHTML = 'Blue <span class="val-blue">' + blue + '</span> &middot; Red <span class="val-red">' + red +
-      '</span> &mdash; net <span class="val">' + (net >= 0 ? '+' : '') + net + '</span> applied' +
-      (wasCapped ? ' <span class="val">(capped at &plusmn;' + RANGE + ')</span>' : '') + '.';
+    const candidates = [
+      {v: red,  label: 'Red ' + red},
+      {v: blue, label: 'Blue ' + blue},
+      {v: sum,  label: 'Sum ' + sum},
+      {v: diff, label: 'Diff ' + diff}
+    ];
 
-    log('<span class="tag">Pulse ' + pulsesUsed + '/' + MAX_ROLLS + '</span> — Blue ' + blue + ', Red ' + red +
-      ' — net ' + (net >= 0 ? '+' : '') + net + (wasCapped ? ' (capped)' : '') +
-      ' — running total <strong>' + (total >= 0 ? '+' : '') + total + '</strong>.');
+    const cutThisRoll = [];
+    candidates.forEach(c => {
+      if (c.v >= 1 && c.v <= 6 && fuseOpen[c.v]){
+        fuseOpen[c.v] = false;
+        cutThisRoll.push(c.v);
+      }
+    });
 
-    if (pulsesUsed >= MAX_ROLLS){
-      endGame();
+    mathLine.innerHTML = 'Red <span class="val">' + red + '</span> &middot; Blue <span class="val">' + blue +
+      '</span> &middot; Sum <span class="val">' + sum + '</span> &middot; Diff <span class="val">' + diff + '</span>' +
+      (cutThisRoll.length ? ' &rarr; cut <span class="cut">' + cutThisRoll.join(', ') + '</span>' : ' &rarr; nothing new cut');
+
+    log('<span class="tag">Roll ' + rollsUsed + '/' + MAX_ROLLS + '</span> — Red ' + red + ', Blue ' + blue +
+      ', Sum ' + sum + ', Diff ' + diff + (cutThisRoll.length ? ' — cut ' + cutThisRoll.join(', ') : ' — no new fuses cut'));
+
+    cutThisRoll.forEach((n, i) => {
+      const el = document.getElementById('fuse-' + n);
+      el.classList.add('shut', 'just-shut');
+      setTimeout(() => el.classList.remove('just-shut'), 500);
+      setTimeout(() => SFX.confirm(), i * 90);
+    });
+
+    const isDouble = (red === blue);
+    if (isDouble && openFuseCount() > 0){
+      beginSurge();
     } else {
-      renderActions();
+      finishRoll();
     }
   }
 
-  function endGame(){
+  // System Surge: rolling doubles lets the player shut one extra open
+  // fuse of their choice, on top of whatever the roll itself cut.
+  function beginSurge(){
+    surgeActive = true;
+    SFX.surge();
+    mathLine.innerHTML += ' <span class="surge">&mdash; System Surge! Pick one more fuse to shut.</span>';
+    log('<span class="tag">System Surge</span> — doubles rolled. Choose one more open fuse to shut.');
+    fuseRow.classList.add('surge-pick');
+  }
+
+  fuseRow.addEventListener('pointerenter', (e) => {
+    if (!surgeActive) return;
+    const cell = e.target.closest && e.target.closest('.fuse');
+    if (cell && !cell.classList.contains('shut')) SFX.hover();
+  }, true);
+
+  fuseRow.addEventListener('click', (e) => {
+    if (!surgeActive) return;
+    const cell = e.target.closest('.fuse');
+    if (!cell || cell.classList.contains('shut')) return;
+    SFX.select();
+    const n = parseInt(cell.id.replace('fuse-', ''), 10);
+    fuseOpen[n] = false;
+    cell.classList.add('shut', 'just-shut');
+    setTimeout(() => cell.classList.remove('just-shut'), 500);
+    log('<span class="tag">Surge Pick</span> — shut fuse ' + n + '.');
+    surgeActive = false;
+    fuseRow.classList.remove('surge-pick');
+    finishRoll();
+  });
+
+  function finishRoll(){
+    if (openFuseCount() === 0){
+      endGame(true);
+      return;
+    }
+    if (rollsUsed >= MAX_ROLLS){
+      endGame(false);
+      return;
+    }
+    rollBtn.disabled = false;
+    rollBtn.textContent = 'Roll Again (' + (MAX_ROLLS - rollsUsed) + ' left)';
+  }
+
+  function endGame(won){
     gameOver = true;
-    actionRow.innerHTML = '';
-    const zone = zoneOf(total);
+    rollBtn.disabled = true;
     setTimeout(() => {
       resultScreen.classList.remove('hidden');
-      if (zone === 'zero'){
+      if (won){
         SFX.win();
         resultBanner.className = 'result-banner win';
-        resultBig.textContent = 'PERFECT BALANCE';
-        resultDetail.innerHTML = 'Tether steadied at exactly <strong>0</strong>. <strong>' + wager + '</strong> returned, tripled.';
-      } else if (zone === 'glancing'){
-        SFX.win();
-        resultBanner.className = 'result-banner win';
-        resultBig.textContent = 'GLANCING SAVE';
-        resultDetail.innerHTML = 'Settled at <strong>' + (total >= 0 ? '+' : '') + total + '</strong> &mdash; close enough. <strong>' + wager + '</strong> returned, doubled.';
-      } else if (zone === 'steadied'){
-        SFX.win();
-        resultBanner.className = 'result-banner partial';
-        resultBig.textContent = 'STEADIED';
-        resultDetail.innerHTML = 'Settled at <strong>' + (total >= 0 ? '+' : '') + total + '</strong>. <strong>' + wager + '</strong> returned, no bonus.';
-      } else if (zone === 'leveled'){
-        SFX.confirm();
-        resultBanner.className = 'result-banner neutral';
-        resultBig.textContent = 'LEVELED OUT';
-        resultDetail.innerHTML = 'Settled at <strong>' + (total >= 0 ? '+' : '') + total + '</strong> &mdash; outside safe range. <strong>' + wager + '</strong> lost, mitigating the disaster. No Noise generated.';
+        resultBig.textContent = 'ALL FUSES CUT';
+        resultDetail.innerHTML = '<strong>' + wager + '</strong> returned, doubled, after ' + rollsUsed + ' roll' + (rollsUsed === 1 ? '' : 's') + '.';
       } else {
         SFX.fail();
-        const noise = Math.abs(total);
+        const openList = NUMS.filter(n => fuseOpen[n]);
         resultBanner.className = 'result-banner fail';
-        resultBig.textContent = 'HULL FRACTURE';
-        resultDetail.innerHTML = 'Ended at <strong>' + (total >= 0 ? '+' : '') + total + '</strong>, ' + noise + ' point' + (noise === 1 ? '' : 's') +
-          ' off zero. <strong>' + wager + '</strong> lost — <strong>+' + noise + ' Noise</strong>.';
+        resultBig.textContent = 'ROLLS EXHAUSTED';
+        resultDetail.innerHTML = '<strong>' + wager + '</strong> lost. Fuse' + (openList.length === 1 ? '' : 's') + ' ' +
+          openList.join(', ') + ' still open — <strong>+' + openList.length + ' Noise</strong>.';
       }
       resultScreen.scrollIntoView({ behavior: 'smooth', block: 'end' });
-    }, 400);
+    }, 500);
   }
 
   function resetGame(){
     wager = null;
-    total = 0;
-    pulsesUsed = 0;
+    NUMS.forEach(n => fuseOpen[n] = true);
+    rollsUsed = 0;
     gameOver = false;
+    surgeActive = false;
     resourceRow.querySelectorAll('.resource-btn').forEach(b => b.classList.remove('selected', 'locked'));
     wagerLabel.textContent = 'No wager staked';
+    fuseRow.classList.remove('surge-pick');
+    fuseRow.classList.add('disabled');
+    buildFuseRow();
     updatePips();
-    buildGaugeSegments();
-    resetGaugeVisual();
-    updateGate();
     renderDie(dieRed, 1);
     renderDie(dieBlue, 1);
-    mathLine.textContent = 'Stake a resource to bring the tether online.';
+    mathLine.textContent = 'Stake a resource to unlock the fuse board.';
     logEl.innerHTML = '';
-    renderActions();
+    rollBtn.textContent = 'Roll the Dice';
+    rollBtn.disabled = true;
     resultScreen.classList.add('hidden');
   }
 
@@ -983,7 +835,7 @@
     var tzName = tzFmt.formatToParts(d).find(function(p){ return p.type === 'timeZoneName'; }).value;
     return dateStr + ' ' + hh + ':' + mm + ' ' + tzName;
   }
-  fetch('https://api.github.com/repos/EmptyFishTank-JB/echoes-boardgame/commits?path=core-stabilization.html&per_page=1')
+  fetch('https://api.github.com/repos/EmptyFishTank-JB/echoes-boardgame/commits?path=mini-games/pull-the-fuse.html&per_page=1')
     .then(function(r){ if (!r.ok) throw new Error('bad response'); return r.json(); })
     .then(function(data){
       if (!data || !data.length) throw new Error('no commits');

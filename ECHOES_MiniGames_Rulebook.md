@@ -69,7 +69,7 @@ The player has a maximum of 3 rolls to satisfy their chosen Tier conditions. If 
 | WIN | Champion Die meets Tier conditions on any roll | Wagered resource returned. Reward determined by Tier chosen — higher risk Tiers yield greater returns. |
 | FAIL | 3 rolls exhausted without meeting Tier conditions | Wagered resource lost. Noise penalty applied based on chosen Tier. |
 
-> **Implementation Note (not in the original document):** The doc doesn't specify exact reward/Noise numbers per Tier, only that they scale with risk. `pressure-leak.html` uses this scale, chosen to keep both curves proportional to each Tier's actual win odds:
+> **Implementation Note (not in the original document):** The doc doesn't specify exact reward/Noise numbers per Tier, only that they scale with risk. `mini-games/pressure-leak.html` uses this scale, chosen to keep both curves proportional to each Tier's actual win odds:
 >
 > | Tier | Ceiling | Win Odds (3 rolls) | Bonus on Win | Noise on Fail |
 > |---|---|---|---|---|
