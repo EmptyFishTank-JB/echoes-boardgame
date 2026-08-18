@@ -349,6 +349,16 @@ input[type=date]{color-scheme:dark;}
       <button class="btn r" onclick="clrForm()">&#10005; CLEAR</button>
     </div>
 
+    <!-- JSON MANAGEMENT -->
+    <div class="fg">
+      <div class="fl">JSON FILE MANAGEMENT</div>
+      <div style="display:flex;gap:7px;flex-wrap:wrap">
+        <button class="btn" onclick="addToJSON()" title="Add current entry to loaded JSON">&#43; ADD TO JSON</button>
+        <button class="btn r" onclick="removeFromJSON()" title="Remove current code from loaded JSON">&#8722; REMOVE FROM JSON</button>
+        <button class="btn a" onclick="downloadJSON()" title="Download current JSON as a file">&#8595; DOWNLOAD JSON</button>
+      </div>
+    </div>
+
     <!-- IMPORT -->
     <div class="fg">
       <div class="fl">LOAD JSON &#8212; DRAG &amp; DROP, BROWSE, OR PASTE</div>
@@ -808,6 +818,66 @@ function lodEnt(code,e){
   updCct();updPrev();toast('Loaded: '+code);
 }
 function togEnts(){document.getElementById('el').classList.toggle('open');}
+
+// JSON MANAGEMENT
+function addToJSON(){
+  var code=getFmt();
+  if(!code){toast('Enter a valid 20-character code first');return;}
+  var lbl=document.getElementById('labf').value.trim();
+  var text=document.getElementById('logtxt').value;
+  if(!text){toast('Log text is required');return;}
+  if(isDup(code)&&!confirm('Code '+code+' already exists. Overwrite?'))return;
+  var entry={label:lbl||''};
+  if(mode==='lore'){entry.type=typ;entry.clearance=clr;
+    if(typ==='classified')entry.l1_preview=document.getElementById('l1pre').value.trim()||'[REDACTED]';
+  }else{entry.type='full';}
+  entry.text=text;
+  iData[code]=entry;
+  var keys=Object.keys(iData);
+  document.getElementById('et').textContent='▸ BROWSE LOADED ENTRIES ('+keys.length+' entries)';
+  document.getElementById('ect').textContent=keys.length+' ENTRIES LOADED';
+  renderEnts();popBetween();
+  toast('Added: '+code);
+}
+
+function removeFromJSON(){
+  var code=getFmt()||document.getElementById('codef').value;
+  if(!code){toast('No code to remove');return;}
+  if(!iData[code]){toast(code+' not found in loaded JSON');return;}
+  if(!confirm('Remove '+code+' from JSON?'))return;
+  delete iData[code];
+  var keys=Object.keys(iData);
+  document.getElementById('et').textContent='▸ BROWSE LOADED ENTRIES ('+keys.length+' entries)';
+  document.getElementById('ect').textContent=keys.length+' ENTRIES LOADED';
+  renderEnts();popBetween();
+  toast('Removed: '+code);
+}
+
+function rmEntry(code){
+  if(!confirm('Remove '+code+'?'))return;
+  delete iData[code];
+  var keys=Object.keys(iData);
+  document.getElementById('et').textContent='▸ BROWSE LOADED ENTRIES ('+keys.length+' entries)';
+  document.getElementById('ect').textContent=keys.length+' ENTRIES LOADED';
+  renderEnts();popBetween();
+  toast('Removed: '+code);
+}
+
+function downloadJSON(){
+  if(!Object.keys(iData).length){toast('No entries loaded to download');return;}
+  // Sort by code before saving
+  var sorted={};
+  Object.keys(iData).sort().forEach(function(k){sorted[k]=iData[k];});
+  var blob=new Blob([JSON.stringify(sorted,null,2)],{type:'application/json'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  a.href=url;
+  // Suggest correct filename based on mode
+  a.download=mode==='dev'?'dev_logs.json':'lore.json';
+  document.body.appendChild(a);a.click();
+  document.body.removeChild(a);URL.revokeObjectURL(url);
+  toast('Downloaded: '+a.download+' ('+Object.keys(iData).length+' entries, sorted by code)');
+}
 
 // UTIL
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
