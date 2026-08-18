@@ -515,6 +515,27 @@ function updPhosphorCSS(){
   });
 })();
 
+// ── MOBILE KEYBOARD HEIGHT FIX ───────────────────────────────────────────────
+// 100dvh doesn't shrink for an on-screen keyboard on most mobile browsers — the
+// keyboard just covers content. visualViewport reports the actual visible area
+// (iOS Safari, modern Android Chrome); window.innerHeight is the fallback for
+// browsers without visualViewport support (older Android WebViews).
+(function(){
+  var pg=document.getElementById('page');
+  if(!pg) return;
+  function fixHeight(){
+    var h=(window.visualViewport?window.visualViewport.height:window.innerHeight);
+    pg.style.height=h+'px';
+  }
+  if(window.visualViewport){
+    window.visualViewport.addEventListener('resize',fixHeight);
+    window.visualViewport.addEventListener('scroll',fixHeight);
+  } else {
+    window.addEventListener('resize',fixHeight);
+  }
+  fixHeight();
+})();
+
 
 // ── ENGINE CONFIG ─────────────────────────────────────────────────────────────
 var engineConfig = null;
