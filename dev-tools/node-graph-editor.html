@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NODE GRAPH EDITOR // v5.30</title>
+<title>NODE GRAPH EDITOR // v5.31</title>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
@@ -65,6 +65,7 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
 .badge-chat{background:rgba(77,184,150,0.14);color:#4db896;}
 .badge-boot{background:rgba(240,192,64,0.14);color:#f0c040;}
 .badge-intro{background:rgba(111,176,111,0.14);color:#6fb06f;}
+.badge-global{background:rgba(196,127,196,0.18);color:#c47fc4;border:1px solid rgba(196,127,196,0.30);}
 
 /* NODES */
 .gnode{position:absolute;min-width:210px;border-radius:2px;cursor:default;user-select:none;transition:box-shadow 0.12s;}
@@ -230,7 +231,7 @@ select.iv-sel option{background:#001220;color:var(--blue);}
 <body>
 <div id="app">
 <div id="hdr">
-  <span class="htitle">NODE GRAPH EDITOR // v5.30</span>
+  <span class="htitle">NODE GRAPH EDITOR // v5.31</span>
   <span id="as-ind">&#10003; SAVED</span>
   <span id="fstat" class="none">NO FILE</span>
   <span id="fver" style="font-size:11px;color:rgba(79,195,247,0.28);letter-spacing:0.06em;"></span>
@@ -333,7 +334,7 @@ select.iv-sel option{background:#001220;color:var(--blue);}
 <script>
 'use strict';
 // ── CONSTANTS ─────────────────────────────────────────────────────────────────
-var EDITOR_VERSION='5.30';
+var EDITOR_VERSION='5.31';
 var EDITOR_CREATED='2026-05-28T12:00:00-05:00';
 var EDITOR_CREATED_HUMAN='May 28, 2026 CT';
 var CANVAS_W=4000, CANVAS_H=3000, NODE_W=220;
@@ -409,8 +410,8 @@ function getLayerIds(){
 var LAYER_COLOR={l1:'#4fc3f7',l2:'#bf7c0a',l3:'#e05050'};
 var LAYER_LABEL={l1:'L1',l2:'L2',l3:'L3'};
 var CMD_COLOR={navigation:'#cc3311',pull:'#c47fc4',loop:'#6fb06f',flavor:'#c47fc4'};
-var NODE_TYPES=['standard','chat','boot','intro','log_entry','data'];
-var NODE_TYPE_LABELS={standard:'STANDARD',chat:'CHAT',boot:'BOOT',intro:'INTRO',log_entry:'LOG ENTRY',data:'DATA'};
+var NODE_TYPES=['standard','chat','boot','intro','log_entry','data','global'];
+var NODE_TYPE_LABELS={standard:'STANDARD',chat:'CHAT',boot:'BOOT',intro:'INTRO',log_entry:'LOG ENTRY',data:'DATA',global:'GLOBAL'};
 var CLS_OPTS=['full','dim','low','warn','denied','blank'];
 
 // ── STATE ─────────────────────────────────────────────────────────────────────
@@ -627,13 +628,14 @@ function render(){
     // LOCKED: transparent ghost body — border unchanged
     if(_ed.locked){el.style.background=ha(getLC(lyr),0.05);}
 
-    // Input port
-    var inp=document.createElement('div');inp.className='in-port';inp.id='inp-'+id;
-    // Dynamic layers: set border-color inline (base CSS provides background fallback)
-    if(!LAYER_COLOR[lyr]){inp.style.borderColor=ha(getLC(lyr),0.35);}
-    inp.addEventListener('contextmenu',function(e){e.preventDefault();e.stopPropagation();showInPortCtxMenu(e,id);});
-    inp.addEventListener('dblclick',function(e){e.stopPropagation();disconnectAllIncoming(id);});
-    el.appendChild(inp);
+    // Input port — not rendered for global nodes (they are never navigated to)
+    if(nt!=='global'){
+      var inp=document.createElement('div');inp.className='in-port';inp.id='inp-'+id;
+      if(!LAYER_COLOR[lyr]){inp.style.borderColor=ha(getLC(lyr),0.35);}
+      inp.addEventListener('contextmenu',function(e){e.preventDefault();e.stopPropagation();showInPortCtxMenu(e,id);});
+      inp.addEventListener('dblclick',function(e){e.stopPropagation();disconnectAllIncoming(id);});
+      el.appendChild(inp);
+    }
 
     // Header
     var hdr=document.createElement('div');hdr.className='gnode-hdr';
@@ -650,6 +652,17 @@ function render(){
     // Node type badge
     var nt=n.node_type||'standard';
     var badge=document.createElement('span');badge.className='node-type-badge badge-'+nt;badge.textContent=NODE_TYPE_LABELS[nt]||nt;hdr.appendChild(badge);
+    // Global nodes: show scope label, dashed border, no in-port
+    if(nt==='global'){
+      el.style.borderStyle='dashed';
+      el.style.borderColor='rgba(196,127,196,0.55)';
+      el.style.background='rgba(10,2,10,0.97)';
+      var scope=n.layer_scope||null;
+      var scopeEl=document.createElement('span');
+      scopeEl.style.cssText='font-size:10px;color:rgba(196,127,196,0.55);flex-shrink:0;letter-spacing:0.06em;';
+      scopeEl.textContent=scope?scope.toUpperCase():'GLOBAL';
+      hdr.appendChild(scopeEl);
+    }
     var lyrSp=document.createElement('div');lyrSp.className='gnode-lyr';
     if(!LAYER_COLOR[lyr])lyrSp.style.color=ha(getLC(lyr),0.40);
     lyrSp.textContent=LAYER_LABEL[lyr]||lyr.toUpperCase();hdr.appendChild(lyrSp);
@@ -1049,6 +1062,7 @@ function addNode(cx,cy){
     footer:'',body:[],
     _editor:{locked:false,pinned:false,id_locked:idLocked}
   };
+  if(newType==='global') arch.nodes[id].layer_scope=null;
   positions[id]={x:x,y:y};
   pushHist();render();selectNode(id);toast('Node added');
 }
@@ -1079,21 +1093,29 @@ function showInfo(id){
   var h='';
   // ID
   h+='<div class="if"><div class="il">NODE ID</div><input type="text" class="iv-inp" id="fi-id" value="'+esc(id)+'" autocomplete="off" spellcheck="false"></div>';
-  // Layer
-  h+='<div class="if"><div class="il">LAYER</div><select class="iv-sel" id="fi-layer">';
-  getLayerIds().forEach(function(lv){h+='<option value="'+lv+'"'+(lv===lyr?' selected':'')+'>'+lv.toUpperCase().replace('_ARCHIVE','')+'</option>';});
-  h+='</select></div>';
+  var isGlobal=(n.node_type||'standard')==='global';
+  // Layer / scope
+  if(isGlobal){
+    h+='<div class="if"><div class="il">LAYER SCOPE</div><select class="iv-sel" id="fi-scope">';
+    h+='<option value=""'+((!n.layer_scope)?' selected':'')+'>UNRESTRICTED (all layers)</option>';
+    getLayerIds().forEach(function(lv){h+='<option value="'+lv+'"'+(n.layer_scope===lv?' selected':'')+'>'+lv.toUpperCase()+' only</option>';});
+    h+='</select></div>';
+  } else {
+    h+='<div class="if"><div class="il">LAYER</div><select class="iv-sel" id="fi-layer">';
+    getLayerIds().forEach(function(lv){h+='<option value="'+lv+'"'+(lv===lyr?' selected':'')+'>'+lv.toUpperCase().replace('_ARCHIVE','')+'</option>';});
+    h+='</select></div>';
+  }
   // Node type
   h+='<div class="if"><div class="il">NODE TYPE</div><select class="iv-sel" id="fi-ntype">';
   NODE_TYPES.forEach(function(nt){h+='<option value="'+nt+'"'+((n.node_type||'standard')===nt?' selected':'')+'>'+NODE_TYPE_LABELS[nt]+'</option>';});
   h+='</select></div>';
-  // Title
-  h+='<div class="if"><div class="il">TITLE</div><input type="text" class="iv-inp" id="fi-title" value="'+esc(n.title||'')+'" autocomplete="off" spellcheck="false"></div>';
-  // Path (auto)
-  h+='<div class="if"><div class="il">PATH (auto)</div><input type="text" class="iv-inp" id="fi-bc" value="'+esc(n.breadcrumb||'')+'" readonly style="opacity:0.45;cursor:default;"></div>';
-  // Root / Fetch
-  h+='<div class="if"><div class="il">ROOT NODE</div><div class="toggle-row"><button class="tg'+(n.is_root?'':' on')+'" onclick="setNodeBool(\'is_root\',false)">NO</button><button class="tg'+(n.is_root?' on':'')+'" onclick="setNodeBool(\'is_root\',true)">YES</button></div></div>';
-  h+='<div class="if"><div class="il">FETCH ALLOWED</div><div class="toggle-row"><button class="tg'+(n.fetch_allowed?'':' on')+'" onclick="setNodeBool(\'fetch_allowed\',false)">NO</button><button class="tg'+(n.fetch_allowed?' on':'')+'" onclick="setNodeBool(\'fetch_allowed\',true)">YES</button></div></div>';
+  if(!isGlobal){
+    // Title / breadcrumb / root / fetch — hidden for global nodes
+    h+='<div class="if"><div class="il">TITLE</div><input type="text" class="iv-inp" id="fi-title" value="'+esc(n.title||'')+'" autocomplete="off" spellcheck="false"></div>';
+    h+='<div class="if"><div class="il">PATH (auto)</div><input type="text" class="iv-inp" id="fi-bc" value="'+esc(n.breadcrumb||'')+'" readonly style="opacity:0.45;cursor:default;"></div>';
+    h+='<div class="if"><div class="il">ROOT NODE</div><div class="toggle-row"><button class="tg'+(n.is_root?'':' on')+'" onclick="setNodeBool(\'is_root\',false)">NO</button><button class="tg'+(n.is_root?' on':'')+'" onclick="setNodeBool(\'is_root\',true)">YES</button></div></div>';
+    h+='<div class="if"><div class="il">FETCH ALLOWED</div><div class="toggle-row"><button class="tg'+(n.fetch_allowed?'':' on')+'" onclick="setNodeBool(\'fetch_allowed\',false)">NO</button><button class="tg'+(n.fetch_allowed?' on':'')+'" onclick="setNodeBool(\'fetch_allowed\',true)">YES</button></div></div>';
+  }
   // Personality src — only for chat nodes
   if((n.node_type||'standard')==='chat'){
     h+='<div class="if"><div class="il">FLAVOR SOURCE (personality file)</div><input type="text" class="iv-inp" id="fi-psrc" value="'+esc(n.personality_src||'')+'" placeholder="personality.json" autocomplete="off" spellcheck="false"></div>';
@@ -1147,11 +1169,16 @@ function showInfo(id){
   h+='</div>';
   // Add buttons
   h+='<div class="add-body-btns">';
-  h+='<button class="add-btn txt" onclick="addBody(\''+esc(id)+'\',\'text\')">+ TEXT</button>';
-  h+='<button class="add-btn nav" onclick="addBody(\''+esc(id)+'\',\'cmd-nav\')">+ NAV</button>';
-  h+='<button class="add-btn pull" onclick="addBody(\''+esc(id)+'\',\'cmd-pull\')">+ PULL</button>';
-  h+='<button class="add-btn loop" onclick="addBody(\''+esc(id)+'\',\'cmd-loop\')">+ LOOP</button>';
-  h+='<button class="add-btn dyn" onclick="addBody(\''+esc(id)+'\',\'dyn\')">+ DYN</button>';
+  if(isGlobal){
+    h+='<button class="add-btn nav" onclick="addBody(\''+esc(id)+'\',\'cmd-nav\')">+ NAV</button>';
+    h+='<button class="add-btn pull" onclick="addBody(\''+esc(id)+'\',\'cmd-pull\')">+ PULL</button>';
+  }else{
+    h+='<button class="add-btn txt" onclick="addBody(\''+esc(id)+'\',\'text\')">+ TEXT</button>';
+    h+='<button class="add-btn nav" onclick="addBody(\''+esc(id)+'\',\'cmd-nav\')">+ NAV</button>';
+    h+='<button class="add-btn pull" onclick="addBody(\''+esc(id)+'\',\'cmd-pull\')">+ PULL</button>';
+    h+='<button class="add-btn loop" onclick="addBody(\''+esc(id)+'\',\'cmd-loop\')">+ LOOP</button>';
+    h+='<button class="add-btn dyn" onclick="addBody(\''+esc(id)+'\',\'dyn\')">+ DYN</button>';
+  }
   h+='</div></div>';
 
   // Incoming
@@ -1188,8 +1215,6 @@ function showInfo(id){
   // Wire up live updates
   var fiId=document.getElementById('fi-id');
   if(fiId)fiId.addEventListener('change',function(){var nid=this.value.trim().toUpperCase().replace(/\s+/g,'_');if(nid&&nid!==id&&!arch.nodes[nid])renameNode(id,nid);});
-  var fiLyr=document.getElementById('fi-layer');
-  if(fiLyr)fiLyr.addEventListener('change',function(){arch.nodes[id].layer=this.value;autoSetAllPaths();pushHist();render();showInfo(id);});
   var fiNtype=document.getElementById('fi-ntype');
   if(fiNtype)fiNtype.addEventListener('change',function(){
     var newType=this.value;
@@ -1227,6 +1252,12 @@ function showInfo(id){
     }
     pushHist();render();showInfo(id);
   });
+  // Layer scope handler (global nodes only)
+  var fiScope=document.getElementById('fi-scope');
+  if(fiScope){fiScope.addEventListener('change',function(){arch.nodes[id].layer_scope=this.value||null;pushHist();render();showInfo(id);});}
+  // Standard field handlers — guarded since global nodes don't render these fields
+  var fiLayer=document.getElementById('fi-layer');
+  if(fiLayer){fiLayer.addEventListener('change',function(){arch.nodes[id].layer=this.value;pushHist();render();showInfo(id);});}
   var fiTitle=document.getElementById('fi-title');
   if(fiTitle){fiTitle.addEventListener('input',function(){arch.nodes[id].title=this.value;autoSetPath(id);var bc=document.getElementById('fi-bc');if(bc)bc.value=arch.nodes[id].breadcrumb||'';render();});fiTitle.addEventListener('change',function(){pushHist();});}
   var fiPsrc=document.getElementById('fi-psrc');
@@ -1727,6 +1758,8 @@ function auditNode(id, n, report){
   if(!n.node_type){n.node_type='standard';changes++;report.push('  '+id+': set node_type=standard');}
   if(n.layer==='l1c'){n.layer='l1';changes++;report.push('  '+id+': layer l1c → l1');}
   if(n.layer==='l1_archive'){n.layer='l1';changes++;report.push('  '+id+': layer l1_archive → l1');}
+  // Global nodes don't use root/fetch/title
+  if(n.node_type==='global') return {id:id,changes:changes,report:report};
   if(!n._editor){n._editor={locked:false,pinned:false,id_locked:false};changes++;report.push('  '+id+': added _editor');}
   if(typeof n._editor.locked==='undefined')n._editor.locked=false;
   if(typeof n._editor.pinned==='undefined')n._editor.pinned=false;
