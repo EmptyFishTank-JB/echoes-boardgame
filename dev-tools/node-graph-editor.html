@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NODE GRAPH EDITOR // v5.37</title>
+<title>NODE GRAPH EDITOR</title>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
@@ -18,6 +18,7 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
 /* HEADER */
 #hdr{display:flex;align-items:center;gap:8px;padding:6px 14px;border-bottom:1px solid var(--bdr);flex-shrink:0;background:rgba(0,4,10,0.98);flex-wrap:wrap;}
 .htitle{font-size:14px;letter-spacing:0.14em;flex:1;}
+.tver{font-size:10px;color:var(--amber);letter-spacing:0.06em;margin-left:8px;}
 .hbtn{background:transparent;border:1px solid rgba(79,195,247,0.16);color:var(--dim);font-family:"Share Tech Mono",monospace;font-size:13px;letter-spacing:0.07em;padding:4px 11px;cursor:pointer;transition:all 0.15s;}
 .hbtn:hover{border-color:var(--blue);color:var(--blue);filter:brightness(1.25);box-shadow:0 0 8px rgba(79,195,247,0.50);}
 #fstat{font-size:13px;padding:2px 9px;border:1px solid;letter-spacing:0.06em;}
@@ -278,7 +279,7 @@ select.iv-sel option{background:#001220;color:var(--blue);}
 <body>
 <div id="app">
 <div id="hdr">
-  <span class="htitle">NODE GRAPH EDITOR // v5.37</span>
+  <span class="htitle">NODE GRAPH EDITOR<span id="tool-ver" class="tver">v.&mdash;</span></span>
   <span id="as-ind">&#10003; SAVED</span>
   <span id="fstat" class="none">NO FILE</span>
   <span id="fver" style="font-size:11px;color:rgba(79,195,247,0.28);letter-spacing:0.06em;"></span>
@@ -2282,6 +2283,14 @@ window.addEventListener('resize',function(){sizeCanvas();updateMinimap();});
  * the closing </body> tag below this comment block.
  * The injector targets `.hright` in the header for the palette button.
  * ────────────────────────────────────────────────────────────────────────── */
+
+// ── TOOL VERSION = COMMIT ID ─────────────────────────────────────────────────
+(function(){
+  fetch('https://api.github.com/repos/EmptyFishTank-JB/echoes-boardgame/commits?per_page=1&path='+encodeURIComponent('dev-tools/node-graph-editor.html'))
+    .then(function(r){return r.ok?r.json():Promise.reject();})
+    .then(function(d){if(d&&d.length){var el=document.getElementById('tool-ver');if(el)el.textContent='v.'+d[0].sha.slice(0,7);}})
+    .catch(function(){});
+})();
 </script>
 </body>
 </html>
