@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NODE GRAPH EDITOR // v5.32</title>
+<title>NODE GRAPH EDITOR // v5.33</title>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
@@ -235,7 +235,7 @@ select.iv-sel option{background:#001220;color:var(--blue);}
 <body>
 <div id="app">
 <div id="hdr">
-  <span class="htitle">NODE GRAPH EDITOR // v5.32</span>
+  <span class="htitle">NODE GRAPH EDITOR // v5.33</span>
   <span id="as-ind">&#10003; SAVED</span>
   <span id="fstat" class="none">NO FILE</span>
   <span id="fver" style="font-size:11px;color:rgba(79,195,247,0.28);letter-spacing:0.06em;"></span>
@@ -339,7 +339,7 @@ select.iv-sel option{background:#001220;color:var(--blue);}
 <script>
 'use strict';
 // ── CONSTANTS ─────────────────────────────────────────────────────────────────
-var EDITOR_VERSION='5.32';
+var EDITOR_VERSION='5.33';
 var EDITOR_CREATED='2026-05-28T12:00:00-05:00';
 var EDITOR_CREATED_HUMAN='May 28, 2026 CT';
 var CANVAS_W=4000, CANVAS_H=3000, NODE_W=220;
@@ -794,7 +794,8 @@ function drawConnections(nodes){
       var p2=getInPortPos(tgt);
       var isSel=(id===selectedNode||tgt===selectedNode||multiSel.indexOf(id)>=0||multiSel.indexOf(tgt)>=0);
       // NAV wire follows source layer color; pull/flavor use CMD_COLOR; global nodes use white
-      var col=nt==='global'?'rgba(255,255,255,0.85)':(ct==='navigation'?getLC(lyr):(CMD_COLOR[ct]||'#4fc3f7'));
+      var srcNt=n&&n.node_type||'standard';
+      var col=srcNt==='global'?'rgba(255,255,255,0.85)':(ct==='navigation'?getLC(lyr):(CMD_COLOR[ct]||'#4fc3f7'));
       var cp=Math.max(60,Math.abs(p2.x-p1.x)*0.5);
       var path=document.createElementNS('http://www.w3.org/2000/svg','path');
       path.classList.add('cp');
@@ -928,7 +929,7 @@ document.addEventListener('mousemove',function(e){
   }
   if(panDrag){pan.x=panDrag.startPX+(e.clientX-panDrag.startX);pan.y=panDrag.startPY+(e.clientY-panDrag.startY);applyTransform();updateMinimap();return;}
   if(panelDrag){document.getElementById('info').style.width=Math.max(200,Math.min(800,panelDrag.startW+(panelDrag.startX-e.clientX)))+'px';return;}
-  if(infoDrag){document.getElementById('info').style.width=Math.max(200,Math.min(800,infoDrag.startW+(e.clientX-infoDrag.startX)))+'px';return;}
+  if(infoDrag){var rpnl=document.getElementById('rpnl');if(rpnl){var nw=Math.max(300,Math.min(900,infoDrag.startW+(infoDrag.startX-e.clientX)));rpnl.style.width=nw+'px';}return;}
   if(selBoxStart){
     var dx3=e.clientX-selBoxStart.clientX,dy3=e.clientY-selBoxStart.clientY;
     var isWin=dx3>0;
@@ -967,7 +968,12 @@ document.addEventListener('mouseup',function(e){
   if(nodeDrag){pushHist();nodeDrag=null;}
   if(panDrag){panDrag=null;document.getElementById('canvas-wrap').classList.remove('grabbing');}
   if(panelDrag){panelDrag=null;}
-  if(infoDrag){infoDrag=null;document.getElementById('dh-info').classList.remove('dragging');}
+  if(infoDrag){
+    infoDrag=null;
+    document.getElementById('dh-info').classList.remove('dragging');
+    var rpnl2=document.getElementById('rpnl');
+    if(rpnl2) rpnl2.style.transition='width 0.28s cubic-bezier(0.4,0,0.2,1)';
+  }
   if(selBoxStart){
     var dx=e.clientX-selBoxStart.clientX,dy=e.clientY-selBoxStart.clientY;
     var isWin=dx>0;
@@ -1032,10 +1038,13 @@ function startPanelDrag(e){
   document.getElementById('dh-r').classList.add('dragging');
   document.addEventListener('mouseup',function(){document.getElementById('dh-r').classList.remove('dragging');},{once:true});
 }
-// Drag handle between info column and terminal panel (right side of info)
+// Drag handle between info column and terminal panel — resizes the terminal panel
 function startInfoDrag(e){
   e.preventDefault();
-  infoDrag={startX:e.clientX,startW:document.getElementById('info').offsetWidth};
+  var rpnl=document.getElementById('rpnl');
+  if(!rpnl||rpnl.offsetWidth===0) return; // only active when terminal panel is open
+  rpnl.style.transition='none'; // disable slide animation during drag
+  infoDrag={startX:e.clientX,startW:rpnl.offsetWidth};
   document.getElementById('dh-info').classList.add('dragging');
 }
 
