@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ECHO PERSONALITY LAB // v4.2.6.026</title>
+<title>PERSONALITY LAB // v3</title>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
@@ -245,13 +245,39 @@ select option{background:#001220;color:var(--blue);}
   color:var(--blue);padding:6px 13px;font-size:12px;letter-spacing:0.05em;
   opacity:0;transition:opacity 0.22s;pointer-events:none;z-index:200;}
 #toast.show{opacity:1;}
+
+/* DRAG-TO-REORDER */
+.lrow[draggable]{cursor:grab;}
+.lrow[draggable]:active{cursor:grabbing;}
+.lrow.drag-over{border-top:2px solid var(--blue);margin-top:-2px;}
+.var-row[draggable]{cursor:grab;}
+.var-row[draggable]:active{cursor:grabbing;}
+.var-row.drag-over{border-top:2px solid var(--blue);}
+.drag-grip{font-size:11px;color:rgba(79,195,247,0.22);padding:0 4px;cursor:grab;flex-shrink:0;user-select:none;}
+.drag-grip:hover{color:var(--blue);}
+
+/* TRIGGER TESTER */
+#tester{border-top:1px solid var(--bdr);flex-shrink:0;display:flex;flex-direction:column;}
+.tsthdr{padding:6px 13px;font-size:12px;letter-spacing:0.12em;color:rgba(79,195,247,0.42);
+  border-bottom:1px solid rgba(79,195,247,0.08);background:rgba(79,195,247,0.015);
+  display:flex;align-items:center;justify-content:space-between;}
+#tst-input{background:rgba(79,195,247,0.04);border:none;border-bottom:1px solid var(--bdr);
+  color:var(--blue);font-family:"Share Tech Mono",monospace;font-size:12px;
+  padding:6px 13px;outline:none;width:100%;letter-spacing:0.06em;flex-shrink:0;}
+#tst-input::placeholder{color:rgba(79,195,247,0.24);}
+#tst-out{padding:8px 13px;font-size:11px;line-height:1.8;min-height:60px;max-height:120px;overflow-y:auto;flex-shrink:0;}
+.tst-hit{color:var(--green);}
+.tst-egg{color:var(--blue);margin-left:8px;}
+.tst-denied{color:rgba(79,195,247,0.55);}
+.tst-admin{color:var(--amber);}
+.tst-none{color:rgba(79,195,247,0.28);}
 </style>
 </head>
 <body>
 <div id="app">
 
 <div id="hdr">
-  <span class="htitle">ECHO PERSONALITY LAB // v4.2.6.026</span>
+  <span class="htitle">PERSONALITY LAB // v3</span>
   <div class="hright">
     <span id="as-ind">&#10003; AUTOSAVED</span>
     <span id="fstat" class="none">NO FILE OPEN</span>
@@ -379,6 +405,14 @@ select option{background:#001220;color:var(--blue);}
       <span id="pvbadge">L1 CHAT</span>
     </div>
     <div id="preview"><span style="opacity:0.36;font-size:12px;">Select a variant to preview.</span></div>
+  </div>
+  <div id="tester">
+    <div class="tsthdr">
+      <span>&#9658; TRIGGER TESTER</span>
+      <span style="font-size:10px;color:rgba(79,195,247,0.28);">type to test</span>
+    </div>
+    <input id="tst-input" type="text" placeholder="type player input here..." autocomplete="off" spellcheck="false" oninput="runTester(this.value)">
+    <div id="tst-out"><span class="tst-none">No file loaded.</span></div>
   </div>
   <div id="jw">
     <div class="jhdr"><span>&#9658; JSON SNIPPET</span>
@@ -777,7 +811,7 @@ function renderVarList() {
     var preview=v.lines.length ? v.lines[0].text : '(empty)';
     var wf=curWeighted&&v.weight!=null;
     return '<div class="var-row'+(isSel?' vsel':'')+'" id="vr'+i+'">' +
-      '<div class="var-hdr" onclick="toggleVar('+i+')">' +
+      '<div class="var-hdr" draggable="true" data-vi="'+i+'" ondragstart="dndVarStart(event)" ondragover="dndLineOver(event)" ondragleave="dndLineLv(event)" ondrop="dndVarDrop(event)" onclick="toggleVar('+i+')">' +
         '<span class="var-num">VARIANT '+(i+1)+'</span>' +
         '<span class="var-preview">'+esc(preview)+'</span>' +
         '<div class="var-actions" onclick="event.stopPropagation()">' +
@@ -806,13 +840,14 @@ function renderVLines(vi) {
   var cont=document.getElementById('vlines'+vi);
   if (!cont) return;
   cont.innerHTML=v.lines.map(function(l,li){
-    return '<div class="lrow">' +
+    return '<div class="lrow" draggable="true" data-vi="'+vi+'" data-li="'+li+'" ondragstart="dndLineStart(event,&quot;vline&quot;)" ondragover="dndLineOver(event)" ondragleave="dndLineLv(event)" ondrop="dndVLineDrop(event,'+vi+')">' +
+      '<span class="drag-grip" title="drag to reorder">≡</span>' +
       '<input type="text" value="'+esc(l.text)+'" oninput="curVariants['+vi+'].lines['+li+'].text=this.value;updEggPreview();updEggJSON();" autocomplete="off" spellcheck="false">' +
       mkClsSel(l.cls,'curVariants['+vi+'].lines['+li+'].cls=this.value;updEggPreview();updEggJSON();') +
       '<div class="lrow-btns">' +
         '<button class="rbtn" onclick="moveVLine('+vi+','+li+',-1)">&#8593;</button>' +
         '<button class="rbtn" onclick="moveVLine('+vi+','+li+',1)">&#8595;</button>' +
-        '<button class="rbtn r" onclick="removeVLine('+vi+','+li+')">\u00D7</button>' +
+        '<button class="rbtn r" onclick="removeVLine('+vi+','+li+')">×</button>' +
       '</div></div>';
   }).join('');
 }
@@ -845,12 +880,13 @@ function renderDeniedLines() {
   if (!curDeniedLines.length) { cont.innerHTML=''; empty.style.display=''; return; }
   empty.style.display='none';
   cont.innerHTML=curDeniedLines.map(function(l,i){
-    return '<div class="lrow">' +
+    return '<div class="lrow" draggable="true" data-li="'+i+'" ondragstart="dndLineStart(event,&quot;denied&quot;)" ondragover="dndLineOver(event)" ondragleave="dndLineLv(event)" ondrop="dndDeniedDrop(event)">' +
+      '<span class="drag-grip" title="drag to reorder">≡</span>' +
       '<input type="text" value="'+esc(l.text)+'" oninput="curDeniedLines['+i+'].text=this.value;updDeniedPreview();updDeniedJSON();" autocomplete="off" spellcheck="false">' +
       '<div class="lrow-btns">' +
         '<button class="rbtn" onclick="moveDL('+i+',-1)">&#8593;</button>' +
         '<button class="rbtn" onclick="moveDL('+i+',1)">&#8595;</button>' +
-        '<button class="rbtn r" onclick="removeDL('+i+')">\u00D7</button>' +
+        '<button class="rbtn r" onclick="removeDL('+i+')">×</button>' +
       '</div></div>';
   }).join('');
 }
@@ -913,12 +949,13 @@ function loadAdminRespEditor() {
 function renderAdmLines() {
   var cont=document.getElementById('adm-lines');
   cont.innerHTML=curAdmLines.map(function(l,i){
-    return '<div class="lrow">' +
+    return '<div class="lrow" draggable="true" data-li="'+i+'" ondragstart="dndLineStart(event,&quot;admin&quot;)" ondragover="dndLineOver(event)" ondragleave="dndLineLv(event)" ondrop="dndAdmDrop(event)">' +
+      '<span class="drag-grip" title="drag to reorder">≡</span>' +
       '<input type="text" value="'+esc(l.text)+'" oninput="curAdmLines['+i+'].text=this.value;" autocomplete="off" spellcheck="false">' +
       '<div class="lrow-btns">' +
         '<button class="rbtn" onclick="moveAL('+i+',-1)">&#8593;</button>' +
         '<button class="rbtn" onclick="moveAL('+i+',1)">&#8595;</button>' +
-        '<button class="rbtn r" onclick="removeAL('+i+')">\u00D7</button>' +
+        '<button class="rbtn r" onclick="removeAL('+i+')">×</button>' +
       '</div></div>';
   }).join('');
 }
@@ -1097,6 +1134,132 @@ function toast(msg){
   clearTimeout(toastT);toastT=setTimeout(function(){el.classList.remove('show');},2400);
 }
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+
+// ── DRAG AND DROP ─────────────────────────────────────────────────────────────
+var _dndSrc = null; // {type, idx, vi?}
+
+function dndLineStart(e, type) {
+  var el = e.currentTarget;
+  _dndSrc = { type:type, idx:parseInt(el.dataset.li), vi:el.dataset.vi!=null?parseInt(el.dataset.vi):null };
+  e.dataTransfer.effectAllowed = 'move';
+  setTimeout(function(){ el.style.opacity='0.4'; }, 0);
+}
+function dndLineOver(e) { e.preventDefault(); e.currentTarget.classList.add('drag-over'); }
+function dndLineLv(e) { e.currentTarget.classList.remove('drag-over'); }
+
+function dndVLineDrop(e, vi) {
+  e.currentTarget.classList.remove('drag-over');
+  if (!_dndSrc || _dndSrc.type !== 'vline' || _dndSrc.vi !== vi) { _dndSrc=null; return; }
+  var to = parseInt(e.currentTarget.dataset.li);
+  var from = _dndSrc.idx;
+  if (from === to) { _dndSrc=null; return; }
+  var arr = curVariants[vi].lines;
+  var item = arr.splice(from, 1)[0];
+  arr.splice(to, 0, item);
+  _dndSrc = null;
+  renderVLines(vi); updEggPreview(); updEggJSON();
+}
+function dndDeniedDrop(e) {
+  e.currentTarget.classList.remove('drag-over');
+  if (!_dndSrc || _dndSrc.type !== 'denied') { _dndSrc=null; return; }
+  var to = parseInt(e.currentTarget.dataset.li);
+  var from = _dndSrc.idx;
+  if (from === to) { _dndSrc=null; return; }
+  var item = curDeniedLines.splice(from, 1)[0];
+  curDeniedLines.splice(to, 0, item);
+  _dndSrc = null;
+  renderDeniedLines(); updDeniedPreview(); updDeniedJSON();
+}
+function dndAdmDrop(e) {
+  e.currentTarget.classList.remove('drag-over');
+  if (!_dndSrc || _dndSrc.type !== 'admin') { _dndSrc=null; return; }
+  var to = parseInt(e.currentTarget.dataset.li);
+  var from = _dndSrc.idx;
+  if (from === to) { _dndSrc=null; return; }
+  var item = curAdmLines.splice(from, 1)[0];
+  curAdmLines.splice(to, 0, item);
+  _dndSrc = null;
+  renderAdmLines();
+}
+function dndVarStart(e) {
+  var vi = parseInt(e.currentTarget.dataset.vi);
+  _dndSrc = { type:'variant', idx:vi };
+  e.dataTransfer.effectAllowed = 'move';
+  e.stopPropagation();
+}
+function dndVarDrop(e) {
+  e.currentTarget.classList.remove('drag-over');
+  if (!_dndSrc || _dndSrc.type !== 'variant') { _dndSrc=null; return; }
+  var to = parseInt(e.currentTarget.dataset.vi);
+  var from = _dndSrc.idx;
+  if (from === to) { _dndSrc=null; return; }
+  var item = curVariants.splice(from, 1)[0];
+  curVariants.splice(to, 0, item);
+  if (selVariant === from) selVariant = to;
+  else if (selVariant > from && selVariant <= to) selVariant--;
+  else if (selVariant < from && selVariant >= to) selVariant++;
+  _dndSrc = null;
+  renderVarList(); if(selVariant!=null) renderVLines(selVariant);
+  updEggPreview(); updEggJSON();
+}
+
+// ── TRIGGER TESTER ────────────────────────────────────────────────────────────
+function runTester(val) {
+  var out = document.getElementById('tst-out');
+  if (!data) { out.innerHTML='<span class="tst-none">No file loaded.</span>'; return; }
+  if (!val.trim()) { out.innerHTML='<span class="tst-none">Awaiting input...</span>'; return; }
+  var lower = val.toLowerCase();
+  var lines = [];
+
+  // Admin check
+  var adminHit = data.admin.keywords.some(function(kw){ return lower.indexOf(kw) >= 0; });
+  if (adminHit) {
+    lines.push('<div class="tst-admin">⚠ ADMIN TRIGGER — security flag raised</div>');
+    lines.push('<div class="tst-admin" style="margin-left:8px;font-size:10px;">'+
+      data.admin.responses.length+' response'+(data.admin.responses.length!==1?'s':'')+' in pool</div>');
+  }
+
+  // Easter egg check
+  var eggHit = null;
+  for (var i=0; i<data.eggs.length; i++) {
+    var eg = data.eggs[i];
+    for (var j=0; j<eg.keys.length; j++) {
+      if (lower.indexOf(eg.keys[j]) >= 0) { eggHit = {egg:eg, idx:i}; break; }
+    }
+    if (eggHit) break;
+  }
+  if (eggHit) {
+    var eg = eggHit.egg;
+    lines.push('<div class="tst-hit">✓ EGG MATCH — '+esc(eg.group)+'</div>');
+    lines.push('<div class="tst-egg">key matched: "'+esc(eg.keys.filter(function(k){return lower.indexOf(k)>=0;})[0])+'"</div>');
+    lines.push('<div class="tst-egg">'+eg.variants.length+' variant'+(eg.variants.length!==1?'s':'')+
+      (eg.weighted?' · weighted':'')+'</div>');
+    eg.variants.forEach(function(v,vi){
+      var preview = v.lines.length ? v.lines[0].text : '(empty)';
+      lines.push('<div class="tst-egg" style="font-size:10px;margin-left:8px;opacity:0.7;">V'+(vi+1)+': '+esc(preview)+'</div>');
+    });
+  }
+
+  // Denied — show which index would fire
+  if (!eggHit && !adminHit) {
+    var deniedCount = data.denied.length;
+    if (deniedCount) {
+      // Terminal cycles through denied pool — show what the current index would be
+      lines.push('<div class="tst-denied">→ FALLS THROUGH TO DENIED POOL</div>');
+      lines.push('<div class="tst-denied" style="margin-left:8px;font-size:10px;">'+deniedCount+' response'+(deniedCount!==1?'s':'')+' rotate in sequence</div>');
+      data.denied.slice(0,3).forEach(function(d,i){
+        var preview = d.lines[0] || '(empty)';
+        lines.push('<div class="tst-denied" style="font-size:10px;margin-left:8px;opacity:0.6;">'+(i+1)+': '+esc(preview)+'</div>');
+      });
+      if (deniedCount > 3) lines.push('<div class="tst-denied" style="font-size:10px;margin-left:8px;opacity:0.4;">...and '+(deniedCount-3)+' more</div>');
+    } else {
+      lines.push('<div class="tst-none">No denied responses in pool.</div>');
+    }
+  }
+
+  out.innerHTML = lines.join('') || '<span class="tst-none">No match.</span>';
+}
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
 document.getElementById('stf-btn').disabled=true;
