@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ECHO LORE // DEV LOG EDITOR v13</title>
+<title>ECHO LORE // DEV LOG EDITOR v14</title>
 <link rel="icon" type="image/svg+xml" id="fav-lnk">
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
@@ -199,7 +199,7 @@ select option{background:#001220;color:var(--blue);}
 
 /* TEMPLATE EDITOR */
 #tpl-editor{border:1px solid rgba(79,195,247,0.10);background:rgba(79,195,247,0.015);padding:9px 11px;display:flex;flex-direction:column;gap:8px;}
-#tpl-editor.collapsed .tpl-body-wrap{display:none;}
+#tpl-editor.collapsed .tpl-content{display:none!important;}
 .tpl-ed-hdr{font-size:12px;color:var(--dim);letter-spacing:0.08em;
   display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none;}
 .tpl-ed-hdr:hover{color:var(--blue);}
@@ -287,7 +287,7 @@ select option{background:#001220;color:var(--blue);}
 <div id="app">
 
 <div id="hdr">
-  <span class="htitle">ECHO LORE // DEV LOG EDITOR v13</span>
+  <span class="htitle">ECHO LORE // DEV LOG EDITOR v14</span>
   <div class="hright">
     <span id="as-ind">&#10003; AUTOSAVED</span>
     <span id="fstat" class="none">NO FILE OPEN</span>
@@ -313,7 +313,7 @@ select option{background:#001220;color:var(--blue);}
 </div>
 <div id="ecol">
   <div class="ecol-inner">
-    <div class="phdr">&#9658; ENTRIES <span id="ect" style="color:rgba(79,195,247,0.30)">&#8212; 0</span></div>
+    <div class="phdr">&#9658; ENTRIES <span id="ect" style="color:rgba(79,195,247,0.30)">&#8212; 0</span><button id="sort-btn" onclick="toggleSort()" style="margin-left:auto;background:transparent;border:1px solid rgba(79,195,247,0.14);color:rgba(79,195,247,0.40);font-family:'Share Tech Mono',monospace;font-size:10px;padding:2px 7px;cursor:pointer;letter-spacing:0.06em;" title="Toggle sort order">&#8595; DATE</button></div>
     <input id="esrch" type="text" placeholder="SEARCH CODE OR LABEL..."
            oninput="filterEnts()" autocomplete="off" spellcheck="false">
     <div id="elist">
@@ -402,7 +402,7 @@ select option{background:#001220;color:var(--blue);}
           <button class="btn sm a" onclick="dlTpls()">&#8595; EXPORT</button>
         </div>
       </div>
-      <div class="tpl-body-wrap" style="display:flex;flex-direction:column;gap:8px;">
+      <div class="tpl-content" style="display:flex;flex-direction:column;gap:8px;">
         <div class="fg">
           <div class="fl">TEMPLATE NAME</div>
           <input type="text" id="tpl-name" placeholder="e.g. CAPTAIN'S LOG" autocomplete="off">
@@ -489,10 +489,11 @@ select option{background:#001220;color:var(--blue);}
         <div id="doy-line">&#8212;</div>
 
         <div>
-          <div class="fl" style="margin-bottom:5px;">ENTRY ID &#8212; unique number per code (0&#8211;999)</div>
+          <div class="fl" style="margin-bottom:5px;">ENTRY ID &#8212; locked to 1</div>
           <div class="eid-row">
-            <input type="number" id="eid" min="0" max="999" value="0">
-            <label><input type="checkbox" id="eid-auto" checked> auto-increment</label>
+            <input type="number" id="eid" value="1" readonly
+              style="width:90px;flex-shrink:0;opacity:0.35;cursor:not-allowed;pointer-events:none;">
+            <span style="font-size:11px;color:rgba(79,195,247,0.28);letter-spacing:0.05em;">FIXED &#8212; encoded into code</span>
           </div>
         </div>
 
@@ -927,7 +928,7 @@ function doGenerate(){
   saltValue=saltIn;
   var y  = iv('dt-year'), mo = iv('dt-month'), d  = iv('dt-day');
   var h  = iv('dt-hour'), mi = iv('dt-min');
-  var eid = iv('eid');
+  var eid = 1;
   if(!y){toast('Enter a year first');return;}
   var result = generateCode(y, mo||1, d||1, h, mi, eid, saltValue);
   var disp = document.getElementById('code-out-disp');
@@ -937,9 +938,6 @@ function doGenerate(){
   disp.className='';
   document.getElementById('cp-gen-btn').disabled=false;
   document.getElementById('use-gen-btn').disabled=false;
-  if(document.getElementById('eid-auto').checked){
-    var next=eid+1;document.getElementById('eid').value=next>999?0:next;
-  }
   toast('Code generated');
 }
 function cpGenCode(){
@@ -1280,14 +1278,34 @@ function parseImp(text,src){
   catch(e){toast('JSON parse error \u2014 check format');}
 }
 
+// ── SORT ─────────────────────────────────────────────────────────────────────
+var sortAsc = true;
+function toggleSort(){
+  sortAsc=!sortAsc;
+  var btn=document.getElementById('sort-btn');
+  btn.innerHTML=(sortAsc?'&#8595;':'&#8593;')+' DATE';
+  renderEnts();
+}
+function getSDFromLabel(lbl){
+  var m=(lbl||'').match(/Stardate\s+(\d{4}\.\d{3}\.\d{4})/i);
+  return m?m[1]:'';
+}
+
 // ── ENTRY BROWSER ─────────────────────────────────────────────────────────────
 var filterText='';
 function filterEnts(){filterText=document.getElementById('esrch').value.toUpperCase().trim();renderEnts();}
-function updCounts(){var n=Object.keys(iData).length;document.getElementById('ect').textContent='\u2014 '+n;var ec=document.getElementById('ecount');if(n){ec.style.display='';ec.textContent=n+' entries \u2014 sorted by code';}else{ec.style.display='none';}}
+function updCounts(){var n=Object.keys(iData).length;document.getElementById('ect').textContent='\u2014 '+n;var ec=document.getElementById('ecount');if(n){ec.style.display='';ec.textContent=n+' entries \u2014 '+(sortAsc?'oldest first':'newest first');}else{ec.style.display='none';}}
 function mkBadge(t){var tc=(['virus','classified','partial','degraded','corrupted'].indexOf(t)>=0)?t:'full';return '<span class="etbadge '+tc+'"><span class="bt">'+t.toUpperCase()+'</span></span>';}
 function renderEnts(){
   var list=document.getElementById('elist');list.innerHTML='';
-  var keys=Object.keys(iData).sort();
+  var keys=Object.keys(iData).sort(function(a,b){
+    var sa=getSDFromLabel(iData[a].label||'');
+    var sb=getSDFromLabel(iData[b].label||'');
+    if(!sa&&!sb)return a<b?-1:1;
+    if(!sa)return 1; if(!sb)return -1;
+    var cmp=sa<sb?-1:(sa>sb?1:0);
+    return sortAsc?cmp:-cmp;
+  });
   if(!keys.length){list.innerHTML='<div style="padding:14px;font-size:12px;color:rgba(79,195,247,0.35);text-align:center">No entries loaded</div>';return;}
   var shown=0;
   keys.forEach(function(code){
