@@ -1465,13 +1465,81 @@ function printOverrideMenu(){
   var m1=addLine('full');m1.textContent='  [STATUS]      — run full data validation report';
   var m2=addLine('full');m2.textContent='  [EXIT]         — return to previous screen';
 }
+// Targets the engine resolves itself, outside archData.nodes — a command
+// pointing at one of these is not dangling even though no such node exists.
+var VALIDATOR_SENTINEL_TARGETS=['__EXIT__','__BACK__','__ROOT__','__FETCH__','__ECHO_ARCHIVE__','__ENTER_ARCHIVE__','__CLEAR__','__HOME__','__TRANSITION_L2A__','__TRANSITION_L3A__'];
+var VALIDATOR_KNOWN_CMD_TYPES=['navigation','pull','loop'];
+var VALIDATOR_KNOWN_NODE_TYPES=['chat','intro','standard','global','data','log_entry','help'];
+// Node IDs the engine looks up directly by string, independent of any
+// incoming command link — reachable even with zero inbound references.
+var VALIDATOR_ENGINE_ENTRY_IDS=['BOOT_NODE','L1A_INTRO','L2A_INTRO','L3A_INTRO'];
+function runDataValidator(){
+  var report={fileStatus:[],dangling:[],stub:[],badCmdType:[],badNodeType:[],badLayer:[],orphaned:[]};
+  report.fileStatus=[
+    {label:'CREW BEHAVIORAL MATRIX',ok:!!personality},
+    {label:'ARCHIVE LOG DATABASE',ok:!!loreData},
+    {label:'DEVELOPMENT RECORDS',ok:!!devLogs},
+    {label:'NAVIGATION ARCHITECTURE',ok:!!archData},
+    {label:'CORE ENGINE PARAMETERS',ok:!!engineConfig}
+  ];
+  if(!archData||!archData.nodes) return report;
+  var nodes=archData.nodes;
+  var layers=(archData.layers||{});
+  var referenced={};
+  Object.keys(nodes).forEach(function(nid){
+    var node=nodes[nid];
+    if(node.layer&&!layers[node.layer]) report.badLayer.push(nid+' -> layer "'+node.layer+'"');
+    if(node.node_type&&VALIDATOR_KNOWN_NODE_TYPES.indexOf(node.node_type)===-1) report.badNodeType.push(nid+' -> node_type "'+node.node_type+'"');
+    (node.body||[]).forEach(function(b){
+      if(b.type!=='command') return;
+      var ct=b.cmd_type||'navigation';
+      if(VALIDATOR_KNOWN_CMD_TYPES.indexOf(ct)===-1){report.badCmdType.push(nid+' -> '+(b.label||'(no label)')+' cmd_type "'+ct+'"');return;}
+      var tgt=b.target;
+      if(!tgt){report.stub.push(nid+' -> '+(b.label||'(no label)'));return;}
+      if(VALIDATOR_SENTINEL_TARGETS.indexOf(tgt)!==-1) return;
+      if(!nodes[tgt]){report.dangling.push(nid+' -> '+(b.label||'(no label)')+' -> "'+tgt+'"');return;}
+      referenced[tgt]=true;
+    });
+  });
+  Object.keys(nodes).forEach(function(nid){
+    var node=nodes[nid];
+    if(node.is_root) return;
+    if(node.node_type==='global') return;
+    if(VALIDATOR_ENGINE_ENTRY_IDS.indexOf(nid)!==-1) return;
+    if(!referenced[nid]) report.orphaned.push(nid);
+  });
+  return report;
+}
 async function handleOverrideInput(val){
   isResponding=true;
   var u=addLine('user');u.textContent='> '+val;
   if(val==='[STATUS]'){
     await sleep(80);
-    var l1=addLine('warn',true);await typeLine(l1,'> VALIDATOR NOT YET IMPLEMENTED');
-    var l2=addLine('low',true);await typeLine(l2,'> (semantic validation — dangling targets, unhandled cmd_types, orphaned nodes — lands in a later pass)');
+    var hd=addLine('full',true);await typeLine(hd,'> RUNNING FULL DATA VALIDATION...');
+    await sleep(150);
+    var r=runDataValidator();
+    var sep1=addLine('low');sep1.textContent=SEP;
+    r.fileStatus.forEach(function(f){
+      var fl=addLine('full');fl.textContent='  '+f.label+' '+'-'.repeat(Math.max(1,30-f.label.length))+' ['+(f.ok?'OK':'ERROR')+']';
+    });
+    var sep2=addLine('low');sep2.textContent=SEP;
+    var sections=[
+      ['DANGLING TARGETS',r.dangling],
+      ['UNHANDLED CMD_TYPES',r.badCmdType],
+      ['UNRECOGNIZED NODE_TYPES',r.badNodeType],
+      ['UNDEFINED LAYER REFERENCES',r.badLayer],
+      ['ORPHANED NODES',r.orphaned],
+      ['STUB COMMANDS (empty target — hidden from player)',r.stub]
+    ];
+    var totalIssues=r.dangling.length+r.badCmdType.length+r.badNodeType.length+r.badLayer.length+r.orphaned.length+r.stub.length;
+    sections.forEach(function(sec){
+      var name=sec[0],items=sec[1];
+      var sl=addLine(items.length?'warn':'low');sl.textContent='  '+name+': '+items.length;
+      items.forEach(function(it){var il=addLine('dim');il.textContent='    - '+it;});
+    });
+    var sep3=addLine('low');sep3.textContent=SEP;
+    var summary=addLine(totalIssues?'warn':'full',true);
+    await typeLine(summary,totalIssues?('> '+totalIssues+' ISSUE'+(totalIssues===1?'':'S')+' FOUND'):'> NO ISSUES FOUND — DATA INTEGRITY CONFIRMED');
     var pl=addLine('low');await typeLine(pl,'> AWAITING INPUT');setActiveCursor(pl);
     isResponding=false;termInput.focus();return;
   }
