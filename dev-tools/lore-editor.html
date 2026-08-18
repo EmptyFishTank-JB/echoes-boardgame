@@ -1231,5 +1231,271 @@ lodTplsLocal();
 restore();
 
 </script>
+<!-- ── ECHO LAB PALETTE INJECTOR v1.1 ──────────────────────────────────────
+     Paste this block immediately before </body> in any ECHO Lab HTML file.
+     Compatible with: Lore Editor, Personality Lab, Terminal Logic Builder.
+     Theme and custom palette save to localStorage, shared across all labs.
+     ─────────────────────────────────────────────────────────────────────── -->
+<script>
+(function(){
+  'use strict';
+
+  // ── PRESET THEMES ────────────────────────────────────────────────────────
+  var PRESETS = {
+    CYAN:   {bg:'#00080e', blue:'#4fc3f7', dim:'rgba(79,195,247,0.40)',  bdr:'rgba(79,195,247,0.10)'},
+    BRIGHT: {bg:'#000d18', blue:'#7dd8f8', dim:'rgba(125,216,248,0.62)', bdr:'rgba(125,216,248,0.20)'},
+    GREEN:  {bg:'#001200', blue:'#6be52e', dim:'rgba(107,229,46,0.48)',  bdr:'rgba(107,229,46,0.14)'},
+    AMBER:  {bg:'#0a0700', blue:'#e8a430', dim:'rgba(232,164,48,0.48)',  bdr:'rgba(232,164,48,0.14)'},
+    WHITE:  {bg:'#08090c', blue:'#dde3ea', dim:'rgba(221,227,234,0.62)', bdr:'rgba(221,227,234,0.18)'}
+  };
+
+  var THEME_KEY  = 'echo_lab_theme';
+  var CUSTOM_KEY = 'echo_lab_custom';
+
+  // ── CUSTOM PALETTE STATE ──────────────────────────────────────────────────
+  var custom = {bg:'#00080e', blue:'#4fc3f7', dimOp:0.40, bdrOp:0.10};
+  try {
+    var saved = JSON.parse(localStorage.getItem(CUSTOM_KEY) || 'null');
+    if (saved && saved.blue) custom = saved;
+  } catch(e) {}
+
+  var active = localStorage.getItem(THEME_KEY) || 'CYAN';
+
+  // ── HELPERS ───────────────────────────────────────────────────────────────
+  function hexToRgb(hex) {
+    hex = hex.replace('#','');
+    if (hex.length === 3) hex = hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];
+    return [parseInt(hex.slice(0,2),16), parseInt(hex.slice(2,4),16), parseInt(hex.slice(4,6),16)];
+  }
+
+  function buildCustomTheme() {
+    var rgb = hexToRgb(custom.blue);
+    var d = parseFloat(custom.dimOp) || 0.40;
+    var b = parseFloat(custom.bdrOp) || 0.10;
+    return {
+      bg:   custom.bg,
+      blue: custom.blue,
+      dim:  'rgba('+rgb[0]+','+rgb[1]+','+rgb[2]+','+d.toFixed(2)+')',
+      bdr:  'rgba('+rgb[0]+','+rgb[1]+','+rgb[2]+','+b.toFixed(2)+')'
+    };
+  }
+
+  function saveCustom() {
+    try { localStorage.setItem(CUSTOM_KEY, JSON.stringify(custom)); } catch(e) {}
+  }
+
+  // ── APPLY THEME ───────────────────────────────────────────────────────────
+  function apply(name) {
+    var t = name === 'CUSTOM' ? buildCustomTheme() : (PRESETS[name] || PRESETS.CYAN);
+    var r = document.documentElement;
+    r.style.setProperty('--blue', t.blue);
+    r.style.setProperty('--dim',  t.dim);
+    r.style.setProperty('--bdr',  t.bdr);
+    r.style.setProperty('--dark', t.bg);
+    document.body.style.background = t.bg;
+    active = name;
+    try { localStorage.setItem(THEME_KEY, name); } catch(e) {}
+    document.querySelectorAll('[data-plt]').forEach(function(b) {
+      var sel = b.dataset.plt === name;
+      b.style.borderColor = sel ? t.blue : 'rgba(255,255,255,0.10)';
+      b.style.color       = sel ? t.blue : 'rgba(255,255,255,0.32)';
+      b.style.background  = sel ? 'rgba(255,255,255,0.06)' : 'transparent';
+    });
+  }
+
+  // ── UI HELPERS ────────────────────────────────────────────────────────────
+  function mkRow(label, right) {
+    var row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;gap:8px;';
+    var lbl = document.createElement('span');
+    lbl.textContent = label;
+    lbl.style.cssText = 'font-size:10px;color:rgba(255,255,255,0.38);letter-spacing:0.08em;flex:1;white-space:nowrap;';
+    row.appendChild(lbl);
+    row.appendChild(right);
+    return row;
+  }
+
+  function mkColorPicker(value, onChange) {
+    var inp = document.createElement('input');
+    inp.type = 'color';
+    inp.value = value;
+    inp.style.cssText = 'width:34px;height:22px;border:1px solid rgba(255,255,255,0.16);background:transparent;cursor:pointer;padding:0;border-radius:0;';
+    inp.oninput = function() { onChange(this.value); };
+    return inp;
+  }
+
+  function mkSlider(value, onChange) {
+    var wrap = document.createElement('div');
+    wrap.style.cssText = 'display:flex;align-items:center;gap:6px;';
+    var inp = document.createElement('input');
+    inp.type = 'range'; inp.min='0'; inp.max='100'; inp.step='1';
+    inp.value = String(Math.round(value * 100));
+    inp.style.cssText = [
+      'width:80px','-webkit-appearance:none','height:2px',
+      'background:rgba(255,255,255,0.14)','outline:none','cursor:pointer',
+      'accent-color:#4fc3f7'
+    ].join(';');
+    var val = document.createElement('span');
+    val.textContent = inp.value + '%';
+    val.style.cssText = 'font-size:10px;color:rgba(255,255,255,0.48);min-width:32px;text-align:right;';
+    inp.oninput = function() {
+      val.textContent = this.value + '%';
+      onChange(parseInt(this.value, 10) / 100);
+    };
+    wrap.appendChild(inp); wrap.appendChild(val);
+    return wrap;
+  }
+
+  // ── BUILD UI ──────────────────────────────────────────────────────────────
+  function build() {
+    var wrap = document.createElement('div');
+    wrap.style.cssText = 'position:relative;display:inline-flex;align-items:center;';
+
+    // Toggle button
+    var btn = document.createElement('button');
+    btn.textContent = '// PALETTE';
+    btn.style.cssText = [
+      'background:transparent',
+      'border:1px solid rgba(79,195,247,0.16)',
+      'color:rgba(79,195,247,0.44)',
+      'font-family:"Share Tech Mono",monospace',
+      'font-size:11px','letter-spacing:0.07em',
+      'padding:3px 10px','cursor:pointer','transition:all 0.15s'
+    ].join(';');
+    btn.onmouseenter = function(){ this.style.borderColor='rgba(79,195,247,0.40)'; this.style.color='#4fc3f7'; };
+    btn.onmouseleave = function(){ this.style.borderColor='rgba(79,195,247,0.16)'; this.style.color='rgba(79,195,247,0.44)'; };
+
+    // Menu
+    var menu = document.createElement('div');
+    menu.style.cssText = [
+      'display:none','position:absolute','top:calc(100% + 4px)','right:0',
+      'z-index:9999','background:rgba(0,4,10,0.98)',
+      'border:1px solid rgba(79,195,247,0.16)',
+      'padding:7px','flex-direction:column','gap:4px','min-width:200px'
+    ].join(';');
+    // Prevent clicks inside menu from bubbling to document close handler
+    menu.onclick = function(e){ e.stopPropagation(); };
+
+    // Preset theme buttons
+    var themeNames = ['CYAN','BRIGHT','GREEN','AMBER','WHITE'];
+    var customPanel;
+
+    themeNames.forEach(function(name) {
+      var t = PRESETS[name];
+      var opt = document.createElement('button');
+      opt.dataset.plt = name;
+      opt.style.cssText = [
+        'background:transparent','border:1px solid rgba(255,255,255,0.10)',
+        'color:rgba(255,255,255,0.32)','font-family:"Share Tech Mono",monospace',
+        'font-size:11px','padding:5px 9px','cursor:pointer',
+        'display:flex','align-items:center','gap:7px','text-align:left','width:100%','transition:all 0.12s'
+      ].join(';');
+      var dot = document.createElement('span');
+      dot.style.cssText = 'width:11px;height:11px;background:'+t.blue+';flex-shrink:0;display:inline-block;';
+      opt.appendChild(dot);
+      opt.appendChild(document.createTextNode(name));
+      opt.onclick = function() {
+        apply(name);
+        if (customPanel) customPanel.style.display = 'none';
+        open = false; menu.style.display = 'none';
+      };
+      menu.appendChild(opt);
+    });
+
+    // CUSTOM button
+    var custBtn = document.createElement('button');
+    custBtn.dataset.plt = 'CUSTOM';
+    custBtn.style.cssText = [
+      'background:transparent','border:1px solid rgba(255,255,255,0.10)',
+      'color:rgba(255,255,255,0.32)','font-family:"Share Tech Mono",monospace',
+      'font-size:11px','padding:5px 9px','cursor:pointer',
+      'display:flex','align-items:center','gap:7px','text-align:left','width:100%','transition:all 0.12s'
+    ].join(';');
+    var custDot = document.createElement('span');
+    custDot.style.cssText = [
+      'width:11px;height:11px;flex-shrink:0;display:inline-block;',
+      'background:linear-gradient(135deg,'+custom.blue+' 50%,'+custom.bg+' 50%);'
+    ].join('');
+    custBtn.appendChild(custDot);
+    custBtn.appendChild(document.createTextNode('CUSTOM'));
+
+    // ── CUSTOM PANEL ──────────────────────────────────────────────────────
+    customPanel = document.createElement('div');
+    customPanel.style.cssText = [
+      'display:none','flex-direction:column','gap:8px',
+      'border-top:1px solid rgba(255,255,255,0.08)',
+      'margin-top:5px','padding-top:9px'
+    ].join(';');
+
+    // Background color
+    var bgPicker = mkColorPicker(custom.bg, function(v) {
+      custom.bg = v;
+      if (active==='CUSTOM') apply('CUSTOM');
+      saveCustom();
+    });
+    customPanel.appendChild(mkRow('BACKGROUND', bgPicker));
+
+    // Primary color
+    var bluePicker = mkColorPicker(custom.blue, function(v) {
+      custom.blue = v;
+      custDot.style.background = 'linear-gradient(135deg,'+v+' 50%,'+custom.bg+' 50%)';
+      if (active==='CUSTOM') apply('CUSTOM');
+      saveCustom();
+    });
+    customPanel.appendChild(mkRow('PRIMARY COLOR', bluePicker));
+
+    // Dim opacity
+    var dimSlider = mkSlider(custom.dimOp, function(v) {
+      custom.dimOp = v;
+      if (active==='CUSTOM') apply('CUSTOM');
+      saveCustom();
+    });
+    customPanel.appendChild(mkRow('DIM OPACITY', dimSlider));
+
+    // Border opacity
+    var bdrSlider = mkSlider(custom.bdrOp, function(v) {
+      custom.bdrOp = v;
+      if (active==='CUSTOM') apply('CUSTOM');
+      saveCustom();
+    });
+    customPanel.appendChild(mkRow('BORDER OPACITY', bdrSlider));
+
+    // CUSTOM button onclick — apply and show panel, keep menu open
+    custBtn.onclick = function() {
+      apply('CUSTOM');
+      customPanel.style.display = customPanel.style.display === 'flex' ? 'none' : 'flex';
+    };
+
+    menu.appendChild(custBtn);
+    menu.appendChild(customPanel);
+
+    // If CUSTOM is the active theme on load, show panel on first open
+    var open = false;
+    btn.onclick = function(e) {
+      e.stopPropagation();
+      open = !open;
+      menu.style.display = open ? 'flex' : 'none';
+      if (open && active === 'CUSTOM') customPanel.style.display = 'flex';
+    };
+    document.addEventListener('click', function() {
+      if (open) { open = false; menu.style.display = 'none'; }
+    });
+
+    wrap.appendChild(btn);
+    wrap.appendChild(menu);
+
+    var hright = document.querySelector('.hright');
+    if (hright) hright.insertBefore(wrap, hright.firstChild);
+  }
+
+  // ── INIT ─────────────────────────────────────────────────────────────────
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() { apply(active); build(); });
+  } else {
+    apply(active); build();
+  }
+
+})();
+</script>
 </body>
 </html>
