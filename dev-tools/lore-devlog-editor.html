@@ -1238,6 +1238,13 @@ function rmRow(code){
 
 // ── FILE OPS ──────────────────────────────────────────────────────────────────
 var GH_RAW_BASE='https://raw.githubusercontent.com/EmptyFishTank-JB/echoes-boardgame/main/terminal-data/';
+var GH_COMMITS_API='https://api.github.com/repos/EmptyFishTank-JB/echoes-boardgame/commits?per_page=1&path=';
+function fetchLatestSha(repoPath){
+  return fetch(GH_COMMITS_API+encodeURIComponent(repoPath))
+    .then(function(r){return r.ok?r.json():null;})
+    .then(function(d){return(d&&d.length)?d[0].sha.slice(0,7):null;})
+    .catch(function(){return null;});
+}
 async function loadFromGitHub(){
   var name=(mode==='dev'?'dev_logs.json':'lore.json');
   fileHandle=null;
@@ -1245,14 +1252,15 @@ async function loadFromGitHub(){
     var r=await fetch(GH_RAW_BASE+name+'?v='+Date.now());
     if(!r.ok)throw new Error('HTTP '+r.status);
     var text=await r.text();
-    parseImp(text,'GitHub: '+name);updFstat('ro',name+' (GitHub, read-only)');
+    var sha=await fetchLatestSha('terminal-data/'+name);
+    parseImp(text,'GitHub: '+name);updFstat('ro',name,sha);
   }catch(e){toast('GitHub fetch failed: '+e.message);}
 }
 async function openFile(){
   if(!window.showOpenFilePicker){toast('Not supported. Use drag & drop.');return;}
   try{var picks=await window.showOpenFilePicker({types:[{description:'JSON',accept:{'application/json':['.json']}}],multiple:false});
     fileHandle=picks[0];var file=await fileHandle.getFile();
-    parseImp(await file.text(),file.name);updFstat('rw',file.name);toast('Opened: '+file.name);}
+    parseImp(await file.text(),file.name);updFstat('rw',file.name,null);toast('Opened: '+file.name);}
   catch(e){if(e.name!=='AbortError')toast('Error: '+e.message);}
 }
 async function saveToFile(){
@@ -1271,10 +1279,11 @@ function dlJSON(){
   a.download=mode==='dev'?'dev_logs.json':'lore.json';
   document.body.appendChild(a);a.click();document.body.removeChild(a);toast('Downloaded: '+a.download);
 }
-function updFstat(state,name){
+function updFstat(state,name,sha){
   var el=document.getElementById('fstat'),stf=document.getElementById('stf-btn');
-  if(state==='rw'){el.className='rw';el.textContent='\u2713 '+name;stf.disabled=false;}
-  else if(state==='ro'){el.className='ro';el.textContent='\u25cf READ-ONLY: '+name;stf.disabled=true;}
+  var tag=(sha!==undefined)?(' ['+name+'] ['+(sha||'\u2014')+']'):(' '+name);
+  if(state==='rw'){el.className='rw';el.textContent='\u2713'+tag;stf.disabled=false;}
+  else if(state==='ro'){el.className='ro';el.textContent='\u25cf READ-ONLY:'+tag;stf.disabled=true;}
   else{el.className='none';el.textContent='NO FILE OPEN';stf.disabled=true;}
 }
 
@@ -1283,7 +1292,7 @@ function dzov(e){e.preventDefault();document.getElementById('dz').classList.add(
 function dzlv(e){document.getElementById('dz').classList.remove('ov');}
 function dzdp(e){e.preventDefault();dzlv(e);var f=e.dataTransfer.files[0];if(f&&f.name.endsWith('.json'))rdFile(f);else toast('Drop a .json file');}
 function fiCh(e){var f=e.target.files[0];if(f)rdFile(f);e.target.value='';}
-function rdFile(f){var r=new FileReader();r.onload=function(e){parseImp(e.target.result,f.name);updFstat('ro',f.name);};r.readAsText(f);}
+function rdFile(f){var r=new FileReader();r.onload=function(e){parseImp(e.target.result,f.name);updFstat('ro',f.name,null);};r.readAsText(f);}
 function tryImp(v){if(!v.trim())return;parseImp(v,'pasted JSON');}
 function parseImp(text,src){
   try{iData=JSON.parse(text);hist=[JSON.parse(JSON.stringify(iData))];histIdx=0;
