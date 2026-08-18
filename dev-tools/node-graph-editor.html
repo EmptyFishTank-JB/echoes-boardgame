@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NODE GRAPH EDITOR // v5.36</title>
+<title>NODE GRAPH EDITOR // v5.37</title>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
@@ -278,13 +278,14 @@ select.iv-sel option{background:#001220;color:var(--blue);}
 <body>
 <div id="app">
 <div id="hdr">
-  <span class="htitle">NODE GRAPH EDITOR // v5.36</span>
+  <span class="htitle">NODE GRAPH EDITOR // v5.37</span>
   <span id="as-ind">&#10003; SAVED</span>
   <span id="fstat" class="none">NO FILE</span>
   <span id="fver" style="font-size:11px;color:rgba(79,195,247,0.28);letter-spacing:0.06em;"></span>
   <div class="hright">
     <button class="hbtn" onclick="showTemplateModal()">&#9783; TEMPLATES</button>
     <button class="hbtn" onclick="runAudit(null)" title="Audit and fix all nodes">&#9881; AUDIT ALL</button>
+    <button class="hbtn" onclick="loadFromGitHub()">&#8681; GITHUB</button>
     <button class="hbtn" onclick="openFile()">&#8213; OPEN</button>
     <button class="hbtn" onclick="saveToFile()">&#8679; SAVE</button>
     <button class="hbtn" onclick="dlJSON()">&#8595; EXPORT</button>
@@ -546,6 +547,15 @@ function migrateArch(){
 }
 
 // ── FILE I/O ──────────────────────────────────────────────────────────────────
+var GH_RAW_BASE='https://raw.githubusercontent.com/EmptyFishTank-JB/echoes-boardgame/main/terminal-data/';
+async function loadFromGitHub(){
+  fileHandle=null;
+  try{
+    var r=await fetch(GH_RAW_BASE+'nodes.json?v='+Date.now());
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    loadArch(JSON.parse(await r.text()),'nodes.json','ro');
+  }catch(e){toast('GitHub fetch failed: '+e.message);}
+}
 async function openFile(){
   if(window.showOpenFilePicker){try{var[h]=await window.showOpenFilePicker({types:[{description:'JSON',accept:{'application/json':['.json']}}]});fileHandle=h;var f=await h.getFile();loadArch(JSON.parse(await f.text()),f.name,'rw');}catch(e){if(e.name!=='AbortError')document.getElementById('fi').click();}}
   else document.getElementById('fi').click();
