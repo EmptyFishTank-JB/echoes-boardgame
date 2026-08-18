@@ -458,8 +458,13 @@ function findChatRootNode(layerId){
 }
 
 // ── STARDATE ──────────────────────────────────────────────────────────────────
+// Intentional: this offset drifts forward with real time and must never be
+// frozen. It's the only hint in the entire experience that the terminal is
+// still running, still live, long after the story's events — the reader
+// never gets that confirmed anywhere else. Landed on +167 so "now" reads as
+// 2193 at the time this was set; do not "fix" this as inconsistent later.
 function getStardate(){
-  var now=new Date();var yr=now.getFullYear()+117;
+  var now=new Date();var yr=now.getFullYear()+167;
   var start=new Date(now.getFullYear(),0,0);var day=Math.floor((now-start)/864e5);
   var dayStr=String(day).padStart(3,'0');
   var hh=String(now.getHours()).padStart(2,'0');var mm=String(now.getMinutes()).padStart(2,'0');
