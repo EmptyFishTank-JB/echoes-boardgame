@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ECHO ENGINE LAB</title>
+<title>ECHO ENGINE EDITOR</title>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
@@ -105,7 +105,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;heigh
 <body>
 <div id="app">
 <div id="hdr">
-  <span class="htitle">ECHO ENGINE LAB<span id="tool-ver" class="tver">v.&mdash;</span></span>
+  <span class="htitle">ECHO ENGINE EDITOR<span id="tool-ver" class="tver">v.&mdash;</span></span>
   <div class="hright">
     <span id="as-ind">&#10003; SAVED</span>
     <span id="fstat-nodes" class="fstat none">NO NODES FILE</span>
@@ -168,7 +168,7 @@ var SECTIONS = [
   {id:'audio',    label:'AUDIO',            hint:'Volume + ambient oscillators per layer'},
   {id:'timing',   label:'VISUAL TIMING',    hint:'Fades, phosphor, crossfade'},
   {id:'colors',   label:'TERMINAL COLORS',  hint:'Theme colors per layer'},
-  {id:'power',    label:'POWER OVERLAY',    hint:'Title, button text, version string'},
+  {id:'power',    label:'POWER OVERLAY',    hint:'Title, button text'},
   {id:'strings',  label:'TERMINAL STRINGS', hint:'Engine error and UI messages'}
 ];
 
@@ -227,29 +227,44 @@ function syncLayersToConfig(){
 
 // ── FILE I/O — ENGINE CONFIG ───────────────────────────────────────────────────
 var GH_RAW_BASE='https://raw.githubusercontent.com/EmptyFishTank-JB/echoes-boardgame/main/terminal-data/';
+var GH_COMMITS_API='https://api.github.com/repos/EmptyFishTank-JB/echoes-boardgame/commits?per_page=1&path=';
+function fetchLatestSha(repoPath){
+  return fetch(GH_COMMITS_API+encodeURIComponent(repoPath))
+    .then(function(r){return r.ok?r.json():null;})
+    .then(function(d){return(d&&d.length)?d[0].sha.slice(0,7):null;})
+    .catch(function(){return null;});
+}
 async function loadCfgFromGitHub(){
   fileHandle=null;
   try{
     var r=await fetch(GH_RAW_BASE+'engine_config.json?v='+Date.now());
     if(!r.ok)throw new Error('HTTP '+r.status);
-    loadCfg(JSON.parse(await r.text()),'engine_config.json','ro');
+    var raw=JSON.parse(await r.text());
+    var sha=await fetchLatestSha('terminal-data/engine_config.json');
+    loadCfg(raw,'engine_config.json','ro',sha);
   }catch(e){toast('GitHub fetch failed: '+e.message);}
 }
 async function openFile(){
   if(window.showOpenFilePicker){
-    try{var[h]=await window.showOpenFilePicker({types:[{description:'JSON',accept:{'application/json':['.json']}}]});fileHandle=h;var f=await h.getFile();loadCfg(JSON.parse(await f.text()),f.name,'rw');}
+    try{var[h]=await window.showOpenFilePicker({types:[{description:'JSON',accept:{'application/json':['.json']}}]});fileHandle=h;var f=await h.getFile();loadCfg(JSON.parse(await f.text()),f.name,'rw',null);}
     catch(e){if(e.name!=='AbortError')document.getElementById('fi').click();}
   }else document.getElementById('fi').click();
 }
-function onFileIn(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(ev){try{loadCfg(JSON.parse(ev.target.result),f.name,'ro');}catch(ex){toast('Parse error: '+ex.message);}};r.readAsText(f);e.target.value='';}
-function loadCfg(raw,name,cls){
+function onFileIn(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(ev){try{loadCfg(JSON.parse(ev.target.result),f.name,'ro',null);}catch(ex){toast('Parse error: '+ex.message);}};r.readAsText(f);e.target.value='';}
+function loadCfg(raw,name,cls,sha){
   cfg=raw;
+  delete cfg.version_string;
   syncLayersToConfig();
-  pushHist();curSec=null;showNoSel();renderSecList();setFstat(name,cls);
+  pushHist();curSec=null;showNoSel();renderSecList();setFstat(name,cls,sha);
   document.getElementById('save-btn').disabled=true;
   toast('Engine config loaded: '+name);
 }
-function setFstat(n,c){var el=document.getElementById('fstat');el.textContent=n;el.className='fstat '+c;document.getElementById('stf-btn').disabled=(c==='ro');}
+function setFstat(n,c,sha){
+  var el=document.getElementById('fstat');
+  el.textContent=(sha!==undefined)?('['+n+'] ['+(sha||'—')+']'):n;
+  el.className='fstat '+c;
+  document.getElementById('stf-btn').disabled=(c==='ro');
+}
 
 // ── FILE I/O — NODES.JSON ──────────────────────────────────────────────────────
 async function loadNodesFromGitHub(){
@@ -257,21 +272,23 @@ async function loadNodesFromGitHub(){
   try{
     var r=await fetch(GH_RAW_BASE+'nodes.json?v='+Date.now());
     if(!r.ok)throw new Error('HTTP '+r.status);
-    loadNodes(JSON.parse(await r.text()),'nodes.json');
+    var raw=JSON.parse(await r.text());
+    var sha=await fetchLatestSha('terminal-data/nodes.json');
+    loadNodes(raw,'nodes.json',sha);
   }catch(e){toast('GitHub fetch failed: '+e.message);}
 }
 async function openNodesFile(){
   if(window.showOpenFilePicker){
-    try{var[h]=await window.showOpenFilePicker({types:[{description:'JSON',accept:{'application/json':['.json']}}]});nodesFileHandle=h;var f=await h.getFile();loadNodes(JSON.parse(await f.text()),f.name);}
+    try{var[h]=await window.showOpenFilePicker({types:[{description:'JSON',accept:{'application/json':['.json']}}]});nodesFileHandle=h;var f=await h.getFile();loadNodes(JSON.parse(await f.text()),f.name,null);}
     catch(e){if(e.name!=='AbortError')document.getElementById('fi-nodes').click();}
   }else document.getElementById('fi-nodes').click();
 }
-function onNodesFileIn(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(ev){try{loadNodes(JSON.parse(ev.target.result),f.name);}catch(ex){toast('Parse error: '+ex.message);}};r.readAsText(f);e.target.value='';}
-function loadNodes(raw,name){
+function onNodesFileIn(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(ev){try{loadNodes(JSON.parse(ev.target.result),f.name,null);}catch(ex){toast('Parse error: '+ex.message);}};r.readAsText(f);e.target.value='';}
+function loadNodes(raw,name,sha){
   nodesData=raw;
   var lids=getLayerList();
   var el=document.getElementById('fstat-nodes');
-  el.textContent=name+' ('+lids.length+' layers)';
+  el.textContent='['+name+'] ['+(sha||'—')+'] ('+lids.length+' layers)';
   el.className='fstat rw';
   if(cfg){syncLayersToConfig();pushHist();}
   // Rebuild UI if audio or colors section is open
@@ -493,7 +510,7 @@ function mkPowerEditor(){
   var wrap=document.createElement('div');
   wrap.innerHTML='<div class="fg"><div class="fl">TERMINAL TITLE (shown in header and power overlay)</div><input type="text" id="pw-title" value="'+esc(cfg.terminal_title||'')+'" placeholder="e.g. ECHOES SHIP SYSTEM TERMINAL 426" autocomplete="off"></div>'+
     '<div class="fg sec-div"><div class="fl">POWER BUTTON TEXT</div><input type="text" id="pw-btn" value="'+esc(cfg.power_button_text||'[ Power On / Initialize ]')+'" autocomplete="off"></div>'+
-    '<div class="fg sec-div"><div class="fl">VERSION STRING (shown next to title)</div><input type="text" id="pw-ver" value="'+esc(cfg.version_string||'v1.0')+'" autocomplete="off"></div>';
+    '<div class="fg sec-div"><div class="fl" style="opacity:0.5;">VERSION (shown next to title)</div><div style="font-size:11px;color:rgba(79,195,247,0.35);">Live commit ID — not editable here. See the header above.</div></div>';
   return wrap;
 }
 
@@ -576,7 +593,7 @@ function saveSection(){
     // Colors are live-updated via setCfgColor/Op — already in cfg.theme
   } else if(id==='power'){
     cfg.power_button_text=document.getElementById('pw-btn').value;
-    cfg.version_string=document.getElementById('pw-ver').value;
+    delete cfg.version_string;
     cfg.terminal_title=document.getElementById('pw-title').value;
   } else if(id==='strings'){
     if(!cfg.terminal_strings)cfg.terminal_strings={};
@@ -637,9 +654,8 @@ function updPreview(id){
   } else if(id==='power'){
     lbl.textContent='POWER OVERLAY PREVIEW';
     var bt=cfg.power_button_text||'[ Power On / Initialize ]';
-    var vs=cfg.version_string||'v1.0';
     var tt=cfg.terminal_title||'';
-    var subLine=tt?(tt+(vs?' // '+vs:'')):(vs||'');
+    var subLine=tt?(tt+' // v.<commit>'):'v.<commit>';
     pv.innerHTML='<div style="display:flex;flex-direction:column;align-items:center;gap:16px;padding:24px 0;">'+
       '<div style="font-size:11px;color:rgba(79,195,247,0.35);letter-spacing:0.10em;">'+esc(tt)+'</div>'+
       '<button style="background:transparent;border:1px solid rgba(79,195,247,0.45);color:#4fc3f7;font-family:\'Share Tech Mono\',monospace;font-size:14px;padding:16px 32px;letter-spacing:0.12em;cursor:default;">'+esc(bt)+'</button>'+
@@ -668,7 +684,7 @@ function updJSON(id){
   else if(id==='audio')s={audio:cfg.audio};
   else if(id==='timing')s={timing:cfg.timing};
   else if(id==='colors')s={theme:cfg.theme};
-  else if(id==='power')s={terminal_title:cfg.terminal_title,power_button_text:cfg.power_button_text,version_string:cfg.version_string};
+  else if(id==='power')s={terminal_title:cfg.terminal_title,power_button_text:cfg.power_button_text};
   else if(id==='strings')s={terminal_strings:cfg.terminal_strings};
   else s[id]=cfg[id];
   document.getElementById('jo').textContent=JSON.stringify(s,null,2);
