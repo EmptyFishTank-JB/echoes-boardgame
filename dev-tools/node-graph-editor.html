@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NODE GRAPH EDITOR // v5.1</title>
+<title>NODE GRAPH EDITOR // v5.2</title>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
@@ -46,10 +46,10 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
 #body{display:flex;flex:1;min-height:0;position:relative;}
 
 /* CANVAS */
-#canvas-wrap{flex:1;overflow:hidden;position:relative;background:var(--outer-bg);}
+#canvas-wrap{flex:1;overflow:hidden;position:relative;background:var(--outer-bg);border:2px solid var(--canvas-border);box-sizing:border-box;}
 #canvas-wrap.grabbing{cursor:grabbing!important;}
 #canvas-wrap.connecting{cursor:crosshair!important;}
-#canvas-outer{position:absolute;border:2px solid var(--canvas-border);}
+#canvas-outer{position:absolute;}
 #canvas-inner{position:absolute;top:0;left:0;transform-origin:0 0;}
 #grid-canvas{position:absolute;top:0;left:0;pointer-events:none;}
 #svg-layer{position:absolute;top:0;left:0;pointer-events:none;overflow:visible;}
@@ -218,6 +218,11 @@ select.iv-sel option{background:#001220;color:var(--blue);}
 .tag-dyn{background:rgba(0,6,12,0.95);color:#f0c040;border:1px solid rgba(240,192,64,0.70);}
 .gnode-bline.dyn{color:rgba(240,192,64,0.65);}
 .add-btn.dyn{border-color:rgba(240,192,64,0.35);color:rgba(240,192,64,0.70);}
+.body-grip{font-size:12px;color:rgba(79,195,247,0.22);cursor:grab;flex-shrink:0;padding:0 2px;user-select:none;line-height:1;}
+.body-grip:hover{color:rgba(79,195,247,0.55);}
+.body-row[draggable]{cursor:default;}
+.body-row.drag-over-top{border-top:2px solid #4fc3f7;}
+.body-row.drag-over-bot{border-bottom:2px solid #4fc3f7;}
 /* HIDDEN BODY LINES */
 .bline-hidden{opacity:0.42;background:rgba(79,195,247,0.015)!important;}
 /* TYPE CYCLE BUTTON */
@@ -228,7 +233,7 @@ select.iv-sel option{background:#001220;color:var(--blue);}
 <body>
 <div id="app">
 <div id="hdr">
-  <span class="htitle">NODE GRAPH EDITOR // v5.1</span>
+  <span class="htitle">NODE GRAPH EDITOR // v5.2</span>
   <span id="as-ind">&#10003; SAVED</span>
   <span id="fstat" class="none">NO FILE</span>
   <span id="fver" style="font-size:11px;color:rgba(79,195,247,0.28);letter-spacing:0.06em;"></span>
@@ -277,16 +282,12 @@ select.iv-sel option{background:#001220;color:var(--blue);}
       <span>&#9658; NODE INFO</span>
       <div class="iphdr-btns">
         <button class="iphdr-btn on" id="btn-details" onclick="setInfoMode('details')">DETAILS</button>
-        <button class="iphdr-btn" id="btn-preview" onclick="setInfoMode('preview')">PREVIEW</button>
-        <button class="iphdr-btn" id="btn-terminal" onclick="setInfoMode('terminal')">TERMINAL</button>
         <button class="iphdr-btn" id="btn-code" onclick="setInfoMode('code')">JSON</button>
       </div>
     </div>
     <div id="info-body"><div id="info-empty">Select a node<br>to view details.</div></div>
     <div id="info-code">// No node selected</div>
-    <div id="info-preview" style="display:none;flex:1;overflow-y:auto;padding:10px 12px;font-family:'Share Tech Mono',monospace;font-size:13px;"></div>
-    <div id="info-terminal" style="display:none;flex:1;flex-direction:column;min-height:0;"></div>
-    <div id="panel-resize-handle" style="height:5px;flex-shrink:0;cursor:row-resize;background:transparent;border-top:1px solid rgba(79,195,247,0.10);transition:background 0.15s;" onmousedown="startInfoSectionDrag(event)"></div>
+
     <div id="legend">
       <div class="leg-row"><div class="leg-dot" style="background:#4db896"></div>L1C CHAT</div>
       <div class="leg-row"><div class="leg-dot" style="background:#4fc3f7"></div>L1 ARCHIVE</div>
@@ -298,6 +299,32 @@ select.iv-sel option{background:#001220;color:var(--blue);}
         DBL-click field = inline edit · F = fit · DEL = delete<br>
         Wheel-click = fit · Drag L&#8594;R = window sel<br>
         Drag R&#8594;L = crossing sel · Right-click = options
+      </div>
+    </div>
+  </div>
+</div>
+  <!-- COLLAPSIBLE RIGHT PANEL TOGGLE -->
+  <div id="rpnl-toggle" style="width:28px;flex-shrink:0;display:flex;align-items:stretch;border-left:1px solid rgba(79,195,247,0.10);">
+    <button id="rpnl-btn" onclick="toggleRightPanel()" style="width:100%;background:transparent;border:none;color:rgba(79,195,247,0.40);font-size:11px;cursor:pointer;padding:0;transition:all 0.15s;" title="Collapse / expand right panel">&#9654;</button>
+  </div>
+  <!-- COLLAPSIBLE RIGHT PANEL -->
+  <div id="rpnl" style="width:480px;flex-shrink:0;display:flex;flex-direction:column;border-left:1px solid rgba(79,195,247,0.10);overflow:hidden;transition:width 0.28s cubic-bezier(0.4,0,0.2,1);background:rgba(0,4,10,0.98);">
+    <div style="min-width:460px;display:flex;flex-direction:column;flex:1;min-height:0;">
+      <!-- PANEL TABS -->
+      <div style="display:flex;align-items:center;gap:4px;padding:6px 10px;border-bottom:1px solid rgba(79,195,247,0.10);flex-shrink:0;">
+        <button class="iphdr-btn on" id="rpnl-btn-preview" onclick="setRightMode('preview')" style="font-size:12px;padding:3px 8px;">PREVIEW</button>
+        <button class="iphdr-btn" id="rpnl-btn-terminal" onclick="setRightMode('terminal')" style="font-size:12px;padding:3px 8px;">TERMINAL</button>
+      </div>
+      <!-- PREVIEW -->
+      <div id="rpnl-preview" style="flex:1;overflow-y:auto;padding:10px 12px;font-family:'Share Tech Mono',monospace;font-size:13px;display:block;"></div>
+      <!-- TERMINAL -->
+      <div id="rpnl-terminal" style="flex:1;flex-direction:column;min-height:0;display:none;">
+        <div style="display:flex;align-items:center;gap:6px;padding:6px 10px;border-bottom:1px solid rgba(79,195,247,0.10);flex-shrink:0;">
+          <input id="term-url" type="text" value="http://localhost:8000/terminal_031.html" style="flex:1;background:rgba(79,195,247,0.04);border:1px solid rgba(79,195,247,0.14);color:#4fc3f7;font-size:11px;padding:3px 7px;outline:none;" autocomplete="off" spellcheck="false">
+          <button onclick="loadTerminalFrame()" style="background:transparent;border:1px solid rgba(79,195,247,0.25);color:#4fc3f7;font-size:11px;padding:3px 9px;cursor:pointer;">LOAD</button>
+          <button onclick="reloadTerminalFrame()" style="background:transparent;border:1px solid rgba(79,195,247,0.14);color:rgba(79,195,247,0.50);font-size:11px;padding:3px 9px;cursor:pointer;">&#8635;</button>
+        </div>
+        <iframe id="term-frame" src="" style="flex:1;border:none;width:100%;background:#000;" allow="autoplay"></iframe>
       </div>
     </div>
   </div>
@@ -487,7 +514,7 @@ function applyTransform(){
   document.getElementById('zoom-info').textContent=Math.round(zoom*100)+'%';
 }
 function sizeCanvas(){
-  document.getElementById('canvas-outer').style.cssText='width:'+CANVAS_W+'px;height:'+CANVAS_H+'px;position:absolute;top:0;left:0;background:var(--canvas-bg);border:2px solid var(--canvas-border);';
+  document.getElementById('canvas-outer').style.cssText='width:'+CANVAS_W+'px;height:'+CANVAS_H+'px;position:absolute;top:0;left:0;background:var(--canvas-bg);';
 }
 
 function render(){
@@ -661,7 +688,7 @@ function drawConnections(nodes){
 }
 
 // ── SELECTION ─────────────────────────────────────────────────────────────────
-function selectNode(id){selectedNode=id;multiSel=[];render();showInfo(id);}
+function selectNode(id){selectedNode=id;multiSel=[];render();showInfo(id);if(_rpnlOpen&&_rpnlMode==='preview')updateRightPreview(id);}
 function showEmpty(){
   document.getElementById('info-body').innerHTML='<div id="info-empty">Select a node<br>to view details.</div>';
   document.getElementById('info-body').style.display='flex';
@@ -904,15 +931,10 @@ function addNode(cx,cy){
 // ── INFO PANEL ────────────────────────────────────────────────────────────────
 function setInfoMode(m){
   infoMode=m;
-  ['details','preview','terminal','code'].forEach(function(tab){
-    var b=document.getElementById('btn-'+tab);if(b)b.classList.toggle('on',m===tab);
-  });
+  document.getElementById('btn-details').classList.toggle('on',m==='details');
+  document.getElementById('btn-code').classList.toggle('on',m==='code');
   document.getElementById('info-body').style.display=m==='details'?'flex':'none';
-  var pv=document.getElementById('info-preview');if(pv)pv.style.display=m==='preview'?'block':'none';
   document.getElementById('info-code').style.display=m==='code'?'block':'none';
-  var tv=document.getElementById('info-terminal');if(tv)tv.style.display=m==='terminal'?'flex':'none';
-  if(m==='preview'&&selectedNode){renderPreviewPanel(selectedNode);return;}
-  if(m==='terminal'){renderTerminalTab();return;}
   if(selectedNode)showInfo(selectedNode);else showAllCode();
 }
 
@@ -960,16 +982,18 @@ function showInfo(id){
     var isText=!isDyn&&b.type==='text';
     var ct=b.cmd_type||'navigation';
     if(isDyn){
-      h+='<div class="body-row" id="brow-'+bi+'">';
+      h+='<div class="body-row" id="brow-'+bi+'" draggable="true" data-bi="'+bi+'" data-nodeid="'+esc(id)+'">';
+      h+='<span class="body-grip" title="Drag to reorder">≡</span>';
       h+='<span class="body-type-tag tag-dyn" style="cursor:default;font-size:10px;padding:1px 5px;border-radius:1px;flex-shrink:0;">DYN</span>';
       h+='<select style="flex:1;background:rgba(0,6,12,0.9);border:1px solid rgba(240,192,64,0.20);color:rgba(240,192,64,0.75);font-family:\'Share Tech Mono\',monospace;font-size:11px;padding:2px 4px;outline:none;" onchange="liveDynVar(\''+esc(id)+'\','+bi+',this.value)">';
       DYN_VARS.forEach(function(dv){h+='<option value="'+dv+'"'+(dv===(b.variable||DYN_VARS[0])?' selected':'')+'>'+dv+'</option>';});
       h+='</select>';
-      h+='<input type="text" value="'+esc(b.display_label||'')+'" placeholder="display label" style="max-width:130px;font-size:11px;background:transparent;border:none;border-bottom:1px solid rgba(240,192,64,0.25);color:rgba(240,192,64,0.75);font-family:\'Share Tech Mono\',monospace;outline:none;" oninput="liveDynLabel(\''+esc(id)+'\','+bi+',this.value)" onchange="pushHist()" autocomplete="off" spellcheck="false">';
+      h+='<input type="text" value="'+esc(b.display_label||'')+'" placeholder="label" style="width:80px;flex-shrink:0;font-size:11px;background:transparent;border:none;border-bottom:1px solid rgba(240,192,64,0.25);color:rgba(240,192,64,0.75);outline:none;" oninput="liveDynLabel(\''+esc(id)+'\','+bi+',this.value)" onchange="pushHist()" autocomplete="off" spellcheck="false">';
       h+='<div class="body-row-btns"><button class="rbt" onclick="movBody(\''+esc(id)+'\','+bi+',-1)">&#8593;</button><button class="rbt" onclick="movBody(\''+esc(id)+'\','+bi+',1)">&#8595;</button><button class="rbt r" onclick="rmBody(\''+esc(id)+'\','+bi+')">×</button></div></div>';
       return;
     }
-    h+='<div class="body-row" id="brow-'+bi+'">';
+    h+='<div class="body-row" id="brow-'+bi+'" draggable="true" data-bi="'+bi+'" data-nodeid="'+esc(id)+'">';
+    h+='<span class="body-grip" title="Drag to reorder">≡</span>';
     h+='<button class="body-type-tag '+(isText?'tag-text':'tag-'+ct)+' btype-btn" data-nodeid="'+esc(id)+'" data-bi="'+bi+'" title="Click to change type">'+(isText?'TXT':ct.toUpperCase().slice(0,3))+'</button>';
     h+='<input type="text" value="'+esc(b.text||b.label||'')+'" placeholder="'+(isText?'text line...':'[COMMAND]')+'" oninput="liveBody(\''+esc(id)+'\','+bi+',this.value)" onchange="pushHist()" autocomplete="off" spellcheck="false">';
     if(!isText){
@@ -1014,7 +1038,8 @@ function showInfo(id){
   document.getElementById('info-body').innerHTML=h;
   document.getElementById('info-body').style.display='flex';
 
-  renderPreviewPanel(id);
+  // Update right panel preview if open
+  if(_rpnlOpen&&_rpnlMode==='preview')updateRightPreview(id);
   // Wire up live updates
   var fiId=document.getElementById('fi-id');
   if(fiId)fiId.addEventListener('change',function(){var nid=this.value.trim().toUpperCase().replace(/\s+/g,'_');if(nid&&nid!==id&&!arch.nodes[nid])renameNode(id,nid);});
@@ -1036,6 +1061,46 @@ function liveBody(nodeId,bi,val){
   if(n.body[bi].type==='text')n.body[bi].text=val;else n.body[bi].label=val;
   render();
 }
+
+// ── BODY ROW DRAG AND DROP ────────────────────────────────────────────────────
+var _bodyDragSrc=null;
+document.getElementById('info-body').addEventListener('dragstart',function(e){
+  var row=e.target.closest('.body-row');if(!row)return;
+  _bodyDragSrc={bi:parseInt(row.dataset.bi),nodeId:row.dataset.nodeid};
+  e.dataTransfer.effectAllowed='move';
+  setTimeout(function(){row.style.opacity='0.4';},0);
+});
+document.getElementById('info-body').addEventListener('dragend',function(e){
+  var row=e.target.closest('.body-row');if(row)row.style.opacity='1';
+  document.querySelectorAll('.body-row').forEach(function(r){r.classList.remove('drag-over-top','drag-over-bot');});
+  _bodyDragSrc=null;
+});
+document.getElementById('info-body').addEventListener('dragover',function(e){
+  e.preventDefault();
+  var row=e.target.closest('.body-row');if(!row||!_bodyDragSrc)return;
+  document.querySelectorAll('.body-row').forEach(function(r){r.classList.remove('drag-over-top','drag-over-bot');});
+  var rect=row.getBoundingClientRect();
+  var mid=rect.top+rect.height/2;
+  row.classList.add(e.clientY<mid?'drag-over-top':'drag-over-bot');
+});
+document.getElementById('info-body').addEventListener('drop',function(e){
+  e.preventDefault();
+  var row=e.target.closest('.body-row');
+  document.querySelectorAll('.body-row').forEach(function(r){r.classList.remove('drag-over-top','drag-over-bot');});
+  if(!row||!_bodyDragSrc)return;
+  var toBI=parseInt(row.dataset.bi);
+  var fromBI=_bodyDragSrc.bi;
+  var nodeId=_bodyDragSrc.nodeId;
+  if(toBI===fromBI)return;
+  var n=arch&&arch.nodes&&arch.nodes[nodeId];if(!n)return;
+  var rect=row.getBoundingClientRect();
+  var insertAfter=e.clientY>rect.top+rect.height/2;
+  var item=n.body.splice(fromBI,1)[0];
+  var insertAt=toBI>(fromBI)?toBI-(insertAfter?0:1):toBI+(insertAfter?1:0);
+  insertAt=Math.max(0,Math.min(n.body.length,insertAt));
+  n.body.splice(insertAt,0,item);
+  pushHist();render();showInfo(nodeId);
+});
 function liveBodyTarget(nodeId,bi,val){var n=arch&&arch.nodes&&arch.nodes[nodeId];if(!n||!n.body[bi])return;n.body[bi].target=val;render();}
 function liveBodyCls(nodeId,bi,val){var n=arch&&arch.nodes&&arch.nodes[nodeId];if(!n||!n.body[bi])return;n.body[bi].cls=val;}
 function movBody(nodeId,bi,dir){
@@ -1219,7 +1284,7 @@ function applyColorPopup(){
   if(cpTarget==='canvas'){document.documentElement.style.setProperty('--canvas-bg',col);document.getElementById('canvas-outer').style.background=col;drawGrid();}
   else if(cpTarget==='gridminor'){var a=document.getElementById('cp-alpha');var alpha=a?parseFloat(a.value):0.06;window._gridMinorAlpha=alpha;var rgb=hexToRgbArr(col);window._gridMinorColor='rgba('+rgb[0]+','+rgb[1]+','+rgb[2]+','+alpha+')';drawGrid();}
   else if(cpTarget==='gridmajor'){var a2=document.getElementById('cp-alpha');var alpha2=a2?parseFloat(a2.value):0.13;window._gridMajorAlpha=alpha2;var rgb2=hexToRgbArr(col);window._gridMajorColor='rgba('+rgb2[0]+','+rgb2[1]+','+rgb2[2]+','+alpha2+')';drawGrid();}
-  else if(cpTarget==='border'){document.documentElement.style.setProperty('--canvas-border',col);document.getElementById('canvas-outer').style.borderColor=col;}
+  else if(cpTarget==='border'){document.documentElement.style.setProperty('--canvas-border',col);document.getElementById('canvas-wrap').style.borderColor=col;}
   closeColorPopup();toast('Color updated');
 }
 function closeColorPopup(){document.getElementById('color-popup').style.display='none';cpTarget=null;}
@@ -1228,7 +1293,7 @@ function resetColors(){
   document.documentElement.style.setProperty('--canvas-bg','#152230');
   document.documentElement.style.setProperty('--canvas-border','#4fc3f7');
   document.getElementById('canvas-outer').style.background='#152230';
-  document.getElementById('canvas-outer').style.borderColor='#4fc3f7';
+  document.getElementById('canvas-wrap').style.borderColor='#4fc3f7';
   window._gridMinorColor='rgba(79,195,247,0.06)';window._gridMinorAlpha=0.06;
   window._gridMajorColor='rgba(79,195,247,0.13)';window._gridMajorAlpha=0.13;
   drawGrid();toast('Colors reset');
@@ -1350,13 +1415,33 @@ var DYN_LABELS={'file_status.personality':'CREW BEHAVIORAL MATRIX','file_status.
 function liveDynVar(nodeId,bi,val){var n=arch&&arch.nodes&&arch.nodes[nodeId];if(!n||!n.body[bi])return;n.body[bi].variable=val;if(!n.body[bi].display_label)n.body[bi].display_label=DYN_LABELS[val]||'';render();}
 function liveDynLabel(nodeId,bi,val){var n=arch&&arch.nodes&&arch.nodes[nodeId];if(!n||!n.body[bi])return;n.body[bi].display_label=val;}
 
-// ── PREVIEW PANEL ─────────────────────────────────────────────────────────────
-function renderPreviewPanel(id){
+// renderPreviewPanel removed — see updateRightPreview in right panel section
+
+// ── RIGHT PANEL ───────────────────────────────────────────────────────────────
+var _rpnlOpen=false;
+var _rpnlMode='preview';
+
+function toggleRightPanel(){
+  _rpnlOpen=!_rpnlOpen;
+  var panel=document.getElementById('rpnl');
+  panel.style.width=_rpnlOpen?'480px':'0';
+  document.getElementById('rpnl-btn').innerHTML=_rpnlOpen?'&#9654;':'&#9664;';
+  if(_rpnlOpen)setRightMode(_rpnlMode);
+}
+
+function setRightMode(m){
+  _rpnlMode=m;
+  document.getElementById('rpnl-btn-preview').classList.toggle('on',m==='preview');
+  document.getElementById('rpnl-btn-terminal').classList.toggle('on',m==='terminal');
+  document.getElementById('rpnl-preview').style.display=m==='preview'?'block':'none';
+  document.getElementById('rpnl-terminal').style.display=m==='terminal'?'flex':'none';
+  if(m==='preview'&&selectedNode)updateRightPreview(selectedNode);
+}
+
+function updateRightPreview(id){
+  var pv=document.getElementById('rpnl-preview');if(!pv)return;
   var n=arch&&arch.nodes&&arch.nodes[id];
-  var pv=document.getElementById('info-preview');
-  if(!pv)return;
   if(!n){pv.innerHTML='<div style="color:rgba(79,195,247,0.30);padding:10px;">Select a node.</div>';return;}
-  pv.style.display='block';
   var lyr=n.layer||'l1_archive';
   var col=LAYER_COLOR[lyr]||'#4fc3f7';
   var CLS_COL={full:col,dim:col+'90',low:col+'60',warn:'#E8732A',denied:'#ff003c',blank:''};
@@ -1384,55 +1469,14 @@ function renderPreviewPanel(id){
   pv.innerHTML=html;
 }
 
-// ── PANEL SECTION RESIZE ─────────────────────────────────────────────────────
-var _infoSectionDrag=null;
-var _legendH=null; // saved legend height
-
-function startInfoSectionDrag(e){
-  e.preventDefault();
-  var legend=document.getElementById('legend');
-  _infoSectionDrag={startY:e.clientY,startH:legend.offsetHeight};
-  document.addEventListener('mousemove',onInfoSectionMove);
-  document.addEventListener('mouseup',onInfoSectionUp,{once:true});
-}
-function onInfoSectionMove(e){
-  if(!_infoSectionDrag)return;
-  var legend=document.getElementById('legend');
-  var dy=_infoSectionDrag.startY-e.clientY; // dragging up = bigger legend
-  var newH=Math.max(40,Math.min(300,_infoSectionDrag.startH+dy));
-  legend.style.height=newH+'px';
-  legend.style.flexShrink='0';
-  _legendH=newH;
-}
-function onInfoSectionUp(){
-  document.removeEventListener('mousemove',onInfoSectionMove);
-  _infoSectionDrag=null;
-}
-
-// ── LIVE TERMINAL TAB ─────────────────────────────────────────────────────────
-var _terminalUrl='http://localhost:8000/terminal_031.html';
-
-function renderTerminalTab(){
-  var tv=document.getElementById('info-terminal');if(!tv)return;
-  tv.innerHTML=
-    '<div style="display:flex;align-items:center;gap:6px;padding:6px 10px;border-bottom:1px solid rgba(79,195,247,0.10);flex-shrink:0;">'+
-    '<input id="term-url" type="text" value="'+_terminalUrl+'" style="flex:1;background:rgba(79,195,247,0.04);border:1px solid rgba(79,195,247,0.14);color:var(--blue);font-size:11px;padding:3px 7px;outline:none;" autocomplete="off" spellcheck="false">'+
-    '<button onclick="loadTerminalFrame()" style="background:transparent;border:1px solid rgba(79,195,247,0.25);color:var(--blue);font-size:11px;padding:3px 9px;cursor:pointer;">LOAD</button>'+
-    '<button onclick="reloadTerminalFrame()" style="background:transparent;border:1px solid rgba(79,195,247,0.14);color:rgba(79,195,247,0.50);font-size:11px;padding:3px 9px;cursor:pointer;">&#8635;</button>'+
-    '</div>'+
-    '<iframe id="term-frame" src="'+_terminalUrl+'" style="flex:1;border:none;width:100%;background:#000;" allow="autoplay"></iframe>';
-}
 function loadTerminalFrame(){
-  var inp=document.getElementById('term-url');
-  if(!inp)return;
-  _terminalUrl=inp.value.trim();
-  var fr=document.getElementById('term-frame');
-  if(fr)fr.src=_terminalUrl;
+  var inp=document.getElementById('term-url');if(!inp)return;
+  var fr=document.getElementById('term-frame');if(fr)fr.src=inp.value.trim();
 }
 function reloadTerminalFrame(){
-  var fr=document.getElementById('term-frame');
-  if(fr)fr.src=fr.src;
+  var fr=document.getElementById('term-frame');if(fr)fr.src=fr.src;
 }
+
 
 // ── KEYBOARD ─────────────────────────────────────────────────────────────────
 document.addEventListener('keydown',function(e){
