@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ECHO ENGINE LAB // v1.1</title>
+<title>ECHO ENGINE LAB // v1.2</title>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
@@ -114,7 +114,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;heigh
 <body>
 <div id="app">
 <div id="hdr">
-  <span class="htitle">ECHO ENGINE LAB // v1.1</span>
+  <span class="htitle">ECHO ENGINE LAB // v1.2</span>
   <div class="hright">
     <span id="as-ind">&#10003; AUTOSAVED</span>
     <span id="fstat" class="none">NO FILE OPEN</span>
@@ -171,11 +171,10 @@ var SECTIONS = [
   {id:'audio',           label:'AUDIO',               hint:'Volume + ambient oscillators'},
   {id:'timing',          label:'VISUAL TIMING',       hint:'Fades, phosphor, crossfade'},
   {id:'colors',          label:'TERMINAL COLORS',     hint:'Theme colors per level'},
-  {id:'l1_status_lines', label:'STATUS COMMAND',      hint:'[STATUS] output lines'},
-  {id:'l1_scan_lines',   label:'SCAN COMMAND',        hint:'[SCAN] output lines'},
-  {id:'help_commands',   label:'HELP COMMAND',        hint:'[HELP] command list'},
   {id:'power',           label:'POWER OVERLAY',       hint:'Button text, version string'}
 ];
+// NOTE: STATUS, SCAN, and HELP content moved to architecture.json > l1_commands
+// Edit them in the Terminal Logic Builder under the L1 COMMANDS tab.
 
 var PVC = {full:'#4fc3f7',dim:'rgba(79,195,247,0.68)',lo:'rgba(79,195,247,0.38)',warn:'#E8732A',denied:'#ff003c',blank:'transparent'};
 var LV_COLORS = {l1:'#4fc3f7',l2:'#bf7c0a',l3:'#e05050'};
