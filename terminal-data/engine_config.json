@@ -33,7 +33,7 @@
   "audio": {
     "master_volume": 0.18,
     "ambient": {
-      "l1": {
+      "l1a": {
         "target_volume": 0.18,
         "oscillators": [
           {
@@ -68,7 +68,7 @@
           }
         ]
       },
-      "l2": {
+      "l2a": {
         "target_volume": 0.12,
         "oscillators": [
           {
@@ -113,7 +113,7 @@
           }
         ]
       },
-      "l3": {
+      "l3a": {
         "target_volume": 0.05,
         "oscillators": [
           {
@@ -145,7 +145,7 @@
     "phosphor_duration_ms": 450
   },
   "theme": {
-    "l1": {
+    "l1a": {
       "primary": "#4fc3f7",
       "warn": "#E8732A",
       "denied": "#ff003c",
@@ -154,7 +154,7 @@
       "lo_opacity": 0.4,
       "border_opacity": 0.12
     },
-    "l2": {
+    "l2a": {
       "primary": "#bf7c0a",
       "warn": "#c8a020",
       "denied": "#c84040",
@@ -163,7 +163,7 @@
       "lo_opacity": 0.45,
       "border_opacity": 0.18
     },
-    "l3": {
+    "l3a": {
       "primary": "#e05050",
       "warn": "#ff8800",
       "denied": "#ff0000",
