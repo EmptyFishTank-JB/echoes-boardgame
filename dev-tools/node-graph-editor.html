@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NODE GRAPH EDITOR // v5.35</title>
+<title>NODE GRAPH EDITOR // v5.36</title>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
@@ -79,6 +79,43 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
 .gnode.selected.l1{border-color:#4fc3f7;box-shadow:0 0 0 1.5px #4fc3f7,0 6px 24px rgba(79,195,247,0.22);}
 .gnode.selected.l2{border-color:#bf7c0a;box-shadow:0 0 0 1.5px #bf7c0a,0 6px 24px rgba(191,124,10,0.22);}
 .gnode.selected.l3{border-color:#e05050;box-shadow:0 0 0 1.5px #e05050,0 6px 24px rgba(224,80,80,0.22);}
+.gnode.l1c{border:1.5px solid rgba(79,195,247,0.45);background:rgba(2,14,26,0.97);}
+.gnode.l2c{border:1.5px solid rgba(191,124,10,0.55);background:rgba(14,10,0,0.97);}
+.gnode.l3c{border:1.5px solid rgba(224,80,80,0.55);background:rgba(12,2,2,0.97);}
+.gnode.selected.l1c{border-color:#4fc3f7;box-shadow:0 0 0 1.5px #4fc3f7,0 6px 24px rgba(79,195,247,0.22);}
+.gnode.selected.l2c{border-color:#bf7c0a;box-shadow:0 0 0 1.5px #bf7c0a,0 6px 24px rgba(191,124,10,0.22);}
+.gnode.selected.l3c{border-color:#e05050;box-shadow:0 0 0 1.5px #e05050,0 6px 24px rgba(224,80,80,0.22);}
+.gnode.l1c .gnode-hdr{border-bottom-color:rgba(79,195,247,0.13);}
+.gnode.l2c .gnode-hdr{border-bottom-color:rgba(191,124,10,0.13);}
+.gnode.l3c .gnode-hdr{border-bottom-color:rgba(224,80,80,0.13);}
+.gnode.l1c .gnode-root-dot{background:#4fc3f7;}
+.gnode.l2c .gnode-root-dot{background:#bf7c0a;}
+.gnode.l3c .gnode-root-dot{background:#e05050;}
+.gnode.l1c .gnode-id{color:#4fc3f7;}
+.gnode.l2c .gnode-id{color:#bf7c0a;}
+.gnode.l3c .gnode-id{color:#e05050;}
+.gnode.l1c .gnode-lyr{color:rgba(79,195,247,0.38);}
+.gnode.l2c .gnode-lyr{color:rgba(191,124,10,0.38);}
+.gnode.l3c .gnode-lyr{color:rgba(224,80,80,0.38);}
+.gnode.l1c .in-port{border-color:rgba(79,195,247,0.28);background:#020e1a;}
+.gnode.l2c .in-port{border-color:rgba(191,124,10,0.38);background:#0e0a00;}
+.gnode.l3c .in-port{border-color:rgba(224,80,80,0.38);background:#0c0202;}
+.gnode.l1c .gnode-bline.text{color:rgba(79,195,247,0.55);}
+.gnode.l2c .gnode-bline.text{color:rgba(191,124,10,0.65);}
+.gnode.l3c .gnode-bline.text{color:rgba(224,80,80,0.65);}
+.gnode.l2c .gnode-bline.cmd-nav{color:rgba(191,124,10,0.90);}
+.gnode.l3c .gnode-bline.cmd-nav{color:rgba(224,80,80,0.90);}
+.out-port.navigation.l2c{border-color:rgba(191,124,10,0.55);background:#0e0a00;}
+.out-port.navigation.l2c:hover{border-color:#bf7c0a;background:rgba(191,124,10,0.30);}
+.out-port.navigation.l3c{border-color:rgba(224,80,80,0.55);background:#0c0202;}
+.out-port.navigation.l3c:hover{border-color:#e05050;background:rgba(224,80,80,0.30);}
+/* action cmd type */
+.gnode-bline.cmd-action{color:rgba(111,176,111,0.80);}
+.tag-action,.add-btn.act{color:#6fb06f;border:1px solid rgba(111,176,111,0.75);}
+.badge-action{background:rgba(111,176,111,0.14);color:#6fb06f;}
+/* log_entry cmd type */
+.gnode-bline.cmd-log_entry{color:rgba(196,127,196,0.85);}
+.tag-log_entry,.add-btn.log{color:#c47fc4;border:1px solid rgba(196,127,196,0.75);}
 .gnode.multi-sel{box-shadow:0 0 0 2px #4fc3f7,0 0 12px rgba(79,195,247,0.25);}
 /* Global node selected — white glow */
 .gnode.selected.global-node{border-color:#ffffff;box-shadow:0 0 0 1.5px #ffffff,0 6px 24px rgba(255,255,255,0.18)!important;}
@@ -241,7 +278,7 @@ select.iv-sel option{background:#001220;color:var(--blue);}
 <body>
 <div id="app">
 <div id="hdr">
-  <span class="htitle">NODE GRAPH EDITOR // v5.35</span>
+  <span class="htitle">NODE GRAPH EDITOR // v5.36</span>
   <span id="as-ind">&#10003; SAVED</span>
   <span id="fstat" class="none">NO FILE</span>
   <span id="fver" style="font-size:11px;color:rgba(79,195,247,0.28);letter-spacing:0.06em;"></span>
@@ -289,6 +326,8 @@ select.iv-sel option{background:#001220;color:var(--blue);}
       <span>&#9658; NODE INFO</span>
       <div class="iphdr-btns">
         <button class="iphdr-btn on" id="btn-details" onclick="setInfoMode('details')">DETAILS</button>
+        <button class="iphdr-btn" id="btn-trans" onclick="setInfoMode('trans')">TRANS</button>
+        <button class="iphdr-btn" id="btn-rooms" onclick="setInfoMode('rooms')">ROOMS</button>
         <button class="iphdr-btn" id="btn-code" onclick="setInfoMode('code')">JSON</button>
       </div>
     </div>
@@ -345,15 +384,13 @@ select.iv-sel option{background:#001220;color:var(--blue);}
 <script>
 'use strict';
 // ── CONSTANTS ─────────────────────────────────────────────────────────────────
-var EDITOR_VERSION='5.35';
-var EDITOR_CREATED='2026-05-28T12:00:00-05:00';
-var EDITOR_CREATED_HUMAN='May 28, 2026 CT';
+var EDITOR_VERSION='5.36';
+var EDITOR_CREATED='2026-05-29T12:00:00-05:00';
+var EDITOR_CREATED_HUMAN='May 29, 2026 CT';
 var CANVAS_W=4000, CANVAS_H=3000, NODE_W=220;
-// Default layer color palette (index 0-4, fallback for 5+)
-var LAYER_DEFAULT_COLORS=['#4fc3f7','#bf7c0a','#e05050','#4db896','#a78bfa'];
+var LAYER_DEFAULT_COLORS=['#4fc3f7','#4fc3f7','#bf7c0a','#bf7c0a','#e05050','#e05050'];
 var LAYER_FALLBACK_COLOR='#9ca3af';
-// Runtime color map — populated by syncLayerColors() on load
-var layerColors={l1:'#4fc3f7',l2:'#bf7c0a',l3:'#e05050'};
+var layerColors={l1c:'#4fc3f7',l1:'#4fc3f7',l2c:'#bf7c0a',l2:'#bf7c0a',l3c:'#e05050',l3:'#e05050'};
 
 // Get stored or default color for a layer id
 function getLC(lid){ return layerColors[lid]||LAYER_FALLBACK_COLOR; }
@@ -374,11 +411,10 @@ function darkBg(hex){
 // Sync layerColors from arch.layers._color, assign defaults for new layers
 function syncLayerColors(){
   if(!arch||!arch.layers)return;
-  // Backward compat: collapse legacy layer keys into l1
-  if(arch.layers.l1c&&!arch.layers.l1){arch.layers.l1=JSON.parse(JSON.stringify(arch.layers.l1c));}
-  delete arch.layers.l1c;
-  if(arch.layers.l1_archive){
-    if(!arch.layers.l1)arch.layers.l1=JSON.parse(JSON.stringify(arch.layers.l1_archive));
+  // v2.0: l1c/l2c/l3c are valid layers — do NOT migrate them away
+  // Legacy only: collapse l1_archive into l1 if l1 doesn't exist
+  if(arch.layers.l1_archive&&!arch.layers.l1){
+    arch.layers.l1=JSON.parse(JSON.stringify(arch.layers.l1_archive));
     delete arch.layers.l1_archive;
   }
   var ids=Object.keys(arch.layers);
@@ -399,13 +435,18 @@ function persistLayerColors(){
   });
 }
 
-// Sort arch.layers by numeric suffix (l1, l2, l3... then named layers alphabetically)
+// Sort arch.layers: l1c, l1, l2c, l2, l3c, l3, then named layers alphabetically
 function sortLayers(){
   if(!arch||!arch.layers)return;
   var keys=Object.keys(arch.layers);
   keys.sort(function(a,b){
-    var am=a.match(/^l(\d+)$/i),bm=b.match(/^l(\d+)$/i);
-    if(am&&bm)return parseInt(am[1])-parseInt(bm[1]);
+    var am=a.match(/^l(\d+)(c?)$/i),bm=b.match(/^l(\d+)(c?)$/i);
+    if(am&&bm){
+      var nd=parseInt(am[1])-parseInt(bm[1]);
+      if(nd!==0)return nd;
+      // c suffix (console) sorts before no suffix (archive)
+      return (am[2]?0:1)-(bm[2]?0:1);
+    }
     if(am)return -1; if(bm)return 1;
     return a.localeCompare(b);
   });
@@ -418,25 +459,42 @@ function getLayerIds(){
   return['l1','l2','l3'];
 }
 
-var LAYER_COLOR={l1:'#4fc3f7',l2:'#bf7c0a',l3:'#e05050'};
-var LAYER_LABEL={l1:'L1',l2:'L2',l3:'L3'};
-var CMD_COLOR={navigation:'#e05050',pull:'#c47fc4',loop:'#6fb06f',flavor:'#c47fc4'};
-var NODE_TYPES=['standard','chat','boot','intro','log_entry','data','global'];
-var NODE_TYPE_LABELS={standard:'STANDARD',chat:'CHAT',boot:'BOOT',intro:'INTRO',log_entry:'LOG ENTRY',data:'DATA',global:'GLOBAL'};
+var LAYER_COLOR={l1c:'#4fc3f7',l1:'#4fc3f7',l2c:'#bf7c0a',l2:'#bf7c0a',l3c:'#e05050',l3:'#e05050'};
+var LAYER_LABEL={l1c:'L1C',l1:'L1',l2c:'L2C',l2:'L2',l3c:'L3C',l3:'L3'};
+var CMD_COLOR={navigation:'#e05050',pull:'#c47fc4',log_entry:'#c47fc4',action:'#6fb06f',loop:'#6fb06f',flavor:'#c47fc4'};
+var NODE_TYPES=['standard','chat','data'];
+var NODE_TYPE_LABELS={standard:'STANDARD',chat:'CHAT',data:'DATA'};
 var CLS_OPTS=['full','dim','low','warn','denied','blank'];
 var CLS_COLOR={full:'#4fc3f7',dim:'rgba(79,195,247,0.65)',low:'rgba(79,195,247,0.40)',warn:'#E8732A',denied:'#e05050',blank:'rgba(79,195,247,0.15)'};
 var CLS_CYCLE_ORDER=['full','dim','low','warn','denied'];
 
 // ── STATE ─────────────────────────────────────────────────────────────────────
-// Default blank arch — editor is ready to use immediately without opening a file
+// Default blank arch — v2.0 schema with transitions and global_rooms
 var arch={
-  meta:{version:'1.0',description:'New Node Graph'},
+  meta:{version:'2.0',description:'New Node Graph'},
   layers:{
-    l1:{theme:'blue',header_title:'',ambient:'l1',_color:'#4fc3f7'},
-    l2:{theme:'amber',header_title:'',ambient:'l2',_color:'#bf7c0a'},
-    l3:{theme:'red',header_title:'',ambient:'l3',_color:'#e05050'}
+    l1c:{_color:'#4fc3f7',ambient:'l1',header_title:'TERMINAL CONSOLE'},
+    l1: {_color:'#4fc3f7',ambient:'l1',header_title:'ECHO-ARCHIVE'},
+    l2c:{_color:'#bf7c0a',ambient:'l2',header_title:'ECHO PROTOCOL CONSOLE'},
+    l2: {_color:'#bf7c0a',ambient:'l2',header_title:'ECHO-ARCHIVE // DEEP'},
+    l3c:{_color:'#e05050',ambient:'l3',header_title:'DEEP ARCHIVE CONSOLE'},
+    l3: {_color:'#e05050',ambient:'l3',header_title:'DEEP ARCHIVE'}
   },
-  l1_commands:[],nodes:{},dev_override_commands:[],boot_script:[],groups:{}
+  transitions:{
+    l1c:{body:[]},l1:{body:[]},l2c:{body:[]},l2:{body:[]},l3c:{body:[]},l3:{body:[]}
+  },
+  global_rooms:{
+    DEV_OVERRIDE:{title:'DEVELOPER OVERRIDE — AUTHORIZED',access_command:'[DEV.OVERRIDE]',body:[
+      {type:'command',cmd_type:'navigation',label:'[-- JUMP L1C]',target:'L1C'},
+      {type:'command',cmd_type:'navigation',label:'[-- JUMP L1]',target:'L1_ROOT'},
+      {type:'command',cmd_type:'navigation',label:'[-- JUMP L2C]',target:'L2C'},
+      {type:'command',cmd_type:'navigation',label:'[-- JUMP L2]',target:'L2_ROOT'},
+      {type:'command',cmd_type:'navigation',label:'[-- JUMP L3C]',target:'L3C'},
+      {type:'command',cmd_type:'navigation',label:'[-- JUMP L3]',target:'L3_ROOT'},
+      {type:'command',cmd_type:'action',label:'[-- CLEAR DISCOVERED LOGS]',action:'clear_logs'}
+    ]}
+  },
+  nodes:{},groups:{}
 };
 var positions={}, selectedNode=null, multiSel=[];
 var tool='select', pan={x:80,y:80}, zoom=1.0;
@@ -478,8 +536,8 @@ function migrateNode(n){
     }
   }
   if(!n._editor)n._editor={locked:false,pinned:false,id_locked:false};
-  // Backward compat: collapse legacy layer names into l1
-  if(n.layer==='l1c'||n.layer==='l1_archive') n.layer='l1';
+  // Legacy only: collapse l1_archive into l1
+  if(n.layer==='l1_archive') n.layer='l1';
   return n;
 }
 function migrateArch(){
@@ -512,14 +570,14 @@ function buildExport(){
   if(!arch)return'{}';
   if(!arch.meta)arch.meta={};
   arch.meta.node_positions=JSON.parse(JSON.stringify(positions));
-  // Update meta with editor info
   arch.meta.editor_version=EDITOR_VERSION;
   arch.meta.last_saved=new Date().toISOString();
   persistLayerColors();
-  Object.keys(arch.nodes||{}).forEach(function(id){
-    var n=arch.nodes[id];
-    // clean break — no options[] sync needed
-  });
+  // Ensure v2.0 sections exist
+  if(!arch.transitions)arch.transitions={};
+  if(!arch.global_rooms)arch.global_rooms={};
+  // Remove legacy top-level fields on export
+  ['l1_commands','dev_override_commands','boot_script'].forEach(function(f){delete arch[f];});
   return JSON.stringify(arch,null,2);
 }
 async function saveToFile(){if(!fileHandle){dlJSON();return;}try{var w=await fileHandle.createWritable();await w.write(buildExport());await w.close();showSaved();toast('Saved');}catch(e){toast('Save failed — downloading');dlJSON();}}
@@ -641,14 +699,12 @@ function render(){
     // LOCKED: transparent ghost body — border unchanged
     if(_ed.locked){el.style.background=ha(getLC(lyr),0.05);}
 
-    // Input port — not rendered for global nodes (they are never navigated to)
-    if(nt!=='global'){
-      var inp=document.createElement('div');inp.className='in-port';inp.id='inp-'+id;
+    // Input port — rendered for all node types (no exceptions in v2.0)
+    var inp=document.createElement('div');inp.className='in-port';inp.id='inp-'+id;
       if(!LAYER_COLOR[lyr]){inp.style.borderColor=ha(getLC(lyr),0.35);}
       inp.addEventListener('contextmenu',function(e){e.preventDefault();e.stopPropagation();showInPortCtxMenu(e,id);});
       inp.addEventListener('dblclick',function(e){e.stopPropagation();disconnectAllIncoming(id);});
       el.appendChild(inp);
-    }
 
     // Header
     var hdr=document.createElement('div');hdr.className='gnode-hdr';
@@ -665,17 +721,6 @@ function render(){
     // Node type badge
     var nt=n.node_type||'standard';
     var badge=document.createElement('span');badge.className='node-type-badge badge-'+nt;badge.textContent=NODE_TYPE_LABELS[nt]||nt;hdr.appendChild(badge);
-    // Global nodes: white solid border, dark bg, scope label
-    if(nt==='global'){
-      el.style.borderStyle='solid';
-      el.style.borderColor='rgba(255,255,255,0.55)';
-      el.style.background='rgba(6,6,6,0.97)';
-      var scope=n.layer_scope||null;
-      var scopeEl=document.createElement('span');
-      scopeEl.style.cssText='font-size:10px;color:rgba(255,255,255,0.50);flex-shrink:0;letter-spacing:0.06em;';
-      scopeEl.textContent=scope?scope.toUpperCase():'GLOBAL';
-      hdr.appendChild(scopeEl);
-    }
     var lyrSp=document.createElement('div');lyrSp.className='gnode-lyr';
     if(!LAYER_COLOR[lyr])lyrSp.style.color=ha(getLC(lyr),0.40);
     lyrSp.textContent=LAYER_LABEL[lyr]||lyr.toUpperCase();hdr.appendChild(lyrSp);
@@ -712,10 +757,10 @@ function render(){
           row.className='gnode-bline cmd-'+ct+(isHidden?' bline-hidden':'');
           var cdot=document.createElement('span');cdot.className='bline-type-dot';cdot.style.background=isHidden?'rgba(79,195,247,0.12)':(CMD_COLOR[ct]||'#4fc3f7');row.appendChild(cdot);
           var clbl=document.createElement('span');clbl.className='bline-lbl';clbl.textContent=(isHidden?'[hidden] ':'')+( b.label||'');clbl.style.opacity=isHidden?'0.35':'1';row.appendChild(clbl);
-          // Out port for nav/data/flavor commands (still shown even if hidden)
+          // Out port for nav/pull commands only — action and log_entry have no wired target
           if(ct==='navigation'||ct==='pull'||ct==='flavor'){
             var port=document.createElement('div');
-            port.className='out-port '+ct+(ct==='navigation'?' '+lyr:'')+(nt==='global'?' global':'');
+            port.className='out-port '+ct+(ct==='navigation'?' '+lyr:'');
             port.style.opacity=isHidden?'0.30':'1';
             port.dataset.nodeid=id;port.dataset.bodyidx=bi;port.dataset.portidx=portIdx;
             port.addEventListener('mousedown',function(e){e.stopPropagation();e.preventDefault();startConnect(e,id,parseInt(this.dataset.bodyidx));});
@@ -1100,12 +1145,96 @@ function addNode(cx,cy){
 // ── INFO PANEL ────────────────────────────────────────────────────────────────
 function setInfoMode(m){
   infoMode=m;
-  document.getElementById('btn-details').classList.toggle('on',m==='details');
-  document.getElementById('btn-code').classList.toggle('on',m==='code');
-  document.getElementById('info-body').style.display=m==='details'?'flex':'none';
+  ['details','trans','rooms','code'].forEach(function(k){
+    var b=document.getElementById('btn-'+k);if(b)b.classList.toggle('on',k===m);
+  });
+  document.getElementById('info-body').style.display=(m==='details'||m==='trans'||m==='rooms')?'flex':'none';
   document.getElementById('info-code').style.display=m==='code'?'block':'none';
-  if(selectedNode)showInfo(selectedNode);else showAllCode();
+  if(m==='details'){if(selectedNode)showInfo(selectedNode);else showEmpty();}
+  else if(m==='trans'){showTransitions();}
+  else if(m==='rooms'){showRooms();}
+  else{if(selectedNode)showInfo(selectedNode);else showAllCode();}
 }
+
+// ── TRANSITIONS EDITOR ────────────────────────────────────────────────────────
+function showTransitions(){
+  if(!arch){document.getElementById('info-body').innerHTML='<div id="info-empty">Load a file first.</div>';return;}
+  if(!arch.transitions)arch.transitions={};
+  var lids=getLayerIds();
+  var h='<div style="font-size:11px;color:var(--dim);letter-spacing:0.08em;margin-bottom:6px;">TRANSITION SEQUENCES — fire when crossing into each layer</div>';
+  lids.forEach(function(lid){
+    var trans=arch.transitions[lid]||(arch.transitions[lid]={body:[]});
+    var col=getLC(lid);
+    h+='<div class="if sec-div">';
+    h+='<div class="il" style="color:'+col+';">→ '+lid.toUpperCase()+' TRANSITION <span style="font-size:10px;color:rgba(79,195,247,0.38);">('+trans.body.length+' lines)</span></div>';
+    h+='<div class="body-editor" id="trans-body-'+lid+'">';
+    (trans.body||[]).forEach(function(b,bi){
+      h+='<div class="body-row" id="tbrow-'+lid+'-'+bi+'">';
+      h+='<select style="background:rgba(0,8,14,0.8);border:1px solid rgba(79,195,247,0.14);color:var(--dim);font-family:\'Share Tech Mono\',monospace;font-size:11px;padding:2px 3px;outline:none;" onchange="liveTransCls(\''+lid+'\','+bi+',this.value)">';
+      CLS_OPTS.forEach(function(c){h+='<option value="'+c+'"'+(c===(b.cls||'full')?' selected':'')+'>'+c+'</option>';});
+      h+='</select>';
+      h+='<input type="text" value="'+esc(b.text||'')+'" placeholder="text line..." oninput="liveTrans(\''+lid+'\','+bi+',this.value)" onchange="pushHist()" autocomplete="off" spellcheck="false">';
+      h+='<div class="body-row-btns">';
+      h+='<button class="rbt" onclick="movTrans(\''+lid+'\','+bi+',-1)">&#8593;</button>';
+      h+='<button class="rbt" onclick="movTrans(\''+lid+'\','+bi+',1)">&#8595;</button>';
+      h+='<button class="rbt r" onclick="rmTrans(\''+lid+'\','+bi+')">\u00D7</button>';
+      h+='</div></div>';
+    });
+    h+='</div>';
+    h+='<button class="add-btn txt" style="margin-top:4px;" onclick="addTrans(\''+lid+'\')">+ LINE</button>';
+    h+='</div>';
+  });
+  document.getElementById('info-body').innerHTML=h;
+}
+function liveTrans(lid,bi,val){if(!arch.transitions||!arch.transitions[lid])return;arch.transitions[lid].body[bi].text=val;}
+function liveTransCls(lid,bi,val){if(!arch.transitions||!arch.transitions[lid])return;arch.transitions[lid].body[bi].cls=val;pushHist();}
+function addTrans(lid){if(!arch.transitions)arch.transitions={};if(!arch.transitions[lid])arch.transitions[lid]={body:[]};arch.transitions[lid].body.push({type:'text',text:'',cls:'full'});pushHist();showTransitions();}
+function rmTrans(lid,bi){if(!arch.transitions||!arch.transitions[lid])return;arch.transitions[lid].body.splice(bi,1);pushHist();showTransitions();}
+function movTrans(lid,bi,dir){if(!arch.transitions||!arch.transitions[lid])return;var b=arch.transitions[lid].body;var j=bi+dir;if(j<0||j>=b.length)return;var t=b[bi];b[bi]=b[j];b[j]=t;pushHist();showTransitions();}
+
+// ── GLOBAL ROOMS EDITOR ───────────────────────────────────────────────────────
+function showRooms(){
+  if(!arch){document.getElementById('info-body').innerHTML='<div id="info-empty">Load a file first.</div>';return;}
+  if(!arch.global_rooms)arch.global_rooms={};
+  var rooms=Object.keys(arch.global_rooms);
+  var h='<div style="font-size:11px;color:var(--dim);letter-spacing:0.08em;margin-bottom:6px;">GLOBAL ROOMS — accessible from any node via typed command</div>';
+  rooms.forEach(function(rid){
+    var room=arch.global_rooms[rid];
+    h+='<div class="if sec-div">';
+    h+='<div class="il" style="display:flex;justify-content:space-between;align-items:center;">'+esc(rid)+'<button class="rbt r" onclick="deleteRoom(\''+esc(rid)+'\')" style="font-size:11px;">\u00D7 DELETE</button></div>';
+    h+='<input type="text" class="iv-inp" value="'+esc(room.title||'')+'" placeholder="Room title" oninput="liveRoomTitle(\''+esc(rid)+'\',this.value)" onchange="pushHist()" autocomplete="off">';
+    h+='<input type="text" class="iv-inp" value="'+esc(room.access_command||'')+'" placeholder="[ACCESS COMMAND]" oninput="liveRoomCmd(\''+esc(rid)+'\',this.value)" onchange="pushHist()" autocomplete="off">';
+    h+='<div class="il" style="margin-top:4px;">BODY</div>';
+    h+='<div class="body-editor">';
+    (room.body||[]).forEach(function(b,bi){
+      var ct=b.cmd_type||'navigation';
+      h+='<div class="body-row">';
+      h+='<button class="body-type-tag tag-'+ct+'" style="font-size:10px;padding:1px 5px;flex-shrink:0;">'+ct.slice(0,3).toUpperCase()+'</button>';
+      h+='<input type="text" value="'+esc(b.label||'')+'" placeholder="[COMMAND]" oninput="liveRoomBody(\''+esc(rid)+'\','+bi+',\'label\',this.value)" onchange="pushHist()" autocomplete="off">';
+      if(ct==='navigation'){
+        h+='<input type="text" value="'+esc(b.target||'')+'" placeholder="target" style="max-width:80px;font-size:11px;" oninput="liveRoomBody(\''+esc(rid)+'\','+bi+',\'target\',this.value)" onchange="pushHist()" autocomplete="off">';
+      } else if(ct==='action'){
+        h+='<input type="text" value="'+esc(b.action||'')+'" placeholder="action" style="max-width:80px;font-size:11px;" oninput="liveRoomBody(\''+esc(rid)+'\','+bi+',\'action\',this.value)" onchange="pushHist()" autocomplete="off">';
+      }
+      h+='<div class="body-row-btns"><button class="rbt r" onclick="rmRoomBody(\''+esc(rid)+'\','+bi+')">\u00D7</button></div>';
+      h+='</div>';
+    });
+    h+='</div>';
+    h+='<div style="display:flex;gap:4px;margin-top:4px;">';
+    h+='<button class="add-btn nav" onclick="addRoomBody(\''+esc(rid)+'\',\'navigation\')">+ NAV</button>';
+    h+='<button class="add-btn act" onclick="addRoomBody(\''+esc(rid)+'\',\'action\')">+ ACTION</button>';
+    h+='</div></div>';
+  });
+  h+='<div class="sec-div"><button class="add-btn txt" onclick="addRoom()">+ ADD ROOM</button></div>';
+  document.getElementById('info-body').innerHTML=h;
+}
+function liveRoomTitle(rid,val){if(!arch.global_rooms||!arch.global_rooms[rid])return;arch.global_rooms[rid].title=val;}
+function liveRoomCmd(rid,val){if(!arch.global_rooms||!arch.global_rooms[rid])return;arch.global_rooms[rid].access_command=val;}
+function liveRoomBody(rid,bi,field,val){if(!arch.global_rooms||!arch.global_rooms[rid])return;arch.global_rooms[rid].body[bi][field]=val;}
+function addRoomBody(rid,ct){if(!arch.global_rooms||!arch.global_rooms[rid])return;var b={type:'command',cmd_type:ct,label:'[COMMAND]'};if(ct==='navigation')b.target='';else if(ct==='action')b.action='';arch.global_rooms[rid].body.push(b);pushHist();showRooms();}
+function rmRoomBody(rid,bi){if(!arch.global_rooms||!arch.global_rooms[rid])return;arch.global_rooms[rid].body.splice(bi,1);pushHist();showRooms();}
+function addRoom(){if(!arch)return;if(!arch.global_rooms)arch.global_rooms={};var name=prompt('Room ID (e.g. MY_ROOM):');if(!name)return;name=name.trim().toUpperCase().replace(/\s+/g,'_');if(arch.global_rooms[name]){toast('Room already exists');return;}arch.global_rooms[name]={title:'',access_command:'['+name+']',body:[]};pushHist();showRooms();toast('Room added: '+name);}
+function deleteRoom(rid){if(!confirm('Delete room "'+rid+'"?'))return;delete arch.global_rooms[rid];pushHist();showRooms();}
 
 function showInfo(id){
   var n=arch&&arch.nodes&&arch.nodes[id];
@@ -1123,29 +1252,19 @@ function showInfo(id){
   var h='';
   // ID
   h+='<div class="if"><div class="il">NODE ID</div><input type="text" class="iv-inp" id="fi-id" value="'+esc(id)+'" autocomplete="off" spellcheck="false"></div>';
-  var isGlobal=(n.node_type||'standard')==='global';
-  // Layer / scope
-  if(isGlobal){
-    h+='<div class="if"><div class="il">LAYER SCOPE</div><select class="iv-sel" id="fi-scope">';
-    h+='<option value=""'+((!n.layer_scope)?' selected':'')+'>UNRESTRICTED (all layers)</option>';
-    getLayerIds().forEach(function(lv){h+='<option value="'+lv+'"'+(n.layer_scope===lv?' selected':'')+'>'+lv.toUpperCase()+' only</option>';});
-    h+='</select></div>';
-  } else {
-    h+='<div class="if"><div class="il">LAYER</div><select class="iv-sel" id="fi-layer">';
-    getLayerIds().forEach(function(lv){h+='<option value="'+lv+'"'+(lv===lyr?' selected':'')+'>'+lv.toUpperCase().replace('_ARCHIVE','')+'</option>';});
-    h+='</select></div>';
-  }
+  // Layer
+  h+='<div class="if"><div class="il">LAYER</div><select class="iv-sel" id="fi-layer">';
+  getLayerIds().forEach(function(lv){h+='<option value="'+lv+'"'+(lv===lyr?' selected':'')+'>'+lv.toUpperCase()+'</option>';});
+  h+='</select></div>';
   // Node type
   h+='<div class="if"><div class="il">NODE TYPE</div><select class="iv-sel" id="fi-ntype">';
   NODE_TYPES.forEach(function(nt){h+='<option value="'+nt+'"'+((n.node_type||'standard')===nt?' selected':'')+'>'+NODE_TYPE_LABELS[nt]+'</option>';});
   h+='</select></div>';
-  if(!isGlobal){
-    // Title / breadcrumb / root / fetch — hidden for global nodes
-    h+='<div class="if"><div class="il">TITLE</div><input type="text" class="iv-inp" id="fi-title" value="'+esc(n.title||'')+'" autocomplete="off" spellcheck="false"></div>';
-    h+='<div class="if"><div class="il">PATH (auto)</div><input type="text" class="iv-inp" id="fi-bc" value="'+esc(n.breadcrumb||'')+'" readonly style="opacity:0.45;cursor:default;"></div>';
-    h+='<div class="if"><div class="il">ROOT NODE</div><div class="toggle-row"><button class="tg'+(n.is_root?'':' on')+'" onclick="setNodeBool(\'is_root\',false)">NO</button><button class="tg'+(n.is_root?' on':'')+'" onclick="setNodeBool(\'is_root\',true)">YES</button></div></div>';
-    h+='<div class="if"><div class="il">FETCH ALLOWED</div><div class="toggle-row"><button class="tg'+(n.fetch_allowed?'':' on')+'" onclick="setNodeBool(\'fetch_allowed\',false)">NO</button><button class="tg'+(n.fetch_allowed?' on':'')+'" onclick="setNodeBool(\'fetch_allowed\',true)">YES</button></div></div>';
-  }
+  // Title / breadcrumb / root / fetch
+  h+='<div class="if"><div class="il">TITLE</div><input type="text" class="iv-inp" id="fi-title" value="'+esc(n.title||'')+'" autocomplete="off" spellcheck="false"></div>';
+  h+='<div class="if"><div class="il">PATH (auto)</div><input type="text" class="iv-inp" id="fi-bc" value="'+esc(n.breadcrumb||'')+'" readonly style="opacity:0.45;cursor:default;"></div>';
+  h+='<div class="if"><div class="il">ROOT NODE</div><div class="toggle-row"><button class="tg'+(n.is_root?'':' on')+'" onclick="setNodeBool(\'is_root\',false)">NO</button><button class="tg'+(n.is_root?' on':'')+'" onclick="setNodeBool(\'is_root\',true)">YES</button></div></div>';
+  h+='<div class="if"><div class="il">FETCH ALLOWED</div><div class="toggle-row"><button class="tg'+(n.fetch_allowed?'':' on')+'" onclick="setNodeBool(\'fetch_allowed\',false)">NO</button><button class="tg'+(n.fetch_allowed?' on':'')+'" onclick="setNodeBool(\'fetch_allowed\',true)">YES</button></div></div>';
   // Personality src — only for chat nodes
   if((n.node_type||'standard')==='chat'){
     h+='<div class="if"><div class="il">FLAVOR SOURCE (personality file)</div><input type="text" class="iv-inp" id="fi-psrc" value="'+esc(n.personality_src||'')+'" placeholder="personality.json" autocomplete="off" spellcheck="false"></div>';
@@ -1207,8 +1326,11 @@ function showInfo(id){
     h+='<button class="body-type-tag '+(isText?'tag-text':'tag-'+ct)+' btype-btn" data-nodeid="'+esc(id)+'" data-bi="'+bi+'" title="Click to change type">'+(isText?'TXT':ct.toUpperCase().slice(0,3))+'</button>';
     h+='<input type="text" value="'+esc(b.text||b.label||'')+'" placeholder="'+(isText?'text line...':'[COMMAND]')+'" oninput="liveBody(\''+esc(id)+'\','+bi+',this.value)" onchange="pushHist()" autocomplete="off" spellcheck="false">';
     if(!isText){
-      // Target input for non-loop commands
-      if(ct!=='loop'){
+      if(ct==='action'){
+        // Action: shows action field (no target node, no wire)
+        h+='<input type="text" value="'+esc(b.action||'')+'" placeholder="action id" style="max-width:90px;font-size:11px;" oninput="liveBodyAction(\''+esc(id)+'\','+bi+',this.value)" onchange="pushHist()" autocomplete="off" spellcheck="false" title="action: clear_logs">';
+      } else if(ct!=='loop'&&ct!=='log_entry'){
+        // Navigation/pull: target node
         h+='<input type="text" value="'+esc(b.target||'')+'" placeholder="target node" style="max-width:90px;font-size:11px;" oninput="liveBodyTarget(\''+esc(id)+'\','+bi+',this.value)" onchange="pushHist()" autocomplete="off" spellcheck="false">';
       }
     } else {
@@ -1229,6 +1351,8 @@ function showInfo(id){
   h+='<button class="add-btn txt" onclick="addBody(\''+esc(id)+'\',\'text\')">+ TEXT</button>';
   h+='<button class="add-btn nav" onclick="addBody(\''+esc(id)+'\',\'cmd-nav\')">+ NAV</button>';
   h+='<button class="add-btn pull" onclick="addBody(\''+esc(id)+'\',\'cmd-pull\')">+ PULL</button>';
+  h+='<button class="add-btn log" onclick="addBody(\''+esc(id)+'\',\'cmd-log\')">+ LOG</button>';
+  h+='<button class="add-btn act" onclick="addBody(\''+esc(id)+'\',\'cmd-action\')">+ ACTION</button>';
   h+='<button class="add-btn loop" onclick="addBody(\''+esc(id)+'\',\'cmd-loop\')">+ LOOP</button>';
   h+='<button class="add-btn dyn" onclick="addBody(\''+esc(id)+'\',\'dyn\')">+ DYN</button>';
   h+='</div></div>';
@@ -1304,10 +1428,7 @@ function showInfo(id){
     }
     pushHist();render();showInfo(id);
   });
-  // Layer scope handler (global nodes only)
-  var fiScope=document.getElementById('fi-scope');
-  if(fiScope){fiScope.addEventListener('change',function(){arch.nodes[id].layer_scope=this.value||null;pushHist();render();showInfo(id);});}
-  // Standard field handlers — guarded since global nodes don't render these fields
+  // Standard field handlers
   var fiLayer=document.getElementById('fi-layer');
   if(fiLayer){fiLayer.addEventListener('change',function(){arch.nodes[id].layer=this.value;pushHist();render();showInfo(id);});}
   var fiTitle=document.getElementById('fi-title');
@@ -1363,6 +1484,7 @@ document.getElementById('info-body').addEventListener('drop',function(e){
   pushHist();render();showInfo(nodeId);
 });
 function liveBodyTarget(nodeId,bi,val){var n=arch&&arch.nodes&&arch.nodes[nodeId];if(!n||!n.body[bi])return;n.body[bi].target=val;render();}
+function liveBodyAction(nodeId,bi,val){var n=arch&&arch.nodes&&arch.nodes[nodeId];if(!n||!n.body[bi])return;n.body[bi].action=val;}
 function liveBodyCls(nodeId,bi,val){var n=arch&&arch.nodes&&arch.nodes[nodeId];if(!n||!n.body[bi])return;n.body[bi].cls=val;}
 function movBody(nodeId,bi,dir){
   var n=arch&&arch.nodes&&arch.nodes[nodeId];if(!n)return;
@@ -1376,8 +1498,9 @@ function addBody(nodeId,btype){
   if(!n.body)n.body=[];
   if(btype==='text')n.body.push({type:'text',text:'',cls:'full'});
   else if(btype==='cmd-nav')n.body.push({type:'command',cmd_type:'navigation',label:'[COMMAND]',target:''});
-  else if(btype==='cmd-data')n.body.push({type:'command',cmd_type:'pull',label:'[PULL]',target:''});
   else if(btype==='cmd-pull')n.body.push({type:'command',cmd_type:'pull',label:'[PULL]',target:''});
+  else if(btype==='cmd-log')n.body.push({type:'command',cmd_type:'log_entry',label:'[ENTER LOG]'});
+  else if(btype==='cmd-action')n.body.push({type:'command',cmd_type:'action',label:'[ACTION]',action:''});
   else if(btype==='cmd-loop')n.body.push({type:'command',cmd_type:'loop',label:'[ENTER ANOTHER CODE]',target:''});
   else if(btype==='dyn')n.body.push({type:'dynamic',variable:DYN_VARS[0],display_label:DYN_LABELS[DYN_VARS[0]]||'',label_cls:'dim',value_cls:'full',valid_text:'OK',denied_text:'ERROR'});
   pushHist();render();showInfo(nodeId);
@@ -1626,7 +1749,7 @@ function updateMinimap(){
 
 // ── BODY TYPE CYCLING ────────────────────────────────────────────────────────
 var BODY_CYCLE_TEXT=['text'];
-var BODY_CYCLE_CMD=['navigation','pull','loop'];
+var BODY_CYCLE_CMD=['navigation','pull','log_entry','action','loop'];
 
 function cycleBodyType(nodeId,bi){
   var n=arch&&arch.nodes&&arch.nodes[nodeId];if(!n||!n.body[bi])return;
@@ -1824,10 +1947,17 @@ function auditNode(id, n, report){
   }
   // Ensure required fields
   if(!n.node_type){n.node_type='standard';changes++;report.push('  '+id+': set node_type=standard');}
-  if(n.layer==='l1c'){n.layer='l1';changes++;report.push('  '+id+': layer l1c → l1');}
+  // Legacy only: collapse l1_archive into l1
   if(n.layer==='l1_archive'){n.layer='l1';changes++;report.push('  '+id+': layer l1_archive → l1');}
-  // Global nodes don't use root/fetch/title
-  if(n.node_type==='global') return {id:id,changes:changes,report:report};
+  // v2.0: l1c/l2c/l3c are valid layers — do NOT migrate them
+  if(n.node_type==='global'){n.node_type='standard';changes++;report.push('  '+id+': node_type global → standard (v2.0 removes global type)');}
+  if(n.node_type==='boot'){n.node_type='chat';changes++;report.push('  '+id+': node_type boot → chat (v2.0 removes boot type)');}
+  if(n.node_type==='intro'){n.node_type='standard';changes++;report.push('  '+id+': node_type intro → standard (v2.0: intros live in transitions{})');}
+  if(n.node_type==='log_entry'){n.node_type='data';changes++;report.push('  '+id+': node_type log_entry → data (v2.0: log_entry is a cmd_type)');}
+  // Remove legacy top-level fields
+  ['l1_commands','dev_override_commands','boot_script','layer_scope'].forEach(function(f){
+    if(f in n){delete n[f];changes++;report.push('  '+id+': removed legacy "'+f+'"');}
+  });
   if(!n._editor){n._editor={locked:false,pinned:false,id_locked:false};changes++;report.push('  '+id+': added _editor');}
   if(typeof n._editor.locked==='undefined')n._editor.locked=false;
   if(typeof n._editor.pinned==='undefined')n._editor.pinned=false;
@@ -1874,58 +2004,39 @@ function runAudit(single){
 
 // ── TEMPLATES ─────────────────────────────────────────────────────────────────
 var TEMPLATES={
-  'Blank (4 root nodes)':{
-    meta:{version:'1.0',description:'ECHOES Node Architecture — Blank Template'},
+  'Blank (v2.0 — 6 layers, 3 console nodes)':{
+    meta:{version:'2.0',description:'ECHOES Node Architecture — Blank v2.0'},
     layers:{
-      
-      l1:{theme:'blue',header_title:'ECHO-ARCHIVE',ambient:'l1'},
-      l2:{theme:'amber',header_title:'ECHO-ARCHIVE',ambient:'l2'},
-      l3:{theme:'red',header_title:'DEEP ARCHIVE',ambient:'l3'}
+      l1c:{_color:'#4fc3f7',ambient:'l1',header_title:'TERMINAL CONSOLE'},
+      l1: {_color:'#4fc3f7',ambient:'l1',header_title:'ECHO-ARCHIVE'},
+      l2c:{_color:'#bf7c0a',ambient:'l2',header_title:'ECHO PROTOCOL CONSOLE'},
+      l2: {_color:'#bf7c0a',ambient:'l2',header_title:'ECHO-ARCHIVE // DEEP'},
+      l3c:{_color:'#e05050',ambient:'l3',header_title:'DEEP ARCHIVE CONSOLE'},
+      l3: {_color:'#e05050',ambient:'l3',header_title:'DEEP ARCHIVE'}
     },
-    l1_commands:[
-      {label:'[HELP]',description:'display available commands',type:'help'},
-      {label:'[STATUS]',description:'vessel system status',type:'standard',target:null},
-      {label:'[SCAN]',description:'environment scan',type:'standard',target:null},
-      {label:'[CLEAR]',description:'clear terminal output',type:'clear'},
-      {label:'[HOME]',description:'return to main index',type:'navigate',target:'__HOME__'}
-    ],
+    transitions:{
+      l1c:{body:[]},l1:{body:[]},l2c:{body:[]},l2:{body:[]},l3c:{body:[]},l3:{body:[]}
+    },
+    global_rooms:{
+      DEV_OVERRIDE:{title:'DEVELOPER OVERRIDE — AUTHORIZED',access_command:'[DEV.OVERRIDE]',body:[
+        {type:'command',cmd_type:'navigation',label:'[-- JUMP L1C]',target:'L1C'},
+        {type:'command',cmd_type:'navigation',label:'[-- JUMP L1]',target:'L1_ROOT'},
+        {type:'command',cmd_type:'navigation',label:'[-- JUMP L2C]',target:'L2C'},
+        {type:'command',cmd_type:'navigation',label:'[-- JUMP L2]',target:'L2_ROOT'},
+        {type:'command',cmd_type:'navigation',label:'[-- JUMP L3C]',target:'L3C'},
+        {type:'command',cmd_type:'navigation',label:'[-- JUMP L3]',target:'L3_ROOT'},
+        {type:'command',cmd_type:'action',label:'[-- CLEAR DISCOVERED LOGS]',action:'clear_logs'}
+      ]}
+    },
     nodes:{
-      L1C_ROOT:{layer:'l1',node_type:'chat',is_root:true,fetch_allowed:false,title:'',breadcrumb:'',footer:'',body:[],personality_src:null,_editor:{locked:false,pinned:false,id_locked:false}},
-      L1_ROOT:{layer:'l1',node_type:'standard',is_root:true,fetch_allowed:false,title:'',breadcrumb:'',footer:'',body:[],_editor:{locked:false,pinned:false,id_locked:false}},
-      L2_ROOT:{layer:'l2',node_type:'standard',is_root:true,fetch_allowed:true,title:'',breadcrumb:'',footer:'',body:[],_editor:{locked:false,pinned:false,id_locked:false}},
-      L3_ROOT:{layer:'l3',node_type:'standard',is_root:true,fetch_allowed:true,title:'',breadcrumb:'',footer:'',body:[],_editor:{locked:false,pinned:false,id_locked:false}}
+      L1C:{layer:'l1c',node_type:'chat',is_root:true,fetch_allowed:false,title:'TERMINAL CONSOLE',breadcrumb:'TERMINAL CONSOLE',footer:'',body:[],personality_src:'personality.json',_editor:{locked:false,pinned:false,id_locked:false}},
+      L1_ROOT:{layer:'l1',node_type:'standard',is_root:true,fetch_allowed:false,title:'ECHO.ARCHIVE',breadcrumb:'TERMINAL CONSOLE > ECHO.ARCHIVE',footer:'',body:[],_editor:{locked:false,pinned:false,id_locked:false}},
+      L2C:{layer:'l2c',node_type:'chat',is_root:true,fetch_allowed:false,title:'ECHO PROTOCOL CONSOLE',breadcrumb:'ECHO PROTOCOL CONSOLE',footer:'',body:[],personality_src:'personality.json',_editor:{locked:false,pinned:false,id_locked:false}},
+      L2_ROOT:{layer:'l2',node_type:'standard',is_root:true,fetch_allowed:true,title:'L2 ROOT',breadcrumb:'ECHO PROTOCOL CONSOLE > L2 ROOT',footer:'',body:[],_editor:{locked:false,pinned:false,id_locked:false}},
+      L3C:{layer:'l3c',node_type:'chat',is_root:true,fetch_allowed:false,title:'DEEP ARCHIVE CONSOLE',breadcrumb:'DEEP ARCHIVE CONSOLE',footer:'',body:[],personality_src:'personality.json',_editor:{locked:false,pinned:false,id_locked:false}},
+      L3_ROOT:{layer:'l3',node_type:'standard',is_root:true,fetch_allowed:true,title:'L3 ROOT',breadcrumb:'DEEP ARCHIVE CONSOLE > L3 ROOT',footer:'',body:[],_editor:{locked:false,pinned:false,id_locked:false}}
     },
-    dev_override_commands:[],boot_script:[],groups:{}
-  },
-  'Full Global Nodes':{
-    meta:{version:'1.0',description:'ECHOES Node Architecture — Full Template'},
-    layers:{
-      
-      l1:{theme:'blue',header_title:'ECHO-ARCHIVE',ambient:'l1'},
-      l2:{theme:'amber',header_title:'ECHO-ARCHIVE',ambient:'l2'},
-      l3:{theme:'red',header_title:'DEEP ARCHIVE',ambient:'l3'}
-    },
-    l1_commands:[
-      {label:'[HELP]',description:'display available commands',type:'help'},
-      {label:'[STATUS]',description:'vessel system status',type:'standard',target:null},
-      {label:'[SCAN]',description:'environment scan',type:'standard',target:null},
-      {label:'[CLEAR]',description:'clear terminal output',type:'clear'},
-      {label:'[HOME]',description:'return to main index',type:'navigate',target:'__HOME__'}
-    ],
-    nodes:{
-      BOOT_NODE:{layer:'l1',node_type:'boot',is_root:true,fetch_allowed:false,title:'',breadcrumb:'',footer:'',body:[{type:'text',text:'',cls:'blank'},{type:'text',text:'ECHOES — SHIP SYSTEM TERMINAL',cls:'lo'},{type:'text',text:'> TERMINAL ACTIVATED',cls:'dim'},{type:'text',text:'> ─────────────────────────────────',cls:'lo'},{type:'text',text:'> VERIFYING SUBSYSTEM CONNECTIONS...',cls:'dim'},{type:'dynamic',variable:'file_status.personality',display_label:'  CREW BEHAVIORAL MATRIX  '},{type:'dynamic',variable:'file_status.lore',display_label:'  ARCHIVE LOG DATABASE    '},{type:'dynamic',variable:'file_status.devlogs',display_label:'  DEVELOPMENT RECORDS     '},{type:'dynamic',variable:'file_status.nodes',display_label:'  NAVIGATION ARCHITECTURE '},{type:'dynamic',variable:'file_status.engine',display_label:'  CORE ENGINE PARAMETERS  '},{type:'text',text:'> ─────────────────────────────────',cls:'lo'},{type:'text',text:'',cls:'blank'},{type:'text',text:'> TERMINAL READY',cls:'full'},{type:'text',text:'',cls:'blank'}],_editor:{locked:false,pinned:true,id_locked:true}},
-      L1C_ROOT:{layer:'l1',node_type:'chat',is_root:true,fetch_allowed:false,title:'',breadcrumb:'',footer:'',body:[{type:'text',text:'',cls:'blank'},{type:'text',text:'> TYPE [HELP] FOR AVAILABLE COMMANDS',cls:'lo'},{type:'text',text:'',cls:'blank'},{type:'command',cmd_type:'navigation',label:'[ECHO.ARCHIVE]',target:'L1_ROOT',hidden:true}],personality_src:'personality.json',_editor:{locked:false,pinned:true,id_locked:false}},
-      L1C_INTRO:{layer:'l1',node_type:'intro',is_root:false,fetch_allowed:false,title:'',breadcrumb:'',footer:'',body:[],_editor:{locked:false,pinned:false,id_locked:true}},
-      L1_INTRO:{layer:'l1',node_type:'intro',is_root:false,fetch_allowed:false,title:'',breadcrumb:'',footer:'',body:[{type:'text',text:'',cls:'blank'},{type:'text',text:'> ECHO-ARCHIVE ACCESS GRANTED.',cls:'full'},{type:'text',text:'> ─────────────────────────────────',cls:'lo'},{type:'text',text:'',cls:'blank'}],_editor:{locked:false,pinned:false,id_locked:true}},
-      L1_ROOT:{layer:'l1',node_type:'standard',is_root:true,fetch_allowed:false,title:'L1 ROOT',breadcrumb:'',footer:'',body:[],_editor:{locked:false,pinned:false,id_locked:false}},
-      L2_INTRO:{layer:'l2',node_type:'intro',is_root:false,fetch_allowed:false,title:'',breadcrumb:'',footer:'',body:[{type:'text',text:'',cls:'blank'},{type:'text',text:'> INITIATING ECHO PROTOCOL...',cls:'full'},{type:'text',text:'  LOADING SUBSYSTEM...',cls:'low'},{type:'text',text:'  CIPHER ENGINE ONLINE...',cls:'low'},{type:'text',text:'  DEEP LOG CHANNEL OPEN...',cls:'low'},{type:'text',text:'> ECHO PROTOCOL ACTIVE.',cls:'full'},{type:'text',text:'> ─────────────────────────────────',cls:'low'},{type:'text',text:'',cls:'blank'}],_editor:{locked:false,pinned:false,id_locked:true}},
-      L2_ROOT:{layer:'l2',node_type:'standard',is_root:true,fetch_allowed:true,title:'L2 ROOT',breadcrumb:'',footer:'',body:[],_editor:{locked:false,pinned:false,id_locked:false}},
-      L3_INTRO:{layer:'l3',node_type:'intro',is_root:false,fetch_allowed:false,title:'',breadcrumb:'',footer:'',body:[{type:'text',text:'',cls:'blank'},{type:'text',text:'> ACCESSING DEEP ARCHIVE...',cls:'full'},{type:'text',text:'  CHRONO-ZERO PROTOCOL ACTIVE...',cls:'low'},{type:'text',text:'  PRIVATE SECTOR UNLOCKED...',cls:'low'},{type:'text',text:'> DEV.MODE ENGAGED.',cls:'full'},{type:'text',text:'> ─────────────────────────────────',cls:'low'},{type:'text',text:'',cls:'blank'}],_editor:{locked:false,pinned:false,id_locked:true}},
-      L3_ROOT:{layer:'l3',node_type:'standard',is_root:true,fetch_allowed:true,title:'L3 ROOT',breadcrumb:'',footer:'',body:[],_editor:{locked:false,pinned:false,id_locked:false}},
-      DEV_OVERRIDE_ROOT:{layer:'l1',node_type:'standard',is_root:false,fetch_allowed:false,title:'DEVELOPER OVERRIDE — AUTHORIZED',breadcrumb:'[ DEV.OVERRIDE ]',footer:'',body:[{type:'command',cmd_type:'navigation',label:'[-- JUMP L1]',target:'L1_ROOT',hidden:false},{type:'command',cmd_type:'navigation',label:'[-- JUMP L2]',target:'L2_ROOT',hidden:false},{type:'command',cmd_type:'navigation',label:'[-- JUMP L3]',target:'L3_ROOT',hidden:false}],_editor:{locked:false,pinned:false,id_locked:false}},
-      HELP_COMMANDS:{layer:'l1',node_type:'standard',is_root:false,fetch_allowed:false,title:'',breadcrumb:'',footer:'',body:[{type:'text',text:'',cls:'blank'},{type:'text',text:'AVAILABLE COMMANDS',cls:'full'},{type:'text',text:'> ─────────────────────────────────',cls:'low'},{type:'text',text:'  [HELP]       — display this list',cls:'dim'},{type:'text',text:'  [STATUS]     — vessel system status',cls:'dim'},{type:'text',text:'  [SCAN]       — environment scan',cls:'dim'},{type:'text',text:'  [CLEAR]      — clear terminal output',cls:'dim'},{type:'text',text:'> ─────────────────────────────────',cls:'low'},{type:'text',text:'',cls:'blank'}],_editor:{locked:false,pinned:false,id_locked:false}}
-    },
-    dev_override_commands:[],boot_script:[],groups:{}
+    groups:{}
   }
 };
 
