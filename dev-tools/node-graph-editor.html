@@ -17,6 +17,8 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
 
 /* HEADER */
 #hdr{display:flex;align-items:center;gap:8px;padding:6px 14px;border-bottom:1px solid var(--bdr);flex-shrink:0;background:rgba(0,4,10,0.98);flex-wrap:wrap;}
+.back{font-size:11px;color:var(--dim);text-decoration:none;letter-spacing:0.06em;margin-right:6px;}
+.back:hover{color:var(--blue);}
 .htitle{font-size:14px;letter-spacing:0.14em;flex:1;}
 .tver{font-size:10px;color:var(--amber);letter-spacing:0.06em;margin-left:8px;}
 .hbtn{background:transparent;border:1px solid rgba(79,195,247,0.16);color:var(--dim);font-family:"Share Tech Mono",monospace;font-size:13px;letter-spacing:0.07em;padding:4px 11px;cursor:pointer;transition:all 0.15s;}
@@ -279,6 +281,7 @@ select.iv-sel option{background:#001220;color:var(--blue);}
 <body>
 <div id="app">
 <div id="hdr">
+  <a class="back" href="index.html">&larr; DEV TOOLS</a>
   <span class="htitle">NODE GRAPH EDITOR<span id="tool-ver" class="tver">v.&mdash;</span></span>
   <span id="as-ind">&#10003; SAVED</span>
   <span id="fstat" class="none">NO FILE</span>

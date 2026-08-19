@@ -128,7 +128,7 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
 
 <div id="hdr">
   <a class="back" href="index.html">&larr; DEV TOOLS</a>
-  <span class="htitle">BOARD EDITOR<span class="tver">v1.0</span></span>
+  <span class="htitle">BOARD EDITOR<span id="tool-ver" class="tver">v.&mdash;</span></span>
   <span id="as-ind">&#10003; SAVED</span>
   <span id="fstat" class="none">NO FILE</span>
   <div class="hright">
@@ -1032,6 +1032,14 @@ initCanvas();
 setFstat('untitled','none');
 applyTransform();
 render();
+
+// ── TOOL VERSION = COMMIT ID ─────────────────────────────────────────────────
+(function(){
+  fetch('https://api.github.com/repos/EmptyFishTank-JB/echoes-boardgame/commits?per_page=1&path='+encodeURIComponent('dev-tools/board-editor.html'))
+    .then(function(r){return r.ok?r.json():Promise.reject();})
+    .then(function(d){if(d&&d.length){var el=document.getElementById('tool-ver');if(el)el.textContent='v.'+d[0].sha.slice(0,7);}})
+    .catch(function(){});
+})();
 </script>
 </body>
 </html>
