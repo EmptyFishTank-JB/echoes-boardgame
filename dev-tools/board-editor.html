@@ -467,15 +467,31 @@ function renderWallLine(container,p1,p2,edgeDoors,color,sw,markSize,lineClass){
   var cursor=0;
   segs.forEach(function(s){
     wallLine(cursor,s.start);
-    var dp1=ptAt(s.start),dp2=ptAt(s.end);
-    var dx=dp2.x-dp1.x,dy=dp2.y-dp1.y;
-    container.appendChild(el('line',{x1:dp1.x,y1:dp1.y,x2:dp1.x+dx*0.32,y2:dp1.y+dy*0.32,stroke:color,'stroke-width':sw,class:'room-edge'}));
-    container.appendChild(el('line',{x1:dp1.x+dx*0.68,y1:dp1.y+dy*0.68,x2:dp2.x,y2:dp2.y,stroke:color,'stroke-width':sw,class:'room-edge'}));
-    var mid={x:(dp1.x+dp2.x)/2,y:(dp1.y+dp2.y)/2};
-    container.appendChild(el('rect',{x:mid.x-markSize/2,y:mid.y-markSize/2,width:markSize,height:markSize,fill:'#fff',stroke:color,'stroke-width':(markSize*0.19).toFixed(2),transform:'rotate(45 '+mid.x+' '+mid.y+')'}));
+    // Door gap: no wall line crosses it at all (it's an opening) — instead
+    // a band of diagonal hazard/"watch your step" ticks marks the
+    // threshold, the same idea as caution-tape striping across a doorway.
+    drawDoorStripes(container,ptAt(s.start),ptAt(s.end),ux,uy,color,markSize);
     cursor=Math.max(cursor,s.end);
   });
   wallLine(cursor,edgeLen);
+}
+// Diagonal caution-stripe band across a door gap (dp1->dp2 along the wall).
+// bandHalf is how far the ticks reach perpendicular to the wall on each
+// side — markSize (the old diamond-marker size) reused as a size knob so
+// boundary vs interior-wall doors keep their existing size relationship.
+function drawDoorStripes(container,dp1,dp2,ux,uy,color,markSize){
+  var px=-uy,py=ux;
+  var len=dist(dp1,dp2);
+  var bandHalf=markSize*0.5;
+  var spacing=markSize*0.55;
+  var n=Math.max(2,Math.round(len/spacing));
+  for(var k=0;k<=n;k++){
+    var t=(k/n)*len;
+    var cx=dp1.x+ux*t,cy=dp1.y+uy*t;
+    var a={x:cx-ux*bandHalf*0.55+px*bandHalf,y:cy-uy*bandHalf*0.55+py*bandHalf};
+    var b={x:cx+ux*bandHalf*0.55-px*bandHalf,y:cy+uy*bandHalf*0.55-py*bandHalf};
+    container.appendChild(el('line',{x1:a.x,y1:a.y,x2:b.x,y2:b.y,stroke:color,'stroke-width':1.6,'stroke-linecap':'round',class:'door-stripe'}));
+  }
 }
 
 // A "space" is one GRID cell (the token/miniature unit) — independent of
@@ -1113,7 +1129,7 @@ function doorCoversPos(d,pos){var half=(d.width||GRID)/2;return pos>=d.pos-half-
 // when placing a NEW linked door, so it's fine that it goes through
 // wallSegments()/SNAP like any other new-placement lookup.
 function findCoincidentEdge(excludeRoomId,absPt){
-  var best=null,bestDist=1.5;
+  var best=null,bestDist=3;
   board.rooms.forEach(function(room){
     if(room.id===excludeRoomId)return;
     room.points.forEach(function(p1,i){
