@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>BOARD EDITOR</title>
+<link rel="icon" type="image/svg+xml" id="fav-link">
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
@@ -1588,6 +1589,50 @@ render();
     .then(function(r){return r.ok?r.json():Promise.reject();})
     .then(function(d){if(d&&d.length){var el=document.getElementById('tool-ver');if(el)el.textContent='v.'+d[0].sha.slice(0,7);}})
     .catch(function(){});
+})();
+
+// ── FAVICON ANIMATION — blueprint grid + pencil & ruler, pulsing
+//    (same stagger mechanism as the other tool favicons) ─────────────────────
+(function(){
+  var favicon=document.getElementById('fav-link');
+  if(!favicon) return;
+
+  var DUR=5000, STAG=1000;
+  function ease(t){
+    if(t<0.40) return 1.0;
+    if(t<0.50) return 1.0-(1.0-0.4)*((t-0.40)/0.10);
+    if(t<0.60) return 0.4+(1.0-0.4)*((t-0.50)/0.10);
+    return 1.0;
+  }
+  function op(offset){ return ease(((Date.now()-offset)%DUR)/DUR); }
+
+  var C='#4fc3f7';
+  // 3x3 dotted grid, the tool's blueprint-snap-grid motif
+  var DOTS='M7,7 h0 M16,7 h0 M25,7 h0 M7,16 h0 M16,16 h0 M25,16 h0 M7,25 h0 M16,25 h0 M25,25 h0';
+  // ruler on the anti-diagonal, with tick marks
+  var RULER='M6,26 L26,6 M11,17.8 L14.2,21 M14.4,14.4 L17.6,17.6 M17.8,11 L21,14.2';
+  // pencil on the main diagonal: shaft + tip + eraser cap
+  var PENCIL='M9,9 L21,21 M21,21 L26,26 L23.4,23.4 Z M9,9 L6.4,6.4 L9.4,9.4 Z';
+
+  function glow(d,w1,w2,o,cap){
+    cap=cap||'round';
+    return '<g opacity="'+o.toFixed(3)+'">'
+      +'<path d="'+d+'" stroke="'+C+'" stroke-width="'+w1+'" fill="'+C+'" stroke-linecap="'+cap+'" stroke-linejoin="round" opacity="0.5"/>'
+      +'<path d="'+d+'" stroke="'+C+'" stroke-width="'+w2+'" fill="'+C+'" stroke-linecap="'+cap+'" stroke-linejoin="round"/>'
+      +'</g>';
+  }
+  function buildSVG(){
+    var o=[op(0),op(STAG),op(STAG*2)];
+    return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">'
+      +glow(DOTS,4.5,3,o[0],'round')
+      +glow(RULER,3.4,1.6,o[1])
+      +glow(PENCIL,2.6,1.3,o[2])
+      +'</svg>';
+  }
+
+  setInterval(function(){
+    try{ favicon.href='data:image/svg+xml;base64,'+btoa(buildSVG()); }catch(e){}
+  }, 50);
 })();
 </script>
 </body>
