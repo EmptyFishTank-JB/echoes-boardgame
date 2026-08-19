@@ -325,6 +325,20 @@ function updateUndoRedoButtons(){
 }
 var uidCounter=1;
 function uid(prefix){return prefix+(uidCounter++);}
+// After loading a file, uidCounter must jump past every numeric suffix already
+// in use (room/point ids) — otherwise the next uid('R') collides with an
+// existing id, and every id-keyed lookup (select, drag, doors) becomes
+// ambiguous between the old room and the new one sharing that id.
+function syncUidCounter(){
+  var max=0;
+  function scan(id){
+    var m=/(\d+)$/.exec(String(id||''));
+    if(m){var n=parseInt(m[1],10);if(n>max)max=n;}
+  }
+  (board.rooms||[]).forEach(function(r){scan(r.id);});
+  (board.points||[]).forEach(function(p){scan(p.id);});
+  if(max+1>uidCounter)uidCounter=max+1;
+}
 var showSpaces=true;
 function toggleSpaces(){showSpaces=!showSpaces;document.getElementById('btn-spaces').classList.toggle('on',showSpaces);renderRooms();}
 
@@ -625,15 +639,16 @@ function renderRooms(){
       var edgeLen=dist(p1,p2);
       if(edgeLen<0.5)return;
       var ux=(p2.x-p1.x)/edgeLen, uy=(p2.y-p1.y)/edgeLen;
-      // ceil, not round: a 56.57-length diagonal edge (a 45° notch corner,
-      // very common) rounds 56.57/40=1.414 down to 1 segment, drawing a
-      // wall only across the first 40 of its 56.57 units and leaving the
-      // rest — visibly — undrawn. Any edge length isn't a clean GRID
-      // multiple has to round UP so segments always fully cover it; the
-      // last one just comes out shorter than GRID.
-      var nSegs=Math.max(1,Math.ceil(edgeLen/GRID-1e-6));
+      // Segment by SNAP, not the fixed GRID space-unit, so a door's position
+      // (and this rendering) always lands on the same whole/half/quarter grid
+      // the room's own points were placed on — not an offset relative to
+      // wherever this particular edge's start point happens to sit.
+      // ceil, not round: an edge whose length isn't a clean multiple of SNAP
+      // (e.g. a 45° notch corner) must round the segment count UP so segments
+      // always fully cover it; the last one just comes out shorter than SNAP.
+      var nSegs=Math.max(1,Math.ceil(edgeLen/SNAP-1e-6));
       for(var s=0;s<nSegs;s++){
-        var segStart=s*GRID, segEnd=Math.min(segStart+GRID,edgeLen);
+        var segStart=s*SNAP, segEnd=Math.min(segStart+SNAP,edgeLen);
         var sp1={x:p1.x+ux*segStart,y:p1.y+uy*segStart}, sp2={x:p1.x+ux*segEnd,y:p1.y+uy*segEnd};
         var hasDoor=doors.some(function(d){return d.edge===i&&d.seg===s;});
         if(hasDoor){
@@ -945,7 +960,7 @@ function toggleDoorSeg(roomId,edge,seg){
 // Finds the nearest wall segment to a board-space point, across every
 // room, within a generous threshold — roughly "anywhere in the grid
 // square that wall occupies", not just pixel-precise on the line itself.
-// A long edge is broken into GRID-length segments so a door can land on
+// A long edge is broken into SNAP-length segments so a door can land on
 // any one of them, not just centered on the whole wall.
 function findNearestWallSegment(pt){
   var best=null,bestDist=GRID*0.85;
@@ -958,15 +973,12 @@ function findNearestWallSegment(pt){
       if(d>=bestDist)return;
       var ux=(p2.x-p1.x)/edgeLen,uy=(p2.y-p1.y)/edgeLen;
       var t=(pt.x-p1.x)*ux+(pt.y-p1.y)*uy;
-      // ceil, not round: a 56.57-length diagonal edge (a 45° notch corner,
-      // very common) rounds 56.57/40=1.414 down to 1 segment, drawing a
-      // wall only across the first 40 of its 56.57 units and leaving the
-      // rest — visibly — undrawn. Any edge length isn't a clean GRID
-      // multiple has to round UP so segments always fully cover it; the
-      // last one just comes out shorter than GRID.
-      var nSegs=Math.max(1,Math.ceil(edgeLen/GRID-1e-6));
-      var segIdx=Math.max(0,Math.min(nSegs-1,Math.floor(t/GRID)));
-      var segStart=segIdx*GRID,segEnd=Math.min(segStart+GRID,edgeLen);
+      // Same SNAP-based segmentation as the render loop above — must stay in
+      // lockstep with it, or a stored {edge,seg} door won't hit-test where it
+      // visually renders.
+      var nSegs=Math.max(1,Math.ceil(edgeLen/SNAP-1e-6));
+      var segIdx=Math.max(0,Math.min(nSegs-1,Math.floor(t/SNAP)));
+      var segStart=segIdx*SNAP,segEnd=Math.min(segStart+SNAP,edgeLen);
       best={roomId:room.id,edge:i,seg:segIdx,
         p1:{x:p1.x+ux*segStart,y:p1.y+uy*segStart},
         p2:{x:p1.x+ux*segEnd,y:p1.y+uy*segEnd}};
@@ -1501,6 +1513,7 @@ function loadBoard(raw,name,cls){
     r.doors=r.doors.map(function(d){return typeof d==='number'?{edge:d,seg:0}:d;});
   });
   board.points.forEach(function(p){if(!p.id)p.id=uid('P');});
+  syncUidCounter();
   selected=null;multiSel=[];drawingRoom=null;
   undoStack=[];redoStack=[];updateUndoRedoButtons();
   setFstat(name,cls);
@@ -1538,6 +1551,7 @@ function showSaved(){var i=document.getElementById('as-ind');i.classList.add('sh
 function newBoard(){
   if(!confirm('Start a new blank board? Unsaved changes will be lost.'))return;
   board=defaultBoard();fileHandle=null;selected=null;multiSel=[];drawingRoom=null;
+  uidCounter=1;
   undoStack=[];redoStack=[];updateUndoRedoButtons();
   setFstat('untitled','none');resetView();render();
 }
