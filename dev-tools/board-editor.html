@@ -1591,7 +1591,7 @@ render();
     .catch(function(){});
 })();
 
-// ── FAVICON ANIMATION — blueprint grid + pencil & ruler, pulsing
+// ── FAVICON ANIMATION — board grid + gear & hammer, pulsing
 //    (same stagger mechanism as the other tool favicons) ─────────────────────
 (function(){
   var favicon=document.getElementById('fav-link');
@@ -1607,27 +1607,38 @@ render();
   function op(offset){ return ease(((Date.now()-offset)%DUR)/DUR); }
 
   var C='#4fc3f7';
-  // 3x3 dotted grid, the tool's blueprint-snap-grid motif
-  var DOTS='M7,7 h0 M16,7 h0 M25,7 h0 M7,16 h0 M16,16 h0 M25,16 h0 M7,25 h0 M16,25 h0 M25,25 h0';
-  // ruler on the anti-diagonal, with tick marks
-  var RULER='M6,26 L26,6 M11,17.8 L14.2,21 M14.4,14.4 L17.6,17.6 M17.8,11 L21,14.2';
-  // pencil on the main diagonal: shaft + tip + eraser cap
-  var PENCIL='M9,9 L21,21 M21,21 L26,26 L23.4,23.4 Z M9,9 L6.4,6.4 L9.4,9.4 Z';
+  var TEETH_ANGLES=[0,60,120,180,240,300];
 
-  function glow(d,w1,w2,o,cap){
-    cap=cap||'round';
-    return '<g opacity="'+o.toFixed(3)+'">'
-      +'<path d="'+d+'" stroke="'+C+'" stroke-width="'+w1+'" fill="'+C+'" stroke-linecap="'+cap+'" stroke-linejoin="round" opacity="0.5"/>'
-      +'<path d="'+d+'" stroke="'+C+'" stroke-width="'+w2+'" fill="'+C+'" stroke-linecap="'+cap+'" stroke-linejoin="round"/>'
-      +'</g>';
-  }
   function buildSVG(){
     var o=[op(0),op(STAG),op(STAG*2)];
-    return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">'
-      +glow(DOTS,4.5,3,o[0],'round')
-      +glow(RULER,3.4,1.6,o[1])
-      +glow(PENCIL,2.6,1.3,o[2])
-      +'</svg>';
+
+    // board layout grid: outer frame + a single cross, the tool's own grid motif
+    var grid='<g opacity="'+o[0].toFixed(3)+'">'
+      +'<path d="M4,4 H28 V28 H4 Z M16,4 V28 M4,16 H28" stroke="'+C+'" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.4"/>'
+      +'<path d="M4,4 H28 V28 H4 Z M16,4 V28 M4,16 H28" stroke="'+C+'" stroke-width="1.3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>'
+      +'</g>';
+
+    // gear: ring + 6 teeth + hub
+    var teeth='';
+    TEETH_ANGLES.forEach(function(deg){
+      teeth+='<rect x="14.9" y="8.6" width="2.2" height="3.2" rx="0.5" fill="'+C+'" transform="rotate('+deg+' 16 16)"/>';
+    });
+    var gear='<g opacity="'+o[1].toFixed(3)+'">'
+      +'<circle cx="16" cy="16" r="4.3" stroke="'+C+'" stroke-width="2.4" fill="none" opacity="0.4"/>'
+      +'<circle cx="16" cy="16" r="4.3" stroke="'+C+'" stroke-width="1.3" fill="none"/>'
+      +teeth
+      +'<circle cx="16" cy="16" r="1.3" fill="'+C+'"/>'
+      +'</g>';
+
+    // hammer, diagonal, head landing on the gear hub
+    var hammer='<g opacity="'+o[2].toFixed(3)+'" transform="translate(6,27) rotate(-45)">'
+      +'<rect x="0" y="-2.2" width="15" height="4.4" rx="1.6" fill="'+C+'" opacity="0.4"/>'
+      +'<rect x="0" y="-1.3" width="15" height="2.6" rx="1.3" fill="'+C+'"/>'
+      +'<rect x="11.5" y="-5.4" width="8" height="10.8" rx="1.6" fill="'+C+'" opacity="0.4"/>'
+      +'<rect x="12" y="-4.4" width="7" height="8.8" rx="1.3" fill="'+C+'"/>'
+      +'</g>';
+
+    return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">'+grid+gear+hammer+'</svg>';
   }
 
   setInterval(function(){
