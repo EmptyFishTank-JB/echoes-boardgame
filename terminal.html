@@ -51,6 +51,13 @@ body.override-mode{
   --theme-bgsolid:#000000 !important;--theme-glow-a:rgba(0,120,40,0.35) !important;
   --theme-glow-b:rgba(0,80,25,0.18) !important;
 }
+/* SYSTEM OVERRIDE transition veil — the theme swap itself (CSS custom
+   properties, innerHTML wipe) is instant; this covers it with a fade to
+   black and back so the swap reads as a smooth transition rather than a
+   flash. Sits above everything, inert to clicks either way. */
+#override-fade{position:fixed;inset:0;z-index:9999;background:#000;opacity:0;
+  pointer-events:none;transition:opacity 0.4s ease;}
+#override-fade.show{opacity:1;}
 *{margin:0;padding:0;box-sizing:border-box;}
 html,body{height:100%;background:#000;overflow:hidden;}
 body{transition:background 1.1s ease;}
@@ -177,6 +184,7 @@ body::after{content:"";position:fixed;inset:-50%;z-index:2;pointer-events:none;
 <body class="layer-1a">
 <canvas id="bg-canvas"></canvas>
 <div id="vignette"></div>
+<div id="override-fade"></div>
 <div id="power-overlay">
   <button id="power-btn">[ Power On / Initialize ]</button>
   <div id="power-sub"></div>
@@ -1440,19 +1448,24 @@ async function renderPullInline(nodeId){
 // Hardcoded, string-matched before any archData/nodes.json lookup — this has
 // to survive even a fully broken or failed archive load, so it can never
 // depend on the data it exists to diagnose. Typeable from any state.
+var overrideFadeEl=document.getElementById('override-fade');
+async function fadeToBlack(){overrideFadeEl.classList.add('show');await sleep(400);}
+async function fadeFromBlack(){overrideFadeEl.classList.remove('show');await sleep(400);}
 async function enterSystemOverride(){
+  overrideActive=true;isResponding=true;
   overrideSnapshot={
     html:output.innerHTML, termState:termState, currentLevel:currentLevel,
     breadcrumb:breadcrumbEl.textContent, title:titleEl.textContent,
     menuOpts:currentMenuOpts.slice(), menuSelIdx:menuSelIdx,
     inputValue:termInput.value, inputPlaceholder:termInput.placeholder
   };
-  overrideActive=true;isResponding=true;
+  await fadeToBlack();
   playEggTone();
   document.body.classList.add('override-mode');
   output.innerHTML='';currentMenuOpts=[];menuSelIdx=-1;termInput.value='';termInput.placeholder='';
   setBreadcrumb('SYSTEM OVERRIDE');
   setHeaderTitle('SYSTEM OVERRIDE — UNAUTHORIZED ACCESS');
+  await fadeFromBlack();
   var h=addLine('full',true);await typeLine(h,'> SYSTEM OVERRIDE');
   var a=addLine('full',true);await typeLine(a,'> ACCESS GRANTED');
   await sleep(120);
@@ -1551,9 +1564,11 @@ async function handleOverrideInput(val){
 }
 async function exitSystemOverride(){
   var snap=overrideSnapshot;overrideSnapshot=null;overrideActive=false;
+  await fadeToBlack();
   document.body.classList.remove('override-mode');
   if(!snap){
     termState='L1_NORMAL';output.innerHTML='';setBreadcrumb('');setHeaderTitle('');
+    await fadeFromBlack();
     var pl=addLine('low');await typeLine(pl,'> AWAITING INPUT');setActiveCursor(pl);
     isResponding=false;termInput.focus();return;
   }
@@ -1566,6 +1581,7 @@ async function exitSystemOverride(){
   termInput.value=snap.inputValue;termInput.placeholder=snap.inputPlaceholder;
   var cur=output.querySelector('.t-cursor');if(cur)cursorEl=cur;
   output.scrollTop=output.scrollHeight;
+  await fadeFromBlack();
   isResponding=false;termInput.focus();
 }
 
