@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BOARD EDITOR</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --blue:#4fc3f7;--amber:#bf7c0a;--dim:rgba(79,195,247,0.78);--bdr:rgba(79,195,247,0.10);
+  --dark:#00080e;--outer-bg:#0a0f14;--canvas-bg:#0d1620;--canvas-border:#4fc3f7;
+}
+html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"Share Tech Mono",monospace;font-size:14px;overflow:hidden;}
+#app{display:flex;flex-direction:column;height:100vh;}
+
+/* HEADER */
+#hdr{display:flex;align-items:center;gap:8px;padding:6px 14px;border-bottom:1px solid var(--bdr);flex-shrink:0;background:rgba(0,4,10,0.98);flex-wrap:wrap;}
+.htitle{font-size:14px;letter-spacing:0.14em;flex:1;}
+.tver{font-size:10px;color:var(--amber);letter-spacing:0.06em;margin-left:8px;}
+.hbtn{background:transparent;border:1px solid rgba(79,195,247,0.16);color:var(--dim);font-family:"Share Tech Mono",monospace;font-size:12px;letter-spacing:0.06em;padding:4px 10px;cursor:pointer;transition:all 0.15s;white-space:nowrap;}
+.hbtn:hover{border-color:var(--blue);color:var(--blue);filter:brightness(1.25);box-shadow:0 0 8px rgba(79,195,247,0.50);}
+#fstat{font-size:12px;padding:2px 9px;border:1px solid;letter-spacing:0.06em;}
+#fstat.none{border-color:rgba(79,195,247,0.10);color:var(--dim);}
+#fstat.ro{border-color:rgba(191,124,10,0.28);color:var(--amber);}
+#fstat.rw{border-color:rgba(111,176,111,0.35);color:#6fb06f;}
+#as-ind{color:#6fb06f;opacity:0;transition:opacity 0.4s;font-size:12px;}
+#as-ind.show{opacity:1;}
+.hright{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.back{font-size:11px;color:var(--dim);text-decoration:none;letter-spacing:0.06em;margin-right:6px;}
+.back:hover{color:var(--blue);}
+
+/* TOOLBAR */
+#toolbar{display:flex;align-items:center;gap:6px;padding:5px 13px;border-bottom:1px solid var(--bdr);flex-shrink:0;flex-wrap:wrap;}
+.tbtn{background:transparent;border:1px solid rgba(79,195,247,0.14);color:var(--dim);font-family:"Share Tech Mono",monospace;font-size:12px;padding:4px 9px;cursor:pointer;transition:all 0.15s;letter-spacing:0.05em;white-space:nowrap;}
+.tbtn:hover{border-color:var(--blue);color:var(--blue);filter:brightness(1.25);box-shadow:0 0 8px rgba(79,195,247,0.50);}
+.tbtn.on{border-color:var(--blue);color:var(--blue);background:rgba(79,195,247,0.09);box-shadow:0 0 6px rgba(79,195,247,0.28);}
+.tsep{width:1px;height:20px;background:rgba(79,195,247,0.10);flex-shrink:0;margin:0 2px;}
+#toolbar select{background:rgba(79,195,247,0.04);border:1px solid rgba(79,195,247,0.18);color:var(--blue);font-family:"Share Tech Mono",monospace;font-size:12px;padding:3px 5px;}
+#zoom-info{font-size:12px;color:var(--dim);min-width:40px;text-align:center;}
+.tlabel{font-size:10px;color:rgba(79,195,247,0.40);letter-spacing:0.08em;margin-right:2px;}
+
+/* BODY */
+#body-main{display:flex;flex:1;min-height:0;}
+#canvas-wrap{flex:1;overflow:hidden;position:relative;background:var(--canvas-bg);cursor:default;}
+#canvas-wrap.tool-room,#canvas-wrap.tool-point{cursor:crosshair;}
+#canvas-wrap.tool-door{cursor:pointer;}
+#canvas-wrap.panning{cursor:grabbing!important;}
+#canvas-inner{position:absolute;top:0;left:0;transform-origin:0 0;}
+#board-svg{display:block;}
+.room-poly{cursor:pointer;transition:filter 0.1s;}
+.room-poly:hover{filter:brightness(1.3);}
+.room-poly.selected{filter:brightness(1.4);}
+.room-edge{cursor:pointer;}
+.room-label{font-family:"Share Tech Mono",monospace;font-size:12px;fill:rgba(255,255,255,0.82);pointer-events:none;text-anchor:middle;}
+.room-sublabel{font-family:"Share Tech Mono",monospace;font-size:9px;fill:rgba(255,255,255,0.42);pointer-events:none;text-anchor:middle;}
+.vtx-handle{fill:#fff;stroke:#4fc3f7;stroke-width:1.5;cursor:grab;}
+.vtx-handle:hover{fill:#4fc3f7;}
+.bpoint{cursor:pointer;}
+.bpoint-glyph{font-family:"Share Tech Mono",monospace;font-size:10px;fill:#00080e;font-weight:bold;pointer-events:none;text-anchor:middle;dominant-baseline:central;}
+.bpoint-label{font-family:"Share Tech Mono",monospace;font-size:9px;fill:rgba(255,255,255,0.65);pointer-events:none;text-anchor:middle;}
+.bpoint.selected .bpoint-shape{stroke:#fff;stroke-width:2.5;}
+.draw-vtx{fill:#fff;stroke:#4fc3f7;stroke-width:1.5;}
+.draw-line{stroke:#4fc3f7;stroke-width:2;stroke-dasharray:4,3;fill:none;}
+.draw-rubber{stroke:rgba(79,195,247,0.55);stroke-width:1.5;stroke-dasharray:3,3;fill:none;}
+.draw-close-hint{fill:none;stroke:#6fb06f;stroke-width:2;}
+
+/* PROPS PANEL */
+#props-panel{width:270px;flex-shrink:0;border-left:1px solid var(--bdr);background:rgba(0,4,10,0.98);overflow-y:auto;padding:14px;}
+.pp-h{font-size:11px;letter-spacing:0.14em;color:var(--dim);margin:0 0 8px;padding-bottom:6px;border-bottom:1px solid var(--bdr);}
+.pp-h:not(:first-child){margin-top:18px;}
+.pp-row{margin-bottom:10px;}
+.pp-row label{display:block;font-size:10px;color:rgba(79,195,247,0.45);letter-spacing:0.08em;margin-bottom:3px;}
+.pp-row input[type=text],.pp-row select,.pp-row textarea{width:100%;background:rgba(79,195,247,0.05);border:1px solid rgba(79,195,247,0.18);color:var(--blue);font-family:"Share Tech Mono",monospace;font-size:12px;padding:5px 6px;}
+.pp-row textarea{resize:vertical;min-height:44px;}
+.pp-empty{font-size:11px;color:rgba(79,195,247,0.30);line-height:1.6;}
+.pp-del{width:100%;background:transparent;border:1px solid rgba(224,80,80,0.35);color:#e05050;font-family:"Share Tech Mono",monospace;font-size:11px;padding:6px;cursor:pointer;margin-top:6px;letter-spacing:0.05em;}
+.pp-del:hover{background:rgba(224,80,80,0.10);border-color:#e05050;}
+.fam-row{display:flex;align-items:center;gap:5px;margin-bottom:5px;}
+.fam-swatch{width:14px;height:14px;flex-shrink:0;border-radius:2px;border:1px solid rgba(255,255,255,0.2);}
+.fam-row input[type=text]{flex:1;min-width:0;background:rgba(79,195,247,0.04);border:1px solid rgba(79,195,247,0.14);color:var(--blue);font-family:"Share Tech Mono",monospace;font-size:11px;padding:3px 5px;}
+.fam-row input[type=color]{width:22px;height:22px;flex-shrink:0;padding:0;border:none;background:none;cursor:pointer;}
+.fam-del{background:transparent;border:none;color:rgba(224,80,80,0.55);cursor:pointer;font-size:13px;flex-shrink:0;padding:0 2px;}
+.fam-del:hover{color:#e05050;}
+.fam-add{width:100%;background:transparent;border:1px dashed rgba(79,195,247,0.24);color:var(--dim);font-family:"Share Tech Mono",monospace;font-size:11px;padding:5px;cursor:pointer;margin-top:4px;}
+.fam-add:hover{border-color:var(--blue);color:var(--blue);}
+.legend-row{display:flex;align-items:center;gap:6px;font-size:11px;color:rgba(79,195,247,0.65);margin-bottom:4px;}
+.legend-glyph{width:14px;height:14px;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:bold;color:#00080e;flex-shrink:0;}
+
+#toast{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);background:rgba(2,8,16,0.97);border:1px solid rgba(79,195,247,0.24);color:var(--blue);padding:6px 16px;font-size:13px;letter-spacing:0.05em;opacity:0;transition:opacity 0.22s;pointer-events:none;z-index:2000;}
+#toast.show{opacity:1;}
+#hint{position:fixed;bottom:14px;left:14px;font-size:11px;color:rgba(79,195,247,0.35);letter-spacing:0.03em;max-width:60vw;pointer-events:none;}
+::-webkit-scrollbar{width:5px;height:5px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:rgba(79,195,247,0.14);}
+
+#print-legend{display:none;}
+
+@media print{
+  html,body{background:#fff!important;overflow:visible!important;height:auto!important;}
+  #hdr,#toolbar,#props-panel,#toast,#hint{display:none!important;}
+  #app,#body-main{display:block!important;height:auto!important;}
+  #canvas-wrap{overflow:visible!important;position:static!important;background:#fff!important;}
+  #canvas-inner{position:static!important;transform:none!important;}
+  #board-svg{width:100%!important;height:auto!important;}
+  #grid-bg{display:none;}
+  .room-label{fill:#111!important;}
+  .room-sublabel{fill:#444!important;}
+  .bpoint-label{fill:#111!important;}
+  #print-legend{display:block!important;font-family:"Share Tech Mono",monospace;color:#111;padding:14px 4px;font-size:11px;}
+  #print-legend .pl-title{font-size:13px;letter-spacing:0.1em;margin-bottom:8px;font-weight:bold;}
+  #print-legend .pl-grid{display:flex;flex-wrap:wrap;gap:10px 20px;}
+  #print-legend .pl-item{display:flex;align-items:center;gap:6px;}
+  #print-legend .pl-swatch{width:12px;height:12px;border-radius:2px;border:1px solid #999;}
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+<div id="hdr">
+  <a class="back" href="index.html">&larr; DEV TOOLS</a>
+  <span class="htitle">BOARD EDITOR<span class="tver">v1.0</span></span>
+  <span id="as-ind">&#10003; SAVED</span>
+  <span id="fstat" class="none">NO FILE</span>
+  <div class="hright">
+    <button class="hbtn" onclick="newBoard()">&#9783; NEW</button>
+    <button class="hbtn" onclick="loadFromGitHub()">&#8681; GITHUB</button>
+    <button class="hbtn" onclick="openFile()">&#8213; OPEN</button>
+    <button class="hbtn" onclick="saveToFile()">&#8679; SAVE</button>
+    <button class="hbtn" onclick="saveAsFile()">&#8679; SAVE AS</button>
+    <button class="hbtn" onclick="window.print()">&#9113; PRINT</button>
+  </div>
+</div>
+
+<div id="toolbar">
+  <button class="tbtn on" id="btn-select" onclick="setTool('select')">&#9654; SELECT</button>
+  <button class="tbtn" id="btn-room" onclick="setTool('room')">&#9635; ROOM</button>
+  <button class="tbtn" id="btn-door" onclick="setTool('door')">&#8862; DOOR</button>
+  <div class="tsep"></div>
+  <button class="tbtn" id="btn-terminal" onclick="setPointTool('terminal')">&#9670; TERMINAL</button>
+  <button class="tbtn" id="btn-vent" onclick="setPointTool('vent')">&#9635; VENT</button>
+  <button class="tbtn" id="btn-locker" onclick="setPointTool('locker')">&#9633; LOCKER</button>
+  <button class="tbtn" id="btn-other" onclick="setPointTool('other')">&#9679; POINT</button>
+  <div class="tsep"></div>
+  <span class="tlabel">FAMILY</span>
+  <select id="tool-family" onchange="activeFamily=this.value"></select>
+  <div class="tsep"></div>
+  <button class="tbtn" onclick="zoomBy(1.2)">+</button>
+  <span id="zoom-info">100%</span>
+  <button class="tbtn" onclick="zoomBy(1/1.2)">&minus;</button>
+  <button class="tbtn" onclick="resetView()">FIT</button>
+</div>
+
+<div id="body-main">
+  <div id="canvas-wrap">
+    <div id="canvas-inner">
+      <svg id="board-svg" xmlns="http://www.w3.org/2000/svg" width="4000" height="3000">
+        <defs>
+          <pattern id="gridPattern" width="40" height="40" patternUnits="userSpaceOnUse">
+            <circle cx="0" cy="0" r="1.4" fill="rgba(79,195,247,0.22)"/>
+          </pattern>
+        </defs>
+        <rect id="grid-bg" x="-2000" y="-2000" width="8000" height="7000" fill="url(#gridPattern)"/>
+        <g id="content-group">
+          <g id="rooms-layer"></g>
+          <g id="points-layer"></g>
+          <g id="draw-preview-layer"></g>
+          <g id="handles-layer"></g>
+        </g>
+      </svg>
+    </div>
+  </div>
+
+  <div id="props-panel"><div id="pp-body"></div></div>
+</div>
+
+</div>
+
+<div id="print-legend">
+  <div class="pl-title">// ECHOES — BOARD LEGEND</div>
+  <div class="pl-grid" id="pl-grid"></div>
+</div>
+
+<input type="file" id="fi" accept=".json" style="display:none" onchange="onFileIn(event)">
+<div id="toast"></div>
+<div id="hint">SELECT: click to pick, drag to move &middot; ROOM: click to add points, click first point (or Enter) to close, Esc to cancel &middot; DOOR: click a wall edge to toggle &middot; scroll to zoom, right-drag to pan</div>
+
+<script>
+'use strict';
+
+// ── DEFAULT DATA ──────────────────────────────────────────────────────────────
+var DEFAULT_FAMILIES = {
+  ops_center:    {label:'Operations Center',          color:'#E8732A', type:'fixed'},
+  airlock:       {label:'Airlock / Hull Access',      color:'#4A90D9', type:'fixed'},
+  transit:       {label:'Transit Infrastructure',     color:'#9ca3af', type:'fixed'},
+  dock:          {label:'The Dock',                   color:'#4fc3f7', type:'fixed'},
+  corridors:     {label:'Corridors',                  color:'#556070', type:'fixed'},
+  research:      {label:'Research / Laboratory',      color:'#4db896', type:'tile'},
+  medical:       {label:'Medical',                    color:'#e05050', type:'tile'},
+  engineering:   {label:'Engineering / Maintenance',  color:'#bf7c0a', type:'tile'},
+  reactor:       {label:'Reactor',                    color:'#ff8800', type:'tile'},
+  cargo:         {label:'Cargo / Storage',             color:'#c9a24a', type:'tile'},
+  crew_quarters: {label:'Crew Quarters',               color:'#7fb0e0', type:'tile'},
+  hydroponics:   {label:'Hydroponics / Life Support',  color:'#6fb06f', type:'tile'},
+  security:      {label:'Security',                    color:'#c0504d', type:'tile'},
+  garage:        {label:'Garage / Workshop',            color:'#a0785a', type:'tile'},
+  communications:{label:'Communications',               color:'#c47fc4', type:'tile'},
+  dormitories:   {label:'Dormitories',                  color:'#8892a6', type:'tile'}
+};
+function defaultBoard(){
+  return {
+    meta:{version:'1.0',name:'ECHOES Board — Draft',editor_version:'1.0',last_saved:null},
+    families:JSON.parse(JSON.stringify(DEFAULT_FAMILIES)),
+    rooms:[],
+    points:[]
+  };
+}
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+var board=defaultBoard();
+var fileHandle=null;
+var pan={x:80,y:60}, zoom=1;
+var tool='select', pointType='terminal', activeFamily='cargo';
+var drawingRoom=null;               // {points:[{x,y},...]}
+var selected=null;                  // {kind:'room'|'point', id}
+var isPanning=false, panStart=null;
+var draggingVertex=null;            // {roomId, idx}
+var draggingWhole=null;             // {kind, id, orig:[{x,y}...] or {x,y}, mouse0}
+var mouseBoard={x:0,y:0};
+var uidCounter=1;
+function uid(prefix){return prefix+(uidCounter++);}
+
+var GRID=40, SNAP=GRID/2;
+
+// ── COORD HELPERS ─────────────────────────────────────────────────────────────
+function screenToBoard(cx,cy){
+  var rect=document.getElementById('canvas-wrap').getBoundingClientRect();
+  return {x:(cx-rect.left-pan.x)/zoom, y:(cy-rect.top-pan.y)/zoom};
+}
+function snapPt(p){return {x:Math.round(p.x/SNAP)*SNAP, y:Math.round(p.y/SNAP)*SNAP};}
+function hexToRgba(hex,a){
+  hex=(hex||'#4fc3f7').replace('#','');
+  if(hex.length===3)hex=hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];
+  var r=parseInt(hex.slice(0,2),16),g=parseInt(hex.slice(2,4),16),b=parseInt(hex.slice(4,6),16);
+  return 'rgba('+r+','+g+','+b+','+a+')';
+}
+
+// ── TOOL SELECTION ────────────────────────────────────────────────────────────
+function setTool(t){
+  tool=t;
+  drawingRoom=null;
+  document.querySelectorAll('#toolbar .tbtn').forEach(function(b){b.classList.remove('on');});
+  var idMap={select:'btn-select',room:'btn-room',door:'btn-door'};
+  if(idMap[t])document.getElementById(idMap[t]).classList.add('on');
+  document.getElementById('canvas-wrap').className=t!=='select'?'tool-'+t:'';
+  render();
+}
+function setPointTool(pt){
+  tool='point';pointType=pt;
+  document.querySelectorAll('#toolbar .tbtn').forEach(function(b){b.classList.remove('on');});
+  var idMap={terminal:'btn-terminal',vent:'btn-vent',locker:'btn-locker',other:'btn-other'};
+  document.getElementById(idMap[pt]).classList.add('on');
+  document.getElementById('canvas-wrap').className='tool-point';
+  drawingRoom=null;render();
+}
+
+// ── FAMILY DROPDOWN ───────────────────────────────────────────────────────────
+function rebuildFamilySelect(){
+  var sel=document.getElementById('tool-family');
+  var keys=Object.keys(board.families);
+  if(keys.indexOf(activeFamily)===-1)activeFamily=keys[0]||'';
+  sel.innerHTML=keys.map(function(k){return '<option value="'+k+'"'+(k===activeFamily?' selected':'')+'>'+esc(board.families[k].label)+'</option>';}).join('');
+}
+function esc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// ── PAN / ZOOM ────────────────────────────────────────────────────────────────
+function applyTransform(){
+  document.getElementById('canvas-inner').style.transform='translate('+pan.x+'px,'+pan.y+'px) scale('+zoom+')';
+  document.getElementById('zoom-info').textContent=Math.round(zoom*100)+'%';
+}
+function zoomBy(f,cx,cy){
+  var wrap=document.getElementById('canvas-wrap');
+  var rect=wrap.getBoundingClientRect();
+  cx=(cx!=null)?cx:rect.width/2; cy=(cy!=null)?cy:rect.height/2;
+  var before=screenToBoard(rect.left+cx,rect.top+cy);
+  zoom=Math.max(0.15,Math.min(4,zoom*f));
+  var after=screenToBoard(rect.left+cx,rect.top+cy);
+  pan.x+=(after.x-before.x)*zoom;
+  pan.y+=(after.y-before.y)*zoom;
+  applyTransform();
+}
+function resetView(){pan={x:80,y:60};zoom=1;applyTransform();}
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+var SVG_NS='http://www.w3.org/2000/svg';
+function el(tag,attrs){
+  var e=document.createElementNS(SVG_NS,tag);
+  for(var k in attrs)e.setAttribute(k,attrs[k]);
+  return e;
+}
+function polyPoints(pts){return pts.map(function(p){return p.x+','+p.y;}).join(' ');}
+function centroid(pts){
+  var x=0,y=0;pts.forEach(function(p){x+=p.x;y+=p.y;});
+  return {x:x/pts.length,y:y/pts.length};
+}
+
+function render(){
+  renderRooms();
+  renderPoints();
+  renderDrawPreview();
+  renderHandles();
+  rebuildFamilySelect();
+  renderProps();
+}
+
+function renderRooms(){
+  var layer=document.getElementById('rooms-layer');
+  layer.innerHTML='';
+  board.rooms.forEach(function(room){
+    var fam=board.families[room.family]||{color:'#4fc3f7',label:room.family};
+    var g=el('g',{'data-room-id':room.id});
+    var poly=el('polygon',{
+      points:polyPoints(room.points),
+      fill:hexToRgba(fam.color,0.22),
+      class:'room-poly'+(selected&&selected.kind==='room'&&selected.id===room.id?' selected':''),
+      'data-room-id':room.id
+    });
+    poly.addEventListener('mousedown',function(e){onRoomMouseDown(e,room.id);});
+    g.appendChild(poly);
+    var doors=room.doors||[];
+    room.points.forEach(function(p1,i){
+      var p2=room.points[(i+1)%room.points.length];
+      var isDoor=doors.indexOf(i)!==-1;
+      if(isDoor){
+        var dx=p2.x-p1.x, dy=p2.y-p1.y;
+        var a=el('line',{x1:p1.x,y1:p1.y,x2:p1.x+dx*0.32,y2:p1.y+dy*0.32,stroke:fam.color,'stroke-width':4,class:'room-edge'});
+        var b=el('line',{x1:p1.x+dx*0.68,y1:p1.y+dy*0.68,x2:p2.x,y2:p2.y,stroke:fam.color,'stroke-width':4,class:'room-edge'});
+        var mid={x:p1.x+dx*0.5,y:p1.y+dy*0.5};
+        var doorMark=el('rect',{x:mid.x-4,y:mid.y-4,width:8,height:8,fill:'#fff',stroke:fam.color,'stroke-width':1.5,transform:'rotate(45 '+mid.x+' '+mid.y+')'});
+        [a,b].forEach(function(seg){seg.addEventListener('mousedown',function(e){onEdgeMouseDown(e,room.id,i);});});
+        g.appendChild(a);g.appendChild(b);g.appendChild(doorMark);
+      }else{
+        var line=el('line',{x1:p1.x,y1:p1.y,x2:p2.x,y2:p2.y,stroke:fam.color,'stroke-width':4,class:'room-edge'});
+        line.addEventListener('mousedown',function(e){onEdgeMouseDown(e,room.id,i);});
+        g.appendChild(line);
+      }
+    });
+    var c=centroid(room.points);
+    var label=el('text',{x:c.x,y:c.y-6,class:'room-label'});
+    label.textContent=room.label||fam.label;
+    g.appendChild(label);
+    var sub=el('text',{x:c.x,y:c.y+8,class:'room-sublabel'});
+    sub.textContent=fam.label;
+    g.appendChild(sub);
+    layer.appendChild(g);
+  });
+}
+
+var POINT_GLYPH={terminal:'T',vent:'V',locker:'L',other:'?'};
+var POINT_COLOR={terminal:'#4fc3f7',vent:'#6fb06f',locker:'#c9a24a',other:'#9ca3af'};
+function renderPoints(){
+  var layer=document.getElementById('points-layer');
+  layer.innerHTML='';
+  board.points.forEach(function(pt){
+    var color=pt.type==='terminal'&&pt.family&&board.families[pt.family]?board.families[pt.family].color:POINT_COLOR[pt.type]||'#9ca3af';
+    var g=el('g',{class:'bpoint'+(selected&&selected.kind==='point'&&selected.id===pt.id?' selected':''),'data-point-id':pt.id});
+    var shape;
+    if(pt.type==='terminal'){
+      shape=el('rect',{x:pt.x-7,y:pt.y-7,width:14,height:14,fill:color,transform:'rotate(45 '+pt.x+' '+pt.y+')',class:'bpoint-shape'});
+    }else if(pt.type==='vent'){
+      shape=el('rect',{x:pt.x-8,y:pt.y-6,width:16,height:12,fill:color,rx:2,class:'bpoint-shape'});
+    }else if(pt.type==='locker'){
+      shape=el('rect',{x:pt.x-6,y:pt.y-6,width:12,height:12,fill:color,rx:1,class:'bpoint-shape'});
+    }else{
+      shape=el('circle',{cx:pt.x,cy:pt.y,r:7,fill:color,class:'bpoint-shape'});
+    }
+    g.appendChild(shape);
+    var glyph=el('text',{x:pt.x,y:pt.y+1,class:'bpoint-glyph'});
+    glyph.textContent=POINT_GLYPH[pt.type]||'?';
+    g.appendChild(glyph);
+    if(pt.label){
+      var lbl=el('text',{x:pt.x,y:pt.y+20,class:'bpoint-label'});
+      lbl.textContent=pt.label;
+      g.appendChild(lbl);
+    }
+    g.addEventListener('mousedown',function(e){onPointMouseDown(e,pt.id);});
+    layer.appendChild(g);
+  });
+}
+
+function renderDrawPreview(){
+  var layer=document.getElementById('draw-preview-layer');
+  layer.innerHTML='';
+  if(!drawingRoom)return;
+  var pts=drawingRoom.points;
+  for(var i=0;i<pts.length-1;i++){
+    layer.appendChild(el('line',{x1:pts[i].x,y1:pts[i].y,x2:pts[i+1].x,y2:pts[i+1].y,class:'draw-line'}));
+  }
+  if(pts.length){
+    layer.appendChild(el('line',{x1:pts[pts.length-1].x,y1:pts[pts.length-1].y,x2:mouseBoard.x,y2:mouseBoard.y,class:'draw-rubber'}));
+  }
+  pts.forEach(function(p,i){
+    var near=i===0&&pts.length>=3&&dist(p,mouseBoard)<10/zoom;
+    layer.appendChild(el('circle',{cx:p.x,cy:p.y,r:near?7:4,class:i===0?'draw-close-hint':'draw-vtx'}));
+  });
+}
+
+function renderHandles(){
+  var layer=document.getElementById('handles-layer');
+  layer.innerHTML='';
+  if(!selected||selected.kind!=='room')return;
+  var room=board.rooms.filter(function(r){return r.id===selected.id;})[0];
+  if(!room)return;
+  room.points.forEach(function(p,i){
+    var h=el('circle',{cx:p.x,cy:p.y,r:5,class:'vtx-handle'});
+    h.addEventListener('mousedown',function(e){e.stopPropagation();draggingVertex={roomId:room.id,idx:i};});
+    layer.appendChild(h);
+  });
+}
+
+function dist(a,b){var dx=a.x-b.x,dy=a.y-b.y;return Math.sqrt(dx*dx+dy*dy);}
+function distToSeg(p,a,b){
+  var l2=(b.x-a.x)*(b.x-a.x)+(b.y-a.y)*(b.y-a.y);
+  if(l2===0)return dist(p,a);
+  var t=((p.x-a.x)*(b.x-a.x)+(p.y-a.y)*(b.y-a.y))/l2;
+  t=Math.max(0,Math.min(1,t));
+  return dist(p,{x:a.x+t*(b.x-a.x),y:a.y+t*(b.y-a.y)});
+}
+function pointInPolygon(p,pts){
+  var inside=false;
+  for(var i=0,j=pts.length-1;i<pts.length;j=i++){
+    var xi=pts[i].x,yi=pts[i].y,xj=pts[j].x,yj=pts[j].y;
+    var intersect=((yi>p.y)!==(yj>p.y))&&(p.x<(xj-xi)*(p.y-yi)/(yj-yi)+xi);
+    if(intersect)inside=!inside;
+  }
+  return inside;
+}
+
+// ── PROPS PANEL ───────────────────────────────────────────────────────────────
+function renderProps(){
+  var body=document.getElementById('pp-body');
+  var html='';
+  if(selected&&selected.kind==='room'){
+    var room=board.rooms.filter(function(r){return r.id===selected.id;})[0];
+    if(room){
+      html+='<div class="pp-h">ROOM</div>';
+      html+='<div class="pp-row"><label>FAMILY</label><select onchange="setRoomFamily(\''+room.id+'\',this.value)">'+
+        Object.keys(board.families).map(function(k){return '<option value="'+k+'"'+(k===room.family?' selected':'')+'>'+esc(board.families[k].label)+'</option>';}).join('')+
+        '</select></div>';
+      html+='<div class="pp-row"><label>LABEL (optional)</label><input type="text" value="'+esc(room.label||'')+'" oninput="setRoomLabel(\''+room.id+'\',this.value)"></div>';
+      html+='<div class="pp-row"><label>NOTES</label><textarea oninput="setRoomNotes(\''+room.id+'\',this.value)">'+esc(room.notes||'')+'</textarea></div>';
+      html+='<div class="pp-empty">'+room.points.length+' vertices &middot; '+(room.doors||[]).length+' door(s)<br>Drag white handles to reshape. DOOR tool toggles an edge.</div>';
+      html+='<button class="pp-del" onclick="deleteRoom(\''+room.id+'\')">DELETE ROOM</button>';
+    }
+  }else if(selected&&selected.kind==='point'){
+    var pt=board.points.filter(function(p){return p.id===selected.id;})[0];
+    if(pt){
+      html+='<div class="pp-h">POINT</div>';
+      html+='<div class="pp-row"><label>TYPE</label><select onchange="setPointType(\''+pt.id+'\',this.value)">'+
+        ['terminal','vent','locker','other'].map(function(t){return '<option value="'+t+'"'+(t===pt.type?' selected':'')+'>'+t.toUpperCase()+'</option>';}).join('')+
+        '</select></div>';
+      if(pt.type==='terminal'){
+        html+='<div class="pp-row"><label>FAMILY (which terminal)</label><select onchange="setPointFamily(\''+pt.id+'\',this.value)">'+
+          '<option value=""'+(!pt.family?' selected':'')+'>&mdash;</option>'+
+          Object.keys(board.families).map(function(k){return '<option value="'+k+'"'+(k===pt.family?' selected':'')+'>'+esc(board.families[k].label)+'</option>';}).join('')+
+          '</select></div>';
+      }
+      html+='<div class="pp-row"><label>LABEL</label><input type="text" value="'+esc(pt.label||'')+'" oninput="setPointLabel(\''+pt.id+'\',this.value)"></div>';
+      html+='<button class="pp-del" onclick="deletePoint(\''+pt.id+'\')">DELETE POINT</button>';
+    }
+  }else{
+    html+='<div class="pp-h">BOARD</div>';
+    html+='<div class="pp-row"><label>NAME</label><input type="text" value="'+esc(board.meta.name||'')+'" oninput="board.meta.name=this.value"></div>';
+    html+='<div class="pp-empty">'+board.rooms.length+' room(s) &middot; '+board.points.length+' point(s)</div>';
+
+    html+='<div class="pp-h">FAMILIES</div>';
+    Object.keys(board.families).forEach(function(k){
+      var f=board.families[k];
+      html+='<div class="fam-row">'+
+        '<input type="color" value="'+f.color+'" onchange="setFamilyColor(\''+k+'\',this.value)">'+
+        '<input type="text" value="'+esc(f.label)+'" oninput="setFamilyLabel(\''+k+'\',this.value)">'+
+        '<button class="fam-del" title="Delete family" onclick="deleteFamily(\''+k+'\')">&#10005;</button>'+
+        '</div>';
+    });
+    html+='<button class="fam-add" onclick="addFamily()">+ ADD FAMILY</button>';
+
+    html+='<div class="pp-h">LEGEND — POINTS</div>';
+    Object.keys(POINT_GLYPH).forEach(function(t){
+      html+='<div class="legend-row"><span class="legend-glyph" style="background:'+POINT_COLOR[t]+'">'+POINT_GLYPH[t]+'</span>'+t.toUpperCase()+'</div>';
+    });
+  }
+  body.innerHTML=html;
+}
+
+function setRoomFamily(id,v){var r=findRoom(id);if(r){r.family=v;render();}}
+function setRoomLabel(id,v){var r=findRoom(id);if(r)r.label=v;renderRooms();}
+function setRoomNotes(id,v){var r=findRoom(id);if(r)r.notes=v;}
+function setPointType(id,v){var p=findPoint(id);if(p){p.type=v;render();}}
+function setPointFamily(id,v){var p=findPoint(id);if(p){p.family=v||null;render();}}
+function setPointLabel(id,v){var p=findPoint(id);if(p)p.label=v;renderPoints();}
+function findRoom(id){return board.rooms.filter(function(r){return r.id===id;})[0];}
+function findPoint(id){return board.points.filter(function(p){return p.id===id;})[0];}
+
+function setFamilyColor(k,v){board.families[k].color=v;render();}
+function setFamilyLabel(k,v){board.families[k].label=v;render();}
+function deleteFamily(k){
+  if(!confirm('Delete family "'+board.families[k].label+'"? Rooms/points using it will keep the raw key but show no color.'))return;
+  delete board.families[k];render();
+}
+function addFamily(){
+  var key=prompt('New family key (lowercase, no spaces, e.g. "reactor"):');
+  if(!key)return;
+  key=key.trim().toLowerCase().replace(/[^a-z0-9_]/g,'_');
+  if(!key||board.families[key]){toast('Invalid or duplicate key');return;}
+  board.families[key]={label:key,color:'#4fc3f7',type:'tile'};
+  render();
+}
+
+// ── MUTATIONS ─────────────────────────────────────────────────────────────────
+function commitRoom(){
+  if(!drawingRoom||drawingRoom.points.length<3){drawingRoom=null;render();return;}
+  board.rooms.push({id:uid('R'),family:activeFamily,label:'',notes:'',points:drawingRoom.points,doors:[]});
+  drawingRoom=null;
+  render();
+}
+function toggleDoor(roomId,edgeIdx){
+  var r=findRoom(roomId);if(!r)return;
+  r.doors=r.doors||[];
+  var i=r.doors.indexOf(edgeIdx);
+  if(i===-1)r.doors.push(edgeIdx);else r.doors.splice(i,1);
+  render();
+}
+function deleteRoom(id){
+  board.rooms=board.rooms.filter(function(r){return r.id!==id;});
+  if(selected&&selected.id===id)selected=null;
+  render();
+}
+function deletePoint(id){
+  board.points=board.points.filter(function(p){return p.id!==id;});
+  if(selected&&selected.id===id)selected=null;
+  render();
+}
+
+// ── MOUSE HANDLERS ────────────────────────────────────────────────────────────
+var wrap;
+function onRoomMouseDown(e,roomId){
+  if(tool!=='select')return;
+  e.stopPropagation();
+  selected={kind:'room',id:roomId};
+  var room=findRoom(roomId);
+  draggingWhole={kind:'room',id:roomId,mouse0:screenToBoard(e.clientX,e.clientY),orig:JSON.parse(JSON.stringify(room.points))};
+  render();
+}
+function onPointMouseDown(e,ptId){
+  if(tool!=='select')return;
+  e.stopPropagation();
+  selected={kind:'point',id:ptId};
+  var pt=findPoint(ptId);
+  draggingWhole={kind:'point',id:ptId,mouse0:screenToBoard(e.clientX,e.clientY),orig:{x:pt.x,y:pt.y}};
+  render();
+}
+function onEdgeMouseDown(e,roomId,edgeIdx){
+  if(tool!=='door')return;
+  e.stopPropagation();
+  toggleDoor(roomId,edgeIdx);
+}
+
+function initCanvas(){
+  wrap=document.getElementById('canvas-wrap');
+
+  wrap.addEventListener('contextmenu',function(e){e.preventDefault();});
+
+  wrap.addEventListener('mousedown',function(e){
+    var bp=snapPt(screenToBoard(e.clientX,e.clientY));
+    if(e.button===2||e.button===1){
+      isPanning=true;panStart={x:e.clientX,y:e.clientY,pan0:{x:pan.x,y:pan.y}};
+      wrap.classList.add('panning');
+      return;
+    }
+    if(e.button!==0)return;
+
+    if(tool==='room'){
+      if(!drawingRoom){drawingRoom={points:[bp]};}
+      else{
+        var first=drawingRoom.points[0];
+        if(drawingRoom.points.length>=3&&dist(bp,first)<10/zoom){commitRoom();}
+        else drawingRoom.points.push(bp);
+      }
+      render();
+    }else if(tool==='point'){
+      var pt={id:uid('P'),type:pointType,x:bp.x,y:bp.y,label:'',family:pointType==='terminal'?activeFamily:null};
+      board.points.push(pt);
+      selected={kind:'point',id:pt.id};
+      render();
+    }else if(tool==='select'){
+      // click on empty canvas — deselect (unless a child element already stopped propagation)
+      selected=null;render();
+    }
+    // 'door' tool handled entirely by edge mousedown listeners
+  });
+
+  window.addEventListener('mousemove',function(e){
+    mouseBoard=screenToBoard(e.clientX,e.clientY);
+    if(isPanning){
+      pan.x=panStart.pan0.x+(e.clientX-panStart.x);
+      pan.y=panStart.pan0.y+(e.clientY-panStart.y);
+      applyTransform();
+      return;
+    }
+    if(draggingVertex){
+      var r=findRoom(draggingVertex.roomId);
+      if(r){r.points[draggingVertex.idx]=snapPt(mouseBoard);renderRooms();renderHandles();}
+      return;
+    }
+    if(draggingWhole){
+      var d=snapPt({x:mouseBoard.x-draggingWhole.mouse0.x,y:mouseBoard.y-draggingWhole.mouse0.y});
+      if(draggingWhole.kind==='room'){
+        var r2=findRoom(draggingWhole.id);
+        if(r2){r2.points=draggingWhole.orig.map(function(p){return {x:p.x+d.x,y:p.y+d.y};});renderRooms();renderHandles();}
+      }else{
+        var p2=findPoint(draggingWhole.id);
+        if(p2){p2.x=draggingWhole.orig.x+d.x;p2.y=draggingWhole.orig.y+d.y;renderPoints();}
+      }
+      return;
+    }
+    if(tool==='room'&&drawingRoom)renderDrawPreview();
+  });
+
+  window.addEventListener('mouseup',function(){
+    isPanning=false;panStart=null;wrap.classList.remove('panning');
+    draggingVertex=null;draggingWhole=null;
+  });
+
+  wrap.addEventListener('wheel',function(e){
+    e.preventDefault();
+    var rect=wrap.getBoundingClientRect();
+    zoomBy(e.deltaY<0?1.1:1/1.1,e.clientX-rect.left,e.clientY-rect.top);
+  },{passive:false});
+
+  window.addEventListener('keydown',function(e){
+    var tag=(document.activeElement&&document.activeElement.tagName)||'';
+    var typing=tag==='INPUT'||tag==='TEXTAREA';
+    if(e.key==='Escape'){
+      if(drawingRoom){drawingRoom=null;render();}
+    }else if(e.key==='Enter'&&!typing){
+      if(drawingRoom&&drawingRoom.points.length>=3)commitRoom();
+    }else if((e.key==='Delete'||e.key==='Backspace')&&!typing){
+      if(selected&&selected.kind==='room'){deleteRoom(selected.id);e.preventDefault();}
+      else if(selected&&selected.kind==='point'){deletePoint(selected.id);e.preventDefault();}
+    }
+  });
+}
+
+// ── FILE I/O ──────────────────────────────────────────────────────────────────
+var GH_RAW='https://raw.githubusercontent.com/EmptyFishTank-JB/echoes-boardgame/main/board-data/board.json';
+async function loadFromGitHub(){
+  fileHandle=null;
+  try{
+    var r=await fetch(GH_RAW+'?v='+Date.now());
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    loadBoard(JSON.parse(await r.text()),'board.json','ro');
+  }catch(e){toast('GitHub fetch failed: '+e.message);}
+}
+async function openFile(){
+  if(window.showOpenFilePicker){
+    try{
+      var [h]=await window.showOpenFilePicker({types:[{description:'JSON',accept:{'application/json':['.json']}}]});
+      fileHandle=h;var f=await h.getFile();
+      loadBoard(JSON.parse(await f.text()),f.name,'rw');
+    }catch(e){if(e.name!=='AbortError')document.getElementById('fi').click();}
+  }else document.getElementById('fi').click();
+}
+function onFileIn(e){
+  var f=e.target.files[0];if(!f)return;
+  var r=new FileReader();
+  r.onload=function(ev){try{loadBoard(JSON.parse(ev.target.result),f.name,'ro');}catch(ex){toast('Parse error: '+ex.message);}};
+  r.readAsText(f);e.target.value='';
+}
+function loadBoard(raw,name,cls){
+  board=raw;
+  if(!board.meta)board.meta={};
+  if(!board.families)board.families=JSON.parse(JSON.stringify(DEFAULT_FAMILIES));
+  if(!board.rooms)board.rooms=[];
+  if(!board.points)board.points=[];
+  board.rooms.forEach(function(r){if(!r.id)r.id=uid('R');if(!r.doors)r.doors=[];});
+  board.points.forEach(function(p){if(!p.id)p.id=uid('P');});
+  selected=null;drawingRoom=null;
+  setFstat(name,cls);
+  resetView();render();
+  toast('Loaded '+board.rooms.length+' rooms, '+board.points.length+' points');
+}
+function setFstat(n,cls){
+  var e2=document.getElementById('fstat');e2.textContent='['+n+']';e2.className=cls;
+}
+function buildExport(){
+  board.meta.editor_version='1.0';
+  board.meta.last_saved=new Date().toISOString();
+  return JSON.stringify(board,null,2);
+}
+async function saveToFile(){
+  if(!fileHandle){dlJSON();return;}
+  try{var w=await fileHandle.createWritable();await w.write(buildExport());await w.close();showSaved();toast('Saved');}
+  catch(e){toast('Save failed — downloading');dlJSON();}
+}
+async function saveAsFile(){
+  if(window.showSaveFilePicker){
+    try{
+      var h=await window.showSaveFilePicker({suggestedName:'board.json',types:[{description:'JSON',accept:{'application/json':['.json']}}]});
+      fileHandle=h;var w=await h.createWritable();await w.write(buildExport());await w.close();
+      setFstat(h.name,'rw');showSaved();toast('Saved');
+    }catch(e){if(e.name!=='AbortError')dlJSON();}
+  }else dlJSON();
+}
+function dlJSON(){
+  var b=new Blob([buildExport()],{type:'application/json'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='board.json';a.click();
+  showSaved();toast('Exported board.json');
+}
+function showSaved(){var i=document.getElementById('as-ind');i.classList.add('show');setTimeout(function(){i.classList.remove('show');},1800);}
+function newBoard(){
+  if(!confirm('Start a new blank board? Unsaved changes will be lost.'))return;
+  board=defaultBoard();fileHandle=null;selected=null;drawingRoom=null;
+  setFstat('untitled','none');resetView();render();
+}
+
+// ── PRINT LEGEND ──────────────────────────────────────────────────────────────
+window.addEventListener('beforeprint',function(){
+  var used={};
+  board.rooms.forEach(function(r){used[r.family]=true;});
+  var grid=document.getElementById('pl-grid');
+  var html='';
+  Object.keys(used).forEach(function(k){
+    var f=board.families[k];if(!f)return;
+    html+='<div class="pl-item"><span class="pl-swatch" style="background:'+f.color+'"></span>'+esc(f.label)+'</div>';
+  });
+  var usedTypes={};
+  board.points.forEach(function(p){usedTypes[p.type]=true;});
+  Object.keys(usedTypes).forEach(function(t){
+    // Terminals are colored by family on the board itself, not a fixed
+    // color — an outline swatch avoids implying a color that varies.
+    var swatchStyle=t==='terminal'?'background:#fff;border:1.5px solid #333;':'background:'+(POINT_COLOR[t]||'#999');
+    html+='<div class="pl-item"><span class="pl-swatch" style="'+swatchStyle+'"></span>'+t.toUpperCase()+(t==='terminal'?' (colored by family)':'')+'</div>';
+  });
+  grid.innerHTML=html;
+
+  var g=document.getElementById('content-group');
+  try{
+    var bb=g.getBBox();
+    var pad=40;
+    document.getElementById('board-svg').setAttribute('viewBox',(bb.x-pad)+' '+(bb.y-pad)+' '+(bb.width+pad*2)+' '+(bb.height+pad*2));
+  }catch(e){}
+});
+window.addEventListener('afterprint',function(){
+  document.getElementById('board-svg').removeAttribute('viewBox');
+});
+
+// ── TOAST ─────────────────────────────────────────────────────────────────────
+var toastT;
+function toast(msg){var e2=document.getElementById('toast');e2.textContent=msg;e2.classList.add('show');clearTimeout(toastT);toastT=setTimeout(function(){e2.classList.remove('show');},2600);}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+initCanvas();
+setFstat('untitled','none');
+applyTransform();
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,28 @@
+{
+  "meta": {
+    "version": "1.0",
+    "name": "ECHOES Board — Draft",
+    "editor_version": "1.0",
+    "last_saved": null
+  },
+  "families": {
+    "ops_center": { "label": "Operations Center", "color": "#E8732A", "type": "fixed" },
+    "airlock": { "label": "Airlock / Hull Access", "color": "#4A90D9", "type": "fixed" },
+    "transit": { "label": "Transit Infrastructure", "color": "#9ca3af", "type": "fixed" },
+    "dock": { "label": "The Dock", "color": "#4fc3f7", "type": "fixed" },
+    "corridors": { "label": "Corridors", "color": "#556070", "type": "fixed" },
+    "research": { "label": "Research / Laboratory", "color": "#4db896", "type": "tile" },
+    "medical": { "label": "Medical", "color": "#e05050", "type": "tile" },
+    "engineering": { "label": "Engineering / Maintenance", "color": "#bf7c0a", "type": "tile" },
+    "reactor": { "label": "Reactor", "color": "#ff8800", "type": "tile" },
+    "cargo": { "label": "Cargo / Storage", "color": "#c9a24a", "type": "tile" },
+    "crew_quarters": { "label": "Crew Quarters", "color": "#7fb0e0", "type": "tile" },
+    "hydroponics": { "label": "Hydroponics / Life Support", "color": "#6fb06f", "type": "tile" },
+    "security": { "label": "Security", "color": "#c0504d", "type": "tile" },
+    "garage": { "label": "Garage / Workshop", "color": "#a0785a", "type": "tile" },
+    "communications": { "label": "Communications", "color": "#c47fc4", "type": "tile" },
+    "dormitories": { "label": "Dormitories", "color": "#8892a6", "type": "tile" }
+  },
+  "rooms": [],
+  "points": []
+}
