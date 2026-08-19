@@ -9,7 +9,7 @@
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 :root{
   --blue:#4fc3f7;--amber:#bf7c0a;--dim:rgba(79,195,247,0.78);--bdr:rgba(79,195,247,0.10);
-  --dark:#00080e;--outer-bg:#0a0f14;--canvas-bg:#0d1620;--canvas-border:#4fc3f7;
+  --dark:#00080e;--outer-bg:#0a0f14;--canvas-bg:#0d1620;--canvas-border:#4fc3f7;--void-bg:#020304;
 }
 html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"Share Tech Mono",monospace;font-size:14px;overflow:hidden;}
 #app{display:flex;flex-direction:column;height:100vh;}
@@ -42,7 +42,7 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
 
 /* BODY */
 #body-main{display:flex;flex:1;min-height:0;}
-#canvas-wrap{flex:1;overflow:hidden;position:relative;background:var(--canvas-bg);cursor:default;}
+#canvas-wrap{flex:1;overflow:hidden;position:relative;background:var(--void-bg);cursor:default;}
 #canvas-wrap.tool-room,#canvas-wrap.tool-point{cursor:crosshair;}
 #canvas-wrap.tool-door{cursor:pointer;}
 #canvas-wrap.panning{cursor:grabbing!important;}
@@ -111,7 +111,7 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
   #canvas-wrap{overflow:visible!important;position:static!important;background:#fff!important;}
   #canvas-inner{position:static!important;transform:none!important;}
   #board-svg{width:100%!important;height:auto!important;}
-  #grid-bg{display:none;}
+  #grid-bg,#grid-area-bg{display:none;}
   .room-label{fill:#111!important;}
   .room-sublabel{fill:#444!important;}
   .bpoint-label{fill:#111!important;}
@@ -154,6 +154,11 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
   <span class="tlabel">FAMILY</span>
   <select id="tool-family" onchange="activeFamily=this.value"></select>
   <div class="tsep"></div>
+  <span class="tlabel">SNAP</span>
+  <button class="tbtn" id="btn-snap-1" onclick="setSnap(1)">WHOLE</button>
+  <button class="tbtn on" id="btn-snap-2" onclick="setSnap(2)">HALF</button>
+  <button class="tbtn" id="btn-snap-4" onclick="setSnap(4)">QUARTER</button>
+  <div class="tsep"></div>
   <button class="tbtn" onclick="zoomBy(1.2)">+</button>
   <span id="zoom-info">100%</span>
   <button class="tbtn" onclick="zoomBy(1/1.2)">&minus;</button>
@@ -176,6 +181,7 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
           </pattern>
           <g id="room-clips"></g>
         </defs>
+        <rect id="grid-area-bg" x="-2000" y="-2000" width="8000" height="7000" style="fill:var(--canvas-bg)"/>
         <rect id="grid-bg" x="-2000" y="-2000" width="8000" height="7000" fill="url(#gridPattern)"/>
         <g id="content-group">
           <g id="boundary-layer"></g>
@@ -253,6 +259,11 @@ var showSpaces=true;
 function toggleSpaces(){showSpaces=!showSpaces;document.getElementById('btn-spaces').classList.toggle('on',showSpaces);renderRooms();}
 
 var GRID=40, SNAP=GRID/2;
+function setSnap(div){
+  SNAP=GRID/div;
+  document.querySelectorAll('#btn-snap-1,#btn-snap-2,#btn-snap-4').forEach(function(b){b.classList.remove('on');});
+  document.getElementById('btn-snap-'+div).classList.add('on');
+}
 
 // A "space" is one GRID cell (the token/miniature unit) — independent of
 // SNAP, which is finer (half-cell) so wall vertices can notch mid-cell.
