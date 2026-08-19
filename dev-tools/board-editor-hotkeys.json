@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "bindings": {
+    "select": ["s"],
+    "room": ["r"],
+    "wall": ["w"],
+    "door": ["d"],
+    "terminal": ["t"],
+    "vent": ["v"],
+    "locker": ["l"],
+    "point": ["p"],
+    "snapWhole": ["1"],
+    "snapHalf": ["2"],
+    "snapQuarter": ["4"],
+    "spaces": ["s", "p"],
+    "info": ["i"],
+    "attach": ["a", "t"],
+    "linkDoors": ["l", "d"],
+    "boundary": ["b", "o"],
+    "mirrorX": ["m", "x"],
+    "mirrorY": ["m", "y"],
+    "fit": ["f"],
+    "shortcuts": ["k", "s"]
+  }
+}

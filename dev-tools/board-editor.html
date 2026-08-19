@@ -123,6 +123,26 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
 .legend-row{display:flex;align-items:center;gap:6px;font-size:11px;color:rgba(79,195,247,0.65);margin-bottom:4px;}
 .legend-glyph{width:14px;height:14px;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:bold;color:#00080e;flex-shrink:0;}
 
+/* SHORTCUTS MODAL */
+#hk-overlay{display:none;position:fixed;inset:0;background:rgba(0,4,10,0.82);z-index:3000;align-items:center;justify-content:center;}
+#hk-overlay.open{display:flex;}
+#hk-modal{width:640px;max-width:92vw;max-height:84vh;background:var(--outer-bg);border:1px solid rgba(79,195,247,0.28);box-shadow:0 20px 60px rgba(0,0,0,0.7);display:flex;flex-direction:column;}
+#hk-modal-hdr{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--bdr);flex-wrap:wrap;}
+#hk-modal-hdr h2{font-size:13px;letter-spacing:0.14em;color:var(--blue);font-weight:400;flex:1;}
+#hk-modal-hdr .hbtn{font-size:10.5px;}
+#hk-modal-body{overflow-y:auto;padding:10px 16px;flex:1;}
+#hk-modal-body .hk-note{font-size:11px;color:rgba(79,195,247,0.45);line-height:1.6;margin-bottom:10px;}
+.hk-row{display:flex;align-items:center;gap:10px;padding:7px 4px;border-bottom:1px solid rgba(79,195,247,0.08);}
+.hk-row-label{flex:1;font-size:12px;color:var(--dim);}
+.hk-row-keys{display:flex;gap:4px;}
+.hk-key{background:rgba(79,195,247,0.08);border:1px solid rgba(79,195,247,0.25);color:var(--blue);font-family:"Share Tech Mono",monospace;font-size:11px;padding:3px 8px;letter-spacing:0.05em;text-transform:uppercase;min-width:16px;text-align:center;}
+.hk-key.empty{color:rgba(79,195,247,0.25);}
+.hk-rebind{background:transparent;border:1px solid rgba(79,195,247,0.24);color:var(--dim);font-family:"Share Tech Mono",monospace;font-size:10.5px;padding:4px 9px;cursor:pointer;}
+.hk-rebind:hover{border-color:var(--blue);color:var(--blue);}
+.hk-rebind.capturing{border-color:#e8732a;color:#e8732a;background:rgba(232,115,42,0.08);}
+.hk-conflict{color:#e05050;font-size:10px;margin-left:6px;}
+#hk-modal-ftr{display:flex;align-items:center;gap:10px;padding:10px 16px;border-top:1px solid var(--bdr);}
+#hk-modal-ftr span{font-size:10.5px;color:rgba(79,195,247,0.4);flex:1;}
 #toast{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);background:rgba(2,8,16,0.97);border:1px solid rgba(79,195,247,0.24);color:var(--blue);padding:6px 16px;font-size:13px;letter-spacing:0.05em;opacity:0;transition:opacity 0.22s;pointer-events:none;z-index:2000;}
 #toast.show{opacity:1;}
 #hint{position:fixed;bottom:14px;left:14px;font-size:11px;color:rgba(79,195,247,0.35);letter-spacing:0.03em;max-width:60vw;pointer-events:none;}
@@ -246,7 +266,29 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
 <input type="file" id="fi" accept=".json" style="display:none" onchange="onFileIn(event)">
 <div id="toast"></div>
 <div id="ctx-menu"></div>
-<div id="hint">Hotkeys: R room &middot; W wall &middot; D door &middot; T terminal &middot; V vent &middot; L locker &middot; P point &middot; B boundary &middot; F fit &middot; 1/2/4 whole/half/quarter snap &middot; I info &middot; S spaces &middot; A attach &middot; mx/my mirror vertical/horizontal &middot; Esc clear selection &middot; Ctrl+S save &middot; Ctrl+Shift+S save as &middot; Ctrl+P print &middot; drag on empty canvas to box-select, drag a selected item to move the group &middot; right-click for options &middot; scroll to zoom, right/middle-drag to pan, double-click middle button to fit</div>
+<div id="hint">Press <b>KS</b> for the keyboard shortcuts menu &middot; Ctrl+S save &middot; Ctrl+Shift+S save as &middot; Ctrl+P print &middot; drag on empty canvas to box-select, drag a selected item to move the group &middot; right-click for options &middot; scroll to zoom, right/middle-drag to pan, double-click middle button to fit</div>
+
+<div id="hk-overlay">
+  <div id="hk-modal">
+    <div id="hk-modal-hdr">
+      <h2>KEYBOARD SHORTCUTS</h2>
+      <button class="hbtn" onclick="loadHotkeysFromGitHub()">&#8681; GITHUB</button>
+      <button class="hbtn" onclick="openHotkeysFile()">&#8213; OPEN</button>
+      <button class="hbtn" onclick="saveHotkeysToFile()">&#8679; SAVE</button>
+      <button class="hbtn" onclick="saveHotkeysAsFile()">&#8679; SAVE AS</button>
+      <button class="hbtn" onclick="resetHotkeysToDefault()">&#8634; DEFAULTS</button>
+      <button class="hbtn" onclick="closeHotkeysMenu()">&#10005; CLOSE</button>
+    </div>
+    <div id="hk-modal-body">
+      <div class="hk-note">Click REBIND, then press 1 or 2 keys (Esc cancels). A one-key binding fires immediately; a two-key one waits briefly for the second press — pressing just the first key of a two-key binding falls back to that key's own single binding, if it has one, once the window lapses.</div>
+      <div id="hk-list"></div>
+    </div>
+    <div id="hk-modal-ftr">
+      <span id="hk-fstat">using built-in defaults</span>
+    </div>
+  </div>
+</div>
+<input type="file" id="hk-fi" accept=".json" style="display:none" onchange="onHotkeysFileIn(event)">
 
 <script>
 'use strict';
@@ -303,7 +345,6 @@ var groupDrag=null;                 // {mouse0, orig:[{kind,id,points|x,y}...]} 
 var rightDown=null;                 // {x,y,moved} — tracks whether a right-button press was a drag (pan) or a click (context menu)
 var lastMidClick=0;                 // timestamp — detects a double-click on the middle mouse button
 var clipboard=null;                 // {kind:'room'|'point'|'multi', data|items}
-var pendingMirrorChord=false, mirrorChordTimer=null;  // "m" then "x"/"y" hotkey sequence
 
 // ── UNDO / REDO ───────────────────────────────────────────────────────────────
 // Snapshot-based: pushUndo() is called right before each discrete mutation
@@ -1278,6 +1319,240 @@ function mirrorSelection(axis){
   else if(selected&&selected.kind==='room')mirrorRoom(selected.id,axis);
   else toast('Select a room (or a multi-selection) to mirror');
 }
+
+// ── KEYBOARD SHORTCUTS ───────────────────────────────────────────────────────
+// A binding is a 1- or 2-key sequence. A key that's the first key of some
+// 2-key binding always waits briefly for a possible second key before
+// falling back to firing its own 1-key binding (if it has one) — so e.g.
+// "s" (select) and "sp" (spaces) can coexist: typed alone, "s" still
+// resolves to select once the window lapses; typed with "p" right after,
+// it resolves to spaces instead. Function references are resolved at CALL
+// time (these are all hoisted function declarations), so definition order
+// relative to the rest of the file doesn't matter.
+var HOTKEY_ACTIONS={
+  select:{label:'Select tool',fn:function(){setTool('select');}},
+  room:{label:'Room tool',fn:function(){setTool('room');}},
+  wall:{label:'Wall tool',fn:function(){setTool('wall');}},
+  door:{label:'Door tool',fn:function(){setTool('door');}},
+  terminal:{label:'Terminal point tool',fn:function(){setPointTool('terminal');}},
+  vent:{label:'Vent point tool',fn:function(){setPointTool('vent');}},
+  locker:{label:'Locker point tool',fn:function(){setPointTool('locker');}},
+  point:{label:'Point tool (other)',fn:function(){setPointTool('other');}},
+  snapWhole:{label:'Snap: Whole',fn:function(){setSnap(1);}},
+  snapHalf:{label:'Snap: Half',fn:function(){setSnap(2);}},
+  snapQuarter:{label:'Snap: Quarter',fn:function(){setSnap(4);}},
+  spaces:{label:'Toggle spaces overlay',fn:function(){toggleSpaces();}},
+  info:{label:'Toggle room info',fn:function(){toggleRoomInfo();}},
+  attach:{label:'Toggle attach points',fn:function(){toggleAttachPoints();}},
+  linkDoors:{label:'Toggle link doors',fn:function(){toggleLinkDoors();}},
+  boundary:{label:'Add / select boundary',fn:function(){addOrSelectBoundary();}},
+  mirrorX:{label:'Mirror across X axis (vertical flip)',fn:function(){mirrorSelection('y');}},
+  mirrorY:{label:'Mirror across Y axis (horizontal flip)',fn:function(){mirrorSelection('x');}},
+  fit:{label:'Fit view',fn:function(){resetView();}},
+  shortcuts:{label:'Open this shortcuts menu',fn:function(){openHotkeysMenu();}}
+};
+var DEFAULT_HOTKEYS={
+  select:['s'],room:['r'],wall:['w'],door:['d'],terminal:['t'],vent:['v'],locker:['l'],point:['p'],
+  snapWhole:['1'],snapHalf:['2'],snapQuarter:['4'],
+  spaces:['s','p'],info:['i'],attach:['a','t'],linkDoors:['l','d'],boundary:['b','o'],
+  mirrorX:['m','x'],mirrorY:['m','y'],fit:['f'],shortcuts:['k','s']
+};
+var hotkeys=JSON.parse(JSON.stringify(DEFAULT_HOTKEYS));
+var hotkeySource='built-in defaults';
+var hotkeyFileHandle=null;
+var hkSingleMap={},hkPrefixSet={},hkChordMap={};
+function rebuildHotkeyLookup(){
+  hkSingleMap={};hkPrefixSet={};hkChordMap={};
+  Object.keys(hotkeys).forEach(function(id){
+    var seq=hotkeys[id];
+    if(!seq||!seq.length)return;
+    if(seq.length===1)hkSingleMap[seq[0]]=id;
+    else{hkPrefixSet[seq[0]]=true;hkChordMap[seq[0]+'|'+seq[1]]=id;}
+  });
+}
+rebuildHotkeyLookup();
+function fireHotkeyAction(id){var a=HOTKEY_ACTIONS[id];if(a)a.fn();}
+
+var hkPending=null,hkPendingTimer=null;
+// Called from the main keydown handler for any plain (no modifier) single
+// printable-character keypress, once Escape/Enter/Delete/Ctrl-combos have
+// already been ruled out.
+function handleHotkeyKey(e){
+  if(e.key.length!==1)return;
+  var k=e.key.toLowerCase();
+  if(hkPending){
+    var pendingKey=hkPending.key;
+    clearTimeout(hkPendingTimer);hkPending=null;
+    var chordId=hkChordMap[pendingKey+'|'+k];
+    if(chordId){fireHotkeyAction(chordId);e.preventDefault();return;}
+    if(hkSingleMap[pendingKey])fireHotkeyAction(hkSingleMap[pendingKey]);
+    // not a chord — re-process this keypress fresh below, as if it were
+    // the first key of a new sequence (matches typing two independent
+    // hotkeys in quick succession rather than one intended chord).
+  }
+  if(hkPrefixSet[k]){
+    hkPending={key:k};
+    hkPendingTimer=setTimeout(function(){
+      hkPending=null;
+      if(hkSingleMap[k])fireHotkeyAction(hkSingleMap[k]);
+    },550);
+    e.preventDefault();
+    return;
+  }
+  if(hkSingleMap[k]){fireHotkeyAction(hkSingleMap[k]);e.preventDefault();}
+}
+
+// ── SHORTCUTS FILE I/O (mirrors the board file I/O pattern) ─────────────────
+var GH_HOTKEYS_RAW='https://raw.githubusercontent.com/EmptyFishTank-JB/echoes-boardgame/main/dev-tools/board-editor-hotkeys.json';
+function applyHotkeysData(data,sourceLabel){
+  if(!data||!data.bindings)throw new Error('missing "bindings"');
+  hotkeys=data.bindings;
+  rebuildHotkeyLookup();
+  hotkeySource=sourceLabel;
+  updateHotkeysFstat();
+  if(document.getElementById('hk-overlay').classList.contains('open'))renderHotkeysList();
+}
+async function autoLoadHotkeys(){
+  // Best-effort background load on startup — silently keep the built-in
+  // defaults if the fetch fails (offline, no file published yet, etc).
+  try{
+    var r=await fetch(GH_HOTKEYS_RAW+'?v='+Date.now());
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    applyHotkeysData(await r.json(),'GitHub (auto-loaded)');
+  }catch(e){}
+}
+async function loadHotkeysFromGitHub(){
+  hotkeyFileHandle=null;
+  try{
+    var r=await fetch(GH_HOTKEYS_RAW+'?v='+Date.now());
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    applyHotkeysData(await r.json(),'GitHub');
+    toast('Loaded shortcuts from GitHub');
+  }catch(e){toast('GitHub fetch failed: '+e.message);}
+}
+async function openHotkeysFile(){
+  if(window.showOpenFilePicker){
+    try{
+      var picked=await window.showOpenFilePicker({types:[{description:'JSON',accept:{'application/json':['.json']}}]});
+      var h=picked[0];
+      hotkeyFileHandle=h;var f=await h.getFile();
+      applyHotkeysData(JSON.parse(await f.text()),f.name);
+      toast('Loaded '+f.name);
+    }catch(e){if(e.name!=='AbortError')document.getElementById('hk-fi').click();}
+  }else document.getElementById('hk-fi').click();
+}
+function onHotkeysFileIn(e){
+  var f=e.target.files[0];if(!f)return;
+  var rd=new FileReader();
+  rd.onload=function(ev){
+    try{applyHotkeysData(JSON.parse(ev.target.result),f.name);toast('Loaded '+f.name);}
+    catch(ex){toast('Parse error: '+ex.message);}
+  };
+  rd.readAsText(f);e.target.value='';
+}
+function buildHotkeysExport(){return JSON.stringify({version:1,bindings:hotkeys},null,2);}
+async function saveHotkeysToFile(){
+  if(!hotkeyFileHandle){dlHotkeysJSON();return;}
+  try{var w=await hotkeyFileHandle.createWritable();await w.write(buildHotkeysExport());await w.close();toast('Saved shortcuts');}
+  catch(e){toast('Save failed — downloading');dlHotkeysJSON();}
+}
+async function saveHotkeysAsFile(){
+  if(window.showSaveFilePicker){
+    try{
+      var h=await window.showSaveFilePicker({suggestedName:'board-editor-hotkeys.json',types:[{description:'JSON',accept:{'application/json':['.json']}}]});
+      hotkeyFileHandle=h;var w=await h.createWritable();await w.write(buildHotkeysExport());await w.close();
+      hotkeySource=h.name;updateHotkeysFstat();toast('Saved shortcuts');
+    }catch(e){if(e.name!=='AbortError')dlHotkeysJSON();}
+  }else dlHotkeysJSON();
+}
+function dlHotkeysJSON(){
+  var b=new Blob([buildHotkeysExport()],{type:'application/json'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='board-editor-hotkeys.json';a.click();
+  toast('Exported — upload as dev-tools/board-editor-hotkeys.json on GitHub to make it the new default for everyone');
+}
+function resetHotkeysToDefault(){
+  if(!confirm('Reset all shortcuts to the built-in defaults?'))return;
+  hotkeys=JSON.parse(JSON.stringify(DEFAULT_HOTKEYS));
+  hotkeyFileHandle=null;hotkeySource='built-in defaults';
+  rebuildHotkeyLookup();updateHotkeysFstat();renderHotkeysList();
+  toast('Reset to defaults');
+}
+function updateHotkeysFstat(){
+  var el=document.getElementById('hk-fstat');
+  if(el)el.textContent='using: '+hotkeySource;
+}
+
+// ── SHORTCUTS MENU (ks) ───────────────────────────────────────────────────
+function openHotkeysMenu(){
+  document.getElementById('hk-overlay').classList.add('open');
+  updateHotkeysFstat();
+  renderHotkeysList();
+}
+function closeHotkeysMenu(){
+  document.getElementById('hk-overlay').classList.remove('open');
+  cancelHotkeyCapture();
+}
+var hkCapturing=null,hkCaptureBuf=[];
+function renderHotkeysList(){
+  var wrap=document.getElementById('hk-list');
+  if(!wrap)return;
+  wrap.innerHTML='';
+  Object.keys(HOTKEY_ACTIONS).forEach(function(id){
+    var seq=hotkeys[id]||[];
+    var capturingThis=hkCapturing===id;
+    var shownKeys=capturingThis&&hkCaptureBuf.length?hkCaptureBuf:seq;
+    var keysHtml=(shownKeys.length?shownKeys:['']).map(function(k){
+      return '<span class="hk-key'+(k?'':' empty')+'">'+(k?esc(k):'&mdash;')+'</span>';
+    }).join('');
+    var row=document.createElement('div');row.className='hk-row';
+    row.innerHTML='<span class="hk-row-label">'+esc(HOTKEY_ACTIONS[id].label)+'</span>'
+      +'<span class="hk-row-keys">'+keysHtml+'</span>'
+      +'<button class="hk-rebind'+(capturingThis?' capturing':'')+'" data-id="'+id+'">'+(capturingThis?'PRESS KEYS&hellip;':'REBIND')+'</button>';
+    wrap.appendChild(row);
+  });
+  Array.prototype.forEach.call(wrap.querySelectorAll('.hk-rebind'),function(btn){
+    btn.addEventListener('click',function(){startHotkeyCapture(btn.getAttribute('data-id'));});
+  });
+}
+function startHotkeyCapture(id){
+  hkCapturing=id;hkCaptureBuf=[];
+  renderHotkeysList();
+  window.addEventListener('keydown',hkCaptureListener,true);
+}
+function cancelHotkeyCapture(){
+  if(!hkCapturing)return;
+  hkCapturing=null;hkCaptureBuf=[];
+  window.removeEventListener('keydown',hkCaptureListener,true);
+  renderHotkeysList();
+}
+function hkCaptureListener(e){
+  e.preventDefault();e.stopPropagation();
+  if(e.key==='Escape'){cancelHotkeyCapture();return;}
+  if(e.ctrlKey||e.metaKey||e.altKey||e.key.length!==1)return;
+  var k=e.key.toLowerCase();
+  hkCaptureBuf.push(k);
+  if(hkCaptureBuf.length>=2){
+    commitHotkeyCapture(hkCaptureBuf.slice(0,2));
+  }else{
+    renderHotkeysList();
+    setTimeout(function(){
+      if(hkCapturing&&hkCaptureBuf.length===1)commitHotkeyCapture(hkCaptureBuf.slice(0,1));
+    },550);
+  }
+}
+function commitHotkeyCapture(seq){
+  var id=hkCapturing;
+  if(!id)return;
+  var conflictId=Object.keys(hotkeys).filter(function(other){
+    return other!==id&&JSON.stringify(hotkeys[other]||[])===JSON.stringify(seq);
+  })[0];
+  hotkeys[id]=seq;
+  rebuildHotkeyLookup();
+  cancelHotkeyCapture();
+  if(conflictId)toast('Bound '+seq.join('').toUpperCase()+' — also still bound to "'+HOTKEY_ACTIONS[conflictId].label+'"');
+  else toast('Bound '+seq.join('').toUpperCase()+' → '+HOTKEY_ACTIONS[id].label);
+}
+
 function fitBoundaryToRooms(){
   if(!board.boundary)return;
   var xs=[],ys=[];
@@ -1759,7 +2034,15 @@ function initCanvas(){
     zoomBy(e.deltaY<0?1.1:1/1.1,e.clientX-rect.left,e.clientY-rect.top);
   },{passive:false});
 
+  var lastEscAt=0;
   window.addEventListener('keydown',function(e){
+    if(document.getElementById('hk-overlay').classList.contains('open')){
+      // hkCaptureListener (capture phase, stopPropagation) already handles
+      // everything while actively rebinding a key; this only ever sees
+      // Escape while just browsing the menu, which closes it.
+      if(e.key==='Escape'){closeHotkeysMenu();e.preventDefault();}
+      return;
+    }
     var tag=(document.activeElement&&document.activeElement.tagName)||'';
     var typing=tag==='INPUT'||tag==='TEXTAREA';
     if(e.key==='Escape'){
@@ -1768,6 +2051,10 @@ function initCanvas(){
       else if(multiSel.length){multiSel=[];render();}
       else if(selected){selected=null;render();}
       hideCtxMenu();
+      // Double-press Esc is also the "select tool" hotkey.
+      var now=Date.now();
+      if(now-lastEscAt<450)fireHotkeyAction('select');
+      lastEscAt=now;
     }else if(e.key==='Enter'&&!typing){
       if(drawingRoom&&drawingRoom.points.length>=3)commitRoom();
     }else if((e.key==='Delete'||e.key==='Backspace')&&!typing){
@@ -1791,33 +2078,7 @@ function initCanvas(){
     }else if(!typing&&(e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='p'){
       window.print();e.preventDefault();
     }else if(!typing&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&!drawingRoom&&!drawingWall){
-      var k=e.key.toLowerCase();
-      // "mx"/"my" mirror chord: 'm' arms a short window for the axis key
-      // that follows; any other key (or the window lapsing) drops it and
-      // falls through to normal single-key handling below.
-      if(pendingMirrorChord){
-        clearTimeout(mirrorChordTimer);pendingMirrorChord=false;
-        // "mx" = mirror across the X axis (flips Y, top/bottom).
-        // "my" = mirror across the Y axis (flips X, left/right).
-        if(k==='x'){mirrorSelection('y');e.preventDefault();return;}
-        if(k==='y'){mirrorSelection('x');e.preventDefault();return;}
-      }
-      if(k==='m'){pendingMirrorChord=true;mirrorChordTimer=setTimeout(function(){pendingMirrorChord=false;},700);e.preventDefault();return;}
-      if(k==='1'){setSnap(1);e.preventDefault();}
-      else if(k==='2'){setSnap(2);e.preventDefault();}
-      else if(k==='4'){setSnap(4);e.preventDefault();}
-      else if(k==='r'){setTool('room');e.preventDefault();}
-      else if(k==='w'){setTool('wall');e.preventDefault();}
-      else if(k==='d'){setTool('door');e.preventDefault();}
-      else if(k==='t'){setPointTool('terminal');e.preventDefault();}
-      else if(k==='v'){setPointTool('vent');e.preventDefault();}
-      else if(k==='l'){setPointTool('locker');e.preventDefault();}
-      else if(k==='p'){setPointTool('other');e.preventDefault();}
-      else if(k==='b'){addOrSelectBoundary();e.preventDefault();}
-      else if(k==='f'){resetView();e.preventDefault();}
-      else if(k==='i'){toggleRoomInfo();e.preventDefault();}
-      else if(k==='s'){toggleSpaces();e.preventDefault();}
-      else if(k==='a'){toggleAttachPoints();e.preventDefault();}
+      handleHotkeyKey(e);
     }
   });
 }
@@ -1973,6 +2234,7 @@ initCanvas();
 setFstat('untitled','none');
 applyTransform();
 render();
+autoLoadHotkeys();
 
 // ── TOOL VERSION = COMMIT ID ─────────────────────────────────────────────────
 (function(){
