@@ -1120,25 +1120,29 @@ function commitRoom(){
   render();
 }
 function doorCoversPos(d,pos){var half=(d.width||GRID)/2;return pos>=d.pos-half-0.5&&pos<=d.pos+half+0.5;}
-// Two rooms' edges that physically coincide (a shared party wall) will have
-// a segment, cut at the same absolute SNAP grid, with an identical absolute
-// midpoint — so "is this the same wall as seen from the other room" is just
-// "is there a segment, anywhere but this room, whose midpoint is (almost)
-// exactly here." bestDist stays tight since a real match is ~0 apart and
-// even the finest grid keeps unrelated walls much further out. Only used
-// when placing a NEW linked door, so it's fine that it goes through
-// wallSegments()/SNAP like any other new-placement lookup.
-function findCoincidentEdge(excludeRoomId,absPt){
+// Two rooms' edges that physically coincide (a shared party wall) put the
+// clicked point almost exactly ON the other room's edge line too — so "is
+// this the same wall as seen from the other room" is just "is there an edge,
+// anywhere but this room, that passes within a hair of this point." Matches
+// directly against the edge's own line (distToSeg), NOT against a
+// SNAP-segmented sub-piece of it: the door's position on the other room is
+// derived straight from that edge's own p1 (dist(p1,absPt)), so it can't
+// miss just because the point happens to land on a segment BOUNDARY rather
+// than a segment MIDPOINT under whatever segmentation the other room's wall
+// happens to cut into right now — segment midpoints were the previous
+// (buggy) matching key, and any door sitting on a boundary rather than a
+// center never matched anything.
+function findCoincidentEdge(excludeRoomId,absPt,width){
   var best=null,bestDist=3;
   board.rooms.forEach(function(room){
     if(room.id===excludeRoomId)return;
     room.points.forEach(function(p1,i){
       var p2=room.points[(i+1)%room.points.length];
-      wallSegments(p1,p2).forEach(function(seg){
-        var mid={x:(seg.p1.x+seg.p2.x)/2,y:(seg.p1.y+seg.p2.y)/2};
-        var d=dist(mid,absPt);
-        if(d<bestDist){bestDist=d;best={roomId:room.id,edge:i,p1:seg.p1,p2:seg.p2,pos:doorPosOf(p1,seg),width:doorWidthOf(seg)};}
-      });
+      if(dist(p1,p2)<0.5)return;
+      var d=distToSeg(absPt,p1,p2);
+      if(d>=bestDist)return;
+      bestDist=d;
+      best={roomId:room.id,edge:i,pos:dist(p1,absPt),width:width};
     });
   });
   return best;
@@ -1168,7 +1172,7 @@ function toggleDoorAt(target){
 
     if(linkSharedDoors){
       var mid={x:(target.p1.x+target.p2.x)/2,y:(target.p1.y+target.p2.y)/2};
-      var shared=findCoincidentEdge(target.roomId,mid);
+      var shared=findCoincidentEdge(target.roomId,mid,target.width);
       if(shared){
         var r2=findRoom(shared.roomId);
         r2.doors=r2.doors||[];
@@ -2173,6 +2177,19 @@ function onFileIn(e){
   r.onload=function(ev){try{loadBoard(JSON.parse(ev.target.result),f.name,'ro');}catch(ex){toast('Parse error: '+ex.message);}};
   r.readAsText(f);e.target.value='';
 }
+function dedupeDoors(doors,hasEdge){
+  var kept=[];
+  doors.forEach(function(d){
+    var half=(d.width||GRID)/2;
+    var dup=kept.some(function(k){
+      if(hasEdge&&k.edge!==d.edge)return false;
+      var kHalf=(k.width||GRID)/2;
+      return Math.abs(k.pos-d.pos)<(half+kHalf)*0.6;
+    });
+    if(!dup)kept.push(d);
+  });
+  return kept;
+}
 function loadBoard(raw,name,cls){
   board=raw;
   if(!board.meta)board.meta={};
@@ -2201,6 +2218,11 @@ function loadBoard(raw,name,cls){
       var seg=segs[Math.min(d.seg||0,segs.length-1)];
       return {edge:d.edge,pos:doorPosOf(p1,seg),width:doorWidthOf(seg)};
     }).filter(Boolean);
+    // Two doors can end up occupying the same spot on the same edge — e.g. a
+    // stale duplicate from an earlier bug, or two independent clicks that
+    // landed on the same slot. Keep only the first of any that substantially
+    // overlap, per edge.
+    r.doors=dedupeDoors(r.doors,true);
     if(!r.walls)r.walls=[];
     r.walls.forEach(function(w){
       if(!w.id)w.id=uid('W');
@@ -2216,6 +2238,7 @@ function loadBoard(raw,name,cls){
         var seg=segs[Math.min(Math.max(0,Math.round(idx)),segs.length-1)];
         return {pos:doorPosOf(w.p1,seg),width:doorWidthOf(seg)};
       }).filter(function(v){return v!=null;});
+      w.doors=dedupeDoors(w.doors,false);
     });
   });
   board.points.forEach(function(p){if(!p.id)p.id=uid('P');});
