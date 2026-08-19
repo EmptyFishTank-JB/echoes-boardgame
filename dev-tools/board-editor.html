@@ -198,6 +198,7 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
   <button class="tbtn on" id="btn-spaces" onclick="toggleSpaces()">&#9638; SPACES</button>
   <button class="tbtn on" id="btn-info" onclick="toggleRoomInfo()" title="Room name/family/space-count text">&#9432; INFO</button>
   <button class="tbtn" id="btn-attach" onclick="toggleAttachPoints()" title="Points inside a room move/copy/mirror/duplicate/rotate with it">&#128279; ATTACH</button>
+  <button class="tbtn" id="btn-linkdoors" onclick="toggleLinkDoors()" title="A door on a wall shared with another room also opens that room's side">&#128682; LINK DOORS</button>
   <button class="tbtn" id="btn-boundary" onclick="addOrSelectBoundary()">&#9645; BOUNDARY</button>
   <div class="tsep"></div>
   <button class="tbtn" id="btn-undo" onclick="doUndo()" disabled>&#8617; UNDO</button>
@@ -245,7 +246,7 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
 <input type="file" id="fi" accept=".json" style="display:none" onchange="onFileIn(event)">
 <div id="toast"></div>
 <div id="ctx-menu"></div>
-<div id="hint">Hotkeys: S select &middot; R room &middot; W wall &middot; D door &middot; T terminal &middot; V vent &middot; L locker &middot; O point &middot; B boundary &middot; F fit &middot; mx/my mirror horizontal/vertical &middot; drag on empty canvas to box-select, drag a selected item to move the group &middot; right-click for options &middot; scroll to zoom, right/middle-drag to pan, double-click middle button to fit</div>
+<div id="hint">Hotkeys: R room &middot; W wall &middot; D door &middot; T terminal &middot; V vent &middot; L locker &middot; P point &middot; B boundary &middot; F fit &middot; 1/2/4 whole/half/quarter snap &middot; I info &middot; S spaces &middot; A attach &middot; mx/my mirror vertical/horizontal &middot; Esc clear selection &middot; Ctrl+S save &middot; Ctrl+Shift+S save as &middot; Ctrl+P print &middot; drag on empty canvas to box-select, drag a selected item to move the group &middot; right-click for options &middot; scroll to zoom, right/middle-drag to pan, double-click middle button to fit</div>
 
 <script>
 'use strict';
@@ -289,6 +290,7 @@ var drawingWall=null;               // {roomId, p1:{x,y}} — second click, in t
 var selected=null;                  // {kind:'room'|'point'|'wall', id} — wall id is {roomId,wallId} packed as 'roomId|wallId'
 var showRoomInfo=true;              // toggle: room name/family/space-count text overlay
 var attachPoints=false;             // toggle: points geometrically inside a room move/copy/mirror/duplicate/rotate with it
+var linkSharedDoors=false;          // toggle: a door on a wall shared with another room also opens that room's side
 var isPanning=false, panStart=null;
 var draggingVertex=null;            // {roomId, idx}
 var draggingWhole=null;             // {kind, id, orig:[{x,y}...] or {x,y}, mouse0}
@@ -354,6 +356,7 @@ var showSpaces=true;
 function toggleSpaces(){showSpaces=!showSpaces;document.getElementById('btn-spaces').classList.toggle('on',showSpaces);renderRooms();}
 function toggleRoomInfo(){showRoomInfo=!showRoomInfo;document.getElementById('btn-info').classList.toggle('on',showRoomInfo);renderRooms();}
 function toggleAttachPoints(){attachPoints=!attachPoints;document.getElementById('btn-attach').classList.toggle('on',attachPoints);}
+function toggleLinkDoors(){linkSharedDoors=!linkSharedDoors;document.getElementById('btn-linkdoors').classList.toggle('on',linkSharedDoors);}
 
 var GRID=40, SNAP=GRID/2;
 function setSnap(div){
@@ -389,6 +392,21 @@ function wallSegments(p1,p2){
     for(var j=0;j<cutsY.length-1;j++)segs.push({p1:{x:p1.x,y:cutsY[j]},p2:{x:p1.x,y:cutsY[j+1]}});
   }
   return segs;
+}
+// A door's stored position is the arc-length distance from the wall's own
+// p1 to the door's (segment-midpoint) location, NOT a segment index and NOT
+// an absolute board coordinate:
+//  - not an index, so switching WHOLE/HALF/QUARTER (which re-cuts the wall
+//    into a different number of segments) can't shift an existing door to a
+//    different physical spot — the same distance-from-p1 just gets
+//    re-matched against whichever current segment now spans it.
+//  - not an absolute coordinate, so moving/rotating/mirroring the room (which
+//    moves p1 itself) carries the door along with it, the same as it always
+//    has for every other point defined relative to the room's own geometry.
+function doorPosOf(p1,seg){return dist(p1,{x:(seg.p1.x+seg.p2.x)/2,y:(seg.p1.y+seg.p2.y)/2});}
+function segMatchesPos(p1,seg,pos){
+  var d0=dist(p1,seg.p1),d1=dist(p1,seg.p2);
+  return pos>=Math.min(d0,d1)-0.5&&pos<=Math.max(d0,d1)+0.5;
 }
 
 // A "space" is one GRID cell (the token/miniature unit) — independent of
@@ -687,7 +705,7 @@ function renderRooms(){
       var segs=wallSegments(p1,p2);
       segs.forEach(function(seg,s){
         var sp1=seg.p1, sp2=seg.p2;
-        var hasDoor=doors.some(function(d){return d.edge===i&&d.seg===s;});
+        var hasDoor=doors.some(function(d){return d.edge===i&&segMatchesPos(p1,seg,d.pos);});
         if(hasDoor){
           var dx=sp2.x-sp1.x, dy=sp2.y-sp1.y;
           var a=el('line',{x1:sp1.x,y1:sp1.y,x2:sp1.x+dx*0.32,y2:sp1.y+dy*0.32,stroke:fam.color,'stroke-width':4,class:'room-edge'});
@@ -701,8 +719,8 @@ function renderRooms(){
       });
     });
     // Interior walls — always confined to this room, so they render/move/
-    // transform with it. Doors on them share wallSegments() with the room's
-    // own edges, addressed by seg index only (a wall has just one edge).
+    // transform with it. Doors on them share wallSegments() and the same
+    // arc-length pos matching as the room's own boundary edges.
     (room.walls||[]).forEach(function(w){
       var wDoors=w.doors||[];
       var isWallSel=selected&&selected.kind==='wall'&&selected.roomId===room.id&&selected.id===w.id;
@@ -710,7 +728,7 @@ function renderRooms(){
       var wg=el('g',{'data-wall-id':w.id,'data-room-id':room.id,class:'iwall'+(isWallSel?' selected':'')});
       segs.forEach(function(seg,s){
         var sp1=seg.p1,sp2=seg.p2;
-        var hasDoor=wDoors.indexOf(s)!==-1;
+        var hasDoor=wDoors.some(function(pos){return segMatchesPos(w.p1,seg,pos);});
         if(hasDoor){
           var dx=sp2.x-sp1.x,dy=sp2.y-sp1.y;
           wg.appendChild(el('line',{x1:sp1.x,y1:sp1.y,x2:sp1.x+dx*0.32,y2:sp1.y+dy*0.32,stroke:fam.color,'stroke-width':3,class:'room-edge'}));
@@ -794,7 +812,7 @@ function renderWallPreview(){
   if(!drawingWall)return;
   var p1=drawingWall.p1;
   var snappedMouse=snapPt(mouseBoard);
-  var inSameRoom=board.rooms.some(function(r){return r.id===drawingWall.roomId&&pointInPolygon(snappedMouse,r.points);});
+  var inSameRoom=board.rooms.some(function(r){return r.id===drawingWall.roomId&&pointInOrOnPolygon(snappedMouse,r.points);});
   layer.appendChild(el('line',{x1:p1.x,y1:p1.y,x2:snappedMouse.x,y2:snappedMouse.y,class:inSameRoom?'draw-rubber':'draw-rubber-invalid'}));
   layer.appendChild(el('circle',{cx:p1.x,cy:p1.y,r:4,class:'draw-vtx'}));
 }
@@ -907,6 +925,19 @@ function pointInPolygon(p,pts){
     if(intersect)inside=!inside;
   }
   return inside;
+}
+// pointInPolygon's ray-cast test is deliberately half-open at the top/right
+// edges (so two polygons sharing an edge don't both claim it) — which means
+// a point placed exactly ON the polygon's own bottom or right boundary
+// tests as OUTSIDE it. A wall drawn touching a room's own wall (very much
+// the normal case — corners and along-the-edge walls both land exactly on
+// it) needs "inside OR on the boundary", not strict interior-only.
+function pointInOrOnPolygon(p,pts){
+  if(pointInPolygon(p,pts))return true;
+  for(var i=0,j=pts.length-1;i<pts.length;j=i++){
+    if(distToSeg(p,pts[j],pts[i])<0.6)return true;
+  }
+  return false;
 }
 
 // ── PROPS PANEL ───────────────────────────────────────────────────────────────
@@ -1033,19 +1064,62 @@ function commitRoom(){
 }
 // target: {roomId, edge, seg} for a room boundary edge, or
 // {roomId, wallId, seg} for an interior wall — from findNearestWallSegment.
+// Two rooms' edges that physically coincide (a shared party wall) will, at
+// the same absolute SNAP grid, cut into segments with identical absolute
+// midpoints — so "is this the same wall as seen from the other room" is
+// just "is there a segment, anywhere but this room, whose midpoint is
+// (almost) exactly here." bestDist stays tight since a real match is ~0
+// apart and even the finest grid keeps unrelated walls much further out.
+function findCoincidentEdge(excludeRoomId,absPt){
+  var best=null,bestDist=1.5;
+  board.rooms.forEach(function(room){
+    if(room.id===excludeRoomId)return;
+    room.points.forEach(function(p1,i){
+      var p2=room.points[(i+1)%room.points.length];
+      wallSegments(p1,p2).forEach(function(seg){
+        var mid={x:(seg.p1.x+seg.p2.x)/2,y:(seg.p1.y+seg.p2.y)/2};
+        var d=dist(mid,absPt);
+        if(d<bestDist){bestDist=d;best={roomId:room.id,edge:i,p1:seg.p1,p2:seg.p2,pos:doorPosOf(p1,seg)};}
+      });
+    });
+  });
+  return best;
+}
+// target: {roomId, edge, p1, p2, pos} for a room boundary edge, or
+// {roomId, wallId, p1, p2, pos} for an interior wall — from
+// findNearestWallSegment. When LINK DOORS is on, toggling a door on a room
+// edge that coincides with another room's edge (a shared party wall) also
+// toggles the matching door on that other room, so either room's boundary
+// shows the doorway.
 function toggleDoorAt(target){
   if(!target)return;
   pushUndo();
+  var seg={p1:target.p1,p2:target.p2};
   if(target.wallId!=null){
     var w=findWall(target.roomId,target.wallId);if(!w)return;
     w.doors=w.doors||[];
-    var wi=w.doors.indexOf(target.seg);
-    if(wi===-1)w.doors.push(target.seg);else w.doors.splice(wi,1);
+    var wi=w.doors.findIndex(function(pos){return segMatchesPos(w.p1,seg,pos);});
+    if(wi===-1)w.doors.push(target.pos);else w.doors.splice(wi,1);
   }else{
     var r=findRoom(target.roomId);if(!r)return;
+    var edgeP1=r.points[target.edge];
     r.doors=r.doors||[];
-    var i=r.doors.findIndex(function(d){return d.edge===target.edge&&d.seg===target.seg;});
-    if(i===-1)r.doors.push({edge:target.edge,seg:target.seg});else r.doors.splice(i,1);
+    var i=r.doors.findIndex(function(d){return d.edge===target.edge&&segMatchesPos(edgeP1,seg,d.pos);});
+    var adding=i===-1;
+    if(adding)r.doors.push({edge:target.edge,pos:target.pos});else r.doors.splice(i,1);
+
+    if(linkSharedDoors){
+      var mid={x:(seg.p1.x+seg.p2.x)/2,y:(seg.p1.y+seg.p2.y)/2};
+      var shared=findCoincidentEdge(target.roomId,mid);
+      if(shared){
+        var r2=findRoom(shared.roomId);
+        var sSeg={p1:shared.p1,p2:shared.p2}, sEdgeP1=r2.points[shared.edge];
+        r2.doors=r2.doors||[];
+        var j=r2.doors.findIndex(function(d){return d.edge===shared.edge&&segMatchesPos(sEdgeP1,sSeg,d.pos);});
+        if(adding&&j===-1)r2.doors.push({edge:shared.edge,pos:shared.pos});
+        else if(!adding&&j!==-1)r2.doors.splice(j,1);
+      }
+    }
   }
   render();
 }
@@ -1062,19 +1136,19 @@ function findNearestWallSegment(pt){
     room.points.forEach(function(p1,i){
       var p2=room.points[(i+1)%room.points.length];
       var segs=wallSegments(p1,p2);
-      segs.forEach(function(seg,s){
+      segs.forEach(function(seg){
         var d=distToSeg(pt,seg.p1,seg.p2);
         if(d>=bestDist)return;
-        best={roomId:room.id,edge:i,seg:s,p1:seg.p1,p2:seg.p2};
+        best={roomId:room.id,edge:i,p1:seg.p1,p2:seg.p2,pos:doorPosOf(p1,seg)};
         bestDist=d;
       });
     });
     (room.walls||[]).forEach(function(w){
       var segs=wallSegments(w.p1,w.p2);
-      segs.forEach(function(seg,s){
+      segs.forEach(function(seg){
         var d=distToSeg(pt,seg.p1,seg.p2);
         if(d>=bestDist)return;
-        best={roomId:room.id,wallId:w.id,seg:s,p1:seg.p1,p2:seg.p2};
+        best={roomId:room.id,wallId:w.id,p1:seg.p1,p2:seg.p2,pos:doorPosOf(w.p1,seg)};
         bestDist=d;
       });
     });
@@ -1148,6 +1222,10 @@ function applyRoomTransform(room,fn){
   (room.walls||[]).forEach(function(w){w.p1=snapPt(fn(w.p1));w.p2=snapPt(fn(w.p2));});
   attached.forEach(function(p){var np=snapPt(fn(p));p.x=np.x;p.y=np.y;});
 }
+// axis is which COORDINATE gets negated, not which axis the flip is "named"
+// after in the UI — 'x' negates x (a left/right, Y-axis-reflection flip),
+// 'y' negates y (a top/bottom, X-axis-reflection flip). Callers translate
+// the "mx"/"my" hotkeys and menu labels to these accordingly.
 function mirrorPt(p,center,axis){
   return axis==='x'?{x:2*center.x-p.x,y:p.y}:{x:p.x,y:2*center.y-p.y};
 }
@@ -1323,8 +1401,8 @@ function onRoomContextMenu(e,roomId){
   if(multiSel.length>1){
     showCtxMenu(e.clientX,e.clientY,[
       {label:'&#128203; Copy Selected ('+multiSel.length+')',action:copySelection},
-      {label:'&#8596; Mirror Horizontal (mx)',action:function(){mirrorSelection('x');}},
-      {label:'&#8597; Mirror Vertical (my)',action:function(){mirrorSelection('y');}},
+      {label:'&#8596; Mirror Horizontal (my)',action:function(){mirrorSelection('x');}},
+      {label:'&#8597; Mirror Vertical (mx)',action:function(){mirrorSelection('y');}},
       null,
       {label:'&#10005; Delete Selected ('+multiSel.length+')',action:deleteMultiSel,danger:true}
     ]);
@@ -1333,8 +1411,8 @@ function onRoomContextMenu(e,roomId){
   showCtxMenu(e.clientX,e.clientY,[
     {label:'&#8635; Rotate 90&deg; CCW',action:function(){rotateRoom90(roomId,-1);}},
     {label:'&#8634; Rotate 90&deg; CW',action:function(){rotateRoom90(roomId,1);}},
-    {label:'&#8596; Mirror Horizontal (mx)',action:function(){mirrorRoom(roomId,'x');}},
-    {label:'&#8597; Mirror Vertical (my)',action:function(){mirrorRoom(roomId,'y');}},
+    {label:'&#8596; Mirror Horizontal (my)',action:function(){mirrorRoom(roomId,'x');}},
+    {label:'&#8597; Mirror Vertical (mx)',action:function(){mirrorRoom(roomId,'y');}},
     {label:'&#10064; Duplicate Room',action:function(){duplicateRoom(roomId);}},
     {label:'&#128203; Copy Room',action:copySelection},
     null,
@@ -1347,8 +1425,8 @@ function onPointContextMenu(e,ptId){
   if(multiSel.length>1){
     showCtxMenu(e.clientX,e.clientY,[
       {label:'&#128203; Copy Selected ('+multiSel.length+')',action:copySelection},
-      {label:'&#8596; Mirror Horizontal (mx)',action:function(){mirrorSelection('x');}},
-      {label:'&#8597; Mirror Vertical (my)',action:function(){mirrorSelection('y');}},
+      {label:'&#8596; Mirror Horizontal (my)',action:function(){mirrorSelection('x');}},
+      {label:'&#8597; Mirror Vertical (mx)',action:function(){mirrorSelection('y');}},
       null,
       {label:'&#10005; Delete Selected ('+multiSel.length+')',action:deleteMultiSel,danger:true}
     ]);
@@ -1531,7 +1609,7 @@ function initCanvas(){
       }
       render();
     }else if(tool==='wall'){
-      var containingRoom=board.rooms.filter(function(r){return pointInPolygon(bp,r.points);})[0];
+      var containingRoom=board.rooms.filter(function(r){return pointInOrOnPolygon(bp,r.points);})[0];
       if(!drawingWall){
         if(!containingRoom){toast('Walls must start inside a room');}
         else drawingWall={roomId:containingRoom.id,p1:bp};
@@ -1688,6 +1766,7 @@ function initCanvas(){
       if(drawingRoom){drawingRoom=null;render();}
       else if(drawingWall){drawingWall=null;render();}
       else if(multiSel.length){multiSel=[];render();}
+      else if(selected){selected=null;render();}
       hideCtxMenu();
     }else if(e.key==='Enter'&&!typing){
       if(drawingRoom&&drawingRoom.points.length>=3)commitRoom();
@@ -1705,6 +1784,12 @@ function initCanvas(){
       copySelection();e.preventDefault();
     }else if(!typing&&(e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='v'){
       pasteClipboard();e.preventDefault();
+    }else if(!typing&&(e.ctrlKey||e.metaKey)&&e.shiftKey&&e.key.toLowerCase()==='s'){
+      saveAsFile();e.preventDefault();
+    }else if(!typing&&(e.ctrlKey||e.metaKey)&&!e.shiftKey&&e.key.toLowerCase()==='s'){
+      saveToFile();e.preventDefault();
+    }else if(!typing&&(e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='p'){
+      window.print();e.preventDefault();
     }else if(!typing&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&!drawingRoom&&!drawingWall){
       var k=e.key.toLowerCase();
       // "mx"/"my" mirror chord: 'm' arms a short window for the axis key
@@ -1712,20 +1797,27 @@ function initCanvas(){
       // falls through to normal single-key handling below.
       if(pendingMirrorChord){
         clearTimeout(mirrorChordTimer);pendingMirrorChord=false;
-        if(k==='x'){mirrorSelection('x');e.preventDefault();return;}
-        if(k==='y'){mirrorSelection('y');e.preventDefault();return;}
+        // "mx" = mirror across the X axis (flips Y, top/bottom).
+        // "my" = mirror across the Y axis (flips X, left/right).
+        if(k==='x'){mirrorSelection('y');e.preventDefault();return;}
+        if(k==='y'){mirrorSelection('x');e.preventDefault();return;}
       }
       if(k==='m'){pendingMirrorChord=true;mirrorChordTimer=setTimeout(function(){pendingMirrorChord=false;},700);e.preventDefault();return;}
-      if(k==='s'){setTool('select');e.preventDefault();}
+      if(k==='1'){setSnap(1);e.preventDefault();}
+      else if(k==='2'){setSnap(2);e.preventDefault();}
+      else if(k==='4'){setSnap(4);e.preventDefault();}
       else if(k==='r'){setTool('room');e.preventDefault();}
       else if(k==='w'){setTool('wall');e.preventDefault();}
       else if(k==='d'){setTool('door');e.preventDefault();}
       else if(k==='t'){setPointTool('terminal');e.preventDefault();}
       else if(k==='v'){setPointTool('vent');e.preventDefault();}
       else if(k==='l'){setPointTool('locker');e.preventDefault();}
-      else if(k==='o'){setPointTool('other');e.preventDefault();}
+      else if(k==='p'){setPointTool('other');e.preventDefault();}
       else if(k==='b'){addOrSelectBoundary();e.preventDefault();}
       else if(k==='f'){resetView();e.preventDefault();}
+      else if(k==='i'){toggleRoomInfo();e.preventDefault();}
+      else if(k==='s'){toggleSpaces();e.preventDefault();}
+      else if(k==='a'){toggleAttachPoints();e.preventDefault();}
     }
   });
 }
@@ -1765,12 +1857,37 @@ function loadBoard(raw,name,cls){
   board.rooms.forEach(function(r){
     if(!r.id)r.id=uid('R');
     if(!r.doors)r.doors=[];
-    // Migrate the old format (doors: [edgeIndex,...], always centered on
-    // the whole edge) to the new {edge,seg} form (seg 0 = first GRID-length
-    // chunk of the edge — close enough to "centered" for a single-cell wall).
+    // Migrate the oldest format (doors: [edgeIndex,...], always centered on
+    // the whole edge) to the {edge,seg} form (seg 0 = first chunk of the edge).
     r.doors=r.doors.map(function(d){return typeof d==='number'?{edge:d,seg:0}:d;});
+    // Then migrate {edge,seg} (a segment INDEX — shifts to a different spot
+    // whenever SNAP changes the segmentation) to {edge,pos} (an arc-length
+    // distance from the edge's own start point — stable across snap changes
+    // and still moves/rotates/mirrors correctly with the room). Uses
+    // whatever SNAP is active right now to resolve what each old seg index
+    // pointed at, one time, at load.
+    r.doors=r.doors.map(function(d){
+      if(d.pos!==undefined)return d;
+      var p1=r.points[d.edge],p2=r.points[(d.edge+1)%r.points.length];
+      if(!p1||!p2)return null;
+      var segs=wallSegments(p1,p2);
+      if(!segs.length)return null;
+      var seg=segs[Math.min(d.seg||0,segs.length-1)];
+      return {edge:d.edge,pos:doorPosOf(p1,seg)};
+    }).filter(Boolean);
     if(!r.walls)r.walls=[];
-    r.walls.forEach(function(w){if(!w.id)w.id=uid('W');if(!w.doors)w.doors=[];});
+    r.walls.forEach(function(w){
+      if(!w.id)w.id=uid('W');
+      if(!w.doors)w.doors=[];
+      // Same index->pos migration as room doors, but walls have only ever
+      // shipped in the old index format, so every entry needs it.
+      w.doors=w.doors.map(function(idx){
+        var segs=wallSegments(w.p1,w.p2);
+        if(!segs.length)return null;
+        var seg=segs[Math.min(idx,segs.length-1)];
+        return doorPosOf(w.p1,seg);
+      }).filter(function(v){return v!=null;});
+    });
   });
   board.points.forEach(function(p){if(!p.id)p.id=uid('P');});
   syncUidCounter();
