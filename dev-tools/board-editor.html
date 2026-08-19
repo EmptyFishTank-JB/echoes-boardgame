@@ -55,6 +55,9 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
 .room-poly:hover{filter:brightness(1.3);}
 .room-poly.selected{filter:brightness(1.4);}
 .room-edge{cursor:pointer;}
+.iwall-line{stroke-dasharray:6,3;opacity:0.85;}
+.iwall{cursor:pointer;}
+.iwall.selected .iwall-line{opacity:1;filter:drop-shadow(0 0 2px #fff);}
 .room-label{font-family:"Share Tech Mono",monospace;font-size:12px;fill:rgba(255,255,255,0.82);pointer-events:none;text-anchor:middle;}
 .room-sublabel{font-family:"Share Tech Mono",monospace;font-size:9px;fill:rgba(255,255,255,0.42);pointer-events:none;text-anchor:middle;}
 .vtx-handle{fill:#fff;stroke:#4fc3f7;stroke-width:1.5;cursor:grab;}
@@ -95,6 +98,7 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
 .draw-vtx{fill:#fff;stroke:#4fc3f7;stroke-width:1.5;}
 .draw-line{stroke:#4fc3f7;stroke-width:2;stroke-dasharray:4,3;fill:none;}
 .draw-rubber{stroke:rgba(79,195,247,0.55);stroke-width:1.5;stroke-dasharray:3,3;fill:none;}
+.draw-rubber-invalid{stroke:rgba(224,80,80,0.65);stroke-width:1.5;stroke-dasharray:3,3;fill:none;}
 .draw-close-hint{fill:none;stroke:#6fb06f;stroke-width:2;}
 
 /* PROPS PANEL */
@@ -170,6 +174,7 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
 <div id="toolbar">
   <button class="tbtn on" id="btn-select" onclick="setTool('select')">&#9654; SELECT</button>
   <button class="tbtn" id="btn-room" onclick="setTool('room')">&#9635; ROOM</button>
+  <button class="tbtn" id="btn-wall" onclick="setTool('wall')" title="Interior wall — both ends must land inside the same room">&#9552; WALL</button>
   <button class="tbtn" id="btn-door" onclick="setTool('door')">&#8862; DOOR</button>
   <div class="tsep"></div>
   <button class="tbtn" id="btn-terminal" onclick="setPointTool('terminal')">&#9670; TERMINAL</button>
@@ -191,6 +196,8 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
   <button class="tbtn" onclick="resetView()">FIT</button>
   <div class="tsep"></div>
   <button class="tbtn on" id="btn-spaces" onclick="toggleSpaces()">&#9638; SPACES</button>
+  <button class="tbtn on" id="btn-info" onclick="toggleRoomInfo()" title="Room name/family/space-count text">&#9432; INFO</button>
+  <button class="tbtn" id="btn-attach" onclick="toggleAttachPoints()" title="Points inside a room move/copy/mirror/duplicate/rotate with it">&#128279; ATTACH</button>
   <button class="tbtn" id="btn-boundary" onclick="addOrSelectBoundary()">&#9645; BOUNDARY</button>
   <div class="tsep"></div>
   <button class="tbtn" id="btn-undo" onclick="doUndo()" disabled>&#8617; UNDO</button>
@@ -238,7 +245,7 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
 <input type="file" id="fi" accept=".json" style="display:none" onchange="onFileIn(event)">
 <div id="toast"></div>
 <div id="ctx-menu"></div>
-<div id="hint">Hotkeys: S select &middot; R room &middot; D door &middot; T terminal &middot; V vent &middot; L locker &middot; O point &middot; B boundary &middot; F fit &middot; drag on empty canvas to box-select, drag a selected item to move the group &middot; right-click for options &middot; scroll to zoom, right/middle-drag to pan, double-click middle button to fit</div>
+<div id="hint">Hotkeys: S select &middot; R room &middot; W wall &middot; D door &middot; T terminal &middot; V vent &middot; L locker &middot; O point &middot; B boundary &middot; F fit &middot; mx/my mirror horizontal/vertical &middot; drag on empty canvas to box-select, drag a selected item to move the group &middot; right-click for options &middot; scroll to zoom, right/middle-drag to pan, double-click middle button to fit</div>
 
 <script>
 'use strict';
@@ -278,7 +285,10 @@ var fileHandle=null;
 var pan={x:80,y:60}, zoom=1;
 var tool='select', pointType='terminal', activeFamily='cargo';
 var drawingRoom=null;               // {points:[{x,y},...]}
-var selected=null;                  // {kind:'room'|'point', id}
+var drawingWall=null;               // {roomId, p1:{x,y}} — second click, in the same room, commits it
+var selected=null;                  // {kind:'room'|'point'|'wall', id} — wall id is {roomId,wallId} packed as 'roomId|wallId'
+var showRoomInfo=true;              // toggle: room name/family/space-count text overlay
+var attachPoints=false;             // toggle: points geometrically inside a room move/copy/mirror/duplicate/rotate with it
 var isPanning=false, panStart=null;
 var draggingVertex=null;            // {roomId, idx}
 var draggingWhole=null;             // {kind, id, orig:[{x,y}...] or {x,y}, mouse0}
@@ -291,6 +301,7 @@ var groupDrag=null;                 // {mouse0, orig:[{kind,id,points|x,y}...]} 
 var rightDown=null;                 // {x,y,moved} — tracks whether a right-button press was a drag (pan) or a click (context menu)
 var lastMidClick=0;                 // timestamp — detects a double-click on the middle mouse button
 var clipboard=null;                 // {kind:'room'|'point'|'multi', data|items}
+var pendingMirrorChord=false, mirrorChordTimer=null;  // "m" then "x"/"y" hotkey sequence
 
 // ── UNDO / REDO ───────────────────────────────────────────────────────────────
 // Snapshot-based: pushUndo() is called right before each discrete mutation
@@ -335,18 +346,49 @@ function syncUidCounter(){
     var m=/(\d+)$/.exec(String(id||''));
     if(m){var n=parseInt(m[1],10);if(n>max)max=n;}
   }
-  (board.rooms||[]).forEach(function(r){scan(r.id);});
+  (board.rooms||[]).forEach(function(r){scan(r.id);(r.walls||[]).forEach(function(w){scan(w.id);});});
   (board.points||[]).forEach(function(p){scan(p.id);});
   if(max+1>uidCounter)uidCounter=max+1;
 }
 var showSpaces=true;
 function toggleSpaces(){showSpaces=!showSpaces;document.getElementById('btn-spaces').classList.toggle('on',showSpaces);renderRooms();}
+function toggleRoomInfo(){showRoomInfo=!showRoomInfo;document.getElementById('btn-info').classList.toggle('on',showRoomInfo);renderRooms();}
+function toggleAttachPoints(){attachPoints=!attachPoints;document.getElementById('btn-attach').classList.toggle('on',attachPoints);}
 
 var GRID=40, SNAP=GRID/2;
 function setSnap(div){
   SNAP=GRID/div;
   document.querySelectorAll('#btn-snap-1,#btn-snap-2,#btn-snap-4').forEach(function(b){b.classList.remove('on');});
   document.getElementById('btn-snap-'+div).classList.add('on');
+}
+// Cuts a wall (p1->p2) into sub-segments at the absolute board grid lines
+// (multiples of SNAP measured from the world origin), not at offsets
+// relative to p1 — so a door's position always matches the same
+// whole/half/quarter grid the room's own points are placed on, regardless
+// of where this particular wall happens to start or how long it is. Only
+// axis-aligned walls subdivide this way; a diagonal (e.g. a 45° notch
+// corner) doesn't run along either grid axis, so it stays one segment.
+function wallSegments(p1,p2){
+  var dx=p2.x-p1.x, dy=p2.y-p1.y;
+  if(Math.hypot(dx,dy)<0.5)return [];
+  if(Math.abs(dx)>=0.5&&Math.abs(dy)>=0.5)return [{p1:p1,p2:p2}];
+  var segs=[];
+  if(Math.abs(dy)<0.5){
+    var lo=Math.min(p1.x,p2.x), hi=Math.max(p1.x,p2.x), dir=p2.x>=p1.x?1:-1;
+    var cuts=[lo], first=Math.ceil(lo/SNAP-1e-6)*SNAP;
+    for(var x=first;x<hi-1e-6;x+=SNAP){if(x>lo+1e-6)cuts.push(x);}
+    cuts.push(hi);
+    if(dir<0)cuts.reverse();
+    for(var i=0;i<cuts.length-1;i++)segs.push({p1:{x:cuts[i],y:p1.y},p2:{x:cuts[i+1],y:p1.y}});
+  }else{
+    var loY=Math.min(p1.y,p2.y), hiY=Math.max(p1.y,p2.y), dirV=p2.y>=p1.y?1:-1;
+    var cutsY=[loY], firstY=Math.ceil(loY/SNAP-1e-6)*SNAP;
+    for(var y=firstY;y<hiY-1e-6;y+=SNAP){if(y>loY+1e-6)cutsY.push(y);}
+    cutsY.push(hiY);
+    if(dirV<0)cutsY.reverse();
+    for(var j=0;j<cutsY.length-1;j++)segs.push({p1:{x:p1.x,y:cutsY[j]},p2:{x:p1.x,y:cutsY[j+1]}});
+  }
+  return segs;
 }
 
 // A "space" is one GRID cell (the token/miniature unit) — independent of
@@ -399,22 +441,28 @@ function hexToRgba(hex,a){
 }
 
 // ── TOOL SELECTION ────────────────────────────────────────────────────────────
+// Only these buttons represent the exclusive "current tool" — SPACES/INFO/
+// ATTACH/SNAP are independent toggles and must keep their own 'on' state
+// across a tool switch, not get wiped by it.
+var TOOL_BTN_IDS=['btn-select','btn-room','btn-wall','btn-door','btn-terminal','btn-vent','btn-locker','btn-other'];
+function clearToolBtns(){TOOL_BTN_IDS.forEach(function(id){var b=document.getElementById(id);if(b)b.classList.remove('on');});}
 function setTool(t){
   tool=t;
   drawingRoom=null;
-  document.querySelectorAll('#toolbar .tbtn').forEach(function(b){b.classList.remove('on');});
-  var idMap={select:'btn-select',room:'btn-room',door:'btn-door'};
+  drawingWall=null;
+  clearToolBtns();
+  var idMap={select:'btn-select',room:'btn-room',wall:'btn-wall',door:'btn-door'};
   if(idMap[t])document.getElementById(idMap[t]).classList.add('on');
   document.getElementById('canvas-wrap').className=t!=='select'?'tool-'+t:'';
   render();
 }
 function setPointTool(pt){
   tool='point';pointType=pt;
-  document.querySelectorAll('#toolbar .tbtn').forEach(function(b){b.classList.remove('on');});
+  clearToolBtns();
   var idMap={terminal:'btn-terminal',vent:'btn-vent',locker:'btn-locker',other:'btn-other'};
   document.getElementById(idMap[pt]).classList.add('on');
   document.getElementById('canvas-wrap').className='tool-point';
-  drawingRoom=null;render();
+  drawingRoom=null;drawingWall=null;render();
 }
 
 // ── FAMILY DROPDOWN ───────────────────────────────────────────────────────────
@@ -485,7 +533,7 @@ function render(){
   renderBoundary();
   renderRooms();
   renderPoints();
-  renderDrawPreview();
+  if(tool==='wall')renderWallPreview();else renderDrawPreview();
   if(tool==='door')renderDoorHover();else document.getElementById('door-hover-layer').innerHTML='';
   renderHandles();
   rebuildFamilySelect();
@@ -636,20 +684,9 @@ function renderRooms(){
     var doors=room.doors||[];
     room.points.forEach(function(p1,i){
       var p2=room.points[(i+1)%room.points.length];
-      var edgeLen=dist(p1,p2);
-      if(edgeLen<0.5)return;
-      var ux=(p2.x-p1.x)/edgeLen, uy=(p2.y-p1.y)/edgeLen;
-      // Segment by SNAP, not the fixed GRID space-unit, so a door's position
-      // (and this rendering) always lands on the same whole/half/quarter grid
-      // the room's own points were placed on — not an offset relative to
-      // wherever this particular edge's start point happens to sit.
-      // ceil, not round: an edge whose length isn't a clean multiple of SNAP
-      // (e.g. a 45° notch corner) must round the segment count UP so segments
-      // always fully cover it; the last one just comes out shorter than SNAP.
-      var nSegs=Math.max(1,Math.ceil(edgeLen/SNAP-1e-6));
-      for(var s=0;s<nSegs;s++){
-        var segStart=s*SNAP, segEnd=Math.min(segStart+SNAP,edgeLen);
-        var sp1={x:p1.x+ux*segStart,y:p1.y+uy*segStart}, sp2={x:p1.x+ux*segEnd,y:p1.y+uy*segEnd};
+      var segs=wallSegments(p1,p2);
+      segs.forEach(function(seg,s){
+        var sp1=seg.p1, sp2=seg.p2;
         var hasDoor=doors.some(function(d){return d.edge===i&&d.seg===s;});
         if(hasDoor){
           var dx=sp2.x-sp1.x, dy=sp2.y-sp1.y;
@@ -661,15 +698,43 @@ function renderRooms(){
         }else{
           g.appendChild(el('line',{x1:sp1.x,y1:sp1.y,x2:sp2.x,y2:sp2.y,stroke:fam.color,'stroke-width':4,class:'room-edge'}));
         }
-      }
+      });
     });
-    var c=centroid(room.points);
-    var label=el('text',{x:c.x,y:c.y-6,class:'room-label'});
-    label.textContent=room.label||fam.label;
-    g.appendChild(label);
-    var sub=el('text',{x:c.x,y:c.y+8,class:'room-sublabel'});
-    sub.textContent=fam.label+' · '+spaces.count+' sp'+(room._spaceInvalid?' ('+room._spaceInvalid+' excl.)':'');
-    g.appendChild(sub);
+    // Interior walls — always confined to this room, so they render/move/
+    // transform with it. Doors on them share wallSegments() with the room's
+    // own edges, addressed by seg index only (a wall has just one edge).
+    (room.walls||[]).forEach(function(w){
+      var wDoors=w.doors||[];
+      var isWallSel=selected&&selected.kind==='wall'&&selected.roomId===room.id&&selected.id===w.id;
+      var segs=wallSegments(w.p1,w.p2);
+      var wg=el('g',{'data-wall-id':w.id,'data-room-id':room.id,class:'iwall'+(isWallSel?' selected':'')});
+      segs.forEach(function(seg,s){
+        var sp1=seg.p1,sp2=seg.p2;
+        var hasDoor=wDoors.indexOf(s)!==-1;
+        if(hasDoor){
+          var dx=sp2.x-sp1.x,dy=sp2.y-sp1.y;
+          wg.appendChild(el('line',{x1:sp1.x,y1:sp1.y,x2:sp1.x+dx*0.32,y2:sp1.y+dy*0.32,stroke:fam.color,'stroke-width':3,class:'room-edge'}));
+          wg.appendChild(el('line',{x1:sp1.x+dx*0.68,y1:sp1.y+dy*0.68,x2:sp2.x,y2:sp2.y,stroke:fam.color,'stroke-width':3,class:'room-edge'}));
+          var mid={x:(sp1.x+sp2.x)/2,y:(sp1.y+sp2.y)/2};
+          wg.appendChild(el('rect',{x:mid.x-3.5,y:mid.y-3.5,width:7,height:7,fill:'#fff',stroke:fam.color,'stroke-width':1.3,transform:'rotate(45 '+mid.x+' '+mid.y+')'}));
+        }else{
+          wg.appendChild(el('line',{x1:sp1.x,y1:sp1.y,x2:sp2.x,y2:sp2.y,stroke:fam.color,'stroke-width':3,class:'room-edge iwall-line'}));
+        }
+      });
+      wg.addEventListener('mousedown',function(e){onWallMouseDown(e,room.id,w.id);});
+      wg.addEventListener('contextmenu',function(e){onWallContextMenu(e,room.id,w.id);});
+      g.appendChild(wg);
+    });
+
+    if(showRoomInfo){
+      var c=centroid(room.points);
+      var label=el('text',{x:c.x,y:c.y-6,class:'room-label'});
+      label.textContent=room.label||fam.label;
+      g.appendChild(label);
+      var sub=el('text',{x:c.x,y:c.y+8,class:'room-sublabel'});
+      sub.textContent=fam.label+' · '+spaces.count+' sp'+(room._spaceInvalid?' ('+room._spaceInvalid+' excl.)':'');
+      g.appendChild(sub);
+    }
     layer.appendChild(g);
   });
 }
@@ -722,6 +787,16 @@ function renderDrawPreview(){
     var near=i===0&&pts.length>=3&&dist(p,mouseBoard)<10/zoom;
     layer.appendChild(el('circle',{cx:p.x,cy:p.y,r:near?7:4,class:i===0?'draw-close-hint':'draw-vtx'}));
   });
+}
+function renderWallPreview(){
+  var layer=document.getElementById('draw-preview-layer');
+  layer.innerHTML='';
+  if(!drawingWall)return;
+  var p1=drawingWall.p1;
+  var snappedMouse=snapPt(mouseBoard);
+  var inSameRoom=board.rooms.some(function(r){return r.id===drawingWall.roomId&&pointInPolygon(snappedMouse,r.points);});
+  layer.appendChild(el('line',{x1:p1.x,y1:p1.y,x2:snappedMouse.x,y2:snappedMouse.y,class:inSameRoom?'draw-rubber':'draw-rubber-invalid'}));
+  layer.appendChild(el('circle',{cx:p1.x,cy:p1.y,r:4,class:'draw-vtx'}));
 }
 
 function renderHandles(){
@@ -883,6 +958,13 @@ function renderProps(){
       '<strong style="color:#6fb06f;">'+stats.available+'</strong> available<br><br>'+
       'Drag the border to move, drag a corner to resize. Snaps to whole spaces.</div>';
     html+='<button class="pp-del" onclick="removeBoundary()">REMOVE BOUNDARY</button>';
+  }else if(selected&&selected.kind==='wall'){
+    var wRoom=findRoom(selected.roomId), w=wRoom&&findWall(selected.roomId,selected.id);
+    if(w){
+      html+='<div class="pp-h">INTERIOR WALL</div>';
+      html+='<div class="pp-empty">In room <strong style="color:var(--blue);">'+esc(wRoom.label||wRoom.id)+'</strong><br>'+(w.doors&&w.doors.length?w.doors.length+' door(s) on it':'No doors — use the DOOR tool to add one')+'<br><br>Fixed to this room; moves, duplicates, and mirrors with it.</div>';
+      html+='<button class="pp-del" onclick="deleteWall(\''+selected.roomId+'\',\''+selected.id+'\')">DELETE WALL</button>';
+    }
   }else{
     html+='<div class="pp-h">BOARD</div>';
     html+='<div class="pp-row"><label>NAME</label><input type="text" value="'+esc(board.meta.name||'')+'" onfocus="pushUndo()" oninput="board.meta.name=this.value"></div>';
@@ -945,44 +1027,56 @@ function addFamily(){
 function commitRoom(){
   if(!drawingRoom||drawingRoom.points.length<3){drawingRoom=null;render();return;}
   pushUndo();
-  board.rooms.push({id:uid('R'),family:activeFamily,label:'',notes:'',points:drawingRoom.points,doors:[]});
+  board.rooms.push({id:uid('R'),family:activeFamily,label:'',notes:'',points:drawingRoom.points,doors:[],walls:[]});
   drawingRoom=null;
   render();
 }
-function toggleDoorSeg(roomId,edge,seg){
-  var r=findRoom(roomId);if(!r)return;
+// target: {roomId, edge, seg} for a room boundary edge, or
+// {roomId, wallId, seg} for an interior wall — from findNearestWallSegment.
+function toggleDoorAt(target){
+  if(!target)return;
   pushUndo();
-  r.doors=r.doors||[];
-  var i=r.doors.findIndex(function(d){return d.edge===edge&&d.seg===seg;});
-  if(i===-1)r.doors.push({edge:edge,seg:seg});else r.doors.splice(i,1);
+  if(target.wallId!=null){
+    var w=findWall(target.roomId,target.wallId);if(!w)return;
+    w.doors=w.doors||[];
+    var wi=w.doors.indexOf(target.seg);
+    if(wi===-1)w.doors.push(target.seg);else w.doors.splice(wi,1);
+  }else{
+    var r=findRoom(target.roomId);if(!r)return;
+    r.doors=r.doors||[];
+    var i=r.doors.findIndex(function(d){return d.edge===target.edge&&d.seg===target.seg;});
+    if(i===-1)r.doors.push({edge:target.edge,seg:target.seg});else r.doors.splice(i,1);
+  }
   render();
 }
 // Finds the nearest wall segment to a board-space point, across every
-// room, within a generous threshold — roughly "anywhere in the grid
-// square that wall occupies", not just pixel-precise on the line itself.
-// A long edge is broken into SNAP-length segments so a door can land on
-// any one of them, not just centered on the whole wall.
+// room's boundary edges AND interior walls, within a generous threshold —
+// roughly "anywhere in the grid square that wall occupies", not just
+// pixel-precise on the line itself. Segments come from wallSegments(),
+// which cuts at the absolute board grid — so this must stay in lockstep
+// with the render loop's use of the same function, or a stored door won't
+// hit-test where it visually renders.
 function findNearestWallSegment(pt){
   var best=null,bestDist=GRID*0.85;
   board.rooms.forEach(function(room){
     room.points.forEach(function(p1,i){
       var p2=room.points[(i+1)%room.points.length];
-      var edgeLen=dist(p1,p2);
-      if(edgeLen<0.5)return;
-      var d=distToSeg(pt,p1,p2);
-      if(d>=bestDist)return;
-      var ux=(p2.x-p1.x)/edgeLen,uy=(p2.y-p1.y)/edgeLen;
-      var t=(pt.x-p1.x)*ux+(pt.y-p1.y)*uy;
-      // Same SNAP-based segmentation as the render loop above — must stay in
-      // lockstep with it, or a stored {edge,seg} door won't hit-test where it
-      // visually renders.
-      var nSegs=Math.max(1,Math.ceil(edgeLen/SNAP-1e-6));
-      var segIdx=Math.max(0,Math.min(nSegs-1,Math.floor(t/SNAP)));
-      var segStart=segIdx*SNAP,segEnd=Math.min(segStart+SNAP,edgeLen);
-      best={roomId:room.id,edge:i,seg:segIdx,
-        p1:{x:p1.x+ux*segStart,y:p1.y+uy*segStart},
-        p2:{x:p1.x+ux*segEnd,y:p1.y+uy*segEnd}};
-      bestDist=d;
+      var segs=wallSegments(p1,p2);
+      segs.forEach(function(seg,s){
+        var d=distToSeg(pt,seg.p1,seg.p2);
+        if(d>=bestDist)return;
+        best={roomId:room.id,edge:i,seg:s,p1:seg.p1,p2:seg.p2};
+        bestDist=d;
+      });
+    });
+    (room.walls||[]).forEach(function(w){
+      var segs=wallSegments(w.p1,w.p2);
+      segs.forEach(function(seg,s){
+        var d=distToSeg(pt,seg.p1,seg.p2);
+        if(d>=bestDist)return;
+        best={roomId:room.id,wallId:w.id,seg:s,p1:seg.p1,p2:seg.p2};
+        bestDist=d;
+      });
     });
   });
   return best;
@@ -1018,10 +1112,18 @@ function deleteMultiSel(){
 function duplicateRoom(id){
   var r=findRoom(id);if(!r)return;
   pushUndo();
+  var d={x:GRID,y:GRID};
+  var attached=attachPoints?board.points.filter(function(p){return pointInPolygon(p,r.points);}):[];
   var copy=JSON.parse(JSON.stringify(r));
   copy.id=uid('R');
-  copy.points=r.points.map(function(p){return {x:p.x+GRID,y:p.y+GRID};});
+  copy.points=r.points.map(function(p){return {x:p.x+d.x,y:p.y+d.y};});
+  (copy.walls||[]).forEach(function(w){w.id=uid('W');w.p1={x:w.p1.x+d.x,y:w.p1.y+d.y};w.p2={x:w.p2.x+d.x,y:w.p2.y+d.y};});
   board.rooms.push(copy);
+  attached.forEach(function(p){
+    var pc=JSON.parse(JSON.stringify(p));
+    pc.id=uid('P');pc.x=p.x+d.x;pc.y=p.y+d.y;
+    board.points.push(pc);
+  });
   multiSel=[];selected={kind:'room',id:copy.id};
   render();
 }
@@ -1034,12 +1136,69 @@ function duplicatePoint(id){
   multiSel=[];selected={kind:'point',id:copy.id};
   render();
 }
+// Applies fn(p)->{x,y} to a room's own points and interior walls (walls are
+// always structurally part of the room, so they transform with it
+// unconditionally); when the ATTACH toggle is on, also applies it to any
+// point geometrically inside the room's ORIGINAL polygon (captured before
+// the room moves, so a mid-transform point doesn't fall in or out of the
+// set as the shape passes over it).
+function applyRoomTransform(room,fn){
+  var attached=attachPoints?board.points.filter(function(p){return pointInPolygon(p,room.points);}):[];
+  room.points=room.points.map(function(p){return snapPt(fn(p));});
+  (room.walls||[]).forEach(function(w){w.p1=snapPt(fn(w.p1));w.p2=snapPt(fn(w.p2));});
+  attached.forEach(function(p){var np=snapPt(fn(p));p.x=np.x;p.y=np.y;});
+}
+function mirrorPt(p,center,axis){
+  return axis==='x'?{x:2*center.x-p.x,y:p.y}:{x:p.x,y:2*center.y-p.y};
+}
+function bboxCenter(pts){
+  var xs=pts.map(function(p){return p.x;}),ys=pts.map(function(p){return p.y;});
+  return {x:(Math.min.apply(null,xs)+Math.max.apply(null,xs))/2,y:(Math.min.apply(null,ys)+Math.max.apply(null,ys))/2};
+}
 function rotateRoom90(id,dir){
   var r=findRoom(id);if(!r)return;
   pushUndo();
   var center=centroid(r.points);
-  r.points=r.points.map(function(p){return snapPt(rotatePoint(p,center,dir*Math.PI/2));});
+  applyRoomTransform(r,function(p){return rotatePoint(p,center,dir*Math.PI/2);});
   render();
+}
+function mirrorRoom(id,axis){
+  var r=findRoom(id);if(!r)return;
+  pushUndo();
+  var center=bboxCenter(r.points);
+  applyRoomTransform(r,function(p){return mirrorPt(p,center,axis);});
+  render();
+}
+// Multi-select mirror flips the whole group around their shared bounding-box
+// center, keeping relative layout — like flipping a floor-plan section.
+// Doesn't consult the ATTACH toggle: anything mirrored here was explicitly
+// put in multiSel already, room or point alike.
+function mirrorMultiSel(axis){
+  if(multiSel.length<2)return;
+  pushUndo();
+  var xs=[],ys=[];
+  multiSel.forEach(function(m){
+    if(m.kind==='room'){var r=findRoom(m.id);if(r)r.points.forEach(function(p){xs.push(p.x);ys.push(p.y);});}
+    else{var p=findPoint(m.id);if(p){xs.push(p.x);ys.push(p.y);}}
+  });
+  if(!xs.length)return;
+  var center=bboxCenter(xs.map(function(x,i){return {x:x,y:ys[i]};}));
+  multiSel.forEach(function(m){
+    if(m.kind==='room'){
+      var r=findRoom(m.id);if(!r)return;
+      r.points=r.points.map(function(p){return snapPt(mirrorPt(p,center,axis));});
+      (r.walls||[]).forEach(function(w){w.p1=snapPt(mirrorPt(w.p1,center,axis));w.p2=snapPt(mirrorPt(w.p2,center,axis));});
+    }else{
+      var p=findPoint(m.id);if(!p)return;
+      var np=snapPt(mirrorPt(p,center,axis));p.x=np.x;p.y=np.y;
+    }
+  });
+  render();
+}
+function mirrorSelection(axis){
+  if(multiSel.length>1)mirrorMultiSel(axis);
+  else if(selected&&selected.kind==='room')mirrorRoom(selected.id,axis);
+  else toast('Select a room (or a multi-selection) to mirror');
 }
 function fitBoundaryToRooms(){
   if(!board.boundary)return;
@@ -1062,8 +1221,10 @@ function copySelection(){
     })};
     toast('Copied '+multiSel.length+' item(s)');
   }else if(selected&&selected.kind==='room'){
-    clipboard={kind:'room',data:JSON.parse(JSON.stringify(findRoom(selected.id)))};
-    toast('Copied room');
+    var room=findRoom(selected.id);
+    var attached=attachPoints?board.points.filter(function(p){return pointInPolygon(p,room.points);}):[];
+    clipboard={kind:'room',data:JSON.parse(JSON.stringify(room)),attachedPoints:JSON.parse(JSON.stringify(attached))};
+    toast('Copied room'+(attached.length?' + '+attached.length+' attached point(s)':''));
   }else if(selected&&selected.kind==='point'){
     clipboard={kind:'point',data:JSON.parse(JSON.stringify(findPoint(selected.id)))};
     toast('Copied point');
@@ -1105,6 +1266,7 @@ function pasteClipboard(atPt){
       var copy=JSON.parse(JSON.stringify(it.data));
       copy.id=uid('R');
       copy.points=it.data.points.map(function(p){return {x:p.x+delta.x,y:p.y+delta.y};});
+      (copy.walls||[]).forEach(function(w){w.id=uid('W');w.p1={x:w.p1.x+delta.x,y:w.p1.y+delta.y};w.p2={x:w.p2.x+delta.x,y:w.p2.y+delta.y};});
       board.rooms.push(copy);
       newSel.push({kind:'room',id:copy.id});
     }else{
@@ -1115,6 +1277,16 @@ function pasteClipboard(atPt){
       newSel.push({kind:'point',id:copy2.id});
     }
   });
+  // A single copied room's attached points (captured at copy time) ride along
+  // with the same delta — created but left out of the new selection, same as
+  // duplicateRoom.
+  if(clipboard.kind==='room'&&clipboard.attachedPoints&&clipboard.attachedPoints.length){
+    clipboard.attachedPoints.forEach(function(p){
+      var pc=JSON.parse(JSON.stringify(p));
+      pc.id=uid('P');pc.x=p.x+delta.x;pc.y=p.y+delta.y;
+      board.points.push(pc);
+    });
+  }
   if(newSel.length===1){selected=newSel[0];multiSel=[];}
   else{selected=null;multiSel=newSel;}
   render();
@@ -1151,6 +1323,8 @@ function onRoomContextMenu(e,roomId){
   if(multiSel.length>1){
     showCtxMenu(e.clientX,e.clientY,[
       {label:'&#128203; Copy Selected ('+multiSel.length+')',action:copySelection},
+      {label:'&#8596; Mirror Horizontal (mx)',action:function(){mirrorSelection('x');}},
+      {label:'&#8597; Mirror Vertical (my)',action:function(){mirrorSelection('y');}},
       null,
       {label:'&#10005; Delete Selected ('+multiSel.length+')',action:deleteMultiSel,danger:true}
     ]);
@@ -1159,6 +1333,8 @@ function onRoomContextMenu(e,roomId){
   showCtxMenu(e.clientX,e.clientY,[
     {label:'&#8635; Rotate 90&deg; CCW',action:function(){rotateRoom90(roomId,-1);}},
     {label:'&#8634; Rotate 90&deg; CW',action:function(){rotateRoom90(roomId,1);}},
+    {label:'&#8596; Mirror Horizontal (mx)',action:function(){mirrorRoom(roomId,'x');}},
+    {label:'&#8597; Mirror Vertical (my)',action:function(){mirrorRoom(roomId,'y');}},
     {label:'&#10064; Duplicate Room',action:function(){duplicateRoom(roomId);}},
     {label:'&#128203; Copy Room',action:copySelection},
     null,
@@ -1171,6 +1347,8 @@ function onPointContextMenu(e,ptId){
   if(multiSel.length>1){
     showCtxMenu(e.clientX,e.clientY,[
       {label:'&#128203; Copy Selected ('+multiSel.length+')',action:copySelection},
+      {label:'&#8596; Mirror Horizontal (mx)',action:function(){mirrorSelection('x');}},
+      {label:'&#8597; Mirror Vertical (my)',action:function(){mirrorSelection('y');}},
       null,
       {label:'&#10005; Delete Selected ('+multiSel.length+')',action:deleteMultiSel,danger:true}
     ]);
@@ -1181,6 +1359,13 @@ function onPointContextMenu(e,ptId){
     {label:'&#128203; Copy Point',action:copySelection},
     null,
     {label:'&#10005; Delete Point',action:function(){deletePoint(ptId);},danger:true}
+  ]);
+}
+function onWallContextMenu(e,roomId,wallId){
+  e.preventDefault();e.stopPropagation();
+  multiSel=[];selected={kind:'wall',roomId:roomId,id:wallId};render();
+  showCtxMenu(e.clientX,e.clientY,[
+    {label:'&#10005; Delete Wall',action:function(){deleteWall(roomId,wallId);},danger:true}
   ]);
 }
 function onBoundaryContextMenu(e){
@@ -1235,7 +1420,14 @@ function onRoomMouseDown(e,roomId){
   multiSel=[];
   selected={kind:'room',id:roomId};
   var room=findRoom(roomId);
-  draggingWhole={kind:'room',id:roomId,mouse0:screenToBoard(e.clientX,e.clientY),orig:JSON.parse(JSON.stringify(room.points))};
+  // Attached points are captured once, up front — recomputing "inside the
+  // room" on every mousemove tick would gain/lose points as the room slides
+  // across them mid-drag instead of carrying whatever set started inside.
+  var attached=attachPoints?board.points.filter(function(p){return pointInPolygon(p,room.points);}):[];
+  draggingWhole={kind:'room',id:roomId,mouse0:screenToBoard(e.clientX,e.clientY),
+    orig:JSON.parse(JSON.stringify(room.points)),
+    origWalls:JSON.parse(JSON.stringify(room.walls||[])),
+    attached:attached.map(function(p){return {id:p.id,x:p.x,y:p.y};})};
   render();
 }
 function onPointMouseDown(e,ptId){
@@ -1246,6 +1438,32 @@ function onPointMouseDown(e,ptId){
   selected={kind:'point',id:ptId};
   var pt=findPoint(ptId);
   draggingWhole={kind:'point',id:ptId,mouse0:screenToBoard(e.clientX,e.clientY),orig:{x:pt.x,y:pt.y}};
+  render();
+}
+// Interior walls are select/delete/door-target only — fixed to the room
+// they were drawn in, no independent repositioning after placement.
+function onWallMouseDown(e,roomId,wallId){
+  if(tool==='door'){
+    var target=findNearestWallSegment(screenToBoard(e.clientX,e.clientY));
+    if(target)toggleDoorAt(target);
+    e.stopPropagation();
+    return;
+  }
+  if(tool!=='select'||e.button!==0)return;
+  e.stopPropagation();
+  multiSel=[];
+  selected={kind:'wall',roomId:roomId,id:wallId};
+  render();
+}
+function findWall(roomId,wallId){
+  var room=findRoom(roomId);if(!room)return null;
+  return (room.walls||[]).filter(function(w){return w.id===wallId;})[0]||null;
+}
+function deleteWall(roomId,wallId){
+  var room=findRoom(roomId);if(!room)return;
+  pushUndo();
+  room.walls=(room.walls||[]).filter(function(w){return w.id!==wallId;});
+  if(selected&&selected.kind==='wall'&&selected.id===wallId)selected=null;
   render();
 }
 // Window-select (dragged left-to-right, solid box): only fully-contained
@@ -1312,6 +1530,25 @@ function initCanvas(){
         else drawingRoom.points.push(bp);
       }
       render();
+    }else if(tool==='wall'){
+      var containingRoom=board.rooms.filter(function(r){return pointInPolygon(bp,r.points);})[0];
+      if(!drawingWall){
+        if(!containingRoom){toast('Walls must start inside a room');}
+        else drawingWall={roomId:containingRoom.id,p1:bp};
+      }else{
+        if(!containingRoom||containingRoom.id!==drawingWall.roomId){
+          toast('Both ends of a wall must be inside the same room');
+        }else if(dist(bp,drawingWall.p1)<0.5){
+          toast('Wall has no length');
+        }else{
+          pushUndo();
+          var room=findRoom(drawingWall.roomId);
+          room.walls=room.walls||[];
+          room.walls.push({id:uid('W'),p1:drawingWall.p1,p2:bp,doors:[]});
+        }
+        drawingWall=null;
+      }
+      render();
     }else if(tool==='point'){
       pushUndo();
       var pt={id:uid('P'),type:pointType,x:bp.x,y:bp.y,label:'',family:pointType==='terminal'?activeFamily:null};
@@ -1327,7 +1564,7 @@ function initCanvas(){
       multiSel=[];selected=null;render();
     }else if(tool==='door'){
       var target=findNearestWallSegment(screenToBoard(e.clientX,e.clientY));
-      if(target)toggleDoorSeg(target.roomId,target.edge,target.seg);
+      if(target)toggleDoorAt(target);
     }
   });
 
@@ -1367,7 +1604,15 @@ function initCanvas(){
       var d=snapPt({x:mouseBoard.x-draggingWhole.mouse0.x,y:mouseBoard.y-draggingWhole.mouse0.y});
       if(draggingWhole.kind==='room'){
         var r2=findRoom(draggingWhole.id);
-        if(r2){r2.points=draggingWhole.orig.map(function(p){return {x:p.x+d.x,y:p.y+d.y};});renderRooms();renderHandles();}
+        if(r2){
+          r2.points=draggingWhole.orig.map(function(p){return {x:p.x+d.x,y:p.y+d.y};});
+          r2.walls=draggingWhole.origWalls.map(function(w){return {id:w.id,doors:w.doors,p1:{x:w.p1.x+d.x,y:w.p1.y+d.y},p2:{x:w.p2.x+d.x,y:w.p2.y+d.y}};});
+          draggingWhole.attached.forEach(function(a){
+            var ap=findPoint(a.id);
+            if(ap){ap.x=a.x+d.x;ap.y=a.y+d.y;}
+          });
+          renderRooms();renderPoints();renderHandles();
+        }
       }else{
         var p2=findPoint(draggingWhole.id);
         if(p2){p2.x=draggingWhole.orig.x+d.x;p2.y=draggingWhole.orig.y+d.y;renderPoints();}
@@ -1417,6 +1662,7 @@ function initCanvas(){
       return;
     }
     if(tool==='room'&&drawingRoom)renderDrawPreview();
+    if(tool==='wall'&&drawingWall)renderWallPreview();
     if(tool==='door')renderDoorHover();
   });
 
@@ -1440,6 +1686,7 @@ function initCanvas(){
     var typing=tag==='INPUT'||tag==='TEXTAREA';
     if(e.key==='Escape'){
       if(drawingRoom){drawingRoom=null;render();}
+      else if(drawingWall){drawingWall=null;render();}
       else if(multiSel.length){multiSel=[];render();}
       hideCtxMenu();
     }else if(e.key==='Enter'&&!typing){
@@ -1448,6 +1695,7 @@ function initCanvas(){
       if(multiSel.length){deleteMultiSel();e.preventDefault();}
       else if(selected&&selected.kind==='room'){deleteRoom(selected.id);e.preventDefault();}
       else if(selected&&selected.kind==='point'){deletePoint(selected.id);e.preventDefault();}
+      else if(selected&&selected.kind==='wall'){deleteWall(selected.roomId,selected.id);e.preventDefault();}
       else if(selected&&selected.kind==='boundary'){removeBoundary();e.preventDefault();}
     }else if(!typing&&(e.ctrlKey||e.metaKey)&&!e.shiftKey&&e.key.toLowerCase()==='z'){
       doUndo();e.preventDefault();
@@ -1457,10 +1705,20 @@ function initCanvas(){
       copySelection();e.preventDefault();
     }else if(!typing&&(e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='v'){
       pasteClipboard();e.preventDefault();
-    }else if(!typing&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&!drawingRoom){
+    }else if(!typing&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&!drawingRoom&&!drawingWall){
       var k=e.key.toLowerCase();
+      // "mx"/"my" mirror chord: 'm' arms a short window for the axis key
+      // that follows; any other key (or the window lapsing) drops it and
+      // falls through to normal single-key handling below.
+      if(pendingMirrorChord){
+        clearTimeout(mirrorChordTimer);pendingMirrorChord=false;
+        if(k==='x'){mirrorSelection('x');e.preventDefault();return;}
+        if(k==='y'){mirrorSelection('y');e.preventDefault();return;}
+      }
+      if(k==='m'){pendingMirrorChord=true;mirrorChordTimer=setTimeout(function(){pendingMirrorChord=false;},700);e.preventDefault();return;}
       if(k==='s'){setTool('select');e.preventDefault();}
       else if(k==='r'){setTool('room');e.preventDefault();}
+      else if(k==='w'){setTool('wall');e.preventDefault();}
       else if(k==='d'){setTool('door');e.preventDefault();}
       else if(k==='t'){setPointTool('terminal');e.preventDefault();}
       else if(k==='v'){setPointTool('vent');e.preventDefault();}
@@ -1511,10 +1769,12 @@ function loadBoard(raw,name,cls){
     // the whole edge) to the new {edge,seg} form (seg 0 = first GRID-length
     // chunk of the edge — close enough to "centered" for a single-cell wall).
     r.doors=r.doors.map(function(d){return typeof d==='number'?{edge:d,seg:0}:d;});
+    if(!r.walls)r.walls=[];
+    r.walls.forEach(function(w){if(!w.id)w.id=uid('W');if(!w.doors)w.doors=[];});
   });
   board.points.forEach(function(p){if(!p.id)p.id=uid('P');});
   syncUidCounter();
-  selected=null;multiSel=[];drawingRoom=null;
+  selected=null;multiSel=[];drawingRoom=null;drawingWall=null;
   undoStack=[];redoStack=[];updateUndoRedoButtons();
   setFstat(name,cls);
   resetView();render();
