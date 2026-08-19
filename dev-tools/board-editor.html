@@ -33,6 +33,8 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
 /* TOOLBAR */
 #toolbar{display:flex;align-items:center;gap:6px;padding:5px 13px;border-bottom:1px solid var(--bdr);flex-shrink:0;flex-wrap:wrap;}
 .tbtn{background:transparent;border:1px solid rgba(79,195,247,0.14);color:var(--dim);font-family:"Share Tech Mono",monospace;font-size:12px;padding:4px 9px;cursor:pointer;transition:all 0.15s;letter-spacing:0.05em;white-space:nowrap;}
+.tbtn:disabled{opacity:0.25;cursor:default;}
+.tbtn:disabled:hover{border-color:rgba(79,195,247,0.14);color:var(--dim);filter:none;box-shadow:none;}
 .tbtn:hover{border-color:var(--blue);color:var(--blue);filter:brightness(1.25);box-shadow:0 0 8px rgba(79,195,247,0.50);}
 .tbtn.on{border-color:var(--blue);color:var(--blue);background:rgba(79,195,247,0.09);box-shadow:0 0 6px rgba(79,195,247,0.28);}
 .tsep{width:1px;height:20px;background:rgba(79,195,247,0.10);flex-shrink:0;margin:0 2px;}
@@ -67,6 +69,7 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
 .boundary-handle{fill:#0d1620;stroke:#fff;stroke-width:1.5;cursor:nwse-resize;}
 .boundary-handle:hover{fill:#fff;}
 .center-guide{stroke:rgba(255,255,255,0.28);stroke-width:1;stroke-dasharray:6,5;pointer-events:none;}
+.door-hover-line{stroke:#fff;stroke-width:8;stroke-linecap:round;opacity:0.55;pointer-events:none;}
 .boundary-move-grip{cursor:move;}
 .boundary-move-grip-bg{fill:rgba(13,22,32,0.9);stroke:#fff;stroke-width:1.5;}
 .boundary-move-grip:hover .boundary-move-grip-bg{fill:rgba(79,195,247,0.35);}
@@ -188,6 +191,9 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
   <div class="tsep"></div>
   <button class="tbtn on" id="btn-spaces" onclick="toggleSpaces()">&#9638; SPACES</button>
   <button class="tbtn" id="btn-boundary" onclick="addOrSelectBoundary()">&#9645; BOUNDARY</button>
+  <div class="tsep"></div>
+  <button class="tbtn" id="btn-undo" onclick="doUndo()" disabled>&#8617; UNDO</button>
+  <button class="tbtn" id="btn-redo" onclick="doRedo()" disabled>&#8618; REDO</button>
 </div>
 
 <div id="body-main">
@@ -210,6 +216,7 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
           <g id="rooms-layer"></g>
           <g id="points-layer"></g>
           <g id="draw-preview-layer"></g>
+          <g id="door-hover-layer"></g>
           <g id="handles-layer"></g>
         </g>
       </svg>
@@ -282,6 +289,39 @@ var selBoxStart=null;               // {clientX,clientY,boardX,boardY} — marqu
 var groupDrag=null;                 // {mouse0, orig:[{kind,id,points|x,y}...]} — dragging one item in multiSel moves them all
 var rightDown=null;                 // {x,y,moved} — tracks whether a right-button press was a drag (pan) or a click (context menu)
 var lastMidClick=0;                 // timestamp — detects a double-click on the middle mouse button
+var clipboard=null;                 // {kind:'room'|'point'|'multi', data|items}
+
+// ── UNDO / REDO ───────────────────────────────────────────────────────────────
+// Snapshot-based: pushUndo() is called right before each discrete mutation
+// (or at the start of a drag gesture) so it captures the pre-change state.
+// Continuous drag updates don't push again — one undo step reverts the
+// whole drag, not each mousemove tick.
+var undoStack=[], redoStack=[];
+function pushUndo(){
+  undoStack.push(JSON.stringify(board));
+  if(undoStack.length>60)undoStack.shift();
+  redoStack=[];
+  updateUndoRedoButtons();
+}
+function doUndo(){
+  if(!undoStack.length)return;
+  redoStack.push(JSON.stringify(board));
+  board=JSON.parse(undoStack.pop());
+  selected=null;multiSel=[];drawingRoom=null;
+  render();updateUndoRedoButtons();
+}
+function doRedo(){
+  if(!redoStack.length)return;
+  undoStack.push(JSON.stringify(board));
+  board=JSON.parse(redoStack.pop());
+  selected=null;multiSel=[];drawingRoom=null;
+  render();updateUndoRedoButtons();
+}
+function updateUndoRedoButtons(){
+  var u=document.getElementById('btn-undo'),r=document.getElementById('btn-redo');
+  if(u)u.disabled=!undoStack.length;
+  if(r)r.disabled=!redoStack.length;
+}
 var uidCounter=1;
 function uid(prefix){return prefix+(uidCounter++);}
 var showSpaces=true;
@@ -431,6 +471,7 @@ function render(){
   renderRooms();
   renderPoints();
   renderDrawPreview();
+  if(tool==='door')renderDoorHover();else document.getElementById('door-hover-layer').innerHTML='';
   renderHandles();
   rebuildFamilySelect();
   renderProps();
@@ -439,6 +480,7 @@ function render(){
 // ── BOARD BOUNDARY ────────────────────────────────────────────────────────────
 function addOrSelectBoundary(){
   if(!board.boundary){
+    pushUndo();
     var rect=document.getElementById('canvas-wrap').getBoundingClientRect();
     var center=screenToBoard(rect.left+rect.width/2,rect.top+rect.height/2);
     var w=20*GRID, h=15*GRID;
@@ -449,6 +491,7 @@ function addOrSelectBoundary(){
 }
 function snapToGrid(v){return Math.round(v/GRID)*GRID;}
 function removeBoundary(){
+  pushUndo();
   board.boundary=null;
   if(selected&&selected.kind==='boundary')selected=null;
   render();
@@ -564,7 +607,7 @@ function renderRooms(){
       var clipPath=el('clipPath',{id:clipId});
       clipPath.appendChild(el('polygon',{points:polyPoints(room.points)}));
       clips.appendChild(clipPath);
-      var gridG=el('g',{'clip-path':'url(#'+clipId+')'});
+      var gridG=el('g',{'clip-path':'url(#'+clipId+')','pointer-events':'none'});
       spaces.cells.forEach(function(c){
         if(c.valid){
           gridG.appendChild(el('rect',{x:c.x,y:c.y,width:GRID,height:GRID,fill:'none',stroke:'rgba(255,255,255,0.16)','stroke-width':1}));
@@ -578,19 +621,24 @@ function renderRooms(){
     var doors=room.doors||[];
     room.points.forEach(function(p1,i){
       var p2=room.points[(i+1)%room.points.length];
-      var isDoor=doors.indexOf(i)!==-1;
-      if(isDoor){
-        var dx=p2.x-p1.x, dy=p2.y-p1.y;
-        var a=el('line',{x1:p1.x,y1:p1.y,x2:p1.x+dx*0.32,y2:p1.y+dy*0.32,stroke:fam.color,'stroke-width':4,class:'room-edge'});
-        var b=el('line',{x1:p1.x+dx*0.68,y1:p1.y+dy*0.68,x2:p2.x,y2:p2.y,stroke:fam.color,'stroke-width':4,class:'room-edge'});
-        var mid={x:p1.x+dx*0.5,y:p1.y+dy*0.5};
-        var doorMark=el('rect',{x:mid.x-4,y:mid.y-4,width:8,height:8,fill:'#fff',stroke:fam.color,'stroke-width':1.5,transform:'rotate(45 '+mid.x+' '+mid.y+')'});
-        [a,b].forEach(function(seg){seg.addEventListener('mousedown',function(e){onEdgeMouseDown(e,room.id,i);});});
-        g.appendChild(a);g.appendChild(b);g.appendChild(doorMark);
-      }else{
-        var line=el('line',{x1:p1.x,y1:p1.y,x2:p2.x,y2:p2.y,stroke:fam.color,'stroke-width':4,class:'room-edge'});
-        line.addEventListener('mousedown',function(e){onEdgeMouseDown(e,room.id,i);});
-        g.appendChild(line);
+      var edgeLen=dist(p1,p2);
+      if(edgeLen<0.5)return;
+      var ux=(p2.x-p1.x)/edgeLen, uy=(p2.y-p1.y)/edgeLen;
+      var nSegs=Math.max(1,Math.round(edgeLen/GRID));
+      for(var s=0;s<nSegs;s++){
+        var segStart=s*GRID, segEnd=Math.min(segStart+GRID,edgeLen);
+        var sp1={x:p1.x+ux*segStart,y:p1.y+uy*segStart}, sp2={x:p1.x+ux*segEnd,y:p1.y+uy*segEnd};
+        var hasDoor=doors.some(function(d){return d.edge===i&&d.seg===s;});
+        if(hasDoor){
+          var dx=sp2.x-sp1.x, dy=sp2.y-sp1.y;
+          var a=el('line',{x1:sp1.x,y1:sp1.y,x2:sp1.x+dx*0.32,y2:sp1.y+dy*0.32,stroke:fam.color,'stroke-width':4,class:'room-edge'});
+          var b=el('line',{x1:sp1.x+dx*0.68,y1:sp1.y+dy*0.68,x2:sp2.x,y2:sp2.y,stroke:fam.color,'stroke-width':4,class:'room-edge'});
+          var mid={x:(sp1.x+sp2.x)/2,y:(sp1.y+sp2.y)/2};
+          var doorMark=el('rect',{x:mid.x-4,y:mid.y-4,width:8,height:8,fill:'#fff',stroke:fam.color,'stroke-width':1.5,transform:'rotate(45 '+mid.x+' '+mid.y+')'});
+          g.appendChild(a);g.appendChild(b);g.appendChild(doorMark);
+        }else{
+          g.appendChild(el('line',{x1:sp1.x,y1:sp1.y,x2:sp2.x,y2:sp2.y,stroke:fam.color,'stroke-width':4,class:'room-edge'}));
+        }
       }
     });
     var c=centroid(room.points);
@@ -690,7 +738,7 @@ function renderHandles(){
       if(e.button!==0)return;
       e.stopPropagation();
       insertVertexOnEdge(room.id,i,snapPt(mid));
-      draggingVertex={roomId:room.id,idx:i+1};
+      draggingVertex={roomId:room.id,idx:i+1,_pushed:true}; // insertVertexOnEdge already pushed undo for this gesture
       render();
     });
     layer.appendChild(mh);
@@ -708,17 +756,16 @@ function renderHandles(){
 // (which half keeps it?) so it's dropped; every other door index shifts
 // to track its edge as the points array grows.
 function insertVertexOnEdge(roomId,edgeIdx,pt){
+  pushUndo();
   var r=findRoom(roomId);if(!r)return;
   var n=r.points.length;
-  var oldDoors={};(r.doors||[]).forEach(function(d){oldDoors[d]=true;});
   r.points.splice(edgeIdx+1,0,pt);
-  var newDoors=[];
-  for(var i=0;i<n;i++){
-    if(i===edgeIdx)continue;
-    var newIdx=i>edgeIdx?i+1:i;
-    if(oldDoors[i])newDoors.push(newIdx);
-  }
-  r.doors=newDoors;
+  // Doors on the split edge are ambiguous (which half keeps them, at what
+  // seg?) so they're dropped; doors on every other edge keep their seg and
+  // just follow their edge index as the points array grows.
+  r.doors=(r.doors||[]).filter(function(d){return d.edge!==edgeIdx;}).map(function(d){
+    return {edge:d.edge>edgeIdx?d.edge+1:d.edge,seg:d.seg};
+  });
 }
 
 // Removing a vertex merges its two adjacent edges into one — same
@@ -728,18 +775,19 @@ function removeVertex(roomId,vIdx){
   var r=findRoom(roomId);if(!r)return;
   var n=r.points.length;
   if(n<=3){toast('A room needs at least 3 vertices');return;}
-  var oldDoors={};(r.doors||[]).forEach(function(d){oldDoors[d]=true;});
+  pushUndo();
   var order=[];for(var m=0;m<n;m++){if(m!==vIdx)order.push(m);}
   var newPoints=order.map(function(idx){return r.points[idx];});
-  var newDoors=[];
+  var edgeMap={}; // old edge index -> new edge index, for surviving (non-merged) edges
   for(var j=0;j<order.length;j++){
     var a=order[j],b=order[(j+1)%order.length];
     var merged=((b-a+n)%n)!==1;
-    if(!merged&&oldDoors[a])newDoors.push(j);
+    if(!merged)edgeMap[a]=j;
   }
   r.points=newPoints;
-  r.doors=newDoors;
-  if(selected&&selected.kind==='room'&&selected.id===roomId){/* keep selection */}
+  r.doors=(r.doors||[]).filter(function(d){return edgeMap[d.edge]!==undefined;}).map(function(d){
+    return {edge:edgeMap[d.edge],seg:d.seg};
+  });
 }
 
 function dist(a,b){var dx=a.x-b.x,dy=a.y-b.y;return Math.sqrt(dx*dx+dy*dy);}
@@ -783,8 +831,8 @@ function renderProps(){
       html+='<div class="pp-row"><label>FAMILY</label><select onchange="setRoomFamily(\''+room.id+'\',this.value)">'+
         Object.keys(board.families).map(function(k){return '<option value="'+k+'"'+(k===room.family?' selected':'')+'>'+esc(board.families[k].label)+'</option>';}).join('')+
         '</select></div>';
-      html+='<div class="pp-row"><label>LABEL (optional)</label><input type="text" value="'+esc(room.label||'')+'" oninput="setRoomLabel(\''+room.id+'\',this.value)"></div>';
-      html+='<div class="pp-row"><label>NOTES</label><textarea oninput="setRoomNotes(\''+room.id+'\',this.value)">'+esc(room.notes||'')+'</textarea></div>';
+      html+='<div class="pp-row"><label>LABEL (optional)</label><input type="text" value="'+esc(room.label||'')+'" onfocus="pushUndo()" oninput="setRoomLabel(\''+room.id+'\',this.value)"></div>';
+      html+='<div class="pp-row"><label>NOTES</label><textarea onfocus="pushUndo()" oninput="setRoomNotes(\''+room.id+'\',this.value)">'+esc(room.notes||'')+'</textarea></div>';
       var spCount=room._spaceCount||0, spExcl=room._spaceInvalid||0;
       html+='<div class="pp-empty"><strong style="color:var(--blue);">'+spCount+' traversable space'+(spCount===1?'':'s')+'</strong>'+(spExcl?' ('+spExcl+' cell'+(spExcl===1?'':'s')+' excluded — notched/partial)':'')+'<br>'+room.points.length+' vertices &middot; '+(room.doors||[]).length+' door(s)<br>Drag a corner to reshape, drag a mid-edge dot to add a vertex, double-click a corner to remove it. DOOR tool toggles an edge.</div>';
       html+='<button class="pp-del" onclick="deleteRoom(\''+room.id+'\')">DELETE ROOM</button>';
@@ -802,7 +850,7 @@ function renderProps(){
           Object.keys(board.families).map(function(k){return '<option value="'+k+'"'+(k===pt.family?' selected':'')+'>'+esc(board.families[k].label)+'</option>';}).join('')+
           '</select></div>';
       }
-      html+='<div class="pp-row"><label>LABEL</label><input type="text" value="'+esc(pt.label||'')+'" oninput="setPointLabel(\''+pt.id+'\',this.value)"></div>';
+      html+='<div class="pp-row"><label>LABEL</label><input type="text" value="'+esc(pt.label||'')+'" onfocus="pushUndo()" oninput="setPointLabel(\''+pt.id+'\',this.value)"></div>';
       html+='<button class="pp-del" onclick="deletePoint(\''+pt.id+'\')">DELETE POINT</button>';
     }
   }else if(selected&&selected.kind==='boundary'&&board.boundary){
@@ -815,7 +863,7 @@ function renderProps(){
     html+='<button class="pp-del" onclick="removeBoundary()">REMOVE BOUNDARY</button>';
   }else{
     html+='<div class="pp-h">BOARD</div>';
-    html+='<div class="pp-row"><label>NAME</label><input type="text" value="'+esc(board.meta.name||'')+'" oninput="board.meta.name=this.value"></div>';
+    html+='<div class="pp-row"><label>NAME</label><input type="text" value="'+esc(board.meta.name||'')+'" onfocus="pushUndo()" oninput="board.meta.name=this.value"></div>';
     html+='<div class="pp-empty">'+board.rooms.length+' room(s) &middot; '+board.points.length+' point(s)</div>';
     if(board.boundary){
       var st2=computeBoundaryStats();
@@ -826,8 +874,8 @@ function renderProps(){
     Object.keys(board.families).forEach(function(k){
       var f=board.families[k];
       html+='<div class="fam-row">'+
-        '<input type="color" value="'+f.color+'" onchange="setFamilyColor(\''+k+'\',this.value)">'+
-        '<input type="text" value="'+esc(f.label)+'" oninput="setFamilyLabel(\''+k+'\',this.value)">'+
+        '<input type="color" value="'+f.color+'" onfocus="pushUndo()" onchange="setFamilyColor(\''+k+'\',this.value)">'+
+        '<input type="text" value="'+esc(f.label)+'" onfocus="pushUndo()" oninput="setFamilyLabel(\''+k+'\',this.value)">'+
         '<button class="fam-del" title="Delete family" onclick="deleteFamily(\''+k+'\')">&#10005;</button>'+
         '</div>';
     });
@@ -841,19 +889,24 @@ function renderProps(){
   body.innerHTML=html;
 }
 
-function setRoomFamily(id,v){var r=findRoom(id);if(r){r.family=v;render();}}
+function setRoomFamily(id,v){var r=findRoom(id);if(r){pushUndo();r.family=v;render();}}
 function setRoomLabel(id,v){var r=findRoom(id);if(r)r.label=v;renderRooms();}
 function setRoomNotes(id,v){var r=findRoom(id);if(r)r.notes=v;}
-function setPointType(id,v){var p=findPoint(id);if(p){p.type=v;render();}}
-function setPointFamily(id,v){var p=findPoint(id);if(p){p.family=v||null;render();}}
+function setPointType(id,v){var p=findPoint(id);if(p){pushUndo();p.type=v;render();}}
+function setPointFamily(id,v){var p=findPoint(id);if(p){pushUndo();p.family=v||null;render();}}
 function setPointLabel(id,v){var p=findPoint(id);if(p)p.label=v;renderPoints();}
 function findRoom(id){return board.rooms.filter(function(r){return r.id===id;})[0];}
 function findPoint(id){return board.points.filter(function(p){return p.id===id;})[0];}
 
-function setFamilyColor(k,v){board.families[k].color=v;render();}
-function setFamilyLabel(k,v){board.families[k].label=v;render();}
+function setFamilyColor(k,v){board.families[k].color=v;renderRooms();renderPoints();}
+// Only re-renders rooms/points (which show the family color/label), not
+// the props panel itself — rebuilding it mid-keystroke (like render()
+// does) would destroy and recreate this very input, dropping focus after
+// every character. Same reasoning as setRoomLabel/setPointLabel below.
+function setFamilyLabel(k,v){board.families[k].label=v;renderRooms();renderPoints();}
 function deleteFamily(k){
   if(!confirm('Delete family "'+board.families[k].label+'"? Rooms/points using it will keep the raw key but show no color.'))return;
+  pushUndo();
   delete board.families[k];render();
 }
 function addFamily(){
@@ -861,6 +914,7 @@ function addFamily(){
   if(!key)return;
   key=key.trim().toLowerCase().replace(/[^a-z0-9_]/g,'_');
   if(!key||board.families[key]){toast('Invalid or duplicate key');return;}
+  pushUndo();
   board.families[key]={label:key,color:'#4fc3f7',type:'tile'};
   render();
 }
@@ -868,28 +922,68 @@ function addFamily(){
 // ── MUTATIONS ─────────────────────────────────────────────────────────────────
 function commitRoom(){
   if(!drawingRoom||drawingRoom.points.length<3){drawingRoom=null;render();return;}
+  pushUndo();
   board.rooms.push({id:uid('R'),family:activeFamily,label:'',notes:'',points:drawingRoom.points,doors:[]});
   drawingRoom=null;
   render();
 }
-function toggleDoor(roomId,edgeIdx){
+function toggleDoorSeg(roomId,edge,seg){
   var r=findRoom(roomId);if(!r)return;
+  pushUndo();
   r.doors=r.doors||[];
-  var i=r.doors.indexOf(edgeIdx);
-  if(i===-1)r.doors.push(edgeIdx);else r.doors.splice(i,1);
+  var i=r.doors.findIndex(function(d){return d.edge===edge&&d.seg===seg;});
+  if(i===-1)r.doors.push({edge:edge,seg:seg});else r.doors.splice(i,1);
   render();
 }
+// Finds the nearest wall segment to a board-space point, across every
+// room, within a generous threshold — roughly "anywhere in the grid
+// square that wall occupies", not just pixel-precise on the line itself.
+// A long edge is broken into GRID-length segments so a door can land on
+// any one of them, not just centered on the whole wall.
+function findNearestWallSegment(pt){
+  var best=null,bestDist=GRID*0.85;
+  board.rooms.forEach(function(room){
+    room.points.forEach(function(p1,i){
+      var p2=room.points[(i+1)%room.points.length];
+      var edgeLen=dist(p1,p2);
+      if(edgeLen<0.5)return;
+      var d=distToSeg(pt,p1,p2);
+      if(d>=bestDist)return;
+      var ux=(p2.x-p1.x)/edgeLen,uy=(p2.y-p1.y)/edgeLen;
+      var t=(pt.x-p1.x)*ux+(pt.y-p1.y)*uy;
+      var nSegs=Math.max(1,Math.round(edgeLen/GRID));
+      var segIdx=Math.max(0,Math.min(nSegs-1,Math.floor(t/GRID)));
+      var segStart=segIdx*GRID,segEnd=Math.min(segStart+GRID,edgeLen);
+      best={roomId:room.id,edge:i,seg:segIdx,
+        p1:{x:p1.x+ux*segStart,y:p1.y+uy*segStart},
+        p2:{x:p1.x+ux*segEnd,y:p1.y+uy*segEnd}};
+      bestDist=d;
+    });
+  });
+  return best;
+}
+function renderDoorHover(){
+  var layer=document.getElementById('door-hover-layer');
+  layer.innerHTML='';
+  if(tool!=='door')return;
+  var target=findNearestWallSegment(mouseBoard);
+  if(!target)return;
+  layer.appendChild(el('line',{x1:target.p1.x,y1:target.p1.y,x2:target.p2.x,y2:target.p2.y,class:'door-hover-line'}));
+}
 function deleteRoom(id){
+  pushUndo();
   board.rooms=board.rooms.filter(function(r){return r.id!==id;});
   if(selected&&selected.id===id)selected=null;
   render();
 }
 function deletePoint(id){
+  pushUndo();
   board.points=board.points.filter(function(p){return p.id!==id;});
   if(selected&&selected.id===id)selected=null;
   render();
 }
 function deleteMultiSel(){
+  pushUndo();
   var roomIds={},pointIds={};
   multiSel.forEach(function(m){if(m.kind==='room')roomIds[m.id]=true;else pointIds[m.id]=true;});
   board.rooms=board.rooms.filter(function(r){return !roomIds[r.id];});
@@ -898,6 +992,7 @@ function deleteMultiSel(){
 }
 function duplicateRoom(id){
   var r=findRoom(id);if(!r)return;
+  pushUndo();
   var copy=JSON.parse(JSON.stringify(r));
   copy.id=uid('R');
   copy.points=r.points.map(function(p){return {x:p.x+GRID,y:p.y+GRID};});
@@ -907,6 +1002,7 @@ function duplicateRoom(id){
 }
 function duplicatePoint(id){
   var p=findPoint(id);if(!p)return;
+  pushUndo();
   var copy=JSON.parse(JSON.stringify(p));
   copy.id=uid('P');copy.x=p.x+GRID;copy.y=p.y+GRID;
   board.points.push(copy);
@@ -915,6 +1011,7 @@ function duplicatePoint(id){
 }
 function rotateRoom90(id,dir){
   var r=findRoom(id);if(!r)return;
+  pushUndo();
   var center=centroid(r.points);
   r.points=r.points.map(function(p){return snapPt(rotatePoint(p,center,dir*Math.PI/2));});
   render();
@@ -925,10 +1022,78 @@ function fitBoundaryToRooms(){
   board.rooms.forEach(function(r){r.points.forEach(function(p){xs.push(p.x);ys.push(p.y);});});
   board.points.forEach(function(p){xs.push(p.x);ys.push(p.y);});
   if(!xs.length){toast('Nothing to fit to yet');return;}
+  pushUndo();
   var minX=Math.floor(Math.min.apply(null,xs)/GRID)*GRID-GRID, maxX=Math.ceil(Math.max.apply(null,xs)/GRID)*GRID+GRID;
   var minY=Math.floor(Math.min.apply(null,ys)/GRID)*GRID-GRID, maxY=Math.ceil(Math.max.apply(null,ys)/GRID)*GRID+GRID;
   board.boundary={x:minX,y:minY,w:maxX-minX,h:maxY-minY};
   render();
+}
+
+// ── COPY / PASTE ──────────────────────────────────────────────────────────────
+function copySelection(){
+  if(multiSel.length>1){
+    clipboard={kind:'multi',items:multiSel.map(function(m){
+      return {kind:m.kind,data:JSON.parse(JSON.stringify(m.kind==='room'?findRoom(m.id):findPoint(m.id)))};
+    })};
+    toast('Copied '+multiSel.length+' item(s)');
+  }else if(selected&&selected.kind==='room'){
+    clipboard={kind:'room',data:JSON.parse(JSON.stringify(findRoom(selected.id)))};
+    toast('Copied room');
+  }else if(selected&&selected.kind==='point'){
+    clipboard={kind:'point',data:JSON.parse(JSON.stringify(findPoint(selected.id)))};
+    toast('Copied point');
+  }else{
+    toast('Nothing selected to copy');
+  }
+}
+// atPt (board-space), when given, centers the whole pasted group there
+// (used by the "Paste Here" context menu item); omitted, it offsets one
+// GRID cell from the original — like duplicate, for a plain Ctrl+V.
+function pasteClipboard(atPt){
+  if(!clipboard){toast('Nothing to paste');return;}
+  pushUndo();
+  var items=clipboard.kind==='multi'?clipboard.items:[clipboard];
+  var delta;
+  if(atPt){
+    var xs=[],ys=[];
+    items.forEach(function(it){
+      if(it.kind==='room')it.data.points.forEach(function(p){xs.push(p.x);ys.push(p.y);});
+      else{xs.push(it.data.x);ys.push(it.data.y);}
+    });
+    var cx=(Math.min.apply(null,xs)+Math.max.apply(null,xs))/2;
+    var cy=(Math.min.apply(null,ys)+Math.max.apply(null,ys))/2;
+    // Snap the delta itself (to a whole GRID cell, not the finer SNAP) and
+    // apply it uniformly, rather than snapping each point after
+    // translation — per-point snapping can round adjacent vertices
+    // differently and distort the shape, and a delta that isn't a whole
+    // space would shift a perfectly clean room onto half-cells it never
+    // occupied. A GRID-snapped delta preserves the original's exact
+    // relationship to the space-grid, just shifted, matching duplicate's
+    // fixed one-cell offset.
+    delta={x:Math.round((atPt.x-cx)/GRID)*GRID,y:Math.round((atPt.y-cy)/GRID)*GRID};
+  }else{
+    delta={x:GRID,y:GRID};
+  }
+  var newSel=[];
+  items.forEach(function(it){
+    if(it.kind==='room'){
+      var copy=JSON.parse(JSON.stringify(it.data));
+      copy.id=uid('R');
+      copy.points=it.data.points.map(function(p){return {x:p.x+delta.x,y:p.y+delta.y};});
+      board.rooms.push(copy);
+      newSel.push({kind:'room',id:copy.id});
+    }else{
+      var copy2=JSON.parse(JSON.stringify(it.data));
+      copy2.id=uid('P');
+      copy2.x=it.data.x+delta.x;copy2.y=it.data.y+delta.y;
+      board.points.push(copy2);
+      newSel.push({kind:'point',id:copy2.id});
+    }
+  });
+  if(newSel.length===1){selected=newSel[0];multiSel=[];}
+  else{selected=null;multiSel=newSel;}
+  render();
+  toast('Pasted '+items.length+' item(s)');
 }
 
 // ── CONTEXT MENU ──────────────────────────────────────────────────────────────
@@ -960,6 +1125,8 @@ function onRoomContextMenu(e,roomId){
   if(!(multiSel.length>1&&isInMultiSel('room',roomId))){multiSel=[];selected={kind:'room',id:roomId};render();}
   if(multiSel.length>1){
     showCtxMenu(e.clientX,e.clientY,[
+      {label:'&#128203; Copy Selected ('+multiSel.length+')',action:copySelection},
+      null,
       {label:'&#10005; Delete Selected ('+multiSel.length+')',action:deleteMultiSel,danger:true}
     ]);
     return;
@@ -968,6 +1135,7 @@ function onRoomContextMenu(e,roomId){
     {label:'&#8635; Rotate 90&deg; CCW',action:function(){rotateRoom90(roomId,-1);}},
     {label:'&#8634; Rotate 90&deg; CW',action:function(){rotateRoom90(roomId,1);}},
     {label:'&#10064; Duplicate Room',action:function(){duplicateRoom(roomId);}},
+    {label:'&#128203; Copy Room',action:copySelection},
     null,
     {label:'&#10005; Delete Room',action:function(){deleteRoom(roomId);},danger:true}
   ]);
@@ -977,12 +1145,15 @@ function onPointContextMenu(e,ptId){
   if(!(multiSel.length>1&&isInMultiSel('point',ptId))){multiSel=[];selected={kind:'point',id:ptId};render();}
   if(multiSel.length>1){
     showCtxMenu(e.clientX,e.clientY,[
+      {label:'&#128203; Copy Selected ('+multiSel.length+')',action:copySelection},
+      null,
       {label:'&#10005; Delete Selected ('+multiSel.length+')',action:deleteMultiSel,danger:true}
     ]);
     return;
   }
   showCtxMenu(e.clientX,e.clientY,[
     {label:'&#10064; Duplicate Point',action:function(){duplicatePoint(ptId);}},
+    {label:'&#128203; Copy Point',action:copySelection},
     null,
     {label:'&#10005; Delete Point',action:function(){deletePoint(ptId);},danger:true}
   ]);
@@ -1004,8 +1175,11 @@ function onCanvasContextMenu(e){
     items.push({label:'&#10005; Delete Selected ('+multiSel.length+')',action:deleteMultiSel,danger:true});
     items.push(null);
   }
+  if(clipboard){
+    items.push({label:'&#128203; Paste Here',action:function(){pasteClipboard(bp);}});
+  }
   if(board.boundary){
-    items.push({label:'&#9645; Move Boundary Here',action:function(){board.boundary.x=bp.x-board.boundary.w/2;board.boundary.y=bp.y-board.boundary.h/2;render();}});
+    items.push({label:'&#9645; Move Boundary Here',action:function(){pushUndo();board.boundary.x=bp.x-board.boundary.w/2;board.boundary.y=bp.y-board.boundary.h/2;render();}});
   }else{
     items.push({label:'&#9645; Add Boundary Here',action:function(){addOrSelectBoundary();board.boundary.x=bp.x-board.boundary.w/2;board.boundary.y=bp.y-board.boundary.h/2;render();}});
   }
@@ -1049,12 +1223,6 @@ function onPointMouseDown(e,ptId){
   draggingWhole={kind:'point',id:ptId,mouse0:screenToBoard(e.clientX,e.clientY),orig:{x:pt.x,y:pt.y}};
   render();
 }
-function onEdgeMouseDown(e,roomId,edgeIdx){
-  if(tool!=='door'||e.button!==0)return;
-  e.stopPropagation();
-  toggleDoor(roomId,edgeIdx);
-}
-
 // Window-select (dragged left-to-right, solid box): only fully-contained
 // rooms/points are picked up. Crossing-select (dragged right-to-left,
 // dashed box): anything the marquee merely touches is picked up. Same
@@ -1120,6 +1288,7 @@ function initCanvas(){
       }
       render();
     }else if(tool==='point'){
+      pushUndo();
       var pt={id:uid('P'),type:pointType,x:bp.x,y:bp.y,label:'',family:pointType==='terminal'?activeFamily:null};
       board.points.push(pt);
       multiSel=[];selected={kind:'point',id:pt.id};
@@ -1131,8 +1300,10 @@ function initCanvas(){
       var rawBp=screenToBoard(e.clientX,e.clientY);
       selBoxStart={clientX:e.clientX,clientY:e.clientY,boardX:rawBp.x,boardY:rawBp.y,rectLeft:rect.left,rectTop:rect.top};
       multiSel=[];selected=null;render();
+    }else if(tool==='door'){
+      var target=findNearestWallSegment(screenToBoard(e.clientX,e.clientY));
+      if(target)toggleDoorSeg(target.roomId,target.edge,target.seg);
     }
-    // 'door' tool handled entirely by edge mousedown listeners
   });
 
   window.addEventListener('mousemove',function(e){
@@ -1155,11 +1326,13 @@ function initCanvas(){
       return;
     }
     if(draggingVertex){
+      if(!draggingVertex._pushed){pushUndo();draggingVertex._pushed=true;}
       var r=findRoom(draggingVertex.roomId);
       if(r){r.points[draggingVertex.idx]=snapPt(mouseBoard);renderRooms();renderHandles();}
       return;
     }
     if(draggingWhole){
+      if(!draggingWhole._pushed){pushUndo();draggingWhole._pushed=true;}
       if(draggingWhole.kind==='boundary'){
         var db={x:Math.round((mouseBoard.x-draggingWhole.mouse0.x)/GRID)*GRID,y:Math.round((mouseBoard.y-draggingWhole.mouse0.y)/GRID)*GRID};
         board.boundary.x=draggingWhole.orig.x+db.x;board.boundary.y=draggingWhole.orig.y+db.y;
@@ -1177,6 +1350,7 @@ function initCanvas(){
       return;
     }
     if(draggingBoundaryHandle){
+      if(!draggingBoundaryHandle._pushed){pushUndo();draggingBoundaryHandle._pushed=true;}
       var o=draggingBoundaryHandle.orig, dh=draggingBoundaryHandle;
       var mx=Math.round(mouseBoard.x/GRID)*GRID, my=Math.round(mouseBoard.y/GRID)*GRID;
       var newX=o.x,newW=o.w,newY=o.y,newH=o.h;
@@ -1193,6 +1367,7 @@ function initCanvas(){
       return;
     }
     if(groupDrag){
+      if(!groupDrag._pushed){pushUndo();groupDrag._pushed=true;}
       var gd=snapPt({x:mouseBoard.x-groupDrag.mouse0.x,y:mouseBoard.y-groupDrag.mouse0.y});
       groupDrag.orig.forEach(function(o2){
         if(o2.kind==='room'){
@@ -1207,6 +1382,7 @@ function initCanvas(){
       return;
     }
     if(rotatingRoom){
+      if(!rotatingRoom._pushed){pushUndo();rotatingRoom._pushed=true;}
       var center=rotatingRoom.center;
       var curAngle=Math.atan2(mouseBoard.y-center.y,mouseBoard.x-center.x);
       var deg=(curAngle-rotatingRoom.startAngle)*180/Math.PI;
@@ -1216,6 +1392,7 @@ function initCanvas(){
       return;
     }
     if(tool==='room'&&drawingRoom)renderDrawPreview();
+    if(tool==='door')renderDoorHover();
   });
 
   window.addEventListener('mouseup',function(e){
@@ -1247,6 +1424,14 @@ function initCanvas(){
       else if(selected&&selected.kind==='room'){deleteRoom(selected.id);e.preventDefault();}
       else if(selected&&selected.kind==='point'){deletePoint(selected.id);e.preventDefault();}
       else if(selected&&selected.kind==='boundary'){removeBoundary();e.preventDefault();}
+    }else if(!typing&&(e.ctrlKey||e.metaKey)&&!e.shiftKey&&e.key.toLowerCase()==='z'){
+      doUndo();e.preventDefault();
+    }else if(!typing&&(e.ctrlKey||e.metaKey)&&(e.key.toLowerCase()==='y'||(e.shiftKey&&e.key.toLowerCase()==='z'))){
+      doRedo();e.preventDefault();
+    }else if(!typing&&(e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='c'){
+      copySelection();e.preventDefault();
+    }else if(!typing&&(e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='v'){
+      pasteClipboard();e.preventDefault();
     }else if(!typing&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&!drawingRoom){
       var k=e.key.toLowerCase();
       if(k==='s'){setTool('select');e.preventDefault();}
@@ -1294,9 +1479,17 @@ function loadBoard(raw,name,cls){
   if(!board.rooms)board.rooms=[];
   if(!board.points)board.points=[];
   if(board.boundary===undefined)board.boundary=null;
-  board.rooms.forEach(function(r){if(!r.id)r.id=uid('R');if(!r.doors)r.doors=[];});
+  board.rooms.forEach(function(r){
+    if(!r.id)r.id=uid('R');
+    if(!r.doors)r.doors=[];
+    // Migrate the old format (doors: [edgeIndex,...], always centered on
+    // the whole edge) to the new {edge,seg} form (seg 0 = first GRID-length
+    // chunk of the edge — close enough to "centered" for a single-cell wall).
+    r.doors=r.doors.map(function(d){return typeof d==='number'?{edge:d,seg:0}:d;});
+  });
   board.points.forEach(function(p){if(!p.id)p.id=uid('P');});
   selected=null;multiSel=[];drawingRoom=null;
+  undoStack=[];redoStack=[];updateUndoRedoButtons();
   setFstat(name,cls);
   resetView();render();
   toast('Loaded '+board.rooms.length+' rooms, '+board.points.length+' points');
@@ -1332,6 +1525,7 @@ function showSaved(){var i=document.getElementById('as-ind');i.classList.add('sh
 function newBoard(){
   if(!confirm('Start a new blank board? Unsaved changes will be lost.'))return;
   board=defaultBoard();fileHandle=null;selected=null;multiSel=[];drawingRoom=null;
+  undoStack=[];redoStack=[];updateUndoRedoButtons();
   setFstat('untitled','none');resetView();render();
 }
 
