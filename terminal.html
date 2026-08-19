@@ -1381,8 +1381,16 @@ async function handleL1Input(val){
 }
 
 // ── GLOBAL COMMAND SYSTEM ─────────────────────────────────────────────────────
-// Returns the layer ID string for the current terminal level
-function currentLayerId(){return'l'+currentLevel+'a';}
+// Returns the actual current layer ID (chat or archive) — L1's free-form
+// chat state has no real node behind it (termState is the 'L1_NORMAL'
+// sentinel, not a node ID), so that case is hardcoded; every other state
+// reads the real layer off the current node, falling back to the current
+// level's archive layer only for non-node sentinel states (fetch flow).
+function currentLayerId(){
+  if(termState==='L1_NORMAL') return 'l1c';
+  if(archData&&archData.nodes&&archData.nodes[termState]&&archData.nodes[termState].layer) return archData.nodes[termState].layer;
+  return 'l'+currentLevel+'a';
+}
 
 // Scan all global nodes for a matching command label, respecting layer scope.
 // Caller is responsible for user echo and isResponding — this function does neither.
