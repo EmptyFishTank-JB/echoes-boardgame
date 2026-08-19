@@ -135,8 +135,9 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
 .hk-row{display:flex;align-items:center;gap:10px;padding:7px 4px;border-bottom:1px solid rgba(79,195,247,0.08);}
 .hk-row-label{flex:1;font-size:12px;color:var(--dim);}
 .hk-row-keys{display:flex;gap:4px;}
-.hk-key{background:rgba(79,195,247,0.08);border:1px solid rgba(79,195,247,0.25);color:var(--blue);font-family:"Share Tech Mono",monospace;font-size:11px;padding:3px 8px;letter-spacing:0.05em;text-transform:uppercase;min-width:16px;text-align:center;}
+.hk-key{background:rgba(79,195,247,0.08);border:1px solid rgba(79,195,247,0.25);color:var(--blue);font-family:"Share Tech Mono",monospace;font-size:11px;padding:3px 8px;letter-spacing:0.05em;text-transform:uppercase;min-width:16px;text-align:center;white-space:nowrap;}
 .hk-key.empty{color:rgba(79,195,247,0.25);}
+.hk-key.fixed{background:transparent;border-style:dashed;color:rgba(79,195,247,0.55);text-transform:none;letter-spacing:0.02em;}
 .hk-rebind{background:transparent;border:1px solid rgba(79,195,247,0.24);color:var(--dim);font-family:"Share Tech Mono",monospace;font-size:10.5px;padding:4px 9px;cursor:pointer;}
 .hk-rebind:hover{border-color:var(--blue);color:var(--blue);}
 .hk-rebind.capturing{border-color:#e8732a;color:#e8732a;background:rgba(232,115,42,0.08);}
@@ -434,20 +435,47 @@ function wallSegments(p1,p2){
   }
   return segs;
 }
-// A door's stored position is the arc-length distance from the wall's own
-// p1 to the door's (segment-midpoint) location, NOT a segment index and NOT
-// an absolute board coordinate:
-//  - not an index, so switching WHOLE/HALF/QUARTER (which re-cuts the wall
-//    into a different number of segments) can't shift an existing door to a
-//    different physical spot — the same distance-from-p1 just gets
-//    re-matched against whichever current segment now spans it.
-//  - not an absolute coordinate, so moving/rotating/mirroring the room (which
-//    moves p1 itself) carries the door along with it, the same as it always
-//    has for every other point defined relative to the room's own geometry.
+// A door is {pos, width}: pos is the arc-length distance from the wall's own
+// p1 to the door's center, width is its fixed physical size — both set ONCE,
+// from whatever SNAP was active at the moment the door was placed, and never
+// touched again afterward. SNAP only governs where a NEWLY placed door
+// lands (via findNearestWallSegment, below); an existing door's position and
+// size are fixed board-unit numbers from then on, so switching WHOLE/HALF/
+// QUARTER later can't move or resize it, and moving/rotating/mirroring the
+// room (which moves p1 itself) carries it along unchanged, the same as
+// every other point defined relative to the room's own geometry.
 function doorPosOf(p1,seg){return dist(p1,{x:(seg.p1.x+seg.p2.x)/2,y:(seg.p1.y+seg.p2.y)/2});}
-function segMatchesPos(p1,seg,pos){
-  var d0=dist(p1,seg.p1),d1=dist(p1,seg.p2);
-  return pos>=Math.min(d0,d1)-0.5&&pos<=Math.max(d0,d1)+0.5;
+function doorWidthOf(seg){return dist(seg.p1,seg.p2);}
+// Draws one wall (p1->p2) as a solid line with fixed-position, fixed-width
+// gaps cut out for each door — purely a function of the doors' own stored
+// pos/width, with no reference to wallSegments()/SNAP at all, so how it
+// renders can't drift when the snap setting changes.
+function renderWallLine(container,p1,p2,edgeDoors,color,sw,markSize,lineClass){
+  var edgeLen=dist(p1,p2);
+  if(edgeLen<0.3)return;
+  var ux=(p2.x-p1.x)/edgeLen,uy=(p2.y-p1.y)/edgeLen;
+  function ptAt(t){return {x:p1.x+ux*t,y:p1.y+uy*t};}
+  function wallLine(t0,t1){
+    if(t1-t0<0.3)return;
+    var a=ptAt(t0),b=ptAt(t1);
+    container.appendChild(el('line',{x1:a.x,y1:a.y,x2:b.x,y2:b.y,stroke:color,'stroke-width':sw,class:lineClass}));
+  }
+  var segs=edgeDoors.map(function(d){
+    var half=(d.width||GRID)/2;
+    return {start:Math.max(0,d.pos-half),end:Math.min(edgeLen,d.pos+half)};
+  }).sort(function(a,b){return a.start-b.start;});
+  var cursor=0;
+  segs.forEach(function(s){
+    wallLine(cursor,s.start);
+    var dp1=ptAt(s.start),dp2=ptAt(s.end);
+    var dx=dp2.x-dp1.x,dy=dp2.y-dp1.y;
+    container.appendChild(el('line',{x1:dp1.x,y1:dp1.y,x2:dp1.x+dx*0.32,y2:dp1.y+dy*0.32,stroke:color,'stroke-width':sw,class:'room-edge'}));
+    container.appendChild(el('line',{x1:dp1.x+dx*0.68,y1:dp1.y+dy*0.68,x2:dp2.x,y2:dp2.y,stroke:color,'stroke-width':sw,class:'room-edge'}));
+    var mid={x:(dp1.x+dp2.x)/2,y:(dp1.y+dp2.y)/2};
+    container.appendChild(el('rect',{x:mid.x-markSize/2,y:mid.y-markSize/2,width:markSize,height:markSize,fill:'#fff',stroke:color,'stroke-width':(markSize*0.19).toFixed(2),transform:'rotate(45 '+mid.x+' '+mid.y+')'}));
+    cursor=Math.max(cursor,s.end);
+  });
+  wallLine(cursor,edgeLen);
 }
 
 // A "space" is one GRID cell (the token/miniature unit) — independent of
@@ -743,43 +771,15 @@ function renderRooms(){
     var doors=room.doors||[];
     room.points.forEach(function(p1,i){
       var p2=room.points[(i+1)%room.points.length];
-      var segs=wallSegments(p1,p2);
-      segs.forEach(function(seg,s){
-        var sp1=seg.p1, sp2=seg.p2;
-        var hasDoor=doors.some(function(d){return d.edge===i&&segMatchesPos(p1,seg,d.pos);});
-        if(hasDoor){
-          var dx=sp2.x-sp1.x, dy=sp2.y-sp1.y;
-          var a=el('line',{x1:sp1.x,y1:sp1.y,x2:sp1.x+dx*0.32,y2:sp1.y+dy*0.32,stroke:fam.color,'stroke-width':4,class:'room-edge'});
-          var b=el('line',{x1:sp1.x+dx*0.68,y1:sp1.y+dy*0.68,x2:sp2.x,y2:sp2.y,stroke:fam.color,'stroke-width':4,class:'room-edge'});
-          var mid={x:(sp1.x+sp2.x)/2,y:(sp1.y+sp2.y)/2};
-          var doorMark=el('rect',{x:mid.x-4,y:mid.y-4,width:8,height:8,fill:'#fff',stroke:fam.color,'stroke-width':1.5,transform:'rotate(45 '+mid.x+' '+mid.y+')'});
-          g.appendChild(a);g.appendChild(b);g.appendChild(doorMark);
-        }else{
-          g.appendChild(el('line',{x1:sp1.x,y1:sp1.y,x2:sp2.x,y2:sp2.y,stroke:fam.color,'stroke-width':4,class:'room-edge'}));
-        }
-      });
+      var edgeDoors=doors.filter(function(d){return d.edge===i;});
+      renderWallLine(g,p1,p2,edgeDoors,fam.color,4,8,'room-edge');
     });
     // Interior walls — always confined to this room, so they render/move/
-    // transform with it. Doors on them share wallSegments() and the same
-    // arc-length pos matching as the room's own boundary edges.
+    // transform with it.
     (room.walls||[]).forEach(function(w){
-      var wDoors=w.doors||[];
       var isWallSel=selected&&selected.kind==='wall'&&selected.roomId===room.id&&selected.id===w.id;
-      var segs=wallSegments(w.p1,w.p2);
       var wg=el('g',{'data-wall-id':w.id,'data-room-id':room.id,class:'iwall'+(isWallSel?' selected':'')});
-      segs.forEach(function(seg,s){
-        var sp1=seg.p1,sp2=seg.p2;
-        var hasDoor=wDoors.some(function(pos){return segMatchesPos(w.p1,seg,pos);});
-        if(hasDoor){
-          var dx=sp2.x-sp1.x,dy=sp2.y-sp1.y;
-          wg.appendChild(el('line',{x1:sp1.x,y1:sp1.y,x2:sp1.x+dx*0.32,y2:sp1.y+dy*0.32,stroke:fam.color,'stroke-width':3,class:'room-edge'}));
-          wg.appendChild(el('line',{x1:sp1.x+dx*0.68,y1:sp1.y+dy*0.68,x2:sp2.x,y2:sp2.y,stroke:fam.color,'stroke-width':3,class:'room-edge'}));
-          var mid={x:(sp1.x+sp2.x)/2,y:(sp1.y+sp2.y)/2};
-          wg.appendChild(el('rect',{x:mid.x-3.5,y:mid.y-3.5,width:7,height:7,fill:'#fff',stroke:fam.color,'stroke-width':1.3,transform:'rotate(45 '+mid.x+' '+mid.y+')'}));
-        }else{
-          wg.appendChild(el('line',{x1:sp1.x,y1:sp1.y,x2:sp2.x,y2:sp2.y,stroke:fam.color,'stroke-width':3,class:'room-edge iwall-line'}));
-        }
-      });
+      renderWallLine(wg,w.p1,w.p2,w.doors||[],fam.color,3,7,'room-edge iwall-line');
       wg.addEventListener('mousedown',function(e){onWallMouseDown(e,room.id,w.id);});
       wg.addEventListener('contextmenu',function(e){onWallContextMenu(e,room.id,w.id);});
       g.appendChild(wg);
@@ -920,7 +920,7 @@ function insertVertexOnEdge(roomId,edgeIdx,pt){
   // seg?) so they're dropped; doors on every other edge keep their seg and
   // just follow their edge index as the points array grows.
   r.doors=(r.doors||[]).filter(function(d){return d.edge!==edgeIdx;}).map(function(d){
-    return {edge:d.edge>edgeIdx?d.edge+1:d.edge,seg:d.seg};
+    return {edge:d.edge>edgeIdx?d.edge+1:d.edge,pos:d.pos,width:d.width};
   });
 }
 
@@ -942,7 +942,7 @@ function removeVertex(roomId,vIdx){
   }
   r.points=newPoints;
   r.doors=(r.doors||[]).filter(function(d){return edgeMap[d.edge]!==undefined;}).map(function(d){
-    return {edge:edgeMap[d.edge],seg:d.seg};
+    return {edge:edgeMap[d.edge],pos:d.pos,width:d.width};
   });
 }
 
@@ -1103,14 +1103,15 @@ function commitRoom(){
   drawingRoom=null;
   render();
 }
-// target: {roomId, edge, seg} for a room boundary edge, or
-// {roomId, wallId, seg} for an interior wall — from findNearestWallSegment.
-// Two rooms' edges that physically coincide (a shared party wall) will, at
-// the same absolute SNAP grid, cut into segments with identical absolute
-// midpoints — so "is this the same wall as seen from the other room" is
-// just "is there a segment, anywhere but this room, whose midpoint is
-// (almost) exactly here." bestDist stays tight since a real match is ~0
-// apart and even the finest grid keeps unrelated walls much further out.
+function doorCoversPos(d,pos){var half=(d.width||GRID)/2;return pos>=d.pos-half-0.5&&pos<=d.pos+half+0.5;}
+// Two rooms' edges that physically coincide (a shared party wall) will have
+// a segment, cut at the same absolute SNAP grid, with an identical absolute
+// midpoint — so "is this the same wall as seen from the other room" is just
+// "is there a segment, anywhere but this room, whose midpoint is (almost)
+// exactly here." bestDist stays tight since a real match is ~0 apart and
+// even the finest grid keeps unrelated walls much further out. Only used
+// when placing a NEW linked door, so it's fine that it goes through
+// wallSegments()/SNAP like any other new-placement lookup.
 function findCoincidentEdge(excludeRoomId,absPt){
   var best=null,bestDist=1.5;
   board.rooms.forEach(function(room){
@@ -1120,44 +1121,43 @@ function findCoincidentEdge(excludeRoomId,absPt){
       wallSegments(p1,p2).forEach(function(seg){
         var mid={x:(seg.p1.x+seg.p2.x)/2,y:(seg.p1.y+seg.p2.y)/2};
         var d=dist(mid,absPt);
-        if(d<bestDist){bestDist=d;best={roomId:room.id,edge:i,p1:seg.p1,p2:seg.p2,pos:doorPosOf(p1,seg)};}
+        if(d<bestDist){bestDist=d;best={roomId:room.id,edge:i,p1:seg.p1,p2:seg.p2,pos:doorPosOf(p1,seg),width:doorWidthOf(seg)};}
       });
     });
   });
   return best;
 }
-// target: {roomId, edge, p1, p2, pos} for a room boundary edge, or
-// {roomId, wallId, p1, p2, pos} for an interior wall — from
-// findNearestWallSegment. When LINK DOORS is on, toggling a door on a room
-// edge that coincides with another room's edge (a shared party wall) also
-// toggles the matching door on that other room, so either room's boundary
-// shows the doorway.
+// target: {roomId, edge, p1, p2, pos, width} for a room boundary edge, or
+// {roomId, wallId, p1, p2, pos, width} for an interior wall — from
+// findNearestWallSegment. Existing-door lookup checks target.pos against
+// each door's OWN stored pos/width (set once, at that door's creation) —
+// not against the current SNAP-based segment — so toggling is unaffected by
+// whatever SNAP happens to be active now. When LINK DOORS is on, toggling a
+// door on a room edge that coincides with another room's edge (a shared
+// party wall) also toggles the matching door on that other room.
 function toggleDoorAt(target){
   if(!target)return;
   pushUndo();
-  var seg={p1:target.p1,p2:target.p2};
   if(target.wallId!=null){
     var w=findWall(target.roomId,target.wallId);if(!w)return;
     w.doors=w.doors||[];
-    var wi=w.doors.findIndex(function(pos){return segMatchesPos(w.p1,seg,pos);});
-    if(wi===-1)w.doors.push(target.pos);else w.doors.splice(wi,1);
+    var wi=w.doors.findIndex(function(d){return doorCoversPos(d,target.pos);});
+    if(wi===-1)w.doors.push({pos:target.pos,width:target.width});else w.doors.splice(wi,1);
   }else{
     var r=findRoom(target.roomId);if(!r)return;
-    var edgeP1=r.points[target.edge];
     r.doors=r.doors||[];
-    var i=r.doors.findIndex(function(d){return d.edge===target.edge&&segMatchesPos(edgeP1,seg,d.pos);});
+    var i=r.doors.findIndex(function(d){return d.edge===target.edge&&doorCoversPos(d,target.pos);});
     var adding=i===-1;
-    if(adding)r.doors.push({edge:target.edge,pos:target.pos});else r.doors.splice(i,1);
+    if(adding)r.doors.push({edge:target.edge,pos:target.pos,width:target.width});else r.doors.splice(i,1);
 
     if(linkSharedDoors){
-      var mid={x:(seg.p1.x+seg.p2.x)/2,y:(seg.p1.y+seg.p2.y)/2};
+      var mid={x:(target.p1.x+target.p2.x)/2,y:(target.p1.y+target.p2.y)/2};
       var shared=findCoincidentEdge(target.roomId,mid);
       if(shared){
         var r2=findRoom(shared.roomId);
-        var sSeg={p1:shared.p1,p2:shared.p2}, sEdgeP1=r2.points[shared.edge];
         r2.doors=r2.doors||[];
-        var j=r2.doors.findIndex(function(d){return d.edge===shared.edge&&segMatchesPos(sEdgeP1,sSeg,d.pos);});
-        if(adding&&j===-1)r2.doors.push({edge:shared.edge,pos:shared.pos});
+        var j=r2.doors.findIndex(function(d){return d.edge===shared.edge&&doorCoversPos(d,shared.pos);});
+        if(adding&&j===-1)r2.doors.push({edge:shared.edge,pos:shared.pos,width:shared.width});
         else if(!adding&&j!==-1)r2.doors.splice(j,1);
       }
     }
@@ -1167,10 +1167,9 @@ function toggleDoorAt(target){
 // Finds the nearest wall segment to a board-space point, across every
 // room's boundary edges AND interior walls, within a generous threshold —
 // roughly "anywhere in the grid square that wall occupies", not just
-// pixel-precise on the line itself. Segments come from wallSegments(),
-// which cuts at the absolute board grid — so this must stay in lockstep
-// with the render loop's use of the same function, or a stored door won't
-// hit-test where it visually renders.
+// pixel-precise on the line itself. Segments come from wallSegments(), so
+// this is where SNAP decides the size/position of a NEWLY placed door;
+// existing doors are untouched by it (see toggleDoorAt).
 function findNearestWallSegment(pt){
   var best=null,bestDist=GRID*0.85;
   board.rooms.forEach(function(room){
@@ -1180,7 +1179,7 @@ function findNearestWallSegment(pt){
       segs.forEach(function(seg){
         var d=distToSeg(pt,seg.p1,seg.p2);
         if(d>=bestDist)return;
-        best={roomId:room.id,edge:i,p1:seg.p1,p2:seg.p2,pos:doorPosOf(p1,seg)};
+        best={roomId:room.id,edge:i,p1:seg.p1,p2:seg.p2,pos:doorPosOf(p1,seg),width:doorWidthOf(seg)};
         bestDist=d;
       });
     });
@@ -1189,7 +1188,7 @@ function findNearestWallSegment(pt){
       segs.forEach(function(seg){
         var d=distToSeg(pt,seg.p1,seg.p2);
         if(d>=bestDist)return;
-        best={roomId:room.id,wallId:w.id,p1:seg.p1,p2:seg.p2,pos:doorPosOf(w.p1,seg)};
+        best={roomId:room.id,wallId:w.id,p1:seg.p1,p2:seg.p2,pos:doorPosOf(w.p1,seg),width:doorWidthOf(seg)};
         bestDist=d;
       });
     });
@@ -1257,11 +1256,16 @@ function duplicatePoint(id){
 // point geometrically inside the room's ORIGINAL polygon (captured before
 // the room moves, so a mid-transform point doesn't fall in or out of the
 // set as the shape passes over it).
+// Deliberately NOT run through snapPt(): SNAP governs where a NEWLY placed
+// point/vertex lands, not where an already-placed one ends up after being
+// transformed — re-snapping rotated/mirrored coordinates to whatever SNAP
+// happens to be active right now would round each point by a different
+// amount and distort the shape (and did, before this).
 function applyRoomTransform(room,fn){
   var attached=attachPoints?board.points.filter(function(p){return pointInPolygon(p,room.points);}):[];
-  room.points=room.points.map(function(p){return snapPt(fn(p));});
-  (room.walls||[]).forEach(function(w){w.p1=snapPt(fn(w.p1));w.p2=snapPt(fn(w.p2));});
-  attached.forEach(function(p){var np=snapPt(fn(p));p.x=np.x;p.y=np.y;});
+  room.points=room.points.map(fn);
+  (room.walls||[]).forEach(function(w){w.p1=fn(w.p1);w.p2=fn(w.p2);});
+  attached.forEach(function(p){var np=fn(p);p.x=np.x;p.y=np.y;});
 }
 // axis is which COORDINATE gets negated, not which axis the flip is "named"
 // after in the UI — 'x' negates x (a left/right, Y-axis-reflection flip),
@@ -1305,11 +1309,11 @@ function mirrorMultiSel(axis){
   multiSel.forEach(function(m){
     if(m.kind==='room'){
       var r=findRoom(m.id);if(!r)return;
-      r.points=r.points.map(function(p){return snapPt(mirrorPt(p,center,axis));});
-      (r.walls||[]).forEach(function(w){w.p1=snapPt(mirrorPt(w.p1,center,axis));w.p2=snapPt(mirrorPt(w.p2,center,axis));});
+      r.points=r.points.map(function(p){return mirrorPt(p,center,axis);});
+      (r.walls||[]).forEach(function(w){w.p1=mirrorPt(w.p1,center,axis);w.p2=mirrorPt(w.p2,center,axis);});
     }else{
       var p=findPoint(m.id);if(!p)return;
-      var np=snapPt(mirrorPt(p,center,axis));p.x=np.x;p.y=np.y;
+      var np=mirrorPt(p,center,axis);p.x=np.x;p.y=np.y;
     }
   });
   render();
@@ -1329,8 +1333,28 @@ function mirrorSelection(axis){
 // it resolves to spaces instead. Function references are resolved at CALL
 // time (these are all hoisted function declarations), so definition order
 // relative to the rest of the file doesn't matter.
+function duplicateSelection(){
+  if(selected&&selected.kind==='room')duplicateRoom(selected.id);
+  else if(selected&&selected.kind==='point')duplicatePoint(selected.id);
+  else toast('Select a room or point to duplicate');
+}
+function deleteSelection(){
+  if(multiSel.length)deleteMultiSel();
+  else if(selected&&selected.kind==='room')deleteRoom(selected.id);
+  else if(selected&&selected.kind==='point')deletePoint(selected.id);
+  else if(selected&&selected.kind==='wall')deleteWall(selected.roomId,selected.id);
+  else if(selected&&selected.kind==='boundary')removeBoundary();
+  else toast('Nothing selected to delete');
+}
+// Rebindable (1-2 plain-key chord) actions, plus reference-only rows for
+// everything that already has its own fixed trigger — a Ctrl+ combo, a
+// named key the chord system doesn't handle (Delete/Backspace), a mouse
+// gesture, or (for the handful of file actions that are toolbar-only)
+// nothing at all. Reference rows carry no `fn`/chord binding — they're
+// listed so the menu is a complete map of every action in the tool, not
+// just the ones that go through the plain-key system.
 var HOTKEY_ACTIONS={
-  select:{label:'Select tool',fn:function(){setTool('select');}},
+  select:{label:'Select tool (also: double-press Esc)',fn:function(){setTool('select');}},
   room:{label:'Room tool',fn:function(){setTool('room');}},
   wall:{label:'Wall tool',fn:function(){setTool('wall');}},
   door:{label:'Door tool',fn:function(){setTool('door');}},
@@ -1348,14 +1372,32 @@ var HOTKEY_ACTIONS={
   boundary:{label:'Add / select boundary',fn:function(){addOrSelectBoundary();}},
   mirrorX:{label:'Mirror across X axis (vertical flip)',fn:function(){mirrorSelection('y');}},
   mirrorY:{label:'Mirror across Y axis (horizontal flip)',fn:function(){mirrorSelection('x');}},
-  fit:{label:'Fit view',fn:function(){resetView();}},
-  shortcuts:{label:'Open this shortcuts menu',fn:function(){openHotkeysMenu();}}
+  duplicate:{label:'Duplicate selection',fn:function(){duplicateSelection();}},
+  zoomIn:{label:'Zoom in',fn:function(){zoomBy(1.2);}},
+  zoomOut:{label:'Zoom out',fn:function(){zoomBy(1/1.2);}},
+  fit:{label:'Fit view (also: double-click middle mouse button)',fn:function(){resetView();}},
+  shortcuts:{label:'Open this shortcuts menu',fn:function(){openHotkeysMenu();}},
+
+  undo:{label:'Undo',fixedLabel:'Ctrl+Z'},
+  redo:{label:'Redo',fixedLabel:'Ctrl+Y / Ctrl+Shift+Z'},
+  copy:{label:'Copy selection',fixedLabel:'Ctrl+C'},
+  paste:{label:'Paste',fixedLabel:'Ctrl+V'},
+  deleteSel:{label:'Delete selection',fixedLabel:'Delete / Backspace'},
+  clearSelection:{label:'Clear selection / cancel drawing',fixedLabel:'Esc'},
+  commitRoomDraw:{label:'Finish drawing a room',fixedLabel:'Enter, or click the start point'},
+  save:{label:'Save',fixedLabel:'Ctrl+S'},
+  saveAsAction:{label:'Save as',fixedLabel:'Ctrl+Shift+S'},
+  printAction:{label:'Print',fixedLabel:'Ctrl+P'},
+  newBoardAction:{label:'New board',fixedLabel:'toolbar only'},
+  githubLoadAction:{label:'Load board from GitHub',fixedLabel:'toolbar only'},
+  openFileAction:{label:'Open board file',fixedLabel:'toolbar only'}
 };
 var DEFAULT_HOTKEYS={
   select:['s'],room:['r'],wall:['w'],door:['d'],terminal:['t'],vent:['v'],locker:['l'],point:['p'],
   snapWhole:['1'],snapHalf:['2'],snapQuarter:['4'],
   spaces:['s','p'],info:['i'],attach:['a','t'],linkDoors:['l','d'],boundary:['b','o'],
-  mirrorX:['m','x'],mirrorY:['m','y'],fit:['f'],shortcuts:['k','s']
+  mirrorX:['m','x'],mirrorY:['m','y'],duplicate:['u'],zoomIn:['='],zoomOut:['-'],
+  fit:['f'],shortcuts:['k','s']
 };
 var hotkeys=JSON.parse(JSON.stringify(DEFAULT_HOTKEYS));
 var hotkeySource='built-in defaults';
@@ -1371,7 +1413,7 @@ function rebuildHotkeyLookup(){
   });
 }
 rebuildHotkeyLookup();
-function fireHotkeyAction(id){var a=HOTKEY_ACTIONS[id];if(a)a.fn();}
+function fireHotkeyAction(id){var a=HOTKEY_ACTIONS[id];if(a&&a.fn)a.fn();}
 
 var hkPending=null,hkPendingTimer=null;
 // Called from the main keydown handler for any plain (no modifier) single
@@ -1498,14 +1540,21 @@ function renderHotkeysList(){
   if(!wrap)return;
   wrap.innerHTML='';
   Object.keys(HOTKEY_ACTIONS).forEach(function(id){
+    var action=HOTKEY_ACTIONS[id];
+    var row=document.createElement('div');row.className='hk-row';
+    if(action.fixedLabel){
+      row.innerHTML='<span class="hk-row-label">'+esc(action.label)+'</span>'
+        +'<span class="hk-row-keys"><span class="hk-key fixed">'+esc(action.fixedLabel)+'</span></span>';
+      wrap.appendChild(row);
+      return;
+    }
     var seq=hotkeys[id]||[];
     var capturingThis=hkCapturing===id;
     var shownKeys=capturingThis&&hkCaptureBuf.length?hkCaptureBuf:seq;
     var keysHtml=(shownKeys.length?shownKeys:['']).map(function(k){
       return '<span class="hk-key'+(k?'':' empty')+'">'+(k?esc(k):'&mdash;')+'</span>';
     }).join('');
-    var row=document.createElement('div');row.className='hk-row';
-    row.innerHTML='<span class="hk-row-label">'+esc(HOTKEY_ACTIONS[id].label)+'</span>'
+    row.innerHTML='<span class="hk-row-label">'+esc(action.label)+'</span>'
       +'<span class="hk-row-keys">'+keysHtml+'</span>'
       +'<button class="hk-rebind'+(capturingThis?' capturing':'')+'" data-id="'+id+'">'+(capturingThis?'PRESS KEYS&hellip;':'REBIND')+'</button>';
     wrap.appendChild(row);
@@ -2011,7 +2060,7 @@ function initCanvas(){
       var deg=(curAngle-rotatingRoom.startAngle)*180/Math.PI;
       var snappedRad=Math.round(deg/15)*15*Math.PI/180;
       var rr=findRoom(rotatingRoom.roomId);
-      if(rr){rr.points=rotatingRoom.origPoints.map(function(p){return snapPt(rotatePoint(p,center,snappedRad));});renderRooms();renderHandles();}
+      if(rr){rr.points=rotatingRoom.origPoints.map(function(p){return rotatePoint(p,center,snappedRad);});renderRooms();renderHandles();}
       return;
     }
     if(tool==='room'&&drawingRoom)renderDrawPreview();
@@ -2122,31 +2171,34 @@ function loadBoard(raw,name,cls){
     // the whole edge) to the {edge,seg} form (seg 0 = first chunk of the edge).
     r.doors=r.doors.map(function(d){return typeof d==='number'?{edge:d,seg:0}:d;});
     // Then migrate {edge,seg} (a segment INDEX — shifts to a different spot
-    // whenever SNAP changes the segmentation) to {edge,pos} (an arc-length
-    // distance from the edge's own start point — stable across snap changes
-    // and still moves/rotates/mirrors correctly with the room). Uses
-    // whatever SNAP is active right now to resolve what each old seg index
-    // pointed at, one time, at load.
+    // whenever SNAP changes the segmentation) to {edge,pos,width} (a fixed
+    // arc-length distance/size, set once here using whatever SNAP is active
+    // right now to resolve what each old seg index pointed at, and never
+    // touched again afterward).
     r.doors=r.doors.map(function(d){
-      if(d.pos!==undefined)return d;
+      if(d.pos!==undefined&&d.width!==undefined)return d;
       var p1=r.points[d.edge],p2=r.points[(d.edge+1)%r.points.length];
       if(!p1||!p2)return null;
+      if(d.pos!==undefined)return {edge:d.edge,pos:d.pos,width:SNAP};
       var segs=wallSegments(p1,p2);
       if(!segs.length)return null;
       var seg=segs[Math.min(d.seg||0,segs.length-1)];
-      return {edge:d.edge,pos:doorPosOf(p1,seg)};
+      return {edge:d.edge,pos:doorPosOf(p1,seg),width:doorWidthOf(seg)};
     }).filter(Boolean);
     if(!r.walls)r.walls=[];
     r.walls.forEach(function(w){
       if(!w.id)w.id=uid('W');
       if(!w.doors)w.doors=[];
-      // Same index->pos migration as room doors, but walls have only ever
-      // shipped in the old index format, so every entry needs it.
-      w.doors=w.doors.map(function(idx){
+      // Wall doors have only ever shipped as plain numbers (a segment
+      // index, or briefly an arc-length pos with no width) — every entry
+      // needs migrating to {pos,width}.
+      w.doors=w.doors.map(function(d){
+        if(d&&typeof d==='object'&&d.pos!==undefined&&d.width!==undefined)return d;
         var segs=wallSegments(w.p1,w.p2);
         if(!segs.length)return null;
-        var seg=segs[Math.min(idx,segs.length-1)];
-        return doorPosOf(w.p1,seg);
+        var idx=typeof d==='number'?d:0;
+        var seg=segs[Math.min(Math.max(0,Math.round(idx)),segs.length-1)];
+        return {pos:doorPosOf(w.p1,seg),width:doorWidthOf(seg)};
       }).filter(function(v){return v!=null;});
     });
   });
