@@ -1476,7 +1476,32 @@ async function enterSystemOverride(){
 }
 function printOverrideMenu(){
   var m1=addLine('full');m1.textContent='  [STATUS]      — run full data validation report';
-  var m2=addLine('full');m2.textContent='  [EXIT]         — return to previous screen';
+  var m2=addLine('full');m2.textContent='  [JUMP L1]      — jump to layer 1 archive root';
+  var m3=addLine('full');m3.textContent='  [JUMP L2]      — jump to layer 2 archive root';
+  var m4=addLine('full');m4.textContent='  [JUMP L3]      — jump to layer 3 archive root';
+  var m5=addLine('full');m5.textContent='  [EXIT]         — return to previous screen';
+}
+// Jump commands replace the old DEV_OVERRIDE_ROOT node — same destinations
+// (L1A_ROOT/L2A_ROOT/L3A_ROOT), now hardcoded here instead of living as
+// discoverable nodes.json content, since they're a dev tool, not lore.
+async function overrideJumpToLayer(level){
+  var targetId=level===1?'L1A_ROOT':level===2?'L2A_ROOT':'L3A_ROOT';
+  if(!archData||!archData.nodes||!archData.nodes[targetId]){
+    playDenied();
+    var er=addLine('denied',true);await typeLine(er,CFG_STRINGS.error_target_not_found||'> TARGET NOT FOUND');
+    var pl=addLine('low');await typeLine(pl,'> AWAITING INPUT');setActiveCursor(pl);
+    isResponding=false;termInput.focus();return;
+  }
+  overrideSnapshot=null;overrideActive=false;
+  await fadeToBlack();
+  document.body.classList.remove('override-mode');
+  applyLayerClass(level);
+  setHeaderTitle(getLayerTitle('l'+level+'a',''));
+  crossfadeAmbient(level);
+  output.innerHTML='';cursorEl=null;
+  await fadeFromBlack();
+  isResponding=false;
+  await renderArchivePage(targetId);
 }
 // Targets the engine resolves itself, outside archData.nodes — a command
 // pointing at one of these is not dangling even though no such node exists.
@@ -1557,6 +1582,9 @@ async function handleOverrideInput(val){
     isResponding=false;termInput.focus();return;
   }
   if(val==='[EXIT]'){await exitSystemOverride();return;}
+  if(val==='[JUMP L1]'){await overrideJumpToLayer(1);return;}
+  if(val==='[JUMP L2]'){await overrideJumpToLayer(2);return;}
+  if(val==='[JUMP L3]'){await overrideJumpToLayer(3);return;}
   playDenied();
   var er=addLine('denied',true);await typeLine(er,CFG_STRINGS.error_cmd_not_recognized);
   var pl2=addLine('low');await typeLine(pl2,'> AWAITING INPUT');setActiveCursor(pl2);

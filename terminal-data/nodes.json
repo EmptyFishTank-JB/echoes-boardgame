@@ -35,10 +35,6 @@
         "x": 1439.4096949856596,
         "y": 269.203203271349
       },
-      "DEV_OVERRIDE_ROOT": {
-        "x": 20.620439913666317,
-        "y": 714.2086517339521
-      },
       "L1A_CREW_MANIFEST": {
         "x": 1116.5373563437065,
         "y": 273.4831921114825
@@ -63,6 +59,14 @@
         "x": 527.4237348334557,
         "y": 957.9073462345247
       },
+      "L2AC_ROOT": {
+        "x": 700,
+        "y": 20
+      },
+      "L3AC_ROOT": {
+        "x": 1100,
+        "y": 20
+      },
       "GLOBAL_HELP": {
         "x": 26.201084550920427,
         "y": 927.6011450407668
@@ -82,7 +86,7 @@
     },
     "editor_version": "5.35",
     "last_saved": "2026-05-29T20:04:22.234Z",
-    "schema_notes": "l1_commands, boot_script, dev_override_commands removed — commands now defined in global node bodies. L1AC_ROOT and L1A_ROOT both have is_root=true on l1a: L1AC_ROOT=chat/boot root, L1A_ROOT=archive folder root."
+    "schema_notes": "l1_commands, boot_script, dev_override_commands removed — commands now defined in global node bodies. Each layer has two is_root=true nodes: L{N}AC_ROOT=chat/console root, L{N}A_ROOT=archive folder root. DEV_OVERRIDE_ROOT/[DEV.OVERRIDE] removed — replaced by the hardcoded [SYSTEM OVERRIDE] > [JUMP L1/L2/L3] commands in terminal.html, which are not nodes.json content."
   },
   "layers": {
     "l1a": {
@@ -366,6 +370,34 @@
         "id_locked": false
       }
     },
+    "L2AC_ROOT": {
+      "layer": "l2a",
+      "node_type": "chat",
+      "is_root": true,
+      "fetch_allowed": false,
+      "title": "ECHO PROTOCOL CONSOLE",
+      "breadcrumb": "ECHO PROTOCOL CONSOLE",
+      "footer": "",
+      "body": [
+        {
+          "type": "text",
+          "text": "> ECHO PROTOCOL CONSOLE — STUB",
+          "cls": "low"
+        },
+        {
+          "type": "command",
+          "cmd_type": "navigation",
+          "label": "[L2 ROOT]",
+          "target": "L2A_ROOT",
+          "hidden": false
+        }
+      ],
+      "_editor": {
+        "locked": false,
+        "pinned": false,
+        "id_locked": false
+      }
+    },
     "L2A_INTRO": {
       "layer": "l2a",
       "node_type": "intro",
@@ -428,9 +460,45 @@
       "is_root": true,
       "fetch_allowed": true,
       "title": "L2 ROOT",
-      "breadcrumb": "HELP > DEVELOPER OVERRIDE — AUTHORIZED > L2 ROOT",
+      "breadcrumb": "ECHO PROTOCOL CONSOLE > L2 ROOT",
       "footer": "",
-      "body": [],
+      "body": [
+        {
+          "type": "command",
+          "cmd_type": "navigation",
+          "label": "[EXIT]",
+          "target": "L2AC_ROOT",
+          "hidden": false
+        }
+      ],
+      "_editor": {
+        "locked": false,
+        "pinned": false,
+        "id_locked": false
+      }
+    },
+    "L3AC_ROOT": {
+      "layer": "l3a",
+      "node_type": "chat",
+      "is_root": true,
+      "fetch_allowed": false,
+      "title": "DEEP ARCHIVE CONSOLE",
+      "breadcrumb": "DEEP ARCHIVE CONSOLE",
+      "footer": "",
+      "body": [
+        {
+          "type": "text",
+          "text": "> DEEP ARCHIVE CONSOLE — STUB",
+          "cls": "low"
+        },
+        {
+          "type": "command",
+          "cmd_type": "navigation",
+          "label": "[L3 ROOT]",
+          "target": "L3A_ROOT",
+          "hidden": false
+        }
+      ],
       "_editor": {
         "locked": false,
         "pinned": false,
@@ -494,43 +562,14 @@
       "is_root": true,
       "fetch_allowed": true,
       "title": "L3 ROOT",
-      "breadcrumb": "HELP > DEVELOPER OVERRIDE — AUTHORIZED > L3 ROOT",
-      "footer": "",
-      "body": [],
-      "_editor": {
-        "locked": false,
-        "pinned": false,
-        "id_locked": false
-      }
-    },
-    "DEV_OVERRIDE_ROOT": {
-      "layer": "l1a",
-      "node_type": "global",
-      "is_root": false,
-      "fetch_allowed": false,
-      "title": "DEVELOPER OVERRIDE — AUTHORIZED",
-      "breadcrumb": "HELP > DEVELOPER OVERRIDE — AUTHORIZED",
+      "breadcrumb": "DEEP ARCHIVE CONSOLE > L3 ROOT",
       "footer": "",
       "body": [
         {
           "type": "command",
           "cmd_type": "navigation",
-          "label": "[-- JUMP L1]",
-          "target": "L1A_ROOT",
-          "hidden": false
-        },
-        {
-          "type": "command",
-          "cmd_type": "navigation",
-          "label": "[-- JUMP L2]",
-          "target": "L2A_ROOT",
-          "hidden": false
-        },
-        {
-          "type": "command",
-          "cmd_type": "navigation",
-          "label": "[-- JUMP L3]",
-          "target": "L3A_ROOT",
+          "label": "[EXIT]",
+          "target": "L3AC_ROOT",
           "hidden": false
         }
       ],
@@ -973,12 +1012,6 @@
           "label": "  [HELP]",
           "target": "GLOBAL_HELP",
           "hidden": false
-        },
-        {
-          "type": "command",
-          "cmd_type": "navigation",
-          "label": "[DEV.OVERRIDE]",
-          "target": "DEV_OVERRIDE_ROOT"
         }
       ],
       "_editor": {
