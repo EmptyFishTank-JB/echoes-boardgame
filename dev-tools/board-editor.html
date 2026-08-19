@@ -58,6 +58,14 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
 .vtx-handle:hover{fill:#4fc3f7;}
 .vtx-handle-mid{fill:rgba(79,195,247,0.35);stroke:rgba(79,195,247,0.55);stroke-width:1;cursor:copy;}
 .vtx-handle-mid:hover{fill:#4fc3f7;stroke:#fff;}
+.rotate-line{stroke:rgba(255,255,255,0.35);stroke-width:1;stroke-dasharray:2,2;}
+.rotate-handle{fill:#0d1620;stroke:#fff;stroke-width:1.5;cursor:grab;}
+.rotate-handle:hover{fill:#4fc3f7;}
+.boundary-rect{fill:rgba(255,255,255,0.02);stroke:rgba(255,255,255,0.55);stroke-width:2;stroke-dasharray:10,6;}
+.boundary-rect.selected{stroke:#fff;stroke-dasharray:none;}
+.boundary-label{font-family:"Share Tech Mono",monospace;font-size:12px;fill:rgba(255,255,255,0.75);pointer-events:none;}
+.boundary-handle{fill:#0d1620;stroke:#fff;stroke-width:1.5;cursor:nwse-resize;}
+.boundary-handle:hover{fill:#fff;}
 .bpoint{cursor:pointer;}
 .bpoint-glyph{font-family:"Share Tech Mono",monospace;font-size:10px;fill:#00080e;font-weight:bold;pointer-events:none;text-anchor:middle;dominant-baseline:central;}
 .bpoint-label{font-family:"Share Tech Mono",monospace;font-size:9px;fill:rgba(255,255,255,0.65);pointer-events:none;text-anchor:middle;}
@@ -152,6 +160,7 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
   <button class="tbtn" onclick="resetView()">FIT</button>
   <div class="tsep"></div>
   <button class="tbtn on" id="btn-spaces" onclick="toggleSpaces()">&#9638; SPACES</button>
+  <button class="tbtn" id="btn-boundary" onclick="addOrSelectBoundary()">&#9645; BOUNDARY</button>
 </div>
 
 <div id="body-main">
@@ -169,6 +178,7 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
         </defs>
         <rect id="grid-bg" x="-2000" y="-2000" width="8000" height="7000" fill="url(#gridPattern)"/>
         <g id="content-group">
+          <g id="boundary-layer"></g>
           <g id="rooms-layer"></g>
           <g id="points-layer"></g>
           <g id="draw-preview-layer"></g>
@@ -219,7 +229,8 @@ function defaultBoard(){
     meta:{version:'1.0',name:'ECHOES Board — Draft',editor_version:'1.0',last_saved:null},
     families:JSON.parse(JSON.stringify(DEFAULT_FAMILIES)),
     rooms:[],
-    points:[]
+    points:[],
+    boundary:null   // {x,y,w,h} — the playable board edge, in board units
   };
 }
 
@@ -233,6 +244,8 @@ var selected=null;                  // {kind:'room'|'point', id}
 var isPanning=false, panStart=null;
 var draggingVertex=null;            // {roomId, idx}
 var draggingWhole=null;             // {kind, id, orig:[{x,y}...] or {x,y}, mouse0}
+var draggingBoundaryHandle=null;    // {dx,dy, orig:{x,y,w,h}} — dx/dy = which corner (-1/1 each axis)
+var rotatingRoom=null;              // {roomId, center, origPoints, startAngle}
 var mouseBoard={x:0,y:0};
 var uidCounter=1;
 function uid(prefix){return prefix+(uidCounter++);}
@@ -350,12 +363,83 @@ function centroid(pts){
 }
 
 function render(){
+  renderBoundary();
   renderRooms();
   renderPoints();
   renderDrawPreview();
   renderHandles();
   rebuildFamilySelect();
   renderProps();
+}
+
+// ── BOARD BOUNDARY ────────────────────────────────────────────────────────────
+function addOrSelectBoundary(){
+  if(!board.boundary){
+    var rect=document.getElementById('canvas-wrap').getBoundingClientRect();
+    var center=screenToBoard(rect.left+rect.width/2,rect.top+rect.height/2);
+    var w=20*GRID, h=15*GRID;
+    board.boundary={x:snapToGrid(center.x-w/2),y:snapToGrid(center.y-h/2),w:w,h:h};
+  }
+  selected={kind:'boundary'};
+  render();
+}
+function snapToGrid(v){return Math.round(v/GRID)*GRID;}
+function removeBoundary(){
+  board.boundary=null;
+  if(selected&&selected.kind==='boundary')selected=null;
+  render();
+}
+function computeBoundaryStats(){
+  if(!board.boundary)return null;
+  var b=board.boundary;
+  var bRoom={points:[{x:b.x,y:b.y},{x:b.x+b.w,y:b.y},{x:b.x+b.w,y:b.y+b.h},{x:b.x,y:b.y+b.h}]};
+  var bSpaces=computeRoomSpaces(bRoom);
+  var boundaryKeys={};
+  bSpaces.cells.forEach(function(c){if(c.valid)boundaryKeys[c.x+','+c.y]=true;});
+  var occupied={};
+  board.rooms.forEach(function(room){
+    computeRoomSpaces(room).cells.forEach(function(c){if(c.valid)occupied[c.x+','+c.y]=true;});
+  });
+  var taken=0;
+  Object.keys(boundaryKeys).forEach(function(k){if(occupied[k])taken++;});
+  return {
+    total:bSpaces.count, taken:taken, available:bSpaces.count-taken,
+    wSpaces:Math.round(b.w/GRID), hSpaces:Math.round(b.h/GRID)
+  };
+}
+function renderBoundary(){
+  var layer=document.getElementById('boundary-layer');
+  layer.innerHTML='';
+  if(!board.boundary)return;
+  var b=board.boundary;
+  var isSel=selected&&selected.kind==='boundary';
+  var rect=el('rect',{x:b.x,y:b.y,width:b.w,height:b.h,class:'boundary-rect'+(isSel?' selected':''),'pointer-events':'stroke'});
+  rect.addEventListener('mousedown',function(e){onBoundaryMouseDown(e);});
+  layer.appendChild(rect);
+
+  var stats=computeBoundaryStats();
+  var label=el('text',{x:b.x,y:b.y-10,class:'boundary-label'});
+  label.textContent=stats.wSpaces+'×'+stats.hSpaces+' spaces ('+stats.total+' total) — '+stats.taken+' taken, '+stats.available+' available';
+  layer.appendChild(label);
+
+  if(isSel){
+    var corners=[
+      {x:b.x,y:b.y,dx:-1,dy:-1},{x:b.x+b.w,y:b.y,dx:1,dy:-1},
+      {x:b.x+b.w,y:b.y+b.h,dx:1,dy:1},{x:b.x,y:b.y+b.h,dx:-1,dy:1}
+    ];
+    corners.forEach(function(c){
+      var h=el('rect',{x:c.x-5,y:c.y-5,width:10,height:10,class:'boundary-handle'});
+      h.addEventListener('mousedown',function(e){e.stopPropagation();draggingBoundaryHandle={dx:c.dx,dy:c.dy,orig:{x:b.x,y:b.y,w:b.w,h:b.h}};});
+      layer.appendChild(h);
+    });
+  }
+}
+function onBoundaryMouseDown(e){
+  if(tool!=='select')return;
+  e.stopPropagation();
+  selected={kind:'boundary'};
+  draggingWhole={kind:'boundary',mouse0:screenToBoard(e.clientX,e.clientY),orig:{x:board.boundary.x,y:board.boundary.y}};
+  render();
 }
 
 function renderRooms(){
@@ -479,6 +563,25 @@ function renderHandles(){
   var room=board.rooms.filter(function(r){return r.id===selected.id;})[0];
   if(!room)return;
   var n=room.points.length;
+
+  // Rotate handle — offset above the room's bounding-box top edge.
+  var xs=room.points.map(function(p){return p.x;}), ys=room.points.map(function(p){return p.y;});
+  var bboxMinX=Math.min.apply(null,xs), bboxMaxX=Math.max.apply(null,xs), bboxMinY=Math.min.apply(null,ys);
+  var anchor={x:(bboxMinX+bboxMaxX)/2,y:bboxMinY};
+  var handlePos={x:anchor.x,y:anchor.y-30};
+  layer.appendChild(el('line',{x1:anchor.x,y1:anchor.y,x2:handlePos.x,y2:handlePos.y,class:'rotate-line'}));
+  var rh=el('circle',{cx:handlePos.x,cy:handlePos.y,r:6,class:'rotate-handle'});
+  rh.addEventListener('mousedown',function(e){
+    e.stopPropagation();
+    var center=centroid(room.points);
+    rotatingRoom={
+      roomId:room.id,center:center,
+      origPoints:JSON.parse(JSON.stringify(room.points)),
+      startAngle:Math.atan2(mouseBoard.y-center.y,mouseBoard.x-center.x)
+    };
+  });
+  layer.appendChild(rh);
+
   // Mid-edge handles first (so corner handles sit on top and win overlapping hit-tests).
   room.points.forEach(function(p1,i){
     var p2=room.points[(i+1)%n];
@@ -540,6 +643,10 @@ function removeVertex(roomId,vIdx){
 }
 
 function dist(a,b){var dx=a.x-b.x,dy=a.y-b.y;return Math.sqrt(dx*dx+dy*dy);}
+function rotatePoint(p,c,theta){
+  var cos=Math.cos(theta),sin=Math.sin(theta),dx=p.x-c.x,dy=p.y-c.y;
+  return {x:c.x+dx*cos-dy*sin,y:c.y+dx*sin+dy*cos};
+}
 function distToSeg(p,a,b){
   var l2=(b.x-a.x)*(b.x-a.x)+(b.y-a.y)*(b.y-a.y);
   if(l2===0)return dist(p,a);
@@ -590,10 +697,22 @@ function renderProps(){
       html+='<div class="pp-row"><label>LABEL</label><input type="text" value="'+esc(pt.label||'')+'" oninput="setPointLabel(\''+pt.id+'\',this.value)"></div>';
       html+='<button class="pp-del" onclick="deletePoint(\''+pt.id+'\')">DELETE POINT</button>';
     }
+  }else if(selected&&selected.kind==='boundary'&&board.boundary){
+    var stats=computeBoundaryStats();
+    html+='<div class="pp-h">BOARD BOUNDARY</div>';
+    html+='<div class="pp-empty"><strong style="color:var(--blue);">'+stats.wSpaces+' × '+stats.hSpaces+' spaces</strong> ('+stats.total+' total)<br><br>'+
+      '<strong style="color:#e05050;">'+stats.taken+'</strong> taken by rooms<br>'+
+      '<strong style="color:#6fb06f;">'+stats.available+'</strong> available<br><br>'+
+      'Drag the border to move, drag a corner to resize. Snaps to whole spaces.</div>';
+    html+='<button class="pp-del" onclick="removeBoundary()">REMOVE BOUNDARY</button>';
   }else{
     html+='<div class="pp-h">BOARD</div>';
     html+='<div class="pp-row"><label>NAME</label><input type="text" value="'+esc(board.meta.name||'')+'" oninput="board.meta.name=this.value"></div>';
     html+='<div class="pp-empty">'+board.rooms.length+' room(s) &middot; '+board.points.length+' point(s)</div>';
+    if(board.boundary){
+      var st2=computeBoundaryStats();
+      html+='<div class="pp-row"><button class="hbtn" style="width:100%;" onclick="selected={kind:\'boundary\'};render();">EDIT BOUNDARY ('+st2.wSpaces+'×'+st2.hSpaces+')</button></div>';
+    }
 
     html+='<div class="pp-h">FAMILIES</div>';
     Object.keys(board.families).forEach(function(k){
@@ -735,6 +854,12 @@ function initCanvas(){
       return;
     }
     if(draggingWhole){
+      if(draggingWhole.kind==='boundary'){
+        var db={x:Math.round((mouseBoard.x-draggingWhole.mouse0.x)/GRID)*GRID,y:Math.round((mouseBoard.y-draggingWhole.mouse0.y)/GRID)*GRID};
+        board.boundary.x=draggingWhole.orig.x+db.x;board.boundary.y=draggingWhole.orig.y+db.y;
+        renderBoundary();
+        return;
+      }
       var d=snapPt({x:mouseBoard.x-draggingWhole.mouse0.x,y:mouseBoard.y-draggingWhole.mouse0.y});
       if(draggingWhole.kind==='room'){
         var r2=findRoom(draggingWhole.id);
@@ -745,12 +870,32 @@ function initCanvas(){
       }
       return;
     }
+    if(draggingBoundaryHandle){
+      var o=draggingBoundaryHandle.orig, dh=draggingBoundaryHandle;
+      var mx=Math.round(mouseBoard.x/GRID)*GRID, my=Math.round(mouseBoard.y/GRID)*GRID;
+      var fixedX=dh.dx<0?o.x+o.w:o.x, fixedY=dh.dy<0?o.y+o.h:o.y;
+      var newX=Math.min(fixedX,mx), newY=Math.min(fixedY,my);
+      var newW=Math.max(GRID,Math.abs(mx-fixedX)), newH=Math.max(GRID,Math.abs(my-fixedY));
+      board.boundary.x=newX;board.boundary.y=newY;board.boundary.w=newW;board.boundary.h=newH;
+      renderBoundary();
+      return;
+    }
+    if(rotatingRoom){
+      var center=rotatingRoom.center;
+      var curAngle=Math.atan2(mouseBoard.y-center.y,mouseBoard.x-center.x);
+      var deg=(curAngle-rotatingRoom.startAngle)*180/Math.PI;
+      var snappedRad=Math.round(deg/15)*15*Math.PI/180;
+      var rr=findRoom(rotatingRoom.roomId);
+      if(rr){rr.points=rotatingRoom.origPoints.map(function(p){return snapPt(rotatePoint(p,center,snappedRad));});renderRooms();renderHandles();}
+      return;
+    }
     if(tool==='room'&&drawingRoom)renderDrawPreview();
   });
 
   window.addEventListener('mouseup',function(){
     isPanning=false;panStart=null;wrap.classList.remove('panning');
-    draggingVertex=null;draggingWhole=null;
+    draggingVertex=null;draggingWhole=null;draggingBoundaryHandle=null;
+    if(rotatingRoom){rotatingRoom=null;render();}
   });
 
   wrap.addEventListener('wheel',function(e){
@@ -769,6 +914,7 @@ function initCanvas(){
     }else if((e.key==='Delete'||e.key==='Backspace')&&!typing){
       if(selected&&selected.kind==='room'){deleteRoom(selected.id);e.preventDefault();}
       else if(selected&&selected.kind==='point'){deletePoint(selected.id);e.preventDefault();}
+      else if(selected&&selected.kind==='boundary'){removeBoundary();e.preventDefault();}
     }
   });
 }
@@ -804,6 +950,7 @@ function loadBoard(raw,name,cls){
   if(!board.families)board.families=JSON.parse(JSON.stringify(DEFAULT_FAMILIES));
   if(!board.rooms)board.rooms=[];
   if(!board.points)board.points=[];
+  if(board.boundary===undefined)board.boundary=null;
   board.rooms.forEach(function(r){if(!r.id)r.id=uid('R');if(!r.doors)r.doors=[];});
   board.points.forEach(function(p){if(!p.id)p.id=uid('P');});
   selected=null;drawingRoom=null;
