@@ -19,6 +19,9 @@
     "boundary": ["b", "o"],
     "mirrorX": ["m", "x"],
     "mirrorY": ["m", "y"],
+    "duplicate": ["u"],
+    "zoomIn": ["="],
+    "zoomOut": ["-"],
     "fit": ["f"],
     "shortcuts": ["k", "s"]
   }
