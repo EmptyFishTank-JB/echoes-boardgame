@@ -386,7 +386,7 @@ async function printTyped(lines){
 
 // ── BOOT SCRIPT ───────────────────────────────────────────────────────────────
 // File readiness checks — used to wait for async file loads before rendering
-// Display labels come from L1AC_ROOT body[] dynamic lines, not from here
+// Display labels come from L1C_ROOT body[] dynamic lines, not from here
 var FILE_CHECK_MAP = [
   {ready:function(){return _perReady;},  ok:function(){return !!personality;}},
   {ready:function(){return _lorReady;},  ok:function(){return !!loreData;}},
@@ -432,7 +432,7 @@ async function runScript(){
 
   // ── PHASE 3: find L1 chat root node and render its body[] inline ──────────
   if(!typingAbort){
-    var chatNodeId=findChatRootNode('l1a');
+    var chatNodeId=findChatRootNode('l1c');
     if(chatNodeId&&archData&&archData.nodes[chatNodeId]){
       var chatNode=archData.nodes[chatNodeId];
       if(chatNode.body&&chatNode.body.length){
@@ -1298,7 +1298,7 @@ async function handleL1Bracket(val){
   if(handled) return;
 
   // 2. L1 chat root node body[] commands (hidden or visible — all active in chat state)
-  var chatNodeId=findChatRootNode('l1a');
+  var chatNodeId=findChatRootNode('l1c');
   if(chatNodeId&&archData.nodes[chatNodeId]){
     var chatNode=archData.nodes[chatNodeId];var chatMatch=null;
     (chatNode.body||[]).forEach(function(b){

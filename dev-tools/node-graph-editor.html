@@ -458,11 +458,11 @@ function sortLayers(){
 
 function getLayerIds(){
   if(arch&&arch.layers) return Object.keys(arch.layers);
-  return['l1a','l2a','l3a'];
+  return['l1a','l1c','l2a','l2c','l3a','l3c'];
 }
 
-var LAYER_COLOR={l1ac:'#4fc3f7',l1a:'#4fc3f7',l2ac:'#bf7c0a',l2a:'#bf7c0a',l3ac:'#e05050',l3a:'#e05050'};
-var LAYER_LABEL={l1ac:'L1AC',l1a:'L1',l2ac:'L2AC',l2a:'L2',l3ac:'L3AC',l3a:'L3'};
+var LAYER_COLOR={l1a:'#4fc3f7',l1c:'#4fc3f7',l2a:'#bf7c0a',l2c:'#bf7c0a',l3a:'#e05050',l3c:'#e05050'};
+var LAYER_LABEL={l1a:'L1A',l1c:'L1C',l2a:'L2A',l2c:'L2C',l3a:'L3A',l3c:'L3C'};
 var CMD_COLOR={navigation:'#e05050',pull:'#c47fc4',log_entry:'#c47fc4',action:'#6fb06f',loop:'#6fb06f',flavor:'#c47fc4'};
 var NODE_TYPES=['standard','chat','data'];
 var NODE_TYPE_LABELS={standard:'STANDARD',chat:'CHAT',data:'DATA'};

@@ -3,11 +3,11 @@
     "version": "1.0",
     "description": "ECHOES Terminal Node Architecture — TEMPLATE",
     "node_positions": {
-      "L1AC_ROOT": {
+      "L1C_ROOT": {
         "x": 19.25653365530021,
         "y": 19.25653365530021
       },
-      "L1AC_INTRO": {
+      "L1C_INTRO": {
         "x": 315.33117222454433,
         "y": 20.517780562691314
       },
@@ -59,11 +59,11 @@
         "x": 527.4237348334557,
         "y": 957.9073462345247
       },
-      "L2AC_ROOT": {
+      "L2C_ROOT": {
         "x": 700,
         "y": 20
       },
-      "L3AC_ROOT": {
+      "L3C_ROOT": {
         "x": 1100,
         "y": 20
       },
@@ -86,12 +86,18 @@
     },
     "editor_version": "5.35",
     "last_saved": "2026-05-29T20:04:22.234Z",
-    "schema_notes": "l1_commands, boot_script, dev_override_commands removed — commands now defined in global node bodies. Each layer has two is_root=true nodes: L{N}AC_ROOT=chat/console root, L{N}A_ROOT=archive folder root. DEV_OVERRIDE_ROOT/[DEV.OVERRIDE] removed — replaced by the hardcoded [SYSTEM OVERRIDE] > [JUMP L1/L2/L3] commands in terminal.html, which are not nodes.json content."
+    "schema_notes": "l1_commands, boot_script, dev_override_commands removed — commands now defined in global node bodies. Chat and archive are separate layers: L{N}C is the chat/console layer, L{N}A is the archive layer — each has its own entry in `layers` (chat mirrors its archive counterpart's theme/_color) and its own root node: L{N}C_ROOT (node_type chat) and L{N}A_ROOT (node_type standard). DEV_OVERRIDE_ROOT/[DEV.OVERRIDE] removed — replaced by the hardcoded [SYSTEM OVERRIDE] > [JUMP L1/L2/L3] commands in terminal.html, which are not nodes.json content."
   },
   "layers": {
     "l1a": {
       "theme": "blue",
       "header_title": "ECHO-ARCHIVE",
+      "ambient": "l1a",
+      "_color": "#4fc3f7"
+    },
+    "l1c": {
+      "theme": "blue",
+      "header_title": "TERMINAL CONSOLE",
       "ambient": "l1a",
       "_color": "#4fc3f7"
     },
@@ -101,16 +107,28 @@
       "ambient": "l2a",
       "_color": "#bf7c0a"
     },
+    "l2c": {
+      "theme": "amber",
+      "header_title": "ECHO PROTOCOL CONSOLE",
+      "ambient": "l2a",
+      "_color": "#bf7c0a"
+    },
     "l3a": {
       "theme": "red",
       "header_title": "DEEP ARCHIVE",
       "ambient": "l3a",
       "_color": "#e05050"
+    },
+    "l3c": {
+      "theme": "red",
+      "header_title": "DEEP ARCHIVE CONSOLE",
+      "ambient": "l3a",
+      "_color": "#e05050"
     }
   },
   "nodes": {
-    "L1AC_ROOT": {
-      "layer": "l1a",
+    "L1C_ROOT": {
+      "layer": "l1c",
       "node_type": "chat",
       "is_root": true,
       "fetch_allowed": false,
@@ -248,13 +266,13 @@
         "id_locked": false
       }
     },
-    "L1AC_INTRO": {
-      "layer": "l1a",
+    "L1C_INTRO": {
+      "layer": "l1c",
       "node_type": "intro",
       "is_root": false,
       "fetch_allowed": false,
       "title": "",
-      "breadcrumb": "L1AC_INTRO",
+      "breadcrumb": "L1C_INTRO",
       "footer": "",
       "body": [],
       "_editor": {
@@ -360,7 +378,7 @@
           "type": "command",
           "cmd_type": "navigation",
           "label": "[EXIT]",
-          "target": "L1AC_ROOT",
+          "target": "L1C_ROOT",
           "hidden": false
         }
       ],
@@ -370,8 +388,8 @@
         "id_locked": false
       }
     },
-    "L2AC_ROOT": {
-      "layer": "l2a",
+    "L2C_ROOT": {
+      "layer": "l2c",
       "node_type": "chat",
       "is_root": true,
       "fetch_allowed": false,
@@ -467,7 +485,7 @@
           "type": "command",
           "cmd_type": "navigation",
           "label": "[EXIT]",
-          "target": "L2AC_ROOT",
+          "target": "L2C_ROOT",
           "hidden": false
         }
       ],
@@ -477,8 +495,8 @@
         "id_locked": false
       }
     },
-    "L3AC_ROOT": {
-      "layer": "l3a",
+    "L3C_ROOT": {
+      "layer": "l3c",
       "node_type": "chat",
       "is_root": true,
       "fetch_allowed": false,
@@ -569,7 +587,7 @@
           "type": "command",
           "cmd_type": "navigation",
           "label": "[EXIT]",
-          "target": "L3AC_ROOT",
+          "target": "L3C_ROOT",
           "hidden": false
         }
       ],
