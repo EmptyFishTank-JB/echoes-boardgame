@@ -66,6 +66,24 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
 .boundary-label{font-family:"Share Tech Mono",monospace;font-size:12px;fill:rgba(255,255,255,0.75);pointer-events:none;}
 .boundary-handle{fill:#0d1620;stroke:#fff;stroke-width:1.5;cursor:nwse-resize;}
 .boundary-handle:hover{fill:#fff;}
+.center-guide{stroke:rgba(255,255,255,0.28);stroke-width:1;stroke-dasharray:6,5;pointer-events:none;}
+.boundary-move-grip{cursor:move;}
+.boundary-move-grip-bg{fill:rgba(13,22,32,0.9);stroke:#fff;stroke-width:1.5;}
+.boundary-move-grip:hover .boundary-move-grip-bg{fill:rgba(79,195,247,0.35);}
+.boundary-move-grip-icon{font-size:13px;fill:#fff;pointer-events:none;}
+.room-poly.multi-sel,.bpoint.multi-sel .bpoint-shape{filter:brightness(1.5);}
+.room-poly.multi-sel{stroke:#fff;stroke-width:2;stroke-dasharray:5,3;}
+.bpoint.multi-sel .bpoint-shape{stroke:#fff;stroke-width:2;}
+
+#sel-box{position:absolute;pointer-events:none;z-index:50;display:none;}
+
+#ctx-menu{position:fixed;background:rgba(2,10,20,0.98);border:1px solid rgba(79,195,247,0.24);z-index:1000;min-width:190px;display:none;box-shadow:0 8px 28px rgba(0,0,0,0.7);font-family:"Share Tech Mono",monospace;}
+.ctx-item{padding:8px 16px;font-size:13px;color:var(--dim);cursor:pointer;letter-spacing:0.05em;transition:background 0.1s;}
+.ctx-item:hover{background:rgba(79,195,247,0.08);color:var(--blue);}
+.ctx-item.r{color:rgba(224,80,80,0.72);}
+.ctx-item.r:hover{background:rgba(224,80,80,0.08);color:#e05050;}
+.ctx-item.disabled{color:rgba(79,195,247,0.20);cursor:default;pointer-events:none;}
+.ctx-sep{height:1px;background:rgba(79,195,247,0.10);margin:3px 0;}
 .bpoint{cursor:pointer;}
 .bpoint-glyph{font-family:"Share Tech Mono",monospace;font-size:10px;fill:#00080e;font-weight:bold;pointer-events:none;text-anchor:middle;dominant-baseline:central;}
 .bpoint-label{font-family:"Share Tech Mono",monospace;font-size:9px;fill:rgba(255,255,255,0.65);pointer-events:none;text-anchor:middle;}
@@ -106,15 +124,19 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
 
 @media print{
   html,body{background:#fff!important;overflow:visible!important;height:auto!important;}
-  #hdr,#toolbar,#props-panel,#toast,#hint{display:none!important;}
+  #hdr,#toolbar,#props-panel,#toast,#hint,#sel-box,#ctx-menu{display:none!important;}
   #app,#body-main{display:block!important;height:auto!important;}
   #canvas-wrap{overflow:visible!important;position:static!important;background:#fff!important;}
   #canvas-inner{position:static!important;transform:none!important;}
   #board-svg{width:100%!important;height:auto!important;}
   #grid-bg,#grid-area-bg{display:none;}
+  .boundary-move-grip,.boundary-handle{display:none;}
+  .center-guide{stroke:rgba(0,0,0,0.35)!important;}
   .room-label{fill:#111!important;}
   .room-sublabel{fill:#444!important;}
   .bpoint-label{fill:#111!important;}
+  .boundary-label{fill:#111!important;}
+  .boundary-rect{stroke:rgba(0,0,0,0.6)!important;}
   #print-legend{display:block!important;font-family:"Share Tech Mono",monospace;color:#111;padding:14px 4px;font-size:11px;}
   #print-legend .pl-title{font-size:13px;letter-spacing:0.1em;margin-bottom:8px;font-weight:bold;}
   #print-legend .pl-grid{display:flex;flex-wrap:wrap;gap:10px 20px;}
@@ -192,6 +214,7 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
         </g>
       </svg>
     </div>
+    <div id="sel-box"></div>
   </div>
 
   <div id="props-panel"><div id="pp-body"></div></div>
@@ -206,7 +229,8 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
 
 <input type="file" id="fi" accept=".json" style="display:none" onchange="onFileIn(event)">
 <div id="toast"></div>
-<div id="hint">SELECT: click to pick/drag &middot; drag a small mid-edge dot to add a vertex, double-click a corner to remove it &middot; ROOM: click to add points, click first point (or Enter) to close, Esc to cancel &middot; DOOR: click a wall edge to toggle &middot; scroll to zoom, right-drag to pan</div>
+<div id="ctx-menu"></div>
+<div id="hint">Hotkeys: S select &middot; R room &middot; D door &middot; T terminal &middot; V vent &middot; L locker &middot; O point &middot; B boundary &middot; F fit &middot; drag on empty canvas to box-select, drag a selected item to move the group &middot; right-click for options &middot; scroll to zoom, right/middle-drag to pan, double-click middle button to fit</div>
 
 <script>
 'use strict';
@@ -250,9 +274,14 @@ var selected=null;                  // {kind:'room'|'point', id}
 var isPanning=false, panStart=null;
 var draggingVertex=null;            // {roomId, idx}
 var draggingWhole=null;             // {kind, id, orig:[{x,y}...] or {x,y}, mouse0}
-var draggingBoundaryHandle=null;    // {dx,dy, orig:{x,y,w,h}} — dx/dy = which corner (-1/1 each axis)
+var draggingBoundaryHandle=null;    // {dx,dy, orig:{x,y,w,h}} — dx/dy = -1/0/1 each axis (0 = edge handle, that axis fixed)
 var rotatingRoom=null;              // {roomId, center, origPoints, startAngle}
 var mouseBoard={x:0,y:0};
+var multiSel=[];                    // [{kind,id},...] — box-select; coexists with `selected` (single) but only one is ever non-empty
+var selBoxStart=null;               // {clientX,clientY,boardX,boardY} — marquee drag origin
+var groupDrag=null;                 // {mouse0, orig:[{kind,id,points|x,y}...]} — dragging one item in multiSel moves them all
+var rightDown=null;                 // {x,y,moved} — tracks whether a right-button press was a drag (pan) or a click (context menu)
+var lastMidClick=0;                 // timestamp — detects a double-click on the middle mouse button
 var uidCounter=1;
 function uid(prefix){return prefix+(uidCounter++);}
 var showSpaces=true;
@@ -358,7 +387,31 @@ function zoomBy(f,cx,cy){
   pan.y+=(after.y-before.y)*zoom;
   applyTransform();
 }
-function resetView(){pan={x:80,y:60};zoom=1;applyTransform();}
+// FIT — and double-clicking the middle mouse button — frame the board
+// boundary if one exists, else whatever content is on the board, else
+// fall back to the original fixed default view.
+function resetView(){
+  var target=null;
+  if(board.boundary){
+    target={x:board.boundary.x,y:board.boundary.y,w:board.boundary.w,h:board.boundary.h};
+  }else if(board.rooms.length||board.points.length){
+    var xs=[],ys=[];
+    board.rooms.forEach(function(r){r.points.forEach(function(p){xs.push(p.x);ys.push(p.y);});});
+    board.points.forEach(function(p){xs.push(p.x);ys.push(p.y);});
+    if(xs.length){
+      var minX=Math.min.apply(null,xs),maxX=Math.max.apply(null,xs);
+      var minY=Math.min.apply(null,ys),maxY=Math.max.apply(null,ys);
+      target={x:minX,y:minY,w:Math.max(GRID,maxX-minX),h:Math.max(GRID,maxY-minY)};
+    }
+  }
+  if(!target){pan={x:80,y:60};zoom=1;applyTransform();return;}
+  var rect=document.getElementById('canvas-wrap').getBoundingClientRect();
+  var pad=60;
+  zoom=Math.max(0.05,Math.min(3,Math.min((rect.width-pad*2)/target.w,(rect.height-pad*2)/target.h)));
+  pan.x=rect.width/2-(target.x+target.w/2)*zoom;
+  pan.y=rect.height/2-(target.y+target.h/2)*zoom;
+  applyTransform();
+}
 
 // ── RENDER ────────────────────────────────────────────────────────────────────
 var SVG_NS='http://www.w3.org/2000/svg';
@@ -424,30 +477,62 @@ function renderBoundary(){
   if(!board.boundary)return;
   var b=board.boundary;
   var isSel=selected&&selected.kind==='boundary';
+  var stats=computeBoundaryStats();
+
+  // Center guides: a single line when the span is an even number of spaces
+  // (it lands exactly on a grid line); two flanking lines when odd, since
+  // no single grid line sits at the true center — those two mark the
+  // middle space instead.
+  var vXs=stats.wSpaces%2===0?[b.x+b.w/2]:[b.x+Math.floor(stats.wSpaces/2)*GRID,b.x+Math.ceil(stats.wSpaces/2)*GRID];
+  var hYs=stats.hSpaces%2===0?[b.y+b.h/2]:[b.y+Math.floor(stats.hSpaces/2)*GRID,b.y+Math.ceil(stats.hSpaces/2)*GRID];
+  vXs.forEach(function(x){layer.appendChild(el('line',{x1:x,y1:b.y,x2:x,y2:b.y+b.h,class:'center-guide'}));});
+  hYs.forEach(function(y){layer.appendChild(el('line',{x1:b.x,y1:y,x2:b.x+b.w,y2:y,class:'center-guide'}));});
+
   var rect=el('rect',{x:b.x,y:b.y,width:b.w,height:b.h,class:'boundary-rect'+(isSel?' selected':''),'pointer-events':'stroke'});
   rect.addEventListener('mousedown',function(e){onBoundaryMouseDown(e);});
+  rect.addEventListener('contextmenu',function(e){onBoundaryContextMenu(e);});
   layer.appendChild(rect);
 
-  var stats=computeBoundaryStats();
   var label=el('text',{x:b.x,y:b.y-10,class:'boundary-label'});
   label.textContent=stats.wSpaces+'×'+stats.hSpaces+' spaces ('+stats.total+' total) — '+stats.taken+' taken, '+stats.available+' available';
   layer.appendChild(label);
+
+  // Move grip — a dedicated, larger, always-visible handle at center. The
+  // thin dashed border alone (pointer-events:stroke) is a fiddly target.
+  var center={x:b.x+b.w/2,y:b.y+b.h/2};
+  var grip=el('g',{class:'boundary-move-grip'});
+  grip.appendChild(el('circle',{cx:center.x,cy:center.y,r:11,class:'boundary-move-grip-bg'}));
+  var icon=el('text',{x:center.x,y:center.y+4,'text-anchor':'middle',class:'boundary-move-grip-icon'});
+  icon.textContent='✛';
+  grip.appendChild(icon);
+  grip.addEventListener('mousedown',function(e){onBoundaryMouseDown(e);});
+  grip.addEventListener('contextmenu',function(e){onBoundaryContextMenu(e);});
+  layer.appendChild(grip);
 
   if(isSel){
     var corners=[
       {x:b.x,y:b.y,dx:-1,dy:-1},{x:b.x+b.w,y:b.y,dx:1,dy:-1},
       {x:b.x+b.w,y:b.y+b.h,dx:1,dy:1},{x:b.x,y:b.y+b.h,dx:-1,dy:1}
     ];
-    corners.forEach(function(c){
+    var edges=[
+      {x:b.x+b.w/2,y:b.y,dx:0,dy:-1},{x:b.x+b.w,y:b.y+b.h/2,dx:1,dy:0},
+      {x:b.x+b.w/2,y:b.y+b.h,dx:0,dy:1},{x:b.x,y:b.y+b.h/2,dx:-1,dy:0}
+    ];
+    corners.concat(edges).forEach(function(c){
       var h=el('rect',{x:c.x-5,y:c.y-5,width:10,height:10,class:'boundary-handle'});
-      h.addEventListener('mousedown',function(e){e.stopPropagation();draggingBoundaryHandle={dx:c.dx,dy:c.dy,orig:{x:b.x,y:b.y,w:b.w,h:b.h}};});
+      h.addEventListener('mousedown',function(e){
+        if(e.button!==0)return;
+        e.stopPropagation();
+        draggingBoundaryHandle={dx:c.dx,dy:c.dy,orig:{x:b.x,y:b.y,w:b.w,h:b.h}};
+      });
       layer.appendChild(h);
     });
   }
 }
 function onBoundaryMouseDown(e){
-  if(tool!=='select')return;
+  if(tool!=='select'||e.button!==0)return;
   e.stopPropagation();
+  multiSel=[];
   selected={kind:'boundary'};
   draggingWhole={kind:'boundary',mouse0:screenToBoard(e.clientX,e.clientY),orig:{x:board.boundary.x,y:board.boundary.y}};
   render();
@@ -464,10 +549,11 @@ function renderRooms(){
     var poly=el('polygon',{
       points:polyPoints(room.points),
       fill:hexToRgba(fam.color,0.22),
-      class:'room-poly'+(selected&&selected.kind==='room'&&selected.id===room.id?' selected':''),
+      class:'room-poly'+(selected&&selected.kind==='room'&&selected.id===room.id?' selected':'')+(isInMultiSel('room',room.id)?' multi-sel':''),
       'data-room-id':room.id
     });
     poly.addEventListener('mousedown',function(e){onRoomMouseDown(e,room.id);});
+    poly.addEventListener('contextmenu',function(e){onRoomContextMenu(e,room.id);});
     g.appendChild(poly);
 
     var spaces=computeRoomSpaces(room);
@@ -525,7 +611,7 @@ function renderPoints(){
   layer.innerHTML='';
   board.points.forEach(function(pt){
     var color=pt.type==='terminal'&&pt.family&&board.families[pt.family]?board.families[pt.family].color:POINT_COLOR[pt.type]||'#9ca3af';
-    var g=el('g',{class:'bpoint'+(selected&&selected.kind==='point'&&selected.id===pt.id?' selected':''),'data-point-id':pt.id});
+    var g=el('g',{class:'bpoint'+(selected&&selected.kind==='point'&&selected.id===pt.id?' selected':'')+(isInMultiSel('point',pt.id)?' multi-sel':''),'data-point-id':pt.id});
     var shape;
     if(pt.type==='terminal'){
       shape=el('rect',{x:pt.x-7,y:pt.y-7,width:14,height:14,fill:color,transform:'rotate(45 '+pt.x+' '+pt.y+')',class:'bpoint-shape'});
@@ -546,6 +632,7 @@ function renderPoints(){
       g.appendChild(lbl);
     }
     g.addEventListener('mousedown',function(e){onPointMouseDown(e,pt.id);});
+    g.addEventListener('contextmenu',function(e){onPointContextMenu(e,pt.id);});
     layer.appendChild(g);
   });
 }
@@ -583,6 +670,7 @@ function renderHandles(){
   layer.appendChild(el('line',{x1:anchor.x,y1:anchor.y,x2:handlePos.x,y2:handlePos.y,class:'rotate-line'}));
   var rh=el('circle',{cx:handlePos.x,cy:handlePos.y,r:6,class:'rotate-handle'});
   rh.addEventListener('mousedown',function(e){
+    if(e.button!==0)return;
     e.stopPropagation();
     var center=centroid(room.points);
     rotatingRoom={
@@ -599,6 +687,7 @@ function renderHandles(){
     var mid={x:(p1.x+p2.x)/2,y:(p1.y+p2.y)/2};
     var mh=el('circle',{cx:mid.x,cy:mid.y,r:3.5,class:'vtx-handle-mid'});
     mh.addEventListener('mousedown',function(e){
+      if(e.button!==0)return;
       e.stopPropagation();
       insertVertexOnEdge(room.id,i,snapPt(mid));
       draggingVertex={roomId:room.id,idx:i+1};
@@ -608,7 +697,7 @@ function renderHandles(){
   });
   room.points.forEach(function(p,i){
     var h=el('circle',{cx:p.x,cy:p.y,r:5,class:'vtx-handle'});
-    h.addEventListener('mousedown',function(e){e.stopPropagation();draggingVertex={roomId:room.id,idx:i};});
+    h.addEventListener('mousedown',function(e){if(e.button!==0)return;e.stopPropagation();draggingVertex={roomId:room.id,idx:i};});
     h.addEventListener('dblclick',function(e){e.stopPropagation();removeVertex(room.id,i);render();});
     layer.appendChild(h);
   });
@@ -679,6 +768,14 @@ function pointInPolygon(p,pts){
 function renderProps(){
   var body=document.getElementById('pp-body');
   var html='';
+  if(multiSel.length>1){
+    var rc=multiSel.filter(function(m){return m.kind==='room';}).length;
+    var pc=multiSel.filter(function(m){return m.kind==='point';}).length;
+    html+='<div class="pp-h">MULTIPLE SELECTED</div>';
+    html+='<div class="pp-empty">'+multiSel.length+' item(s) selected — '+rc+' room(s), '+pc+' point(s)<br><br>Drag any one to move them all together.</div>';
+    html+='<button class="pp-del" onclick="deleteMultiSel()">DELETE ALL ('+multiSel.length+')</button>';
+    body.innerHTML=html;return;
+  }
   if(selected&&selected.kind==='room'){
     var room=board.rooms.filter(function(r){return r.id===selected.id;})[0];
     if(room){
@@ -792,39 +889,222 @@ function deletePoint(id){
   if(selected&&selected.id===id)selected=null;
   render();
 }
+function deleteMultiSel(){
+  var roomIds={},pointIds={};
+  multiSel.forEach(function(m){if(m.kind==='room')roomIds[m.id]=true;else pointIds[m.id]=true;});
+  board.rooms=board.rooms.filter(function(r){return !roomIds[r.id];});
+  board.points=board.points.filter(function(p){return !pointIds[p.id];});
+  multiSel=[];render();
+}
+function duplicateRoom(id){
+  var r=findRoom(id);if(!r)return;
+  var copy=JSON.parse(JSON.stringify(r));
+  copy.id=uid('R');
+  copy.points=r.points.map(function(p){return {x:p.x+GRID,y:p.y+GRID};});
+  board.rooms.push(copy);
+  multiSel=[];selected={kind:'room',id:copy.id};
+  render();
+}
+function duplicatePoint(id){
+  var p=findPoint(id);if(!p)return;
+  var copy=JSON.parse(JSON.stringify(p));
+  copy.id=uid('P');copy.x=p.x+GRID;copy.y=p.y+GRID;
+  board.points.push(copy);
+  multiSel=[];selected={kind:'point',id:copy.id};
+  render();
+}
+function rotateRoom90(id,dir){
+  var r=findRoom(id);if(!r)return;
+  var center=centroid(r.points);
+  r.points=r.points.map(function(p){return snapPt(rotatePoint(p,center,dir*Math.PI/2));});
+  render();
+}
+function fitBoundaryToRooms(){
+  if(!board.boundary)return;
+  var xs=[],ys=[];
+  board.rooms.forEach(function(r){r.points.forEach(function(p){xs.push(p.x);ys.push(p.y);});});
+  board.points.forEach(function(p){xs.push(p.x);ys.push(p.y);});
+  if(!xs.length){toast('Nothing to fit to yet');return;}
+  var minX=Math.floor(Math.min.apply(null,xs)/GRID)*GRID-GRID, maxX=Math.ceil(Math.max.apply(null,xs)/GRID)*GRID+GRID;
+  var minY=Math.floor(Math.min.apply(null,ys)/GRID)*GRID-GRID, maxY=Math.ceil(Math.max.apply(null,ys)/GRID)*GRID+GRID;
+  board.boundary={x:minX,y:minY,w:maxX-minX,h:maxY-minY};
+  render();
+}
+
+// ── CONTEXT MENU ──────────────────────────────────────────────────────────────
+// Items carry real function references (not string-built onclick handlers —
+// embedding an id containing a double-quote into a double-quoted HTML
+// attribute silently truncates it, which is exactly what happened here
+// before this was rewritten to attach listeners directly).
+function showCtxMenu(x,y,items){
+  var m=document.getElementById('ctx-menu');
+  m.innerHTML='';
+  items.forEach(function(it){
+    if(it===null){var sep=document.createElement('div');sep.className='ctx-sep';m.appendChild(sep);return;}
+    var d=document.createElement('div');
+    d.className='ctx-item'+(it.danger?' r':'')+(it.disabled?' disabled':'');
+    d.innerHTML=it.label;
+    if(!it.disabled)d.addEventListener('click',function(){hideCtxMenu();it.action();});
+    m.appendChild(d);
+  });
+  m.style.display='block';
+  var vw=window.innerWidth,vh=window.innerHeight;
+  var mw=m.offsetWidth||190,mh=m.offsetHeight||200;
+  m.style.left=Math.min(x,vw-mw-8)+'px';
+  m.style.top=Math.min(y,vh-mh-8)+'px';
+}
+function hideCtxMenu(){document.getElementById('ctx-menu').style.display='none';}
+
+function onRoomContextMenu(e,roomId){
+  e.preventDefault();e.stopPropagation();
+  if(!(multiSel.length>1&&isInMultiSel('room',roomId))){multiSel=[];selected={kind:'room',id:roomId};render();}
+  if(multiSel.length>1){
+    showCtxMenu(e.clientX,e.clientY,[
+      {label:'&#10005; Delete Selected ('+multiSel.length+')',action:deleteMultiSel,danger:true}
+    ]);
+    return;
+  }
+  showCtxMenu(e.clientX,e.clientY,[
+    {label:'&#8635; Rotate 90&deg; CCW',action:function(){rotateRoom90(roomId,-1);}},
+    {label:'&#8634; Rotate 90&deg; CW',action:function(){rotateRoom90(roomId,1);}},
+    {label:'&#10064; Duplicate Room',action:function(){duplicateRoom(roomId);}},
+    null,
+    {label:'&#10005; Delete Room',action:function(){deleteRoom(roomId);},danger:true}
+  ]);
+}
+function onPointContextMenu(e,ptId){
+  e.preventDefault();e.stopPropagation();
+  if(!(multiSel.length>1&&isInMultiSel('point',ptId))){multiSel=[];selected={kind:'point',id:ptId};render();}
+  if(multiSel.length>1){
+    showCtxMenu(e.clientX,e.clientY,[
+      {label:'&#10005; Delete Selected ('+multiSel.length+')',action:deleteMultiSel,danger:true}
+    ]);
+    return;
+  }
+  showCtxMenu(e.clientX,e.clientY,[
+    {label:'&#10064; Duplicate Point',action:function(){duplicatePoint(ptId);}},
+    null,
+    {label:'&#10005; Delete Point',action:function(){deletePoint(ptId);},danger:true}
+  ]);
+}
+function onBoundaryContextMenu(e){
+  e.preventDefault();e.stopPropagation();
+  multiSel=[];selected={kind:'boundary'};render();
+  showCtxMenu(e.clientX,e.clientY,[
+    {label:'&#8862; Fit Boundary To Contents',action:fitBoundaryToRooms},
+    null,
+    {label:'&#10005; Remove Boundary',action:removeBoundary,danger:true}
+  ]);
+}
+function onCanvasContextMenu(e){
+  e.preventDefault();
+  var bp=snapPt(screenToBoard(e.clientX,e.clientY));
+  var items=[];
+  if(multiSel.length>0){
+    items.push({label:'&#10005; Delete Selected ('+multiSel.length+')',action:deleteMultiSel,danger:true});
+    items.push(null);
+  }
+  if(board.boundary){
+    items.push({label:'&#9645; Move Boundary Here',action:function(){board.boundary.x=bp.x-board.boundary.w/2;board.boundary.y=bp.y-board.boundary.h/2;render();}});
+  }else{
+    items.push({label:'&#9645; Add Boundary Here',action:function(){addOrSelectBoundary();board.boundary.x=bp.x-board.boundary.w/2;board.boundary.y=bp.y-board.boundary.h/2;render();}});
+  }
+  items.push({label:'&#9678; Fit View',action:resetView});
+  showCtxMenu(e.clientX,e.clientY,items);
+}
+document.addEventListener('mousedown',function(e){
+  var m=document.getElementById('ctx-menu');
+  if(m.style.display==='block'&&!m.contains(e.target))hideCtxMenu();
+});
 
 // ── MOUSE HANDLERS ────────────────────────────────────────────────────────────
 var wrap;
+function isInMultiSel(kind,id){return multiSel.some(function(m){return m.kind===kind&&m.id===id;});}
+function startGroupDrag(e){
+  groupDrag={
+    mouse0:screenToBoard(e.clientX,e.clientY),
+    orig:multiSel.map(function(m){
+      if(m.kind==='room'){var r=findRoom(m.id);return {kind:'room',id:m.id,points:JSON.parse(JSON.stringify(r.points))};}
+      var p=findPoint(m.id);return {kind:'point',id:m.id,x:p.x,y:p.y};
+    })
+  };
+}
 function onRoomMouseDown(e,roomId){
-  if(tool!=='select')return;
+  if(tool!=='select'||e.button!==0)return;
   e.stopPropagation();
+  if(multiSel.length>1&&isInMultiSel('room',roomId)){startGroupDrag(e);return;}
+  multiSel=[];
   selected={kind:'room',id:roomId};
   var room=findRoom(roomId);
   draggingWhole={kind:'room',id:roomId,mouse0:screenToBoard(e.clientX,e.clientY),orig:JSON.parse(JSON.stringify(room.points))};
   render();
 }
 function onPointMouseDown(e,ptId){
-  if(tool!=='select')return;
+  if(tool!=='select'||e.button!==0)return;
   e.stopPropagation();
+  if(multiSel.length>1&&isInMultiSel('point',ptId)){startGroupDrag(e);return;}
+  multiSel=[];
   selected={kind:'point',id:ptId};
   var pt=findPoint(ptId);
   draggingWhole={kind:'point',id:ptId,mouse0:screenToBoard(e.clientX,e.clientY),orig:{x:pt.x,y:pt.y}};
   render();
 }
 function onEdgeMouseDown(e,roomId,edgeIdx){
-  if(tool!=='door')return;
+  if(tool!=='door'||e.button!==0)return;
   e.stopPropagation();
   toggleDoor(roomId,edgeIdx);
+}
+
+// Window-select (dragged left-to-right, solid box): only fully-contained
+// rooms/points are picked up. Crossing-select (dragged right-to-left,
+// dashed box): anything the marquee merely touches is picked up. Same
+// convention as most CAD/vector tools, including the node graph editor.
+function finishSelBox(e){
+  document.getElementById('sel-box').style.display='none';
+  var b0=selBoxStart;selBoxStart=null;
+  if(Math.abs(e.clientX-b0.clientX)<4&&Math.abs(e.clientY-b0.clientY)<4){render();return;}
+  var cur=screenToBoard(e.clientX,e.clientY);
+  var sx1=Math.min(b0.boardX,cur.x),sx2=Math.max(b0.boardX,cur.x);
+  var sy1=Math.min(b0.boardY,cur.y),sy2=Math.max(b0.boardY,cur.y);
+  var isWin=e.clientX>b0.clientX;
+  var found=[];
+  board.rooms.forEach(function(r){
+    var xs=r.points.map(function(p){return p.x;}),ys=r.points.map(function(p){return p.y;});
+    var rx1=Math.min.apply(null,xs),rx2=Math.max.apply(null,xs);
+    var ry1=Math.min.apply(null,ys),ry2=Math.max.apply(null,ys);
+    var hit=isWin?(rx1>=sx1&&ry1>=sy1&&rx2<=sx2&&ry2<=sy2):(rx1<=sx2&&rx2>=sx1&&ry1<=sy2&&ry2>=sy1);
+    if(hit)found.push({kind:'room',id:r.id});
+  });
+  board.points.forEach(function(p){
+    if(p.x>=sx1&&p.x<=sx2&&p.y>=sy1&&p.y<=sy2)found.push({kind:'point',id:p.id});
+  });
+  if(found.length===1){selected=found[0];multiSel=[];}
+  else if(found.length>1){selected=null;multiSel=found;}
+  else{selected=null;multiSel=[];}
+  render();
 }
 
 function initCanvas(){
   wrap=document.getElementById('canvas-wrap');
 
-  wrap.addEventListener('contextmenu',function(e){e.preventDefault();});
+  wrap.addEventListener('contextmenu',function(e){
+    e.preventDefault();
+    if(rightDown&&rightDown.moved)return; // was a pan-drag, not a click
+    onCanvasContextMenu(e);
+  });
 
   wrap.addEventListener('mousedown',function(e){
     var bp=snapPt(screenToBoard(e.clientX,e.clientY));
-    if(e.button===2||e.button===1){
+    if(e.button===1){
+      var now=Date.now();
+      if(now-lastMidClick<400){resetView();lastMidClick=0;return;}
+      lastMidClick=now;
+      isPanning=true;panStart={x:e.clientX,y:e.clientY,pan0:{x:pan.x,y:pan.y}};
+      wrap.classList.add('panning');
+      return;
+    }
+    if(e.button===2){
+      rightDown={x:e.clientX,y:e.clientY,moved:false};
       isPanning=true;panStart={x:e.clientX,y:e.clientY,pan0:{x:pan.x,y:pan.y}};
       wrap.classList.add('panning');
       return;
@@ -842,11 +1122,15 @@ function initCanvas(){
     }else if(tool==='point'){
       var pt={id:uid('P'),type:pointType,x:bp.x,y:bp.y,label:'',family:pointType==='terminal'?activeFamily:null};
       board.points.push(pt);
-      selected={kind:'point',id:pt.id};
+      multiSel=[];selected={kind:'point',id:pt.id};
       render();
     }else if(tool==='select'){
-      // click on empty canvas — deselect (unless a child element already stopped propagation)
-      selected=null;render();
+      // mousedown on empty canvas — start a marquee; a plain click (no
+      // drag) will resolve to "nothing found" on mouseup and just deselect.
+      var rect=wrap.getBoundingClientRect();
+      var rawBp=screenToBoard(e.clientX,e.clientY);
+      selBoxStart={clientX:e.clientX,clientY:e.clientY,boardX:rawBp.x,boardY:rawBp.y,rectLeft:rect.left,rectTop:rect.top};
+      multiSel=[];selected=null;render();
     }
     // 'door' tool handled entirely by edge mousedown listeners
   });
@@ -857,6 +1141,17 @@ function initCanvas(){
       pan.x=panStart.pan0.x+(e.clientX-panStart.x);
       pan.y=panStart.pan0.y+(e.clientY-panStart.y);
       applyTransform();
+      if(rightDown&&dist({x:e.clientX,y:e.clientY},{x:rightDown.x,y:rightDown.y})>4)rightDown.moved=true;
+      return;
+    }
+    if(selBoxStart){
+      var isWin=e.clientX>selBoxStart.clientX;
+      var sb=document.getElementById('sel-box');
+      sb.style.cssText='display:block;'+
+        'left:'+(Math.min(e.clientX,selBoxStart.clientX)-selBoxStart.rectLeft)+'px;'+
+        'top:'+(Math.min(e.clientY,selBoxStart.clientY)-selBoxStart.rectTop)+'px;'+
+        'width:'+Math.abs(e.clientX-selBoxStart.clientX)+'px;height:'+Math.abs(e.clientY-selBoxStart.clientY)+'px;'+
+        (isWin?'border:2px solid #4fc3f7;background:rgba(79,195,247,0.08);':'border:2px dashed #6fb06f;background:rgba(111,176,111,0.08);');
       return;
     }
     if(draggingVertex){
@@ -884,11 +1179,31 @@ function initCanvas(){
     if(draggingBoundaryHandle){
       var o=draggingBoundaryHandle.orig, dh=draggingBoundaryHandle;
       var mx=Math.round(mouseBoard.x/GRID)*GRID, my=Math.round(mouseBoard.y/GRID)*GRID;
-      var fixedX=dh.dx<0?o.x+o.w:o.x, fixedY=dh.dy<0?o.y+o.h:o.y;
-      var newX=Math.min(fixedX,mx), newY=Math.min(fixedY,my);
-      var newW=Math.max(GRID,Math.abs(mx-fixedX)), newH=Math.max(GRID,Math.abs(my-fixedY));
+      var newX=o.x,newW=o.w,newY=o.y,newH=o.h;
+      if(dh.dx!==0){
+        var fixedX=dh.dx<0?o.x+o.w:o.x;
+        newX=Math.min(fixedX,mx);newW=Math.max(GRID,Math.abs(mx-fixedX));
+      }
+      if(dh.dy!==0){
+        var fixedY=dh.dy<0?o.y+o.h:o.y;
+        newY=Math.min(fixedY,my);newH=Math.max(GRID,Math.abs(my-fixedY));
+      }
       board.boundary.x=newX;board.boundary.y=newY;board.boundary.w=newW;board.boundary.h=newH;
       renderBoundary();
+      return;
+    }
+    if(groupDrag){
+      var gd=snapPt({x:mouseBoard.x-groupDrag.mouse0.x,y:mouseBoard.y-groupDrag.mouse0.y});
+      groupDrag.orig.forEach(function(o2){
+        if(o2.kind==='room'){
+          var r3=findRoom(o2.id);
+          if(r3)r3.points=o2.points.map(function(p){return {x:p.x+gd.x,y:p.y+gd.y};});
+        }else{
+          var p3=findPoint(o2.id);
+          if(p3){p3.x=o2.x+gd.x;p3.y=o2.y+gd.y;}
+        }
+      });
+      renderRooms();renderPoints();
       return;
     }
     if(rotatingRoom){
@@ -903,10 +1218,13 @@ function initCanvas(){
     if(tool==='room'&&drawingRoom)renderDrawPreview();
   });
 
-  window.addEventListener('mouseup',function(){
+  window.addEventListener('mouseup',function(e){
     isPanning=false;panStart=null;wrap.classList.remove('panning');
     draggingVertex=null;draggingWhole=null;draggingBoundaryHandle=null;
+    if(groupDrag){groupDrag=null;render();}
     if(rotatingRoom){rotatingRoom=null;render();}
+    if(selBoxStart)finishSelBox(e);
+    if(rightDown&&e.button===2)rightDown.moved=rightDown.moved||dist({x:e.clientX,y:e.clientY},{x:rightDown.x,y:rightDown.y})>4;
   });
 
   wrap.addEventListener('wheel',function(e){
@@ -920,12 +1238,26 @@ function initCanvas(){
     var typing=tag==='INPUT'||tag==='TEXTAREA';
     if(e.key==='Escape'){
       if(drawingRoom){drawingRoom=null;render();}
+      else if(multiSel.length){multiSel=[];render();}
+      hideCtxMenu();
     }else if(e.key==='Enter'&&!typing){
       if(drawingRoom&&drawingRoom.points.length>=3)commitRoom();
     }else if((e.key==='Delete'||e.key==='Backspace')&&!typing){
-      if(selected&&selected.kind==='room'){deleteRoom(selected.id);e.preventDefault();}
+      if(multiSel.length){deleteMultiSel();e.preventDefault();}
+      else if(selected&&selected.kind==='room'){deleteRoom(selected.id);e.preventDefault();}
       else if(selected&&selected.kind==='point'){deletePoint(selected.id);e.preventDefault();}
       else if(selected&&selected.kind==='boundary'){removeBoundary();e.preventDefault();}
+    }else if(!typing&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&!drawingRoom){
+      var k=e.key.toLowerCase();
+      if(k==='s'){setTool('select');e.preventDefault();}
+      else if(k==='r'){setTool('room');e.preventDefault();}
+      else if(k==='d'){setTool('door');e.preventDefault();}
+      else if(k==='t'){setPointTool('terminal');e.preventDefault();}
+      else if(k==='v'){setPointTool('vent');e.preventDefault();}
+      else if(k==='l'){setPointTool('locker');e.preventDefault();}
+      else if(k==='o'){setPointTool('other');e.preventDefault();}
+      else if(k==='b'){addOrSelectBoundary();e.preventDefault();}
+      else if(k==='f'){resetView();e.preventDefault();}
     }
   });
 }
@@ -964,7 +1296,7 @@ function loadBoard(raw,name,cls){
   if(board.boundary===undefined)board.boundary=null;
   board.rooms.forEach(function(r){if(!r.id)r.id=uid('R');if(!r.doors)r.doors=[];});
   board.points.forEach(function(p){if(!p.id)p.id=uid('P');});
-  selected=null;drawingRoom=null;
+  selected=null;multiSel=[];drawingRoom=null;
   setFstat(name,cls);
   resetView();render();
   toast('Loaded '+board.rooms.length+' rooms, '+board.points.length+' points');
@@ -999,7 +1331,7 @@ function dlJSON(){
 function showSaved(){var i=document.getElementById('as-ind');i.classList.add('show');setTimeout(function(){i.classList.remove('show');},1800);}
 function newBoard(){
   if(!confirm('Start a new blank board? Unsaved changes will be lost.'))return;
-  board=defaultBoard();fileHandle=null;selected=null;drawingRoom=null;
+  board=defaultBoard();fileHandle=null;selected=null;multiSel=[];drawingRoom=null;
   setFstat('untitled','none');resetView();render();
 }
 
