@@ -234,9 +234,39 @@ The +1 creature advance on failure is applied immediately after the Noise penalt
 
 ---
 
+# MINI-GAME 06 — Core Stabilization
+
+*The gravity tether is out of alignment, violently swinging the ship's center of mass. Ride out three pulses of correction and hope the tether settles near true neutral before the stress tears the bulkhead apart.*
+
+**Dice Used:** Two D6 — designated Blue Die and Red Die, rolled together each Pulse.
+
+## Overview
+
+Core Stabilization is a balance-control mini-game with no player decisions once it begins. The active player rolls both dice for 3 Pulses. Each Pulse, the net of Blue minus Red is added to a running total automatically — there is no choice of what to apply or when to stop. All 3 Pulses always resolve. After the 3rd Pulse, however close to zero the running total landed determines the outcome.
+
+## The Pulses
+
+On each Pulse, the active player rolls both dice and computes Blue − Red. This net (which may be positive, negative, or zero) is added to the running total. Unlike Cascade Failure, the player never declares an early stop — the mini-game always runs the full 3 Pulses before checking the result.
+
+## Outcomes
+
+The running total after 3 Pulses is compared to zero. Distance from zero (regardless of sign) determines the tier.
+
+| Outcome | Condition | Consequence |
+|---|---|---|
+| Perfect Balance | Running total lands at exactly 0 | Wagered resource returned, tripled. |
+| Glancing Save | Running total lands at ±1 | Wagered resource returned, doubled. |
+| Steadied | Running total lands at ±2 | Wagered resource returned. No bonus. |
+| Leveled Out | Running total lands at ±3 | Wagered resource lost. No Noise. |
+| Hull Fracture | Running total lands at ±4 or beyond | Wagered resource lost. +1 Noise for each point the total sits away from zero (e.g. a total of +6 adds +6 Noise). |
+
+> **No Choice, Just Dice:** There is no push-your-luck decision here — no early stop, no tier selection, no wager side-bets. The dice alone determine where the tether settles.
+
+---
+
 # Quick Reference — All Echo Events
 
-The following table summarizes all five Echo Event mini-games for fast reference during play.
+The following table summarizes all six Echo Event mini-games for fast reference during play.
 
 | Mini-Game | Type | Max Rolls | Win Payout | Fail Noise |
 |---|---|---|---|---|
@@ -245,6 +275,7 @@ The following table summarizes all five Echo Event mini-games for fast reference
 | Dead Reckoning | Coordinate Bet | 1 | Wager doubled (Direct Hit) | +2 Noise (Miss only) |
 | Cascade Failure | Push Your Luck | 3 Pulses | Wager doubled (18–21) | +3 + 1s rolled |
 | Dead Signal | Sequential Match | 3 Pulses | Wager doubled + Data Token | +2/+4 + Creature +1 |
+| Core Stabilization | Balance Control | 3 Pulses (fixed) | Tripled (0) / Doubled (±1) | +1 per point past ±3 |
 
 ---
 
