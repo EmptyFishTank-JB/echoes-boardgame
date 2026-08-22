@@ -101,9 +101,9 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
 .draw-rubber{stroke:rgba(79,195,247,0.55);stroke-width:1.5;stroke-dasharray:3,3;fill:none;}
 .draw-rubber-invalid{stroke:rgba(224,80,80,0.65);stroke-width:1.5;stroke-dasharray:3,3;fill:none;}
 .draw-close-hint{fill:none;stroke:#6fb06f;stroke-width:2;}
-.move-preview-room{fill:rgba(79,195,247,0.12);stroke:#4fc3f7;stroke-width:2;stroke-dasharray:5,4;}
-.move-preview-wall{stroke:#4fc3f7;stroke-width:2;stroke-dasharray:5,4;}
-.move-preview-point{fill:none;stroke:#4fc3f7;stroke-width:2;stroke-dasharray:4,3;}
+.sel-preview-room{fill:rgba(79,195,247,0.12);stroke:#4fc3f7;stroke-width:2;stroke-dasharray:5,4;}
+.sel-preview-wall{stroke:#4fc3f7;stroke-width:2;stroke-dasharray:5,4;}
+.sel-preview-point{fill:none;stroke:#4fc3f7;stroke-width:2;stroke-dasharray:4,3;}
 
 /* PROPS PANEL */
 #props-panel{width:270px;flex-shrink:0;border-left:1px solid var(--bdr);background:rgba(0,4,10,0.98);overflow-y:auto;padding:14px;}
@@ -225,7 +225,7 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
   <button class="tbtn on" id="btn-spaces" onclick="toggleSpaces()">&#9638; SPACES</button>
   <button class="tbtn on" id="btn-info" onclick="toggleRoomInfo()" title="Room name/family/space-count text">&#9432; INFO</button>
   <button class="tbtn" id="btn-attach" onclick="toggleAttachPoints()" title="Points inside a room move/copy/mirror/duplicate/rotate with it">&#128279; ATTACH</button>
-  <button class="tbtn" id="btn-linkdoors" onclick="toggleLinkDoors()" title="A door on a wall shared with another room also opens that room's side">&#128682; LINK DOORS</button>
+  <button class="tbtn on" id="btn-linkdoors" onclick="toggleLinkDoors()" title="A door on a wall shared with another room also opens that room's side">&#128682; LINK DOORS</button>
   <button class="tbtn" id="btn-boundary" onclick="addOrSelectBoundary()">&#9645; BOUNDARY</button>
   <div class="tsep"></div>
   <button class="tbtn" id="btn-undo" onclick="doUndo()" disabled>&#8617; UNDO</button>
@@ -348,7 +348,7 @@ var drawingWall=null;               // {roomId, p1:{x,y}} — second click, in t
 var selected=null;                  // {kind:'room'|'point'|'wall', id} — wall id is {roomId,wallId} packed as 'roomId|wallId'
 var showRoomInfo=true;              // toggle: room name/family/space-count text overlay
 var attachPoints=false;             // toggle: points geometrically inside a room move/copy/mirror/duplicate/rotate with it
-var linkSharedDoors=false;          // toggle: a door on a wall shared with another room also opens that room's side
+var linkSharedDoors=true;           // toggle: a door on a wall shared with another room also opens that room's side (on by default)
 var isPanning=false, panStart=null;
 var draggingVertex=null;            // {roomId, idx}
 var draggingWhole=null;             // {kind, id, orig:[{x,y}...] or {x,y}, mouse0}
@@ -362,6 +362,7 @@ var rightDown=null;                 // {x,y,moved} — tracks whether a right-bu
 var lastMidClick=0;                 // timestamp — detects a double-click on the middle mouse button
 var clipboard=null;                 // {kind:'room'|'point'|'multi', data|items}
 var moveOp=null;                    // {stage:'basepoint'|'destination', base:{x,y}} — click-click MOVE command
+var rotateOp=null;                  // {stage:'start'|'end', center:{x,y}, startAngle} — click-click ROTATE command
 
 // ── UNDO / REDO ───────────────────────────────────────────────────────────────
 // Snapshot-based: pushUndo() is called right before each discrete mutation
@@ -515,11 +516,15 @@ function renderWallLine(container,p1,p2,edgeDoors,color,sw,markSize,lineClass,ro
   });
   wallLine(cursor,edgeLen);
 }
-// Small solid triangle at a door's midpoint, pointing along the OUTWARD
-// normal (away from the room) — an "exit" pointer. Only drawn for doors
-// on a room boundary edge (where inward/outward has a real meaning).
+// Small solid triangle at a door's midpoint, pointing along the INWARD
+// normal (into the room) — an "exit" pointer that stays inside its own
+// room's footprint instead of sitting in the neighboring room, so it's
+// drawn in that room's own family color rather than looking like it
+// belongs to the room on the other side of the wall. Only drawn for
+// doors on a room boundary edge (where inward/outward has a real
+// meaning).
 function drawExitArrow(container,at,inward,color,size){
-  var ox=-inward.x,oy=-inward.y;
+  var ox=inward.x,oy=inward.y;
   var px=-oy,py=ox;
   var tipDist=size*1.5,baseDist=size*0.55,halfW=size*0.42;
   var tip={x:at.x+ox*tipDist,y:at.y+oy*tipDist};
@@ -1514,8 +1519,101 @@ function duplicateSelection(){
 // a multi-select alike.
 function startMoveCommand(){
   if(!selected&&!multiSel.length){toast('Select something to move first');return;}
+  rotateOp=null;
   moveOp={stage:'basepoint'};
   toast('MOVE: click a basepoint');
+}
+// ROTATE command (same click-click idea as MOVE): press the hotkey, click a
+// start point, click an end point — the swept angle between those two
+// points (as seen from the selection's combined center of geometry) is
+// applied to the whole selection, snapped to the nearest 15°, same as the
+// existing rotate-handle drag. Works for a single room, a single point
+// (no visible effect, but harmless), or a multi-select of both — all
+// rotate together around one shared center.
+function startRotateCommand(){
+  if(!selected&&!multiSel.length){toast('Select something to rotate first');return;}
+  var items=multiSel.length?multiSel:(selected?[selected]:[]);
+  var allPts=[];
+  items.forEach(function(m){
+    if(m.kind==='room'){var r=findRoom(m.id);if(r)allPts=allPts.concat(r.points);}
+    else if(m.kind==='point'){var p=findPoint(m.id);if(p)allPts.push(p);}
+  });
+  if(!allPts.length){toast('Nothing rotatable selected');return;}
+  moveOp=null;
+  rotateOp={stage:'start',center:centroid(allPts)};
+  toast('ROTATE: click a start point');
+}
+function handleRotateClick(bp){
+  if(!rotateOp)return;
+  if(dist(bp,rotateOp.center)<0.5){toast('Pick a point away from the rotation center');return;}
+  if(rotateOp.stage==='start'){
+    rotateOp.startAngle=Math.atan2(bp.y-rotateOp.center.y,bp.x-rotateOp.center.x);
+    rotateOp.stage='end';
+    toast('ROTATE: click end point');
+    renderRotateHint();
+  }else{
+    var endAngle=Math.atan2(bp.y-rotateOp.center.y,bp.x-rotateOp.center.x);
+    var deg=(endAngle-rotateOp.startAngle)*180/Math.PI;
+    var snappedRad=Math.round(deg/15)*15*Math.PI/180;
+    var center=rotateOp.center;
+    rotateOp=null;
+    renderRotateHint();
+    applyRotateDelta(center,snappedRad);
+  }
+}
+function applyRotateDelta(center,theta){
+  if(!theta)return;
+  pushUndo();
+  var items=multiSel.length?multiSel:(selected?[selected]:[]);
+  var explicitPointIds={};
+  items.forEach(function(m){if(m.kind==='point')explicitPointIds[m.id]=true;});
+  items.forEach(function(m){
+    if(m.kind==='room'){
+      var r=findRoom(m.id);if(!r)return;
+      var attached=attachPoints?board.points.filter(function(p){return pointInPolygon(p,r.points);}):[];
+      r.points=r.points.map(function(p){return rotatePoint(p,center,theta);});
+      (r.walls||[]).forEach(function(w){w.p1=rotatePoint(w.p1,center,theta);w.p2=rotatePoint(w.p2,center,theta);});
+      attached.forEach(function(p){
+        if(explicitPointIds[p.id])return;
+        var rp=rotatePoint(p,center,theta);
+        p.x=rp.x;p.y=rp.y;
+      });
+    }else if(m.kind==='point'){
+      var p2=findPoint(m.id);
+      if(p2){var rp=rotatePoint(p2,center,theta);p2.x=rp.x;p2.y=rp.y;}
+    }
+  });
+  render();
+}
+// Live rotate preview — mirrors renderMoveHint: ghost-render the selection
+// rotated by the current (15°-snapped) angle so it visibly spins around
+// the center with the cursor before the end click commits it.
+function renderRotateHint(){
+  var layer=document.getElementById('draw-preview-layer');
+  if(!rotateOp||rotateOp.stage!=='end'){if(layer&&!drawingRoom&&!drawingWall&&!(moveOp&&moveOp.stage==='destination'))layer.innerHTML='';return;}
+  layer.innerHTML='';
+  var center=rotateOp.center;
+  var curAngle=Math.atan2(mouseBoard.y-center.y,mouseBoard.x-center.x);
+  var deg=(curAngle-rotateOp.startAngle)*180/Math.PI;
+  var snappedRad=Math.round(deg/15)*15*Math.PI/180;
+  layer.appendChild(el('circle',{cx:center.x,cy:center.y,r:5,class:'draw-close-hint'}));
+  layer.appendChild(el('line',{x1:center.x,y1:center.y,x2:mouseBoard.x,y2:mouseBoard.y,class:'draw-rubber'}));
+  var items=multiSel.length?multiSel:(selected?[selected]:[]);
+  items.forEach(function(m){
+    if(m.kind==='room'){
+      var r=findRoom(m.id);if(!r)return;
+      var pts=r.points.map(function(p){return rotatePoint(p,center,snappedRad);});
+      layer.appendChild(el('polygon',{points:polyPoints(pts),class:'sel-preview-room'}));
+      (r.walls||[]).forEach(function(w){
+        var a=rotatePoint(w.p1,center,snappedRad),b=rotatePoint(w.p2,center,snappedRad);
+        layer.appendChild(el('line',{x1:a.x,y1:a.y,x2:b.x,y2:b.y,class:'sel-preview-wall'}));
+      });
+    }else if(m.kind==='point'){
+      var p=findPoint(m.id);if(!p)return;
+      var rp=rotatePoint(p,center,snappedRad);
+      layer.appendChild(el('circle',{cx:rp.x,cy:rp.y,r:9,class:'sel-preview-point'}));
+    }
+  });
 }
 function handleMoveClick(bp){
   if(!moveOp)return;
@@ -1561,7 +1659,7 @@ function applyMoveDelta(delta){
 // destination click actually commits it.
 function renderMoveHint(){
   var layer=document.getElementById('draw-preview-layer');
-  if(!moveOp||moveOp.stage!=='destination'){if(layer&&!drawingRoom&&!drawingWall)layer.innerHTML='';return;}
+  if(!moveOp||moveOp.stage!=='destination'){if(layer&&!drawingRoom&&!drawingWall&&!(rotateOp&&rotateOp.stage==='end'))layer.innerHTML='';return;}
   layer.innerHTML='';
   var cur=snapPt(mouseBoard);
   var delta={x:cur.x-moveOp.base.x,y:cur.y-moveOp.base.y};
@@ -1572,13 +1670,13 @@ function renderMoveHint(){
     if(m.kind==='room'){
       var r=findRoom(m.id);if(!r)return;
       var pts=r.points.map(function(p){return {x:p.x+delta.x,y:p.y+delta.y};});
-      layer.appendChild(el('polygon',{points:polyPoints(pts),class:'move-preview-room'}));
+      layer.appendChild(el('polygon',{points:polyPoints(pts),class:'sel-preview-room'}));
       (r.walls||[]).forEach(function(w){
-        layer.appendChild(el('line',{x1:w.p1.x+delta.x,y1:w.p1.y+delta.y,x2:w.p2.x+delta.x,y2:w.p2.y+delta.y,class:'move-preview-wall'}));
+        layer.appendChild(el('line',{x1:w.p1.x+delta.x,y1:w.p1.y+delta.y,x2:w.p2.x+delta.x,y2:w.p2.y+delta.y,class:'sel-preview-wall'}));
       });
     }else if(m.kind==='point'){
       var p=findPoint(m.id);if(!p)return;
-      layer.appendChild(el('circle',{cx:p.x+delta.x,cy:p.y+delta.y,r:9,class:'move-preview-point'}));
+      layer.appendChild(el('circle',{cx:p.x+delta.x,cy:p.y+delta.y,r:9,class:'sel-preview-point'}));
     }
   });
 }
@@ -1618,6 +1716,7 @@ var HOTKEY_ACTIONS={
   mirrorY:{label:'Mirror across Y axis (horizontal flip)',fn:function(){mirrorSelection('x');}},
   duplicate:{label:'Duplicate selection',fn:function(){duplicateSelection();}},
   move:{label:'Move: click basepoint, click destination',fn:function(){startMoveCommand();}},
+  rotate:{label:'Rotate: click start point, click end point (center of geometry)',fn:function(){startRotateCommand();}},
   zoomIn:{label:'Zoom in',fn:function(){zoomBy(1.2);}},
   zoomOut:{label:'Zoom out',fn:function(){zoomBy(1/1.2);}},
   fit:{label:'Fit view (also: double-click middle mouse button)',fn:function(){resetView();}},
@@ -1641,7 +1740,7 @@ var DEFAULT_HOTKEYS={
   select:['s'],room:['r'],wall:['w'],door:['d'],terminal:['t'],vent:['v'],locker:['l'],point:['p'],
   snapWhole:['1'],snapHalf:['2'],snapQuarter:['4'],
   spaces:['s','p'],info:['i'],attach:['a','t'],linkDoors:['l','d'],boundary:['b','o'],
-  mirrorX:['m','x'],mirrorY:['m','y'],move:['m','v'],duplicate:['u'],zoomIn:['='],zoomOut:['-'],
+  mirrorX:['m','x'],mirrorY:['m','y'],move:['m','v'],rotate:['r','o'],duplicate:['u'],zoomIn:['='],zoomOut:['-'],
   fit:['f'],shortcuts:['k','s']
 };
 var hotkeys=JSON.parse(JSON.stringify(DEFAULT_HOTKEYS));
@@ -2068,6 +2167,7 @@ function startGroupDrag(e){
 }
 function onRoomMouseDown(e,roomId){
   if(moveOp&&e.button===0){e.stopPropagation();handleMoveClick(snapPt(screenToBoard(e.clientX,e.clientY)));return;}
+  if(rotateOp&&e.button===0){e.stopPropagation();handleRotateClick(snapPt(screenToBoard(e.clientX,e.clientY)));return;}
   if(tool!=='select'||e.button!==0)return;
   e.stopPropagation();
   if(multiSel.length>1&&isInMultiSel('room',roomId)){startGroupDrag(e);return;}
@@ -2086,6 +2186,7 @@ function onRoomMouseDown(e,roomId){
 }
 function onPointMouseDown(e,ptId){
   if(moveOp&&e.button===0){e.stopPropagation();handleMoveClick(snapPt(screenToBoard(e.clientX,e.clientY)));return;}
+  if(rotateOp&&e.button===0){e.stopPropagation();handleRotateClick(snapPt(screenToBoard(e.clientX,e.clientY)));return;}
   if(tool!=='select'||e.button!==0)return;
   e.stopPropagation();
   if(multiSel.length>1&&isInMultiSel('point',ptId)){startGroupDrag(e);return;}
@@ -2099,6 +2200,7 @@ function onPointMouseDown(e,ptId){
 // they were drawn in, no independent repositioning after placement.
 function onWallMouseDown(e,roomId,wallId){
   if(moveOp&&e.button===0){e.stopPropagation();handleMoveClick(snapPt(screenToBoard(e.clientX,e.clientY)));return;}
+  if(rotateOp&&e.button===0){e.stopPropagation();handleRotateClick(snapPt(screenToBoard(e.clientX,e.clientY)));return;}
   if(tool==='door'){
     var target=findNearestWallSegment(screenToBoard(e.clientX,e.clientY));
     if(target)toggleDoorAt(target);
@@ -2179,6 +2281,7 @@ function initCanvas(){
     if(e.button!==0)return;
 
     if(moveOp){handleMoveClick(bp);return;}
+    if(rotateOp){handleRotateClick(bp);return;}
 
     if(tool==='room'){
       if(!drawingRoom){drawingRoom={points:[bp]};}
@@ -2338,6 +2441,7 @@ function initCanvas(){
     if(tool==='wall'&&drawingWall)renderWallPreview();
     if(tool==='door')renderDoorHover();
     if(moveOp&&moveOp.stage==='destination')renderMoveHint();
+    if(rotateOp&&rotateOp.stage==='end')renderRotateHint();
   });
 
   window.addEventListener('mouseup',function(e){
@@ -2368,6 +2472,7 @@ function initCanvas(){
     var typing=tag==='INPUT'||tag==='TEXTAREA';
     if(e.key==='Escape'){
       if(moveOp){moveOp=null;renderMoveHint();toast('Move cancelled');}
+      else if(rotateOp){rotateOp=null;renderRotateHint();toast('Rotate cancelled');}
       else if(drawingRoom){drawingRoom=null;render();}
       else if(drawingWall){drawingWall=null;render();}
       else if(multiSel.length){multiSel=[];render();}
