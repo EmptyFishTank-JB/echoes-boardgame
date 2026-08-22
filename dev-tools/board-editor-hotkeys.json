@@ -19,6 +19,7 @@
     "boundary": ["b", "o"],
     "mirrorX": ["m", "x"],
     "mirrorY": ["m", "y"],
+    "move": ["m", "v"],
     "duplicate": ["u"],
     "zoomIn": ["="],
     "zoomOut": ["-"],

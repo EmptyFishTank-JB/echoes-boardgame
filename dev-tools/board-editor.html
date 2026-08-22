@@ -53,6 +53,7 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
 #board-svg{display:block;}
 .room-poly{cursor:pointer;transition:filter 0.1s;}
 .room-poly:hover{filter:brightness(1.3);}
+.room-poly-void{stroke:rgba(160,172,190,0.5);stroke-width:1.5;stroke-dasharray:6,4;}
 .room-poly.selected{filter:brightness(1.4);}
 .room-edge{cursor:pointer;}
 .iwall-line{stroke-dasharray:6,3;opacity:0.85;}
@@ -116,6 +117,8 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
 .fam-swatch{width:14px;height:14px;flex-shrink:0;border-radius:2px;border:1px solid rgba(255,255,255,0.2);}
 .fam-row input[type=text]{flex:1;min-width:0;background:rgba(79,195,247,0.04);border:1px solid rgba(79,195,247,0.14);color:var(--blue);font-family:"Share Tech Mono",monospace;font-size:11px;padding:3px 5px;}
 .fam-row input[type=color]{width:22px;height:22px;flex-shrink:0;padding:0;border:none;background:none;cursor:pointer;}
+.fam-void-toggle{display:flex;align-items:center;gap:2px;flex-shrink:0;font-size:9px;letter-spacing:0.04em;color:var(--dim);cursor:pointer;user-select:none;}
+.fam-void-toggle input{margin:0;cursor:pointer;}
 .fam-del{background:transparent;border:none;color:rgba(224,80,80,0.55);cursor:pointer;font-size:13px;flex-shrink:0;padding:0 2px;}
 .fam-del:hover{color:#e05050;}
 .fam-add{width:100%;background:transparent;border:1px dashed rgba(79,195,247,0.24);color:var(--dim);font-family:"Share Tech Mono",monospace;font-size:11px;padding:5px;cursor:pointer;margin-top:4px;}
@@ -237,6 +240,14 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
           <pattern id="hatchPattern" width="8" height="8" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">
             <line x1="0" y1="0" x2="0" y2="8" stroke="rgba(224,80,80,0.55)" stroke-width="3"/>
           </pattern>
+          <!-- Base/holder-layer infill — a neutral crosshatch (both diagonals,
+               tight, gray-blue) so it reads as "structural layer", clearly
+               distinct from the red single-direction hazard hatch above. -->
+          <pattern id="voidLayerPattern" width="10" height="10" patternUnits="userSpaceOnUse">
+            <rect width="10" height="10" fill="rgba(40,46,56,0.5)"/>
+            <line x1="0" y1="0" x2="10" y2="10" stroke="rgba(160,172,190,0.35)" stroke-width="1.4"/>
+            <line x1="10" y1="0" x2="0" y2="10" stroke="rgba(160,172,190,0.35)" stroke-width="1.4"/>
+          </pattern>
           <g id="room-clips"></g>
         </defs>
         <rect id="grid-area-bg" x="-2000" y="-2000" width="8000" height="7000" style="fill:var(--canvas-bg)"/>
@@ -311,7 +322,8 @@ var DEFAULT_FAMILIES = {
   security:      {label:'Security',                    color:'#c0504d', type:'tile'},
   garage:        {label:'Garage / Workshop',            color:'#a0785a', type:'tile'},
   communications:{label:'Communications',               color:'#c47fc4', type:'tile'},
-  dormitories:   {label:'Dormitories',                  color:'#8892a6', type:'tile'}
+  dormitories:   {label:'Dormitories',                  color:'#8892a6', type:'tile'},
+  board_base_layer:{label:'Board Base Layer (Holder)',  color:'#2b3038', type:'void'}
 };
 function defaultBoard(){
   return {
@@ -346,6 +358,7 @@ var groupDrag=null;                 // {mouse0, orig:[{kind,id,points|x,y}...]} 
 var rightDown=null;                 // {x,y,moved} — tracks whether a right-button press was a drag (pan) or a click (context menu)
 var lastMidClick=0;                 // timestamp — detects a double-click on the middle mouse button
 var clipboard=null;                 // {kind:'room'|'point'|'multi', data|items}
+var moveOp=null;                    // {stage:'basepoint'|'destination', base:{x,y}} — click-click MOVE command
 
 // ── UNDO / REDO ───────────────────────────────────────────────────────────────
 // Snapshot-based: pushUndo() is called right before each discrete mutation
@@ -494,6 +507,36 @@ function drawDoorStripes(container,dp1,dp2,ux,uy,color,markSize){
   }
 }
 
+// A locker occupies its whole GRID cell (unlike terminal/vent/other, which
+// are just a point marker) — rendered as a bordered square with a
+// corner-to-corner X, one solid line per side unless that side has a door,
+// in which case it draws as a full-width hazard-stripe gap like a room wall
+// door. Sides are indexed 0=top,1=right,2=bottom,3=left, matching the
+// order findNearestWallSegment/toggleDoorAt address them by.
+function lockerSides(pt){
+  var half=GRID/2;
+  var TL={x:pt.x-half,y:pt.y-half},TR={x:pt.x+half,y:pt.y-half},
+      BR={x:pt.x+half,y:pt.y+half},BL={x:pt.x-half,y:pt.y+half};
+  return [[TL,TR],[TR,BR],[BR,BL],[BL,TL]];
+}
+function renderLockerCell(container,pt,color){
+  var half=GRID/2;
+  container.appendChild(el('rect',{x:pt.x-half,y:pt.y-half,width:GRID,height:GRID,fill:color,opacity:0.22,class:'locker-fill'}));
+  container.appendChild(el('line',{x1:pt.x-half,y1:pt.y-half,x2:pt.x+half,y2:pt.y+half,stroke:color,'stroke-width':2,class:'locker-x'}));
+  container.appendChild(el('line',{x1:pt.x+half,y1:pt.y-half,x2:pt.x-half,y2:pt.y+half,stroke:color,'stroke-width':2,class:'locker-x'}));
+  var doors=pt.doors||[false,false,false,false];
+  lockerSides(pt).forEach(function(s,i){
+    var p1=s[0],p2=s[1];
+    if(doors[i]){
+      var len=dist(p1,p2);
+      var ux=(p2.x-p1.x)/len,uy=(p2.y-p1.y)/len;
+      drawDoorStripes(container,p1,p2,ux,uy,color,8);
+    }else{
+      container.appendChild(el('line',{x1:p1.x,y1:p1.y,x2:p2.x,y2:p2.y,stroke:color,'stroke-width':3,class:'room-edge locker-side'}));
+    }
+  });
+}
+
 // A "space" is one GRID cell (the token/miniature unit) — independent of
 // SNAP, which is finer (half-cell) so wall vertices can notch mid-cell.
 // A cell only counts as traversable if it's fully inside the room; any
@@ -536,6 +579,10 @@ function screenToBoard(cx,cy){
   return {x:(cx-rect.left-pan.x)/zoom, y:(cy-rect.top-pan.y)/zoom};
 }
 function snapPt(p){return {x:Math.round(p.x/SNAP)*SNAP, y:Math.round(p.y/SNAP)*SNAP};}
+// Lockers occupy a whole grid cell, so they snap to the CELL CENTER (the
+// midpoint of the nearest GRID square) rather than to a grid line/vertex
+// like every other point type.
+function snapCellCenter(p){return {x:Math.floor(p.x/GRID)*GRID+GRID/2, y:Math.floor(p.y/GRID)*GRID+GRID/2};}
 function hexToRgba(hex,a){
   hex=(hex||'#4fc3f7').replace('#','');
   if(hex.length===3)hex=hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];
@@ -754,11 +801,12 @@ function renderRooms(){
   clips.innerHTML='';
   board.rooms.forEach(function(room){
     var fam=board.families[room.family]||{color:'#4fc3f7',label:room.family};
+    var isVoid=fam.type==='void';
     var g=el('g',{'data-room-id':room.id});
     var poly=el('polygon',{
       points:polyPoints(room.points),
-      fill:hexToRgba(fam.color,0.22),
-      class:'room-poly'+(selected&&selected.kind==='room'&&selected.id===room.id?' selected':'')+(isInMultiSel('room',room.id)?' multi-sel':''),
+      fill:isVoid?'url(#voidLayerPattern)':hexToRgba(fam.color,0.22),
+      class:'room-poly'+(isVoid?' room-poly-void':'')+(selected&&selected.kind==='room'&&selected.id===room.id?' selected':'')+(isInMultiSel('room',room.id)?' multi-sel':''),
       'data-room-id':room.id
     });
     poly.addEventListener('mousedown',function(e){onRoomMouseDown(e,room.id);});
@@ -828,16 +876,19 @@ function renderPoints(){
     }else if(pt.type==='vent'){
       shape=el('rect',{x:pt.x-8,y:pt.y-6,width:16,height:12,fill:color,rx:2,class:'bpoint-shape'});
     }else if(pt.type==='locker'){
-      shape=el('rect',{x:pt.x-6,y:pt.y-6,width:12,height:12,fill:color,rx:1,class:'bpoint-shape'});
+      renderLockerCell(g,pt,color);
     }else{
       shape=el('circle',{cx:pt.x,cy:pt.y,r:7,fill:color,class:'bpoint-shape'});
     }
-    g.appendChild(shape);
-    var glyph=el('text',{x:pt.x,y:pt.y+1,class:'bpoint-glyph'});
-    glyph.textContent=POINT_GLYPH[pt.type]||'?';
-    g.appendChild(glyph);
+    if(shape)g.appendChild(shape);
+    if(pt.type!=='locker'){
+      var glyph=el('text',{x:pt.x,y:pt.y+1,class:'bpoint-glyph'});
+      glyph.textContent=POINT_GLYPH[pt.type]||'?';
+      g.appendChild(glyph);
+    }
     if(pt.label){
-      var lbl=el('text',{x:pt.x,y:pt.y+20,class:'bpoint-label'});
+      var lblY=pt.type==='locker'?pt.y+GRID/2+14:pt.y+20;
+      var lbl=el('text',{x:pt.x,y:lblY,class:'bpoint-label'});
       lbl.textContent=pt.label;
       g.appendChild(lbl);
     }
@@ -1068,6 +1119,8 @@ function renderProps(){
       html+='<div class="fam-row">'+
         '<input type="color" value="'+f.color+'" onfocus="pushUndo()" onchange="setFamilyColor(\''+k+'\',this.value)">'+
         '<input type="text" value="'+esc(f.label)+'" onfocus="pushUndo()" oninput="setFamilyLabel(\''+k+'\',this.value)">'+
+        '<label class="fam-void-toggle" title="Base layer / holder — the second board layer with notched cutouts that rooms sit in, rendered with a distinct infill instead of a room fill">'+
+        '<input type="checkbox"'+(f.type==='void'?' checked':'')+' onchange="setFamilyVoid(\''+k+'\',this.checked)">V</label>'+
         '<button class="fam-del" title="Delete family" onclick="deleteFamily(\''+k+'\')">&#10005;</button>'+
         '</div>';
     });
@@ -1096,6 +1149,11 @@ function setFamilyColor(k,v){board.families[k].color=v;renderRooms();renderPoint
 // does) would destroy and recreate this very input, dropping focus after
 // every character. Same reasoning as setRoomLabel/setPointLabel below.
 function setFamilyLabel(k,v){board.families[k].label=v;renderRooms();renderPoints();}
+// "Void" families mark the board's base/holder layer — a second layer
+// underneath the room tiles with notched cutouts the tiles drop into, so
+// they don't slide around during play. Rendered with a distinct infill
+// pattern instead of a normal room's solid color fill.
+function setFamilyVoid(k,checked){pushUndo();board.families[k].type=checked?'void':'tile';renderRooms();}
 function deleteFamily(k){
   if(!confirm('Delete family "'+board.families[k].label+'"? Rooms/points using it will keep the raw key but show no color.'))return;
   pushUndo();
@@ -1158,7 +1216,11 @@ function findCoincidentEdge(excludeRoomId,absPt,width){
 function toggleDoorAt(target){
   if(!target)return;
   pushUndo();
-  if(target.wallId!=null){
+  if(target.pointId!=null){
+    var lp=findPoint(target.pointId);if(!lp)return;
+    lp.doors=lp.doors||[false,false,false,false];
+    lp.doors[target.side]=!lp.doors[target.side];
+  }else if(target.wallId!=null){
     var w=findWall(target.roomId,target.wallId);if(!w)return;
     w.doors=w.doors||[];
     var wi=w.doors.findIndex(function(d){return doorCoversPos(d,target.pos);});
@@ -1211,6 +1273,15 @@ function findNearestWallSegment(pt){
         best={roomId:room.id,wallId:w.id,p1:seg.p1,p2:seg.p2,pos:doorPosOf(w.p1,seg),width:doorWidthOf(seg)};
         bestDist=d;
       });
+    });
+  });
+  board.points.forEach(function(lp){
+    if(lp.type!=='locker')return;
+    lockerSides(lp).forEach(function(s,i){
+      var d=distToSeg(pt,s[0],s[1]);
+      if(d>=bestDist)return;
+      best={pointId:lp.id,side:i,p1:s[0],p2:s[1],pos:GRID/2,width:GRID};
+      bestDist=d;
     });
   });
   return best;
@@ -1358,6 +1429,59 @@ function duplicateSelection(){
   else if(selected&&selected.kind==='point')duplicatePoint(selected.id);
   else toast('Select a room or point to duplicate');
 }
+// MOVE command (Revit-style): press the hotkey, click a basepoint, click a
+// destination — the delta between those two clicks is applied to whatever
+// was selected. No drag involved, and it works for a single selection or
+// a multi-select alike.
+function startMoveCommand(){
+  if(!selected&&!multiSel.length){toast('Select something to move first');return;}
+  moveOp={stage:'basepoint'};
+  toast('MOVE: click a basepoint');
+}
+function handleMoveClick(bp){
+  if(!moveOp)return;
+  if(moveOp.stage==='basepoint'){
+    moveOp.base=bp;
+    moveOp.stage='destination';
+    toast('MOVE: click destination');
+    renderMoveHint();
+  }else{
+    var delta={x:bp.x-moveOp.base.x,y:bp.y-moveOp.base.y};
+    moveOp=null;
+    renderMoveHint();
+    applyMoveDelta(delta);
+  }
+}
+function applyMoveDelta(delta){
+  if(delta.x===0&&delta.y===0)return;
+  pushUndo();
+  var items=multiSel.length?multiSel:(selected?[selected]:[]);
+  var explicitPointIds={};
+  items.forEach(function(m){if(m.kind==='point')explicitPointIds[m.id]=true;});
+  items.forEach(function(m){
+    if(m.kind==='room'){
+      var r=findRoom(m.id);if(!r)return;
+      var attached=attachPoints?board.points.filter(function(p){return pointInPolygon(p,r.points);}):[];
+      r.points=r.points.map(function(p){return {x:p.x+delta.x,y:p.y+delta.y};});
+      (r.walls||[]).forEach(function(w){w.p1={x:w.p1.x+delta.x,y:w.p1.y+delta.y};w.p2={x:w.p2.x+delta.x,y:w.p2.y+delta.y};});
+      attached.forEach(function(p){
+        if(explicitPointIds[p.id])return;
+        p.x+=delta.x;p.y+=delta.y;
+      });
+    }else if(m.kind==='point'){
+      var p2=findPoint(m.id);
+      if(p2){p2.x+=delta.x;p2.y+=delta.y;}
+    }
+  });
+  render();
+}
+function renderMoveHint(){
+  var layer=document.getElementById('draw-preview-layer');
+  if(!moveOp||moveOp.stage!=='destination'){if(layer&&!drawingRoom&&!drawingWall)layer.innerHTML='';return;}
+  layer.innerHTML='';
+  layer.appendChild(el('circle',{cx:moveOp.base.x,cy:moveOp.base.y,r:6,class:'draw-close-hint'}));
+  layer.appendChild(el('line',{x1:moveOp.base.x,y1:moveOp.base.y,x2:mouseBoard.x,y2:mouseBoard.y,class:'draw-rubber'}));
+}
 function deleteSelection(){
   if(multiSel.length)deleteMultiSel();
   else if(selected&&selected.kind==='room')deleteRoom(selected.id);
@@ -1393,6 +1517,7 @@ var HOTKEY_ACTIONS={
   mirrorX:{label:'Mirror across X axis (vertical flip)',fn:function(){mirrorSelection('y');}},
   mirrorY:{label:'Mirror across Y axis (horizontal flip)',fn:function(){mirrorSelection('x');}},
   duplicate:{label:'Duplicate selection',fn:function(){duplicateSelection();}},
+  move:{label:'Move: click basepoint, click destination',fn:function(){startMoveCommand();}},
   zoomIn:{label:'Zoom in',fn:function(){zoomBy(1.2);}},
   zoomOut:{label:'Zoom out',fn:function(){zoomBy(1/1.2);}},
   fit:{label:'Fit view (also: double-click middle mouse button)',fn:function(){resetView();}},
@@ -1416,7 +1541,7 @@ var DEFAULT_HOTKEYS={
   select:['s'],room:['r'],wall:['w'],door:['d'],terminal:['t'],vent:['v'],locker:['l'],point:['p'],
   snapWhole:['1'],snapHalf:['2'],snapQuarter:['4'],
   spaces:['s','p'],info:['i'],attach:['a','t'],linkDoors:['l','d'],boundary:['b','o'],
-  mirrorX:['m','x'],mirrorY:['m','y'],duplicate:['u'],zoomIn:['='],zoomOut:['-'],
+  mirrorX:['m','x'],mirrorY:['m','y'],move:['m','v'],duplicate:['u'],zoomIn:['='],zoomOut:['-'],
   fit:['f'],shortcuts:['k','s']
 };
 var hotkeys=JSON.parse(JSON.stringify(DEFAULT_HOTKEYS));
@@ -1830,12 +1955,19 @@ function startGroupDrag(e){
   groupDrag={
     mouse0:screenToBoard(e.clientX,e.clientY),
     orig:multiSel.map(function(m){
-      if(m.kind==='room'){var r=findRoom(m.id);return {kind:'room',id:m.id,points:JSON.parse(JSON.stringify(r.points))};}
+      if(m.kind==='room'){
+        var r=findRoom(m.id);
+        var attached=attachPoints?board.points.filter(function(p){return pointInPolygon(p,r.points);}):[];
+        return {kind:'room',id:m.id,points:JSON.parse(JSON.stringify(r.points)),
+          walls:JSON.parse(JSON.stringify(r.walls||[])),
+          attached:attached.map(function(p){return {id:p.id,x:p.x,y:p.y};})};
+      }
       var p=findPoint(m.id);return {kind:'point',id:m.id,x:p.x,y:p.y};
     })
   };
 }
 function onRoomMouseDown(e,roomId){
+  if(moveOp&&e.button===0){e.stopPropagation();handleMoveClick(snapPt(screenToBoard(e.clientX,e.clientY)));return;}
   if(tool!=='select'||e.button!==0)return;
   e.stopPropagation();
   if(multiSel.length>1&&isInMultiSel('room',roomId)){startGroupDrag(e);return;}
@@ -1853,6 +1985,7 @@ function onRoomMouseDown(e,roomId){
   render();
 }
 function onPointMouseDown(e,ptId){
+  if(moveOp&&e.button===0){e.stopPropagation();handleMoveClick(snapPt(screenToBoard(e.clientX,e.clientY)));return;}
   if(tool!=='select'||e.button!==0)return;
   e.stopPropagation();
   if(multiSel.length>1&&isInMultiSel('point',ptId)){startGroupDrag(e);return;}
@@ -1865,6 +1998,7 @@ function onPointMouseDown(e,ptId){
 // Interior walls are select/delete/door-target only — fixed to the room
 // they were drawn in, no independent repositioning after placement.
 function onWallMouseDown(e,roomId,wallId){
+  if(moveOp&&e.button===0){e.stopPropagation();handleMoveClick(snapPt(screenToBoard(e.clientX,e.clientY)));return;}
   if(tool==='door'){
     var target=findNearestWallSegment(screenToBoard(e.clientX,e.clientY));
     if(target)toggleDoorAt(target);
@@ -1944,6 +2078,8 @@ function initCanvas(){
     }
     if(e.button!==0)return;
 
+    if(moveOp){handleMoveClick(bp);return;}
+
     if(tool==='room'){
       if(!drawingRoom){drawingRoom={points:[bp]};}
       else{
@@ -1973,7 +2109,9 @@ function initCanvas(){
       render();
     }else if(tool==='point'){
       pushUndo();
-      var pt={id:uid('P'),type:pointType,x:bp.x,y:bp.y,label:'',family:pointType==='terminal'?activeFamily:null};
+      var placeAt=pointType==='locker'?snapCellCenter(screenToBoard(e.clientX,e.clientY)):bp;
+      var pt={id:uid('P'),type:pointType,x:placeAt.x,y:placeAt.y,label:'',family:pointType==='terminal'?activeFamily:null};
+      if(pointType==='locker')pt.doors=[false,false,false,false];
       board.points.push(pt);
       multiSel=[];selected={kind:'point',id:pt.id};
       render();
@@ -2061,10 +2199,23 @@ function initCanvas(){
     if(groupDrag){
       if(!groupDrag._pushed){pushUndo();groupDrag._pushed=true;}
       var gd=snapPt({x:mouseBoard.x-groupDrag.mouse0.x,y:mouseBoard.y-groupDrag.mouse0.y});
+      // A point can be both explicitly multi-selected AND geometrically
+      // attached to a multi-selected room — move it once via its own
+      // 'point' entry, not again via the room's attached list.
+      var explicitPointIds={};
+      groupDrag.orig.forEach(function(o2){if(o2.kind==='point')explicitPointIds[o2.id]=true;});
       groupDrag.orig.forEach(function(o2){
         if(o2.kind==='room'){
           var r3=findRoom(o2.id);
-          if(r3)r3.points=o2.points.map(function(p){return {x:p.x+gd.x,y:p.y+gd.y};});
+          if(r3){
+            r3.points=o2.points.map(function(p){return {x:p.x+gd.x,y:p.y+gd.y};});
+            r3.walls=o2.walls.map(function(w){return {id:w.id,doors:w.doors,p1:{x:w.p1.x+gd.x,y:w.p1.y+gd.y},p2:{x:w.p2.x+gd.x,y:w.p2.y+gd.y}};});
+            o2.attached.forEach(function(a){
+              if(explicitPointIds[a.id])return;
+              var ap=findPoint(a.id);
+              if(ap){ap.x=a.x+gd.x;ap.y=a.y+gd.y;}
+            });
+          }
         }else{
           var p3=findPoint(o2.id);
           if(p3){p3.x=o2.x+gd.x;p3.y=o2.y+gd.y;}
@@ -2086,6 +2237,7 @@ function initCanvas(){
     if(tool==='room'&&drawingRoom)renderDrawPreview();
     if(tool==='wall'&&drawingWall)renderWallPreview();
     if(tool==='door')renderDoorHover();
+    if(moveOp&&moveOp.stage==='destination')renderMoveHint();
   });
 
   window.addEventListener('mouseup',function(e){
@@ -2115,7 +2267,8 @@ function initCanvas(){
     var tag=(document.activeElement&&document.activeElement.tagName)||'';
     var typing=tag==='INPUT'||tag==='TEXTAREA';
     if(e.key==='Escape'){
-      if(drawingRoom){drawingRoom=null;render();}
+      if(moveOp){moveOp=null;renderMoveHint();toast('Move cancelled');}
+      else if(drawingRoom){drawingRoom=null;render();}
       else if(drawingWall){drawingWall=null;render();}
       else if(multiSel.length){multiSel=[];render();}
       else if(selected){selected=null;render();}
