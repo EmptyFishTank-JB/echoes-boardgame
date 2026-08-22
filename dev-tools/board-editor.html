@@ -576,26 +576,40 @@ function lockerInnerSides(pt,innerHalf){
       BR={x:pt.x+innerHalf,y:pt.y+innerHalf},BL={x:pt.x-innerHalf,y:pt.y+innerHalf};
   return [[TL,TR],[TR,BR],[BR,BL],[BL,TL]];
 }
+// A locker takes on the color of whichever room's family it's sitting
+// inside (matching how the room's own walls are drawn in that family's
+// color) — falling back to LOCKER_WHITE if it isn't inside any room.
+// The hazard-margin ring stays the universal red hatch used everywhere
+// else for excluded/non-navigable space, not family-colored.
+function lockerColor(pt){
+  var room=board.rooms.filter(function(r){return pointInPolygon(pt,r.points);})[0];
+  if(room){
+    var fam=board.families[room.family];
+    if(fam&&fam.color)return fam.color;
+  }
+  return LOCKER_WHITE;
+}
 function renderLockerCell(container,pt){
   var half=GRID/2,innerHalf=half*0.7;
+  var color=lockerColor(pt);
   var outer=lockerSides(pt),inner=lockerInnerSides(pt,innerHalf);
   var doors=pt.doors||[false,false,false,false];
   outer.forEach(function(o,i){
     var iN=inner[i];
     if(doors[i]){
-      container.appendChild(el('line',{x1:o[0].x,y1:o[0].y,x2:o[1].x,y2:o[1].y,stroke:LOCKER_WHITE,'stroke-width':2,'stroke-dasharray':'5,4',class:'locker-door-dash'}));
-      container.appendChild(el('line',{x1:iN[0].x,y1:iN[0].y,x2:iN[1].x,y2:iN[1].y,stroke:LOCKER_WHITE,'stroke-width':2,'stroke-dasharray':'5,4',class:'locker-door-dash'}));
+      container.appendChild(el('line',{x1:o[0].x,y1:o[0].y,x2:o[1].x,y2:o[1].y,stroke:color,'stroke-width':2,'stroke-dasharray':'5,4',class:'locker-door-dash'}));
+      container.appendChild(el('line',{x1:iN[0].x,y1:iN[0].y,x2:iN[1].x,y2:iN[1].y,stroke:color,'stroke-width':2,'stroke-dasharray':'5,4',class:'locker-door-dash'}));
     }else{
       var quad=o[0].x+','+o[0].y+' '+o[1].x+','+o[1].y+' '+iN[1].x+','+iN[1].y+' '+iN[0].x+','+iN[0].y;
       container.appendChild(el('polygon',{points:quad,fill:'url(#hatchPattern)',class:'locker-hazard-ring'}));
-      container.appendChild(el('line',{x1:o[0].x,y1:o[0].y,x2:o[1].x,y2:o[1].y,stroke:LOCKER_WHITE,'stroke-width':3,class:'locker-side-outer'}));
-      container.appendChild(el('line',{x1:iN[0].x,y1:iN[0].y,x2:iN[1].x,y2:iN[1].y,stroke:LOCKER_WHITE,'stroke-width':2,class:'locker-side-inner'}));
+      container.appendChild(el('line',{x1:o[0].x,y1:o[0].y,x2:o[1].x,y2:o[1].y,stroke:color,'stroke-width':3,class:'locker-side-outer'}));
+      container.appendChild(el('line',{x1:iN[0].x,y1:iN[0].y,x2:iN[1].x,y2:iN[1].y,stroke:color,'stroke-width':2,class:'locker-side-inner'}));
     }
   });
   // X confined to the inner box only — never crosses into the hazard margin.
   var TL=inner[0][0],TR=inner[1][0],BR=inner[2][0],BL=inner[3][0];
-  container.appendChild(el('line',{x1:TL.x,y1:TL.y,x2:BR.x,y2:BR.y,stroke:LOCKER_WHITE,'stroke-width':2,'stroke-dasharray':'6,5',class:'locker-x'}));
-  container.appendChild(el('line',{x1:TR.x,y1:TR.y,x2:BL.x,y2:BL.y,stroke:LOCKER_WHITE,'stroke-width':2,'stroke-dasharray':'6,5',class:'locker-x'}));
+  container.appendChild(el('line',{x1:TL.x,y1:TL.y,x2:BR.x,y2:BR.y,stroke:color,'stroke-width':2,'stroke-dasharray':'6,5',class:'locker-x'}));
+  container.appendChild(el('line',{x1:TR.x,y1:TR.y,x2:BL.x,y2:BL.y,stroke:color,'stroke-width':2,'stroke-dasharray':'6,5',class:'locker-x'}));
   // Invisible full-cell rect purely so selection highlight (.bpoint.selected/
   // .multi-sel .bpoint-shape) has something to outline, same as every other
   // point type.
