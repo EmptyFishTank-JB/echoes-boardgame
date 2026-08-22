@@ -599,16 +599,38 @@ function renderLockerCell(container,pt){
   var color=lockerColor(pt);
   var outer=lockerSides(pt),inner=lockerInnerSides(pt,innerHalf);
   var doors=pt.doors||[false,false,false,false];
+  function hazardBand(oA,oB,iA,iB){
+    if(dist(oA,oB)<0.3)return;
+    var quad=oA.x+','+oA.y+' '+oB.x+','+oB.y+' '+iB.x+','+iB.y+' '+iA.x+','+iA.y;
+    container.appendChild(el('polygon',{points:quad,fill:'url(#hatchPattern)',class:'locker-hazard-ring'}));
+    container.appendChild(el('line',{x1:oA.x,y1:oA.y,x2:oB.x,y2:oB.y,stroke:color,'stroke-width':3,class:'locker-side-outer'}));
+    container.appendChild(el('line',{x1:iA.x,y1:iA.y,x2:iB.x,y2:iB.y,stroke:color,'stroke-width':2,class:'locker-side-inner'}));
+  }
   outer.forEach(function(o,i){
     var iN=inner[i];
     if(doors[i]){
-      container.appendChild(el('line',{x1:o[0].x,y1:o[0].y,x2:o[1].x,y2:o[1].y,stroke:color,'stroke-width':2,'stroke-dasharray':'5,4',class:'locker-door-dash'}));
-      container.appendChild(el('line',{x1:iN[0].x,y1:iN[0].y,x2:iN[1].x,y2:iN[1].y,stroke:color,'stroke-width':2,'stroke-dasharray':'5,4',class:'locker-door-dash'}));
+      // The opening is only 2/3 the inner box's own side width, centered —
+      // not the full side. Outside that gap (both ends), the hazard
+      // margin + border continue as normal (same as a non-door side), so
+      // only the middle actually reads as a doorway.
+      var outerLen=dist(o[0],o[1]),innerLen=dist(iN[0],iN[1]);
+      var ux=(o[1].x-o[0].x)/outerLen,uy=(o[1].y-o[0].y)/outerLen;
+      function ptAtOuter(t){return {x:o[0].x+ux*t,y:o[0].y+uy*t};}
+      function ptAtInner(t){return {x:iN[0].x+ux*t,y:iN[0].y+uy*t};}
+      var doorLen=innerLen*(2/3);
+      var oStart=ptAtOuter(outerLen/2-doorLen/2),oEnd=ptAtOuter(outerLen/2+doorLen/2);
+      var iStart=ptAtInner(innerLen/2-doorLen/2),iEnd=ptAtInner(innerLen/2+doorLen/2);
+      hazardBand(o[0],oStart,iN[0],iStart);
+      hazardBand(oEnd,o[1],iEnd,iN[1]);
+      // Door-frame jambs: short connectors between the outer and inner
+      // boundary right at each edge of the opening, closing the frame.
+      container.appendChild(el('line',{x1:oStart.x,y1:oStart.y,x2:iStart.x,y2:iStart.y,stroke:color,'stroke-width':2,class:'locker-door-frame'}));
+      container.appendChild(el('line',{x1:oEnd.x,y1:oEnd.y,x2:iEnd.x,y2:iEnd.y,stroke:color,'stroke-width':2,class:'locker-door-frame'}));
+      // The opening itself: double dashed line, only across the gap.
+      container.appendChild(el('line',{x1:oStart.x,y1:oStart.y,x2:oEnd.x,y2:oEnd.y,stroke:color,'stroke-width':2,'stroke-dasharray':'5,4',class:'locker-door-dash'}));
+      container.appendChild(el('line',{x1:iStart.x,y1:iStart.y,x2:iEnd.x,y2:iEnd.y,stroke:color,'stroke-width':2,'stroke-dasharray':'5,4',class:'locker-door-dash'}));
     }else{
-      var quad=o[0].x+','+o[0].y+' '+o[1].x+','+o[1].y+' '+iN[1].x+','+iN[1].y+' '+iN[0].x+','+iN[0].y;
-      container.appendChild(el('polygon',{points:quad,fill:'url(#hatchPattern)',class:'locker-hazard-ring'}));
-      container.appendChild(el('line',{x1:o[0].x,y1:o[0].y,x2:o[1].x,y2:o[1].y,stroke:color,'stroke-width':3,class:'locker-side-outer'}));
-      container.appendChild(el('line',{x1:iN[0].x,y1:iN[0].y,x2:iN[1].x,y2:iN[1].y,stroke:color,'stroke-width':2,class:'locker-side-inner'}));
+      hazardBand(o[0],o[1],iN[0],iN[1]);
     }
   });
   // X confined to the inner box only — never crosses into the hazard margin.
