@@ -101,6 +101,9 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
 .draw-rubber{stroke:rgba(79,195,247,0.55);stroke-width:1.5;stroke-dasharray:3,3;fill:none;}
 .draw-rubber-invalid{stroke:rgba(224,80,80,0.65);stroke-width:1.5;stroke-dasharray:3,3;fill:none;}
 .draw-close-hint{fill:none;stroke:#6fb06f;stroke-width:2;}
+.move-preview-room{fill:rgba(79,195,247,0.12);stroke:#4fc3f7;stroke-width:2;stroke-dasharray:5,4;}
+.move-preview-wall{stroke:#4fc3f7;stroke-width:2;stroke-dasharray:5,4;}
+.move-preview-point{fill:none;stroke:#4fc3f7;stroke-width:2;stroke-dasharray:4,3;}
 
 /* PROPS PANEL */
 #props-panel{width:270px;flex-shrink:0;border-left:1px solid var(--bdr);background:rgba(0,4,10,0.98);overflow-y:auto;padding:14px;}
@@ -463,7 +466,13 @@ function doorWidthOf(seg){return dist(seg.p1,seg.p2);}
 // gaps cut out for each door — purely a function of the doors' own stored
 // pos/width, with no reference to wallSegments()/SNAP at all, so how it
 // renders can't drift when the snap setting changes.
-function renderWallLine(container,p1,p2,edgeDoors,color,sw,markSize,lineClass){
+// roomPts, when given, is that edge's owning room polygon — used to find
+// which side of the wall is the room's interior, so door stripes/arrows
+// can be drawn one-sided (interior-only) instead of straddling the line.
+// Interior walls don't pass this (both sides are "interior" to the same
+// room, so there's no meaningful side to pick) and keep the old symmetric
+// look.
+function renderWallLine(container,p1,p2,edgeDoors,color,sw,markSize,lineClass,roomPts){
   var edgeLen=dist(p1,p2);
   if(edgeLen<0.3)return;
   var ux=(p2.x-p1.x)/edgeLen,uy=(p2.y-p1.y)/edgeLen;
@@ -472,6 +481,13 @@ function renderWallLine(container,p1,p2,edgeDoors,color,sw,markSize,lineClass){
     if(t1-t0<0.3)return;
     var a=ptAt(t0),b=ptAt(t1);
     container.appendChild(el('line',{x1:a.x,y1:a.y,x2:b.x,y2:b.y,stroke:color,'stroke-width':sw,class:lineClass}));
+  }
+  var inward=null;
+  if(roomPts){
+    var mid=ptAt(edgeLen/2);
+    var nx=-uy,ny=ux;
+    var testPt={x:mid.x+nx*4,y:mid.y+ny*4};
+    inward=pointInOrOnPolygon(testPt,roomPts)?{x:nx,y:ny}:{x:-nx,y:-ny};
   }
   var segs=edgeDoors.map(function(d){
     var half=(d.width||GRID)/2;
@@ -483,16 +499,42 @@ function renderWallLine(container,p1,p2,edgeDoors,color,sw,markSize,lineClass){
     // Door gap: no wall line crosses it at all (it's an opening) — instead
     // a band of diagonal hazard/"watch your step" ticks marks the
     // threshold, the same idea as caution-tape striping across a doorway.
-    drawDoorStripes(container,ptAt(s.start),ptAt(s.end),ux,uy,color,markSize);
+    if(inward){
+      // Interior-only + 75% width: the physical opening (the gap in the
+      // wall line above) stays full width, but the decorative striping is
+      // narrower and hugs only the room's own interior side — so a shared
+      // wall shows each room's own striping on its own side, in its own
+      // color, instead of one combined mark straddling the line.
+      var full=s.end-s.start,shrink=full*0.125;
+      drawDoorStripes(container,ptAt(s.start+shrink),ptAt(s.end-shrink),ux,uy,color,markSize,inward);
+      drawExitArrow(container,ptAt((s.start+s.end)/2),inward,color,markSize);
+    }else{
+      drawDoorStripes(container,ptAt(s.start),ptAt(s.end),ux,uy,color,markSize,null);
+    }
     cursor=Math.max(cursor,s.end);
   });
   wallLine(cursor,edgeLen);
 }
+// Small solid triangle at a door's midpoint, pointing along the OUTWARD
+// normal (away from the room) — an "exit" pointer. Only drawn for doors
+// on a room boundary edge (where inward/outward has a real meaning).
+function drawExitArrow(container,at,inward,color,size){
+  var ox=-inward.x,oy=-inward.y;
+  var px=-oy,py=ox;
+  var tipDist=size*1.5,baseDist=size*0.55,halfW=size*0.42;
+  var tip={x:at.x+ox*tipDist,y:at.y+oy*tipDist};
+  var b1={x:at.x+ox*baseDist+px*halfW,y:at.y+oy*baseDist+py*halfW};
+  var b2={x:at.x+ox*baseDist-px*halfW,y:at.y+oy*baseDist-py*halfW};
+  container.appendChild(el('polygon',{points:tip.x+','+tip.y+' '+b1.x+','+b1.y+' '+b2.x+','+b2.y,fill:color,opacity:0.9,class:'door-exit-arrow'}));
+}
 // Diagonal caution-stripe band across a door gap (dp1->dp2 along the wall).
-// bandHalf is how far the ticks reach perpendicular to the wall on each
-// side — markSize (the old diamond-marker size) reused as a size knob so
-// boundary vs interior-wall doors keep their existing size relationship.
-function drawDoorStripes(container,dp1,dp2,ux,uy,color,markSize){
+// bandHalf is how far each tick reaches. With no `inward` given, ticks
+// straddle the wall line symmetrically (old behavior, used for interior
+// walls). With `inward` given, each tick instead runs FROM the wall line
+// INTO the room only — one-sided, like caution tape hanging off the
+// threshold — and reaches the same distance instead of splitting it
+// across both sides.
+function drawDoorStripes(container,dp1,dp2,ux,uy,color,markSize,inward){
   var px=-uy,py=ux;
   var len=dist(dp1,dp2);
   var bandHalf=markSize*0.5;
@@ -501,40 +543,63 @@ function drawDoorStripes(container,dp1,dp2,ux,uy,color,markSize){
   for(var k=0;k<=n;k++){
     var t=(k/n)*len;
     var cx=dp1.x+ux*t,cy=dp1.y+uy*t;
-    var a={x:cx-ux*bandHalf*0.55+px*bandHalf,y:cy-uy*bandHalf*0.55+py*bandHalf};
-    var b={x:cx+ux*bandHalf*0.55-px*bandHalf,y:cy+uy*bandHalf*0.55-py*bandHalf};
+    var a,b;
+    if(inward){
+      a={x:cx,y:cy};
+      b={x:cx+inward.x*bandHalf-ux*bandHalf*0.4,y:cy+inward.y*bandHalf-uy*bandHalf*0.4};
+    }else{
+      a={x:cx-ux*bandHalf*0.55+px*bandHalf,y:cy-uy*bandHalf*0.55+py*bandHalf};
+      b={x:cx+ux*bandHalf*0.55-px*bandHalf,y:cy+uy*bandHalf*0.55-py*bandHalf};
+    }
     container.appendChild(el('line',{x1:a.x,y1:a.y,x2:b.x,y2:b.y,stroke:color,'stroke-width':1.6,'stroke-linecap':'round',class:'door-stripe'}));
   }
 }
 
-// A locker occupies its whole GRID cell (unlike terminal/vent/other, which
-// are just a point marker) — rendered as a bordered square with a
-// corner-to-corner X, one solid line per side unless that side has a door,
-// in which case it draws as a full-width hazard-stripe gap like a room wall
-// door. Sides are indexed 0=top,1=right,2=bottom,3=left, matching the
-// order findNearestWallSegment/toggleDoorAt address them by.
+// A locker occupies its whole GRID cell — its clickable/door-bearing
+// footprint (lockerSides, used by findNearestWallSegment/toggleDoorAt) is
+// the FULL cell, but the drawn locker box is a smaller square inset from
+// that boundary, with the gap between the two filled as a hazard margin
+// (same #hatchPattern used for excluded room cells elsewhere). Sides are
+// indexed 0=top,1=right,2=bottom,3=left. A side with no door draws the
+// hazard margin + a solid outer/inner border; a side with a door skips
+// the hazard entirely and draws a double dashed line instead (one dash
+// at the outer position, one at the inner) — an "opening", not a wall.
+var LOCKER_WHITE='#eef0f5';
 function lockerSides(pt){
   var half=GRID/2;
   var TL={x:pt.x-half,y:pt.y-half},TR={x:pt.x+half,y:pt.y-half},
       BR={x:pt.x+half,y:pt.y+half},BL={x:pt.x-half,y:pt.y+half};
   return [[TL,TR],[TR,BR],[BR,BL],[BL,TL]];
 }
-function renderLockerCell(container,pt,color){
-  var half=GRID/2;
-  container.appendChild(el('rect',{x:pt.x-half,y:pt.y-half,width:GRID,height:GRID,fill:color,opacity:0.22,class:'locker-fill'}));
-  container.appendChild(el('line',{x1:pt.x-half,y1:pt.y-half,x2:pt.x+half,y2:pt.y+half,stroke:color,'stroke-width':2,class:'locker-x'}));
-  container.appendChild(el('line',{x1:pt.x+half,y1:pt.y-half,x2:pt.x-half,y2:pt.y+half,stroke:color,'stroke-width':2,class:'locker-x'}));
+function lockerInnerSides(pt,innerHalf){
+  var TL={x:pt.x-innerHalf,y:pt.y-innerHalf},TR={x:pt.x+innerHalf,y:pt.y-innerHalf},
+      BR={x:pt.x+innerHalf,y:pt.y+innerHalf},BL={x:pt.x-innerHalf,y:pt.y+innerHalf};
+  return [[TL,TR],[TR,BR],[BR,BL],[BL,TL]];
+}
+function renderLockerCell(container,pt){
+  var half=GRID/2,innerHalf=half*0.7;
+  var outer=lockerSides(pt),inner=lockerInnerSides(pt,innerHalf);
   var doors=pt.doors||[false,false,false,false];
-  lockerSides(pt).forEach(function(s,i){
-    var p1=s[0],p2=s[1];
+  outer.forEach(function(o,i){
+    var iN=inner[i];
     if(doors[i]){
-      var len=dist(p1,p2);
-      var ux=(p2.x-p1.x)/len,uy=(p2.y-p1.y)/len;
-      drawDoorStripes(container,p1,p2,ux,uy,color,8);
+      container.appendChild(el('line',{x1:o[0].x,y1:o[0].y,x2:o[1].x,y2:o[1].y,stroke:LOCKER_WHITE,'stroke-width':2,'stroke-dasharray':'5,4',class:'locker-door-dash'}));
+      container.appendChild(el('line',{x1:iN[0].x,y1:iN[0].y,x2:iN[1].x,y2:iN[1].y,stroke:LOCKER_WHITE,'stroke-width':2,'stroke-dasharray':'5,4',class:'locker-door-dash'}));
     }else{
-      container.appendChild(el('line',{x1:p1.x,y1:p1.y,x2:p2.x,y2:p2.y,stroke:color,'stroke-width':3,class:'room-edge locker-side'}));
+      var quad=o[0].x+','+o[0].y+' '+o[1].x+','+o[1].y+' '+iN[1].x+','+iN[1].y+' '+iN[0].x+','+iN[0].y;
+      container.appendChild(el('polygon',{points:quad,fill:'url(#hatchPattern)',class:'locker-hazard-ring'}));
+      container.appendChild(el('line',{x1:o[0].x,y1:o[0].y,x2:o[1].x,y2:o[1].y,stroke:LOCKER_WHITE,'stroke-width':3,class:'locker-side-outer'}));
+      container.appendChild(el('line',{x1:iN[0].x,y1:iN[0].y,x2:iN[1].x,y2:iN[1].y,stroke:LOCKER_WHITE,'stroke-width':2,class:'locker-side-inner'}));
     }
   });
+  // X confined to the inner box only — never crosses into the hazard margin.
+  var TL=inner[0][0],TR=inner[1][0],BR=inner[2][0],BL=inner[3][0];
+  container.appendChild(el('line',{x1:TL.x,y1:TL.y,x2:BR.x,y2:BR.y,stroke:LOCKER_WHITE,'stroke-width':2,'stroke-dasharray':'6,5',class:'locker-x'}));
+  container.appendChild(el('line',{x1:TR.x,y1:TR.y,x2:BL.x,y2:BL.y,stroke:LOCKER_WHITE,'stroke-width':2,'stroke-dasharray':'6,5',class:'locker-x'}));
+  // Invisible full-cell rect purely so selection highlight (.bpoint.selected/
+  // .multi-sel .bpoint-shape) has something to outline, same as every other
+  // point type.
+  container.appendChild(el('rect',{x:pt.x-half,y:pt.y-half,width:GRID,height:GRID,fill:'none',class:'bpoint-shape locker-select-outline'}));
 }
 
 // A "space" is one GRID cell (the token/miniature unit) — independent of
@@ -836,7 +901,7 @@ function renderRooms(){
     room.points.forEach(function(p1,i){
       var p2=room.points[(i+1)%room.points.length];
       var edgeDoors=doors.filter(function(d){return d.edge===i;});
-      renderWallLine(g,p1,p2,edgeDoors,fam.color,4,8,'room-edge');
+      renderWallLine(g,p1,p2,edgeDoors,fam.color,4,8,'room-edge',room.points);
     });
     // Interior walls — always confined to this room, so they render/move/
     // transform with it.
@@ -876,7 +941,7 @@ function renderPoints(){
     }else if(pt.type==='vent'){
       shape=el('rect',{x:pt.x-8,y:pt.y-6,width:16,height:12,fill:color,rx:2,class:'bpoint-shape'});
     }else if(pt.type==='locker'){
-      renderLockerCell(g,pt,color);
+      renderLockerCell(g,pt);
     }else{
       shape=el('circle',{cx:pt.x,cy:pt.y,r:7,fill:color,class:'bpoint-shape'});
     }
@@ -1475,12 +1540,33 @@ function applyMoveDelta(delta){
   });
   render();
 }
+// Live move preview: instead of just a rubber-band line from basepoint to
+// cursor, ghost-render the whole selection translated by the CURRENT
+// (snapped) delta, so it visibly slides with the cursor exactly like a
+// drag would — but nothing in `board` itself changes until the
+// destination click actually commits it.
 function renderMoveHint(){
   var layer=document.getElementById('draw-preview-layer');
   if(!moveOp||moveOp.stage!=='destination'){if(layer&&!drawingRoom&&!drawingWall)layer.innerHTML='';return;}
   layer.innerHTML='';
+  var cur=snapPt(mouseBoard);
+  var delta={x:cur.x-moveOp.base.x,y:cur.y-moveOp.base.y};
   layer.appendChild(el('circle',{cx:moveOp.base.x,cy:moveOp.base.y,r:6,class:'draw-close-hint'}));
-  layer.appendChild(el('line',{x1:moveOp.base.x,y1:moveOp.base.y,x2:mouseBoard.x,y2:mouseBoard.y,class:'draw-rubber'}));
+  layer.appendChild(el('line',{x1:moveOp.base.x,y1:moveOp.base.y,x2:cur.x,y2:cur.y,class:'draw-rubber'}));
+  var items=multiSel.length?multiSel:(selected?[selected]:[]);
+  items.forEach(function(m){
+    if(m.kind==='room'){
+      var r=findRoom(m.id);if(!r)return;
+      var pts=r.points.map(function(p){return {x:p.x+delta.x,y:p.y+delta.y};});
+      layer.appendChild(el('polygon',{points:polyPoints(pts),class:'move-preview-room'}));
+      (r.walls||[]).forEach(function(w){
+        layer.appendChild(el('line',{x1:w.p1.x+delta.x,y1:w.p1.y+delta.y,x2:w.p2.x+delta.x,y2:w.p2.y+delta.y,class:'move-preview-wall'}));
+      });
+    }else if(m.kind==='point'){
+      var p=findPoint(m.id);if(!p)return;
+      layer.appendChild(el('circle',{cx:p.x+delta.x,cy:p.y+delta.y,r:9,class:'move-preview-point'}));
+    }
+  });
 }
 function deleteSelection(){
   if(multiSel.length)deleteMultiSel();
