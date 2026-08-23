@@ -201,11 +201,11 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
 <div id="toolbar">
   <button class="tbtn on" id="btn-select" onclick="setTool('select')">&#9654; SELECT</button>
   <button class="tbtn" id="btn-room" onclick="setTool('room')">&#9635; ROOM</button>
+  <button class="tbtn" id="btn-vent" onclick="setTool('vent')" title="Draw a vent passageway — same click-to-place-vertices workflow as ROOM. Always GRID-aligned; each covered grid cell gets its own locker-style walls/doors.">&#9635; VENT</button>
   <button class="tbtn" id="btn-wall" onclick="setTool('wall')" title="Interior wall — both ends must land inside the same room">&#9552; WALL</button>
   <button class="tbtn" id="btn-door" onclick="setTool('door')">&#8862; DOOR</button>
   <div class="tsep"></div>
   <button class="tbtn" id="btn-terminal" onclick="setPointTool('terminal')">&#9670; TERMINAL</button>
-  <button class="tbtn" id="btn-vent" onclick="setPointTool('vent')">&#9635; VENT</button>
   <button class="tbtn" id="btn-locker" onclick="setPointTool('locker')">&#9633; LOCKER</button>
   <button class="tbtn" id="btn-other" onclick="setPointTool('other')">&#9679; POINT</button>
   <div class="tsep"></div>
@@ -629,7 +629,7 @@ function cellPointColor(pt){
 // Shared box+wall+door rendering for both lockers and vents. Returns the
 // list of {i, mid} door-opening midpoints (in outer-boundary terms), so a
 // caller (vent) can drop an icon on each jamb; lockers just ignore it.
-function renderCellWalls(container,pt,color){
+function renderCellWalls(container,pt,color,skipSides){
   var half=GRID/2,innerHalf=half*0.7;
   var outer=lockerSides(pt),inner=lockerInnerSides(pt,innerHalf);
   var doors=pt.doors||[false,false,false,false];
@@ -642,6 +642,11 @@ function renderCellWalls(container,pt,color){
     container.appendChild(el('line',{x1:iA.x,y1:iA.y,x2:iB.x,y2:iB.y,stroke:color,'stroke-width':2,class:'locker-side-inner'}));
   }
   outer.forEach(function(o,i){
+    // A skipped side is shared with an adjacent occupied cell of the same
+    // vent (an interior connection, not a true boundary) — draw nothing at
+    // all there, same as there being no wall between two grid squares
+    // inside one room.
+    if(skipSides&&skipSides[i])return;
     var iN=inner[i];
     if(doors[i]){
       // The opening is only 2/3 the inner box's own side width, centered —
@@ -690,10 +695,10 @@ function renderLockerCell(container,pt){
 // inside. The vent glyph sits fixed at the vent's own center (not on a
 // door's jamb) so it always renders in exactly one place regardless of
 // how many doors the cell has or where they are.
-function renderVentCell(container,pt){
+function renderVentCell(container,pt,skipSides,colorOverride){
   var half=GRID/2;
-  var color=cellPointColor(pt);
-  renderCellWalls(container,pt,color);
+  var color=colorOverride||cellPointColor(pt);
+  renderCellWalls(container,pt,color,skipSides);
   container.appendChild(el('rect',{x:pt.x-8,y:pt.y-6,width:16,height:12,fill:color,rx:2,class:'vent-jamb-icon'}));
   var glyph=el('text',{x:pt.x,y:pt.y+1,class:'bpoint-glyph'});
   glyph.textContent='V';
@@ -743,6 +748,11 @@ function screenToBoard(cx,cy){
   return {x:(cx-rect.left-pan.x)/zoom, y:(cy-rect.top-pan.y)/zoom};
 }
 function snapPt(p){return {x:Math.round(p.x/SNAP)*SNAP, y:Math.round(p.y/SNAP)*SNAP};}
+// Vent shapes always land on whole GRID lines, independent of the active
+// WHOLE/HALF/QUARTER snap setting — every vent wall length is a clean
+// multiple of one GRID cell, which is what lets a vent's footprint be
+// rasterized into a clean set of whole grid cells (see ventCellsOf).
+function snapPtGrid(p){return {x:Math.round(p.x/GRID)*GRID, y:Math.round(p.y/GRID)*GRID};}
 // Lockers occupy a whole grid cell, so they snap to the CELL CENTER (the
 // midpoint of the nearest GRID square) rather than to a grid line/vertex
 // like every other point type.
@@ -765,15 +775,15 @@ function setTool(t){
   drawingRoom=null;
   drawingWall=null;
   clearToolBtns();
-  var idMap={select:'btn-select',room:'btn-room',wall:'btn-wall',door:'btn-door'};
+  var idMap={select:'btn-select',room:'btn-room',vent:'btn-vent',wall:'btn-wall',door:'btn-door'};
   if(idMap[t])document.getElementById(idMap[t]).classList.add('on');
-  document.getElementById('canvas-wrap').className=t!=='select'?'tool-'+t:'';
+  document.getElementById('canvas-wrap').className=t!=='select'?'tool-'+(t==='vent'?'room':t):'';
   render();
 }
 function setPointTool(pt){
   tool='point';pointType=pt;
   clearToolBtns();
-  var idMap={terminal:'btn-terminal',vent:'btn-vent',locker:'btn-locker',other:'btn-other'};
+  var idMap={terminal:'btn-terminal',locker:'btn-locker',other:'btn-other'};
   document.getElementById(idMap[pt]).classList.add('on');
   document.getElementById('canvas-wrap').className='tool-point';
   drawingRoom=null;drawingWall=null;render();
@@ -958,6 +968,42 @@ function onBoundaryMouseDown(e){
   render();
 }
 
+// A vent room is drawn like a room (arbitrary polygon), but rendered as a
+// cluster of whole GRID cells rather than a continuous inset outline —
+// this is what sidesteps the corner-joining problem entirely: each cell
+// renders with the exact same self-contained per-side logic a locker
+// already uses correctly (renderCellWalls), so a "corner" is never two
+// different pieces of geometry that have to be made to meet — it's just
+// one cell's own corner, the same math a locker's square already gets
+// right. Cells are derived from room.points on every render (not stored),
+// so moving/rotating/editing a vent room's shape always stays consistent
+// with no separate state to keep in sync.
+function ventCellsOf(room){
+  var pts=room.points;
+  var xs=pts.map(function(p){return p.x;}),ys=pts.map(function(p){return p.y;});
+  var minX=Math.min.apply(null,xs),maxX=Math.max.apply(null,xs);
+  var minY=Math.min.apply(null,ys),maxY=Math.max.apply(null,ys);
+  var c0=Math.floor(minX/GRID),c1=Math.ceil(maxX/GRID)-1;
+  var r0=Math.floor(minY/GRID),r1=Math.ceil(maxY/GRID)-1;
+  var cells=[];
+  for(var cy=r0;cy<=r1;cy++){
+    for(var cx=c0;cx<=c1;cx++){
+      var center={x:cx*GRID+GRID/2,y:cy*GRID+GRID/2};
+      if(pointInPolygon(center,pts))cells.push({cx:cx,cy:cy});
+    }
+  }
+  return cells;
+}
+// Sides are indexed 0=top,1=right,2=bottom,3=left (matching lockerSides).
+var VENT_SIDE_DX=[0,1,0,-1],VENT_SIDE_DY=[-1,0,1,0];
+function ventCellKey(cx,cy){return cx+','+cy;}
+// A door on a vent room is keyed by which cell+side it's on — {cx,cy,side}
+// — rather than the edge/pos/width a normal room door uses, since a vent's
+// walls aren't one continuous edge per polygon side, they're one wall per
+// grid cell's own exposed side.
+function ventDoorAt(room,cx,cy,side){
+  return (room.doors||[]).some(function(d){return d.cx===cx&&d.cy===cy&&d.side===side;});
+}
 function renderRooms(){
   var layer=document.getElementById('rooms-layer');
   var clips=document.getElementById('room-clips');
@@ -997,11 +1043,24 @@ function renderRooms(){
     }
 
     var doors=room.doors||[];
-    room.points.forEach(function(p1,i){
-      var p2=room.points[(i+1)%room.points.length];
-      var edgeDoors=doors.filter(function(d){return d.edge===i;});
-      renderWallLine(g,p1,p2,edgeDoors,fam.color,4,8,'room-edge',room.points);
-    });
+    if(room.isVent){
+      var cells=ventCellsOf(room);
+      var occupied={};
+      cells.forEach(function(c){occupied[ventCellKey(c.cx,c.cy)]=true;});
+      cells.forEach(function(c){
+        var skipSides=[0,1,2,3].map(function(side){
+          return !!occupied[ventCellKey(c.cx+VENT_SIDE_DX[side],c.cy+VENT_SIDE_DY[side])];
+        });
+        var pt={x:c.cx*GRID+GRID/2,y:c.cy*GRID+GRID/2,doors:[0,1,2,3].map(function(side){return ventDoorAt(room,c.cx,c.cy,side);})};
+        renderVentCell(g,pt,skipSides,fam.color);
+      });
+    }else{
+      room.points.forEach(function(p1,i){
+        var p2=room.points[(i+1)%room.points.length];
+        var edgeDoors=doors.filter(function(d){return d.edge===i;});
+        renderWallLine(g,p1,p2,edgeDoors,fam.color,4,8,'room-edge',room.points);
+      });
+    }
     // Interior walls — always confined to this room, so they render/move/
     // transform with it.
     (room.walls||[]).forEach(function(w){
@@ -1124,7 +1183,7 @@ function renderHandles(){
     mh.addEventListener('mousedown',function(e){
       if(e.button!==0)return;
       e.stopPropagation();
-      insertVertexOnEdge(room.id,i,snapPt(mid));
+      insertVertexOnEdge(room.id,i,room.isVent?snapPtGrid(mid):snapPt(mid));
       draggingVertex={roomId:room.id,idx:i+1,_pushed:true}; // insertVertexOnEdge already pushed undo for this gesture
       render();
     });
@@ -1334,10 +1393,11 @@ function addFamily(){
 }
 
 // ── MUTATIONS ─────────────────────────────────────────────────────────────────
-function commitRoom(){
+function commitRoom(isVent){
   if(!drawingRoom||drawingRoom.points.length<3){drawingRoom=null;render();return;}
   pushUndo();
-  var room={id:uid('R'),family:activeFamily,label:'',notes:'',points:drawingRoom.points,doors:[],walls:[]};
+  var room={id:uid('R'),family:isVent?'vent':activeFamily,label:'',notes:'',points:drawingRoom.points,doors:[],walls:[]};
+  if(isVent)room.isVent=true;
   board.rooms.push(room);
   drawingRoom=null;
   render();
@@ -1385,6 +1445,11 @@ function toggleDoorAt(target){
     var lp=findPoint(target.pointId);if(!lp)return;
     lp.doors=lp.doors||[false,false,false,false];
     lp.doors[target.side]=!lp.doors[target.side];
+  }else if(target.cx!=null){
+    var vr=findRoom(target.roomId);if(!vr)return;
+    vr.doors=vr.doors||[];
+    var vi=vr.doors.findIndex(function(d){return d.cx===target.cx&&d.cy===target.cy&&d.side===target.side;});
+    if(vi===-1)vr.doors.push({cx:target.cx,cy:target.cy,side:target.side});else vr.doors.splice(vi,1);
   }else if(target.wallId!=null){
     var w=findWall(target.roomId,target.wallId);if(!w)return;
     w.doors=w.doors||[];
@@ -1420,6 +1485,25 @@ function toggleDoorAt(target){
 function findNearestWallSegment(pt){
   var best=null,bestDist=GRID*0.85;
   board.rooms.forEach(function(room){
+    if(room.isVent){
+      // A vent's door targets are per-cell, per-side — only the EXTERIOR
+      // sides (not shared with another occupied cell of this same vent)
+      // are eligible, since an interior connection is already open.
+      var cells=ventCellsOf(room);
+      var occupied={};
+      cells.forEach(function(c){occupied[ventCellKey(c.cx,c.cy)]=true;});
+      cells.forEach(function(c){
+        var center={x:c.cx*GRID+GRID/2,y:c.cy*GRID+GRID/2};
+        lockerSides(center).forEach(function(s,side){
+          if(occupied[ventCellKey(c.cx+VENT_SIDE_DX[side],c.cy+VENT_SIDE_DY[side])])return;
+          var d=distToSeg(pt,s[0],s[1]);
+          if(d>=bestDist)return;
+          best={roomId:room.id,cx:c.cx,cy:c.cy,side:side,p1:s[0],p2:s[1],pos:GRID/2,width:GRID};
+          bestDist=d;
+        });
+      });
+      return;
+    }
     room.points.forEach(function(p1,i){
       var p2=room.points[(i+1)%room.points.length];
       var segs=wallSegments(p1,p2);
@@ -1782,7 +1866,7 @@ var HOTKEY_ACTIONS={
   wall:{label:'Wall tool',fn:function(){setTool('wall');}},
   door:{label:'Door tool',fn:function(){setTool('door');}},
   terminal:{label:'Terminal point tool',fn:function(){setPointTool('terminal');}},
-  vent:{label:'Vent point tool',fn:function(){setPointTool('vent');}},
+  vent:{label:'Vent tool (draw like a room)',fn:function(){setTool('vent');}},
   locker:{label:'Locker point tool',fn:function(){setPointTool('locker');}},
   point:{label:'Point tool (other)',fn:function(){setPointTool('other');}},
   snapWhole:{label:'Snap: Whole',fn:function(){setSnap(1);}},
@@ -2344,7 +2428,8 @@ function initCanvas(){
   });
 
   wrap.addEventListener('mousedown',function(e){
-    var bp=snapPt(screenToBoard(e.clientX,e.clientY));
+    var rawBoard=screenToBoard(e.clientX,e.clientY);
+    var bp=tool==='vent'?snapPtGrid(rawBoard):snapPt(rawBoard);
     if(e.button===1){
       var now=Date.now();
       if(now-lastMidClick<400){resetView();lastMidClick=0;return;}
@@ -2364,11 +2449,11 @@ function initCanvas(){
     if(moveOp){handleMoveClick(bp);return;}
     if(rotateOp){handleRotateClick(bp);return;}
 
-    if(tool==='room'){
+    if(tool==='room'||tool==='vent'){
       if(!drawingRoom){drawingRoom={points:[bp]};}
       else{
         var first=drawingRoom.points[0];
-        if(drawingRoom.points.length>=3&&dist(bp,first)<10/zoom){commitRoom();}
+        if(drawingRoom.points.length>=3&&dist(bp,first)<10/zoom){commitRoom(tool==='vent');}
         else drawingRoom.points.push(bp);
       }
       render();
@@ -2434,7 +2519,7 @@ function initCanvas(){
     if(draggingVertex){
       if(!draggingVertex._pushed){pushUndo();draggingVertex._pushed=true;}
       var r=findRoom(draggingVertex.roomId);
-      if(r){r.points[draggingVertex.idx]=snapPt(mouseBoard);renderRooms();renderHandles();}
+      if(r){r.points[draggingVertex.idx]=r.isVent?snapPtGrid(mouseBoard):snapPt(mouseBoard);renderRooms();renderHandles();}
       return;
     }
     if(draggingWhole){
@@ -2518,7 +2603,7 @@ function initCanvas(){
       if(rr){rr.points=rotatingRoom.origPoints.map(function(p){return rotatePoint(p,center,snappedRad);});renderRooms();renderHandles();}
       return;
     }
-    if(tool==='room'&&drawingRoom)renderDrawPreview();
+    if((tool==='room'||tool==='vent')&&drawingRoom)renderDrawPreview();
     if(tool==='wall'&&drawingWall)renderWallPreview();
     if(tool==='door')renderDoorHover();
     if(moveOp&&moveOp.stage==='destination')renderMoveHint();
@@ -2564,7 +2649,7 @@ function initCanvas(){
       if(now-lastEscAt<450)fireHotkeyAction('select');
       lastEscAt=now;
     }else if(e.key==='Enter'&&!typing){
-      if(drawingRoom&&drawingRoom.points.length>=3)commitRoom();
+      if(drawingRoom&&drawingRoom.points.length>=3)commitRoom(tool==='vent');
     }else if((e.key==='Delete'||e.key==='Backspace')&&!typing){
       if(multiSel.length){deleteMultiSel();e.preventDefault();}
       else if(selected&&selected.kind==='room'){deleteRoom(selected.id);e.preventDefault();}
