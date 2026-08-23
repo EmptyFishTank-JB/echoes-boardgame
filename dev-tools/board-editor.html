@@ -560,15 +560,26 @@ function insetPolygonMiter(points,margin,roomPts){
 // door's span, hazard continuing on the flanking portions, short jamb
 // connectors closing the frame at each end — but with no dashed lines
 // across the gap, just the vent glyph centered on it.
-function renderThickWallEdge(container,p1,p2,innerP1,innerP2,edgeDoors,color){
+function renderThickWallEdge(container,p1,p2,innerP1,innerP2,inward,edgeDoors,color){
   var edgeLen=dist(p1,p2);
   if(edgeLen<0.3)return;
   var ux=(p2.x-p1.x)/edgeLen,uy=(p2.y-p1.y)/edgeLen;
   function outerAt(t){return {x:p1.x+ux*t,y:p1.y+uy*t};}
-  function innerAt(t){var f=t/edgeLen;return {x:innerP1.x+(innerP2.x-innerP1.x)*f,y:innerP1.y+(innerP2.y-innerP1.y)*f};}
-  function hazardBand(t0,t1){
+  // The mitered corner points (innerP1/innerP2) are only guaranteed to sit
+  // at the SAME "t" as their outer counterparts at the true ends of the
+  // edge (t=0 / t=edgeLen) — at a non-right-angle corner, mitering shifts
+  // them along the offset line by a different amount at each end, so
+  // naively lerping between them for an in-between t (a door boundary)
+  // would put that inner point off to the side rather than straight in
+  // from the wall, making the jamb connector visibly slanted instead of
+  // perpendicular. Everywhere except the two true corners, use a plain
+  // perpendicular offset instead, so every door's jamb — regardless of
+  // how sharp the room's corners are — stays perpendicular to this edge.
+  function simpleInnerAt(t){var o=outerAt(t);return {x:o.x+inward.x*THICK_WALL_MARGIN,y:o.y+inward.y*THICK_WALL_MARGIN};}
+  function hazardBand(t0,t1,miterA,miterB){
     if(t1-t0<0.3)return;
-    var oA=outerAt(t0),oB=outerAt(t1),iA=innerAt(t0),iB=innerAt(t1);
+    var oA=outerAt(t0),oB=outerAt(t1);
+    var iA=miterA||simpleInnerAt(t0),iB=miterB||simpleInnerAt(t1);
     var quad=oA.x+','+oA.y+' '+oB.x+','+oB.y+' '+iB.x+','+iB.y+' '+iA.x+','+iA.y;
     container.appendChild(el('polygon',{points:quad,fill:'url(#hatchPattern)',class:'locker-hazard-ring'}));
     container.appendChild(el('line',{x1:oA.x,y1:oA.y,x2:oB.x,y2:oB.y,stroke:color,'stroke-width':3,class:'locker-side-outer'}));
@@ -582,20 +593,24 @@ function renderThickWallEdge(container,p1,p2,innerP1,innerP2,edgeDoors,color){
   segs.forEach(function(s){
     var doorSpan=s.end-s.start,openLen=doorSpan*(2/3);
     var openStart=s.start+(doorSpan-openLen)/2,openEnd=s.end-(doorSpan-openLen)/2;
-    hazardBand(cursor,openStart);
+    // cursor===0 (not a fixed first-iteration flag) so this still applies
+    // correctly if an earlier segment's band got skipped for being <0.3
+    // long (immediately adjacent doors, edge starts right at t=0, etc).
+    hazardBand(cursor,openStart,cursor===0?innerP1:null,null);
     hazardBand(openEnd,s.end);
-    var oStart=outerAt(openStart),oEnd=outerAt(openEnd),iStart=innerAt(openStart),iEnd=innerAt(openEnd);
+    var oStart=outerAt(openStart),oEnd=outerAt(openEnd),iStart=simpleInnerAt(openStart),iEnd=simpleInnerAt(openEnd);
     container.appendChild(el('line',{x1:oStart.x,y1:oStart.y,x2:iStart.x,y2:iStart.y,stroke:color,'stroke-width':2,class:'locker-door-frame'}));
     container.appendChild(el('line',{x1:oEnd.x,y1:oEnd.y,x2:iEnd.x,y2:iEnd.y,stroke:color,'stroke-width':2,class:'locker-door-frame'}));
     var midT=(openStart+openEnd)/2;
-    var iconAt={x:(outerAt(midT).x+innerAt(midT).x)/2,y:(outerAt(midT).y+innerAt(midT).y)/2};
+    var midOuter=outerAt(midT),midInner=simpleInnerAt(midT);
+    var iconAt={x:(midOuter.x+midInner.x)/2,y:(midOuter.y+midInner.y)/2};
     container.appendChild(el('rect',{x:iconAt.x-8,y:iconAt.y-6,width:16,height:12,fill:color,rx:2,class:'vent-jamb-icon'}));
     var glyph=el('text',{x:iconAt.x,y:iconAt.y+1,class:'bpoint-glyph'});
     glyph.textContent='V';
     container.appendChild(glyph);
     cursor=Math.max(cursor,s.end);
   });
-  hazardBand(cursor,edgeLen);
+  hazardBand(cursor,edgeLen,cursor===0?innerP1:null,innerP2);
 }
 // Small solid triangle at a door's midpoint, pointing along the INWARD
 // normal (into the room) — an "exit" pointer that stays inside its own
@@ -1060,7 +1075,7 @@ function renderRooms(){
     room.points.forEach(function(p1,i){
       var p2=room.points[(i+1)%room.points.length];
       var edgeDoors=doors.filter(function(d){return d.edge===i;});
-      if(room.isVent)renderThickWallEdge(g,p1,p2,ventInner[i],ventInner[(i+1)%room.points.length],edgeDoors,fam.color);
+      if(room.isVent)renderThickWallEdge(g,p1,p2,ventInner[i],ventInner[(i+1)%room.points.length],edgeInwardNormal(p1,p2,room.points),edgeDoors,fam.color);
       else renderWallLine(g,p1,p2,edgeDoors,fam.color,4,8,'room-edge',room.points);
     });
     // Interior walls — always confined to this room, so they render/move/
