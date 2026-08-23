@@ -645,6 +645,12 @@ function renderCellWalls(container,pt,color,skipSides,cornerPts){
   var inner=cornerPts?[[cornerPts[0],cornerPts[1]],[cornerPts[1],cornerPts[2]],[cornerPts[2],cornerPts[3]],[cornerPts[3],cornerPts[0]]]:lockerInnerSides(pt,innerHalf);
   var doors=pt.doors||[false,false,false,false];
   var doorMids=[];
+  // Inward-facing unit normal per side (top,right,bottom,left) — used to
+  // place a door's opening straight in from its own outer-edge midpoint,
+  // so the jamb (outer point to inner point) runs purely along the wall's
+  // normal and meets both boundary lines at a true 90°, regardless of how
+  // that side's corners were tapered/extended for neighbor-joining.
+  var SIDE_NORMALS=[{x:0,y:1},{x:-1,y:0},{x:0,y:-1},{x:1,y:0}];
   function hazardBand(oA,oB,iA,iB){
     if(dist(oA,oB)<0.3)return;
     var quad=oA.x+','+oA.y+' '+oB.x+','+oB.y+' '+iB.x+','+iB.y+' '+iA.x+','+iA.y;
@@ -660,17 +666,20 @@ function renderCellWalls(container,pt,color,skipSides,cornerPts){
     if(skipSides&&skipSides[i])return;
     var iN=inner[i];
     if(doors[i]){
-      // The opening is a fixed half a grid cell wide, centered — not the
-      // full side. Outside that gap (both ends), the hazard margin +
-      // border continue as normal (same as a non-door side), so only the
-      // middle actually reads as a doorway.
-      var outerLen=dist(o[0],o[1]),innerLen=dist(iN[0],iN[1]);
+      // The opening is a fixed half a grid cell wide, centered on the
+      // cell's own side — not on whatever this side's (possibly
+      // corner-tapered) inner segment happens to span. Its inner edge is
+      // the outer edge nudged straight in by the wall margin, so the two
+      // jambs are exactly perpendicular to both boundary lines.
+      var outerLen=dist(o[0],o[1]);
       var ux=(o[1].x-o[0].x)/outerLen,uy=(o[1].y-o[0].y)/outerLen;
-      function ptAtOuter(t){return {x:o[0].x+ux*t,y:o[0].y+uy*t};}
-      function ptAtInner(t){return {x:iN[0].x+ux*t,y:iN[0].y+uy*t};}
+      var n=SIDE_NORMALS[i];
+      var mid={x:(o[0].x+o[1].x)/2,y:(o[0].y+o[1].y)/2};
       var doorLen=GRID/2;
-      var oStart=ptAtOuter(outerLen/2-doorLen/2),oEnd=ptAtOuter(outerLen/2+doorLen/2);
-      var iStart=ptAtInner(innerLen/2-doorLen/2),iEnd=ptAtInner(innerLen/2+doorLen/2);
+      var oStart={x:mid.x-ux*(doorLen/2),y:mid.y-uy*(doorLen/2)};
+      var oEnd={x:mid.x+ux*(doorLen/2),y:mid.y+uy*(doorLen/2)};
+      var iStart={x:oStart.x+n.x*CELL_WALL_MARGIN,y:oStart.y+n.y*CELL_WALL_MARGIN};
+      var iEnd={x:oEnd.x+n.x*CELL_WALL_MARGIN,y:oEnd.y+n.y*CELL_WALL_MARGIN};
       hazardBand(o[0],oStart,iN[0],iStart);
       hazardBand(oEnd,o[1],iEnd,iN[1]);
       // Door-frame jambs: short connectors between the outer and inner
