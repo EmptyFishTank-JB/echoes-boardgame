@@ -523,10 +523,19 @@ function renderWallLine(container,p1,p2,edgeDoors,color,sw,markSize,lineClass,ro
 // belongs to the room on the other side of the wall. Only drawn for
 // doors on a room boundary edge (where inward/outward has a real
 // meaning).
+// STRIPE_INWARD_REACH is how far a one-sided stripe tick's far end sits
+// from the wall line, as a fraction of markSize (bandHalf=markSize*0.5,
+// times this factor) — shared with drawExitArrow so its base can be
+// padded a consistent distance beyond the stripes' own reach instead of
+// the two nearly touching.
+var STRIPE_INWARD_REACH=0.5*0.85;
 function drawExitArrow(container,at,inward,color,size){
   var ox=inward.x,oy=inward.y;
   var px=-oy,py=ox;
-  var tipDist=size*1.5,baseDist=size*0.55,halfW=size*0.42;
+  var stripeReach=size*STRIPE_INWARD_REACH;
+  var arrowLen=size*0.95;
+  var pad=arrowLen*0.5; // ~50% of the arrow's own length, as requested
+  var baseDist=stripeReach+pad,tipDist=baseDist+arrowLen,halfW=size*0.42;
   var tip={x:at.x+ox*tipDist,y:at.y+oy*tipDist};
   var b1={x:at.x+ox*baseDist+px*halfW,y:at.y+oy*baseDist+py*halfW};
   var b2={x:at.x+ox*baseDist-px*halfW,y:at.y+oy*baseDist-py*halfW};
@@ -537,21 +546,31 @@ function drawExitArrow(container,at,inward,color,size){
 // straddle the wall line symmetrically (old behavior, used for interior
 // walls). With `inward` given, each tick instead runs FROM the wall line
 // INTO the room only — one-sided, like caution tape hanging off the
-// threshold — and reaches the same distance instead of splitting it
-// across both sides.
+// threshold.
+//
+// The tick's along-wall lean is a FIXED canonical shape based purely on
+// whether the wall itself is more horizontal or more vertical — never on
+// ux/uy's sign (i.e. never on which direction the wall happens to have
+// been drawn, or which side of it the room sits on) — so every horizontal
+// door always leans "/" (up going left-to-right) and every vertical door
+// always leans "\" (down going left-to-right), board-wide.
 function drawDoorStripes(container,dp1,dp2,ux,uy,color,markSize,inward){
   var px=-uy,py=ux;
   var len=dist(dp1,dp2);
   var bandHalf=markSize*0.5;
   var spacing=markSize*0.55;
   var n=Math.max(2,Math.round(len/spacing));
+  var leanX,leanY;
+  if(Math.abs(ux)>=Math.abs(uy)){leanX=1;leanY=-1;}else{leanX=1;leanY=1;}
+  var leanLen=Math.sqrt(leanX*leanX+leanY*leanY);
+  leanX/=leanLen;leanY/=leanLen;
   for(var k=0;k<=n;k++){
     var t=(k/n)*len;
     var cx=dp1.x+ux*t,cy=dp1.y+uy*t;
     var a,b;
     if(inward){
       a={x:cx,y:cy};
-      b={x:cx+inward.x*bandHalf-ux*bandHalf*0.4,y:cy+inward.y*bandHalf-uy*bandHalf*0.4};
+      b={x:cx+inward.x*bandHalf*0.85+leanX*bandHalf*0.6,y:cy+inward.y*bandHalf*0.85+leanY*bandHalf*0.6};
     }else{
       a={x:cx-ux*bandHalf*0.55+px*bandHalf,y:cy-uy*bandHalf*0.55+py*bandHalf};
       b={x:cx+ux*bandHalf*0.55-px*bandHalf,y:cy+uy*bandHalf*0.55-py*bandHalf};
@@ -560,16 +579,22 @@ function drawDoorStripes(container,dp1,dp2,ux,uy,color,markSize,inward){
   }
 }
 
-// A locker occupies its whole GRID cell — its clickable/door-bearing
-// footprint (lockerSides, used by findNearestWallSegment/toggleDoorAt) is
-// the FULL cell, but the drawn locker box is a smaller square inset from
-// that boundary, with the gap between the two filled as a hazard margin
-// (same #hatchPattern used for excluded room cells elsewhere). Sides are
-// indexed 0=top,1=right,2=bottom,3=left. A side with no door draws the
-// hazard margin + a solid outer/inner border; a side with a door skips
-// the hazard entirely and draws a double dashed line instead (one dash
-// at the outer position, one at the inner) — an "opening", not a wall.
+// Lockers AND vents both occupy their whole GRID cell — their
+// clickable/door-bearing footprint (lockerSides, used by
+// findNearestWallSegment/toggleDoorAt) is the FULL cell, but the drawn
+// box is a smaller square inset from that boundary, with the gap between
+// the two filled as a hazard margin (same #hatchPattern used for
+// excluded room cells elsewhere). Sides are indexed 0=top,1=right,
+// 2=bottom,3=left. A side with no door draws the hazard margin + a solid
+// outer/inner border; a side with a door skips the hazard for the middle
+// 2/3 of the inner box's width and draws a double dashed line instead
+// (one dash at the outer position, one at the inner) with short "jamb"
+// connectors closing the frame at each end — an opening, not a wall.
+// Lockers show an X inside (furniture, not walkable); vents show nothing
+// inside (an open pathway) and instead place the small vent glyph on
+// each door's jamb.
 var LOCKER_WHITE='#eef0f5';
+function isCellPointType(t){return t==='locker'||t==='vent';}
 function lockerSides(pt){
   var half=GRID/2;
   var TL={x:pt.x-half,y:pt.y-half},TR={x:pt.x+half,y:pt.y-half},
@@ -581,12 +606,12 @@ function lockerInnerSides(pt,innerHalf){
       BR={x:pt.x+innerHalf,y:pt.y+innerHalf},BL={x:pt.x-innerHalf,y:pt.y+innerHalf};
   return [[TL,TR],[TR,BR],[BR,BL],[BL,TL]];
 }
-// A locker takes on the color of whichever room's family it's sitting
-// inside (matching how the room's own walls are drawn in that family's
-// color) — falling back to LOCKER_WHITE if it isn't inside any room.
-// The hazard-margin ring stays the universal red hatch used everywhere
-// else for excluded/non-navigable space, not family-colored.
-function lockerColor(pt){
+// A locker/vent takes on the color of whichever room's family it's
+// sitting inside (matching how the room's own walls are drawn in that
+// family's color) — falling back to LOCKER_WHITE if it isn't inside any
+// room. The hazard-margin ring stays the universal red hatch used
+// everywhere else for excluded/non-navigable space, not family-colored.
+function cellPointColor(pt){
   var room=board.rooms.filter(function(r){return pointInPolygon(pt,r.points);})[0];
   if(room){
     var fam=board.families[room.family];
@@ -594,11 +619,14 @@ function lockerColor(pt){
   }
   return LOCKER_WHITE;
 }
-function renderLockerCell(container,pt){
+// Shared box+wall+door rendering for both lockers and vents. Returns the
+// list of {i, mid} door-opening midpoints (in outer-boundary terms), so a
+// caller (vent) can drop an icon on each jamb; lockers just ignore it.
+function renderCellWalls(container,pt,color){
   var half=GRID/2,innerHalf=half*0.7;
-  var color=lockerColor(pt);
   var outer=lockerSides(pt),inner=lockerInnerSides(pt,innerHalf);
   var doors=pt.doors||[false,false,false,false];
+  var doorMids=[];
   function hazardBand(oA,oB,iA,iB){
     if(dist(oA,oB)<0.3)return;
     var quad=oA.x+','+oA.y+' '+oB.x+','+oB.y+' '+iB.x+','+iB.y+' '+iA.x+','+iA.y;
@@ -629,17 +657,42 @@ function renderLockerCell(container,pt){
       // The opening itself: double dashed line, only across the gap.
       container.appendChild(el('line',{x1:oStart.x,y1:oStart.y,x2:oEnd.x,y2:oEnd.y,stroke:color,'stroke-width':2,'stroke-dasharray':'5,4',class:'locker-door-dash'}));
       container.appendChild(el('line',{x1:iStart.x,y1:iStart.y,x2:iEnd.x,y2:iEnd.y,stroke:color,'stroke-width':2,'stroke-dasharray':'5,4',class:'locker-door-dash'}));
+      doorMids.push({i:i,mid:{x:(oStart.x+oEnd.x+iStart.x+iEnd.x)/4,y:(oStart.y+oEnd.y+iStart.y+iEnd.y)/4}});
     }else{
       hazardBand(o[0],o[1],iN[0],iN[1]);
     }
   });
+  return {inner:inner,doorMids:doorMids};
+}
+function renderLockerCell(container,pt){
+  var half=GRID/2;
+  var color=cellPointColor(pt);
+  var res=renderCellWalls(container,pt,color);
   // X confined to the inner box only — never crosses into the hazard margin.
+  var inner=res.inner;
   var TL=inner[0][0],TR=inner[1][0],BR=inner[2][0],BL=inner[3][0];
   container.appendChild(el('line',{x1:TL.x,y1:TL.y,x2:BR.x,y2:BR.y,stroke:color,'stroke-width':2,'stroke-dasharray':'6,5',class:'locker-x'}));
   container.appendChild(el('line',{x1:TR.x,y1:TR.y,x2:BL.x,y2:BL.y,stroke:color,'stroke-width':2,'stroke-dasharray':'6,5',class:'locker-x'}));
   // Invisible full-cell rect purely so selection highlight (.bpoint.selected/
   // .multi-sel .bpoint-shape) has something to outline, same as every other
   // point type.
+  container.appendChild(el('rect',{x:pt.x-half,y:pt.y-half,width:GRID,height:GRID,fill:'none',class:'bpoint-shape locker-select-outline'}));
+}
+// A vent is a literal walkable pathway (not furniture) — same thick
+// hazard-margin walls and door treatment as a locker, but nothing drawn
+// inside, and the small vent glyph (kept from the old point-marker look)
+// appears on each door's jamb instead of at the vent's own center.
+function renderVentCell(container,pt){
+  var half=GRID/2;
+  var color=cellPointColor(pt);
+  var res=renderCellWalls(container,pt,color);
+  res.doorMids.forEach(function(d){
+    var m=d.mid;
+    container.appendChild(el('rect',{x:m.x-8,y:m.y-6,width:16,height:12,fill:color,rx:2,class:'vent-jamb-icon'}));
+    var glyph=el('text',{x:m.x,y:m.y+1,class:'bpoint-glyph'});
+    glyph.textContent='V';
+    container.appendChild(glyph);
+  });
   container.appendChild(el('rect',{x:pt.x-half,y:pt.y-half,width:GRID,height:GRID,fill:'none',class:'bpoint-shape locker-select-outline'}));
 }
 
@@ -979,21 +1032,21 @@ function renderPoints(){
     var shape;
     if(pt.type==='terminal'){
       shape=el('rect',{x:pt.x-7,y:pt.y-7,width:14,height:14,fill:color,transform:'rotate(45 '+pt.x+' '+pt.y+')',class:'bpoint-shape'});
-    }else if(pt.type==='vent'){
-      shape=el('rect',{x:pt.x-8,y:pt.y-6,width:16,height:12,fill:color,rx:2,class:'bpoint-shape'});
     }else if(pt.type==='locker'){
       renderLockerCell(g,pt);
+    }else if(pt.type==='vent'){
+      renderVentCell(g,pt);
     }else{
       shape=el('circle',{cx:pt.x,cy:pt.y,r:7,fill:color,class:'bpoint-shape'});
     }
     if(shape)g.appendChild(shape);
-    if(pt.type!=='locker'){
+    if(!isCellPointType(pt.type)){
       var glyph=el('text',{x:pt.x,y:pt.y+1,class:'bpoint-glyph'});
       glyph.textContent=POINT_GLYPH[pt.type]||'?';
       g.appendChild(glyph);
     }
     if(pt.label){
-      var lblY=pt.type==='locker'?pt.y+GRID/2+14:pt.y+20;
+      var lblY=isCellPointType(pt.type)?pt.y+GRID/2+14:pt.y+20;
       var lbl=el('text',{x:pt.x,y:lblY,class:'bpoint-label'});
       lbl.textContent=pt.label;
       g.appendChild(lbl);
@@ -1382,7 +1435,7 @@ function findNearestWallSegment(pt){
     });
   });
   board.points.forEach(function(lp){
-    if(lp.type!=='locker')return;
+    if(!isCellPointType(lp.type))return;
     lockerSides(lp).forEach(function(s,i){
       var d=distToSeg(pt,s[0],s[1]);
       if(d>=bestDist)return;
@@ -2334,9 +2387,9 @@ function initCanvas(){
       render();
     }else if(tool==='point'){
       pushUndo();
-      var placeAt=pointType==='locker'?snapCellCenter(screenToBoard(e.clientX,e.clientY)):bp;
+      var placeAt=isCellPointType(pointType)?snapCellCenter(screenToBoard(e.clientX,e.clientY)):bp;
       var pt={id:uid('P'),type:pointType,x:placeAt.x,y:placeAt.y,label:'',family:pointType==='terminal'?activeFamily:null};
-      if(pointType==='locker')pt.doors=[false,false,false,false];
+      if(isCellPointType(pointType))pt.doors=[false,false,false,false];
       board.points.push(pt);
       multiSel=[];selected={kind:'point',id:pt.id};
       render();
@@ -2621,7 +2674,15 @@ function loadBoard(raw,name,cls){
       w.doors=dedupeDoors(w.doors,false);
     });
   });
-  board.points.forEach(function(p){if(!p.id)p.id=uid('P');});
+  board.points.forEach(function(p){
+    if(!p.id)p.id=uid('P');
+    // Locker/vent points occupy a full cell and can carry a door per side —
+    // older files (including old-style vent points, which used to be a
+    // plain unsnapped marker) predate that and need the array backfilled.
+    // Position is left as-is rather than snapped to a cell center, so
+    // existing points don't jump on load.
+    if(isCellPointType(p.type)&&!Array.isArray(p.doors))p.doors=[false,false,false,false];
+  });
   syncUidCounter();
   selected=null;multiSel=[];drawingRoom=null;drawingWall=null;
   undoStack=[];redoStack=[];updateUndoRedoButtons();
