@@ -430,22 +430,23 @@ function setSnap(div){
 // of where this particular wall happens to start or how long it is. Only
 // axis-aligned walls subdivide this way; a diagonal (e.g. a 45° notch
 // corner) doesn't run along either grid axis, so it stays one segment.
-function wallSegments(p1,p2){
+function wallSegments(p1,p2,step){
+  step=step||SNAP;
   var dx=p2.x-p1.x, dy=p2.y-p1.y;
   if(Math.hypot(dx,dy)<0.5)return [];
   if(Math.abs(dx)>=0.5&&Math.abs(dy)>=0.5)return [{p1:p1,p2:p2}];
   var segs=[];
   if(Math.abs(dy)<0.5){
     var lo=Math.min(p1.x,p2.x), hi=Math.max(p1.x,p2.x), dir=p2.x>=p1.x?1:-1;
-    var cuts=[lo], first=Math.ceil(lo/SNAP-1e-6)*SNAP;
-    for(var x=first;x<hi-1e-6;x+=SNAP){if(x>lo+1e-6)cuts.push(x);}
+    var cuts=[lo], first=Math.ceil(lo/step-1e-6)*step;
+    for(var x=first;x<hi-1e-6;x+=step){if(x>lo+1e-6)cuts.push(x);}
     cuts.push(hi);
     if(dir<0)cuts.reverse();
     for(var i=0;i<cuts.length-1;i++)segs.push({p1:{x:cuts[i],y:p1.y},p2:{x:cuts[i+1],y:p1.y}});
   }else{
     var loY=Math.min(p1.y,p2.y), hiY=Math.max(p1.y,p2.y), dirV=p2.y>=p1.y?1:-1;
-    var cutsY=[loY], firstY=Math.ceil(loY/SNAP-1e-6)*SNAP;
-    for(var y=firstY;y<hiY-1e-6;y+=SNAP){if(y>loY+1e-6)cutsY.push(y);}
+    var cutsY=[loY], firstY=Math.ceil(loY/step-1e-6)*step;
+    for(var y=firstY;y<hiY-1e-6;y+=step){if(y>loY+1e-6)cutsY.push(y);}
     cutsY.push(hiY);
     if(dirV<0)cutsY.reverse();
     for(var j=0;j<cutsY.length-1;j++)segs.push({p1:{x:p1.x,y:cutsY[j]},p2:{x:p1.x,y:cutsY[j+1]}});
@@ -846,6 +847,14 @@ function screenToBoard(cx,cy){
   return {x:(cx-rect.left-pan.x)/zoom, y:(cy-rect.top-pan.y)/zoom};
 }
 function snapPt(p){return {x:Math.round(p.x/SNAP)*SNAP, y:Math.round(p.y/SNAP)*SNAP};}
+// Vent shapes always land on whole GRID lines, regardless of the current
+// WHOLE/HALF/QUARTER snap setting — so every vent wall length (and every
+// door placed on it, via findNearestWallSegment's GRID step) is a clean
+// multiple of one GRID cell, the same fixed unit a locker's door slot
+// uses. This is what keeps every vent door's near-corner distance a
+// whole GRID multiple too, instead of landing on an odd fraction that
+// produces an awkward sliver at the join.
+function snapPtGrid(p){return {x:Math.round(p.x/GRID)*GRID, y:Math.round(p.y/GRID)*GRID};}
 // Lockers occupy a whole grid cell, so they snap to the CELL CENTER (the
 // midpoint of the nearest GRID square) rather than to a grid line/vertex
 // like every other point type.
@@ -1231,7 +1240,7 @@ function renderHandles(){
     mh.addEventListener('mousedown',function(e){
       if(e.button!==0)return;
       e.stopPropagation();
-      insertVertexOnEdge(room.id,i,snapPt(mid));
+      insertVertexOnEdge(room.id,i,room.isVent?snapPtGrid(mid):snapPt(mid));
       draggingVertex={roomId:room.id,idx:i+1,_pushed:true}; // insertVertexOnEdge already pushed undo for this gesture
       render();
     });
@@ -1528,9 +1537,14 @@ function toggleDoorAt(target){
 function findNearestWallSegment(pt){
   var best=null,bestDist=GRID*0.85;
   board.rooms.forEach(function(room){
+    // Vent walls always use the whole GRID step for door sizing/position —
+    // never the current SNAP setting — so a vent door is always exactly
+    // one GRID cell wide, the same fixed unit a locker's door slot uses,
+    // regardless of whether HALF/QUARTER snap happens to be active.
+    var step=room.isVent?GRID:undefined;
     room.points.forEach(function(p1,i){
       var p2=room.points[(i+1)%room.points.length];
-      var segs=wallSegments(p1,p2);
+      var segs=wallSegments(p1,p2,step);
       segs.forEach(function(seg){
         var d=distToSeg(pt,seg.p1,seg.p2);
         if(d>=bestDist)return;
@@ -2452,7 +2466,8 @@ function initCanvas(){
   });
 
   wrap.addEventListener('mousedown',function(e){
-    var bp=snapPt(screenToBoard(e.clientX,e.clientY));
+    var rawBoard=screenToBoard(e.clientX,e.clientY);
+    var bp=tool==='vent'?snapPtGrid(rawBoard):snapPt(rawBoard);
     if(e.button===1){
       var now=Date.now();
       if(now-lastMidClick<400){resetView();lastMidClick=0;return;}
@@ -2542,7 +2557,7 @@ function initCanvas(){
     if(draggingVertex){
       if(!draggingVertex._pushed){pushUndo();draggingVertex._pushed=true;}
       var r=findRoom(draggingVertex.roomId);
-      if(r){r.points[draggingVertex.idx]=snapPt(mouseBoard);renderRooms();renderHandles();}
+      if(r){r.points[draggingVertex.idx]=r.isVent?snapPtGrid(mouseBoard):snapPt(mouseBoard);renderRooms();renderHandles();}
       return;
     }
     if(draggingWhole){
