@@ -202,6 +202,7 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
   <button class="tbtn on" id="btn-select" onclick="setTool('select')">&#9654; SELECT</button>
   <button class="tbtn" id="btn-room" onclick="setTool('room')">&#9635; ROOM</button>
   <button class="tbtn" id="btn-vent" onclick="setTool('vent')" title="Draw a vent passageway — same click-to-place-vertices workflow as ROOM. Always GRID-aligned; each covered grid cell gets its own locker-style walls/doors.">&#9635; VENT</button>
+  <button class="tbtn" id="btn-base" onclick="setTool('base')" title="Draw a board base layer (holder) area — same click-to-place-vertices workflow as ROOM, using the current WHOLE/HALF/QUARTER snap. No walls or doors of its own, just a boundary shape with the base-layer infill.">&#9635; BASE</button>
   <button class="tbtn" id="btn-wall" onclick="setTool('wall')" title="Interior wall — both ends must land inside the same room">&#9552; WALL</button>
   <button class="tbtn" id="btn-door" onclick="setTool('door')">&#8862; DOOR</button>
   <div class="tsep"></div>
@@ -222,7 +223,7 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
   <button class="tbtn" onclick="zoomBy(1/1.2)">&minus;</button>
   <button class="tbtn" onclick="resetView()">FIT</button>
   <div class="tsep"></div>
-  <button class="tbtn on" id="btn-spaces" onclick="toggleSpaces()">&#9638; SPACES</button>
+  <button class="tbtn on" id="btn-spaces" onclick="toggleSpaces()">&#9638; GRID</button>
   <button class="tbtn on" id="btn-info" onclick="toggleRoomInfo()" title="Room name/family/space-count text">&#9432; INFO</button>
   <button class="tbtn on" id="btn-attach" onclick="toggleAttachPoints()" title="Points inside a room move/copy/mirror/duplicate/rotate with it">&#128279; ATTACH</button>
   <button class="tbtn on" id="btn-linkdoors" onclick="toggleLinkDoors()" title="A door on a wall shared with another room also opens that room's side">&#128682; LINK DOORS</button>
@@ -238,7 +239,7 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
       <svg id="board-svg" xmlns="http://www.w3.org/2000/svg" width="4000" height="3000">
         <defs>
           <pattern id="gridPattern" width="40" height="40" patternUnits="userSpaceOnUse">
-            <circle cx="0" cy="0" r="1.4" fill="rgba(79,195,247,0.22)"/>
+            <circle cx="0" cy="0" r="1.4" fill="rgba(79,195,247,0.4)"/>
           </pattern>
           <pattern id="hatchPattern" width="8" height="8" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">
             <line x1="0" y1="0" x2="0" y2="8" stroke="rgba(224,80,80,0.55)" stroke-width="3"/>
@@ -325,8 +326,7 @@ var DEFAULT_FAMILIES = {
   security:      {label:'Security',                    color:'#c0504d', type:'tile'},
   garage:        {label:'Garage / Workshop',            color:'#a0785a', type:'tile'},
   communications:{label:'Communications',               color:'#c47fc4', type:'tile'},
-  dormitories:   {label:'Dormitories',                  color:'#8892a6', type:'tile'},
-  board_base_layer:{label:'Board Base Layer (Holder)',  color:'#2b3038', type:'void'}
+  dormitories:   {label:'Dormitories',                  color:'#8892a6', type:'tile'}
 };
 function defaultBoard(){
   return {
@@ -351,6 +351,7 @@ var attachPoints=true;              // toggle: points geometrically inside a roo
 var linkSharedDoors=true;           // toggle: a door on a wall shared with another room also opens that room's side (on by default)
 var isPanning=false, panStart=null;
 var draggingVertex=null;            // {roomId, idx}
+var draggingWallVertex=null;        // {roomId, wallId, which:'p1'|'p2', origDoors}
 var draggingWhole=null;             // {kind, id, orig:[{x,y}...] or {x,y}, mouse0}
 var draggingBoundaryHandle=null;    // {dx,dy, orig:{x,y,w,h}} — dx/dy = -1/0/1 each axis (0 = edge handle, that axis fixed)
 var rotatingRoom=null;              // {roomId, center, origPoints, startAngle}
@@ -558,6 +559,7 @@ function ventRoomColor(room){
 // locker.
 function roomDisplayFamily(room){
   if(room.isVent)return {color:ventRoomColor(room),label:'Vent',type:'tile'};
+  if(room.isBaseLayer)return {color:'#2b3038',label:'Board Base Layer',type:'void'};
   return board.families[room.family]||{color:'#4fc3f7',label:room.family};
 }
 // One hazard-margin wall band: the striped quad between a boundary's outer
@@ -578,7 +580,12 @@ function drawHazardBand(container,oA,oB,iA,iB,color){
 // striped hazard margin.
 function drawPlainBand(container,oA,oB,iA,iB,color){
   if(dist(oA,oB)<0.3)return;
-  container.appendChild(el('line',{x1:oA.x,y1:oA.y,x2:oB.x,y2:oB.y,stroke:color,'stroke-width':3,class:'locker-side-outer'}));
+  // The outer line stays thin (not the vent/locker hazard wall's heavier
+  // 3px) — it sits exactly on the shared boundary between two rooms, so a
+  // thin line lets each room's own colored INNER line (offset into its
+  // own interior, on its own side) read clearly instead of the outer
+  // line visually dominating both rooms' shared edge.
+  container.appendChild(el('line',{x1:oA.x,y1:oA.y,x2:oB.x,y2:oB.y,stroke:color,'stroke-width':2,class:'locker-side-outer'}));
   container.appendChild(el('line',{x1:iA.x,y1:iA.y,x2:iB.x,y2:iB.y,stroke:color,'stroke-width':2,class:'locker-side-inner'}));
 }
 function drawWallBand(container,oA,oB,iA,iB,color,hazard){
@@ -709,6 +716,43 @@ function screenToBoard(cx,cy){
   return {x:(cx-rect.left-pan.x)/zoom, y:(cy-rect.top-pan.y)/zoom};
 }
 function snapPt(p){return {x:Math.round(p.x/SNAP)*SNAP, y:Math.round(p.y/SNAP)*SNAP};}
+// An interior wall's endpoint needs to land exactly on whatever room
+// boundary it's touching, but many existing rooms were drawn under a
+// finer HALF/QUARTER snap and don't sit on the current (now WHOLE-
+// default) grid at all — a plain snapPt() click can miss such an edge by
+// more than pointInOrOnPolygon's tolerance, making the wall look like it
+// won't attach even though the user is clicking right on the line. Try
+// snapping straight onto the nearest room edge within reach first (a true
+// "click near this line, land on it" like most CAD tools); only fall back
+// to the plain grid snap when nothing is close enough.
+function snapPtToRoomEdges(raw,maxDist){
+  var best=null,bestDist=maxDist;
+  board.rooms.forEach(function(r){
+    r.points.forEach(function(p1,i){
+      var p2=r.points[(i+1)%r.points.length];
+      var len=dist(p1,p2);
+      if(len<0.5)return;
+      var d=distToSeg(raw,p1,p2);
+      if(d>=bestDist)return;
+      var t=Math.max(0,Math.min(1,((raw.x-p1.x)*(p2.x-p1.x)+(raw.y-p1.y)*(p2.y-p1.y))/(len*len)));
+      best={x:p1.x+t*(p2.x-p1.x),y:p1.y+t*(p2.y-p1.y)};
+      bestDist=d;
+    });
+    (r.walls||[]).forEach(function(w){
+      var len=dist(w.p1,w.p2);
+      if(len<0.5)return;
+      var d=distToSeg(raw,w.p1,w.p2);
+      if(d>=bestDist)return;
+      var t=Math.max(0,Math.min(1,((raw.x-w.p1.x)*(w.p2.x-w.p1.x)+(raw.y-w.p1.y)*(w.p2.y-w.p1.y))/(len*len)));
+      best={x:w.p1.x+t*(w.p2.x-w.p1.x),y:w.p1.y+t*(w.p2.y-w.p1.y)};
+      bestDist=d;
+    });
+  });
+  return best;
+}
+function snapPtForWall(raw){
+  return snapPtToRoomEdges(raw,Math.max(SNAP,10))||snapPt(raw);
+}
 // Vent shapes always land on whole GRID lines, independent of the active
 // WHOLE/HALF/QUARTER snap setting — every vent wall is a clean multiple of
 // one GRID cell, whether it runs axis-aligned or diagonally at 45° (equal
@@ -753,16 +797,16 @@ function hexToRgba(hex,a){
 // Only these buttons represent the exclusive "current tool" — SPACES/INFO/
 // ATTACH/SNAP are independent toggles and must keep their own 'on' state
 // across a tool switch, not get wiped by it.
-var TOOL_BTN_IDS=['btn-select','btn-room','btn-wall','btn-door','btn-terminal','btn-vent','btn-locker','btn-other'];
+var TOOL_BTN_IDS=['btn-select','btn-room','btn-wall','btn-door','btn-terminal','btn-vent','btn-base','btn-locker','btn-other'];
 function clearToolBtns(){TOOL_BTN_IDS.forEach(function(id){var b=document.getElementById(id);if(b)b.classList.remove('on');});}
 function setTool(t){
   tool=t;
   drawingRoom=null;
   drawingWall=null;
   clearToolBtns();
-  var idMap={select:'btn-select',room:'btn-room',vent:'btn-vent',wall:'btn-wall',door:'btn-door'};
+  var idMap={select:'btn-select',room:'btn-room',vent:'btn-vent',base:'btn-base',wall:'btn-wall',door:'btn-door'};
   if(idMap[t])document.getElementById(idMap[t]).classList.add('on');
-  document.getElementById('canvas-wrap').className=t!=='select'?'tool-'+(t==='vent'?'room':t):'';
+  document.getElementById('canvas-wrap').className=t!=='select'?'tool-'+(t==='vent'||t==='base'?'room':t):'';
   render();
 }
 function setPointTool(pt){
@@ -1030,6 +1074,85 @@ function normalToSide(n){
   if(n.y<-0.5)return 2;
   return 3;
 }
+// A door's {cx,cy,side} is an ABSOLUTE grid-cell reference — it doesn't
+// move on its own when a room's points do. Every place that translates,
+// rotates, or mirrors a room's geometry needs to carry its doors along by
+// hand: capture each door's actual world-space position BEFORE the
+// transform (this pair), apply the exact same point transform used on the
+// room's own points to that captured position, then re-derive a fresh
+// {cx,cy,side} against the room's NEW shape (nearestCellOnRoom) — the
+// general "look up which cell a point falls in" also used by
+// findNearestWallSegment, just scoped to one room instead of the whole
+// board. Skipping this step is what left doors behind (or as ghosts that
+// reappear when a room returns to its old spot) when a room moved.
+function doorPhysicalCenter(door){
+  var cellCenter={x:door.cx*GRID+GRID/2,y:door.cy*GRID+GRID/2};
+  var inward=VENT_AXIS_NORMALS[door.side];
+  return {x:cellCenter.x-inward.x*(GRID/2),y:cellCenter.y-inward.y*(GRID/2)};
+}
+function nearestCellOnRoom(room,pt){
+  var pts=room.points,rn=pts.length;
+  var best=null,bestDist=GRID*0.85;
+  for(var ei=0;ei<rn;ei++){
+    var ep1=pts[ei],ep2=pts[(ei+1)%rn];
+    var elen=dist(ep1,ep2);
+    if(elen<0.5)continue;
+    var eux=(ep2.x-ep1.x)/elen,euy=(ep2.y-ep1.y)/elen;
+    var eAxis=Math.abs(eux)<1e-6||Math.abs(euy)<1e-6;
+    var ek=Math.round(elen/GRID);
+    if(!eAxis||Math.abs(elen-ek*GRID)>=0.5||ek<1)continue;
+    var eNormal=edgeInwardNormal(ep1,ep2,pts);
+    var eSide=normalToSide(eNormal);
+    for(var ej=0;ej<ek;ej++){
+      var s0={x:ep1.x+eux*ej*GRID,y:ep1.y+euy*ej*GRID};
+      var s1={x:ep1.x+eux*(ej+1)*GRID,y:ep1.y+euy*(ej+1)*GRID};
+      var segMid={x:(s0.x+s1.x)/2,y:(s0.y+s1.y)/2};
+      var d=dist(pt,segMid);
+      if(d>=bestDist)continue;
+      var cellCenter={x:segMid.x+eNormal.x*(GRID/2),y:segMid.y+eNormal.y*(GRID/2)};
+      best={cx:Math.floor(cellCenter.x/GRID),cy:Math.floor(cellCenter.y/GRID),side:eSide};
+      bestDist=d;
+    }
+  }
+  return best;
+}
+// Same idea for an interior wall door, keyed by cell index instead of
+// cx/cy/side.
+function wallDoorPhysicalCenter(wall,door){
+  var len=dist(wall.p1,wall.p2);
+  var ux=(wall.p2.x-wall.p1.x)/len,uy=(wall.p2.y-wall.p1.y)/len;
+  return {x:wall.p1.x+ux*(door.i+0.5)*GRID,y:wall.p1.y+uy*(door.i+0.5)*GRID};
+}
+function nearestCellOnWall(wall,pt){
+  var len=dist(wall.p1,wall.p2);
+  if(len<0.5)return null;
+  var ux=(wall.p2.x-wall.p1.x)/len,uy=(wall.p2.y-wall.p1.y)/len;
+  var axisAligned=Math.abs(ux)<1e-6||Math.abs(uy)<1e-6;
+  var k=Math.round(len/GRID);
+  if(!axisAligned||Math.abs(len-k*GRID)>=0.5||k<1)return null;
+  var t=(pt.x-wall.p1.x)*ux+(pt.y-wall.p1.y)*uy;
+  var idx=Math.min(Math.max(0,Math.floor(t/GRID)),k-1);
+  return {i:idx};
+}
+// Captures every door on a room (its own boundary doors plus each
+// interior wall's) as world-space points, BEFORE any point transform is
+// applied — pass the result to reapplyRoomDoors afterward.
+function captureRoomDoors(room){
+  return {
+    doors:(room.doors||[]).map(doorPhysicalCenter),
+    wallDoors:(room.walls||[]).map(function(w){return (w.doors||[]).map(function(d){return wallDoorPhysicalCenter(w,d);});})
+  };
+}
+// Re-derives a room's doors against its NEW shape, given the centers
+// captured beforehand and the same point-transform fn used on the room's
+// own points/walls (room.walls must already be transformed by the time
+// this runs, since nearestCellOnWall reads each wall's current p1/p2).
+function reapplyRoomDoors(room,captured,fn){
+  room.doors=captured.doors.map(function(c){return nearestCellOnRoom(room,fn(c));}).filter(Boolean);
+  (room.walls||[]).forEach(function(w,i){
+    w.doors=(captured.wallDoors[i]||[]).map(function(c){return nearestCellOnWall(w,fn(c));}).filter(Boolean);
+  });
+}
 // A door's opening — the fixed 2/8-to-6/8-of-the-cell rectangle, with
 // jambs running purely perpendicular to the wall — is always the same
 // shape, independent of anything beyond p1/p2: mid-run, at a 90° corner,
@@ -1148,15 +1271,32 @@ function renderWallPolygon(g,room,color,opts){
     });
   }
 }
+// Whether an interior wall's endpoint lands on the room's own boundary or
+// on another interior wall of the same room — if so, it reads as a real
+// join (the thing it's touching already closes that side off) and needs
+// no cap of its own; otherwise it's a genuinely free end and the two
+// parallel boundary lines need a perpendicular cap connecting them, or
+// they'd just stop, reading as an unfinished open double line.
+function wallEndIsJoined(room,wall,pt){
+  for(var i=0;i<room.points.length;i++){
+    var p1=room.points[i],p2=room.points[(i+1)%room.points.length];
+    if(distToSeg(pt,p1,p2)<1)return true;
+  }
+  return (room.walls||[]).some(function(w){
+    if(w===wall)return false;
+    return distToSeg(pt,w.p1,w.p2)<1||dist(pt,w.p1)<1||dist(pt,w.p2)<1;
+  });
+}
 // A room's independently-drawn interior wall is CENTERED on its own
 // stored p1/p2 (unlike the room's own boundary, which is flush to the
 // polygon edge) — its two boundary lines sit an equal CELL_WALL_MARGIN on
 // either side of that centerline, since there's no natural "outer" face
 // to flush against. A standalone 2-point segment has no neighbor to miter
-// with, so no polygonInnerCorners pass is needed — both ends are just a
-// flat cap. Doors are grid-cell indexed along the wall from its own p1
-// (see migrateWallDoorToCell), fixed ROOM_DOOR_WIDTH wide, no hazard
-// striping, no dash/arrow (a centered wall has no single "inward" side).
+// with, so no polygonInnerCorners pass is needed — a free end just gets a
+// perpendicular cap instead (see wallEndIsJoined). Doors are grid-cell
+// indexed along the wall from its own p1 (see migrateWallDoorToCell),
+// fixed ROOM_DOOR_WIDTH wide, no hazard striping, no dash/arrow (a
+// centered wall has no single "inward" side).
 function renderInteriorWall(g,room,wall,color){
   var p1=wall.p1,p2=wall.p2;
   var len=dist(p1,p2);
@@ -1169,6 +1309,12 @@ function renderInteriorWall(g,room,wall,color){
     if(t1-t0<0.3)return;
     g.appendChild(el('line',{x1:sideAt(t0,1).x,y1:sideAt(t0,1).y,x2:sideAt(t1,1).x,y2:sideAt(t1,1).y,stroke:color,'stroke-width':2,class:'locker-side-outer'}));
     g.appendChild(el('line',{x1:sideAt(t0,-1).x,y1:sideAt(t0,-1).y,x2:sideAt(t1,-1).x,y2:sideAt(t1,-1).y,stroke:color,'stroke-width':2,class:'locker-side-inner'}));
+  }
+  if(!wallEndIsJoined(room,wall,p1)){
+    g.appendChild(el('line',{x1:sideAt(0,1).x,y1:sideAt(0,1).y,x2:sideAt(0,-1).x,y2:sideAt(0,-1).y,stroke:color,'stroke-width':2,class:'locker-door-frame'}));
+  }
+  if(!wallEndIsJoined(room,wall,p2)){
+    g.appendChild(el('line',{x1:sideAt(len,1).x,y1:sideAt(len,1).y,x2:sideAt(len,-1).x,y2:sideAt(len,-1).y,stroke:color,'stroke-width':2,class:'locker-door-frame'}));
   }
   var k=Math.round(len/GRID);
   var gridMultiple=axisAligned&&Math.abs(len-k*GRID)<0.5&&k>=1;
@@ -1232,20 +1378,25 @@ function renderRooms(){
       g.appendChild(gridG);
     }
 
-    var wallOpts=room.isVent?
-      {hazard:true,doorWidth:GRID/2,doorStyle:'dash',showIcon:true}:
-      {hazard:false,doorWidth:ROOM_DOOR_WIDTH,doorStyle:'arrow',showIcon:false};
-    renderWallPolygon(g,room,fam.color,wallOpts);
-    // Interior walls — always confined to this room, so they render/move/
-    // transform with it.
-    (room.walls||[]).forEach(function(w){
-      var isWallSel=selected&&selected.kind==='wall'&&selected.roomId===room.id&&selected.id===w.id;
-      var wg=el('g',{'data-wall-id':w.id,'data-room-id':room.id,class:'iwall'+(isWallSel?' selected':'')});
-      renderInteriorWall(wg,room,w,fam.color);
-      wg.addEventListener('mousedown',function(e){onWallMouseDown(e,room.id,w.id);});
-      wg.addEventListener('contextmenu',function(e){onWallContextMenu(e,room.id,w.id);});
-      g.appendChild(wg);
-    });
+    if(!room.isBaseLayer){
+      // A base layer is only a boundary shape (the void infill above
+      // already draws it) — no walls, doors, or interior walls of its
+      // own.
+      var wallOpts=room.isVent?
+        {hazard:true,doorWidth:GRID/2,doorStyle:'dash',showIcon:true}:
+        {hazard:false,doorWidth:ROOM_DOOR_WIDTH,doorStyle:'arrow',showIcon:false};
+      renderWallPolygon(g,room,fam.color,wallOpts);
+      // Interior walls — always confined to this room, so they render/move/
+      // transform with it.
+      (room.walls||[]).forEach(function(w){
+        var isWallSel=selected&&selected.kind==='wall'&&selected.roomId===room.id&&selected.id===w.id;
+        var wg=el('g',{'data-wall-id':w.id,'data-room-id':room.id,class:'iwall'+(isWallSel?' selected':'')});
+        renderInteriorWall(wg,room,w,fam.color);
+        wg.addEventListener('mousedown',function(e){onWallMouseDown(e,room.id,w.id);});
+        wg.addEventListener('contextmenu',function(e){onWallContextMenu(e,room.id,w.id);});
+        g.appendChild(wg);
+      });
+    }
 
     if(showRoomInfo){
       var c=centroid(room.points);
@@ -1317,7 +1468,7 @@ function renderWallPreview(){
   layer.innerHTML='';
   if(!drawingWall)return;
   var p1=drawingWall.p1;
-  var snappedMouse=snapPt(mouseBoard);
+  var snappedMouse=snapPtForWall(mouseBoard);
   var inSameRoom=board.rooms.some(function(r){return r.id===drawingWall.roomId&&pointInOrOnPolygon(snappedMouse,r.points);});
   layer.appendChild(el('line',{x1:p1.x,y1:p1.y,x2:snappedMouse.x,y2:snappedMouse.y,class:inSameRoom?'draw-rubber':'draw-rubber-invalid'}));
   layer.appendChild(el('circle',{cx:p1.x,cy:p1.y,r:4,class:'draw-vtx'}));
@@ -1326,6 +1477,22 @@ function renderWallPreview(){
 function renderHandles(){
   var layer=document.getElementById('handles-layer');
   layer.innerHTML='';
+  if(selected&&selected.kind==='wall'){
+    var wRoom2=findRoom(selected.roomId),w2=wRoom2&&findWall(selected.roomId,selected.id);
+    if(!w2)return;
+    ['p1','p2'].forEach(function(which){
+      var p=w2[which];
+      var h=el('circle',{cx:p.x,cy:p.y,r:5,class:'vtx-handle'});
+      h.addEventListener('mousedown',function(e){
+        if(e.button!==0)return;
+        e.stopPropagation();
+        draggingWallVertex={roomId:selected.roomId,wallId:selected.id,which:which,
+          origDoors:(w2.doors||[]).map(function(d){return wallDoorPhysicalCenter(w2,d);})};
+      });
+      layer.appendChild(h);
+    });
+    return;
+  }
   if(!selected||selected.kind!=='room')return;
   var room=board.rooms.filter(function(r){return r.id===selected.id;})[0];
   if(!room)return;
@@ -1461,9 +1628,12 @@ function renderProps(){
   if(selected&&selected.kind==='room'){
     var room=board.rooms.filter(function(r){return r.id===selected.id;})[0];
     if(room){
-      html+='<div class="pp-h">'+(room.isVent?'VENT':'ROOM')+'</div>';
+      var roomKindLabel=room.isVent?'VENT':(room.isBaseLayer?'BASE LAYER':'ROOM');
+      html+='<div class="pp-h">'+roomKindLabel+'</div>';
       if(room.isVent){
         html+='<div class="pp-empty">Vents aren\'t part of a user-defined family — closer to a locker, taking its color from whatever room it physically sits inside.</div>';
+      }else if(room.isBaseLayer){
+        html+='<div class="pp-empty">The board base/holder layer isn\'t part of a user-defined family either — just a boundary shape with the void infill. No walls or doors of its own.</div>';
       }else{
         html+='<div class="pp-row"><label>FAMILY</label><select onchange="setRoomFamily(\''+room.id+'\',this.value)">'+
           Object.keys(board.families).map(function(k){return '<option value="'+k+'"'+(k===room.family?' selected':'')+'>'+esc(board.families[k].label)+'</option>';}).join('')+
@@ -1472,7 +1642,7 @@ function renderProps(){
       html+='<div class="pp-row"><label>LABEL (optional)</label><input type="text" value="'+esc(room.label||'')+'" onfocus="pushUndo()" oninput="setRoomLabel(\''+room.id+'\',this.value)"></div>';
       html+='<div class="pp-row"><label>NOTES</label><textarea onfocus="pushUndo()" oninput="setRoomNotes(\''+room.id+'\',this.value)">'+esc(room.notes||'')+'</textarea></div>';
       var spCount=room._spaceCount||0, spExcl=room._spaceInvalid||0;
-      html+='<div class="pp-empty"><strong style="color:var(--blue);">'+spCount+' traversable space'+(spCount===1?'':'s')+'</strong>'+(spExcl?' ('+spExcl+' cell'+(spExcl===1?'':'s')+' excluded — notched/partial)':'')+'<br>'+room.points.length+' vertices &middot; '+(room.doors||[]).length+' door(s)<br>Drag a corner to reshape, drag a mid-edge dot to add a vertex, double-click a corner to remove it. DOOR tool toggles an edge.</div>';
+      html+='<div class="pp-empty"><strong style="color:var(--blue);">'+spCount+' traversable space'+(spCount===1?'':'s')+'</strong>'+(spExcl?' ('+spExcl+' cell'+(spExcl===1?'':'s')+' excluded — notched/partial)':'')+'<br>'+room.points.length+' vertices'+(room.isBaseLayer?'':' &middot; '+(room.doors||[]).length+' door(s)')+'<br>Drag a corner to reshape, drag a mid-edge dot to add a vertex, double-click a corner to remove it.'+(room.isBaseLayer?'':' DOOR tool toggles an edge.')+'</div>';
       html+='<button class="pp-del" onclick="deleteRoom(\''+room.id+'\')">DELETE ROOM</button>';
     }
   }else if(selected&&selected.kind==='point'){
@@ -1503,7 +1673,7 @@ function renderProps(){
     var wRoom=findRoom(selected.roomId), w=wRoom&&findWall(selected.roomId,selected.id);
     if(w){
       html+='<div class="pp-h">INTERIOR WALL</div>';
-      html+='<div class="pp-empty">In room <strong style="color:var(--blue);">'+esc(wRoom.label||wRoom.id)+'</strong><br>'+(w.doors&&w.doors.length?w.doors.length+' door(s) on it':'No doors — use the DOOR tool to add one')+'<br><br>Fixed to this room; moves, duplicates, and mirrors with it.</div>';
+      html+='<div class="pp-empty">In room <strong style="color:var(--blue);">'+esc(wRoom.label||wRoom.id)+'</strong><br>'+(w.doors&&w.doors.length?w.doors.length+' door(s) on it':'No doors — use the DOOR tool to add one')+'<br><br>Moves, duplicates, and mirrors with its room. Drag either endpoint grip to reshape — it snaps onto a nearby room boundary or wall so ends join cleanly.</div>';
       html+='<button class="pp-del" onclick="deleteWall(\''+selected.roomId+'\',\''+selected.id+'\')">DELETE WALL</button>';
     }
   }else{
@@ -1572,13 +1742,17 @@ function addFamily(){
 }
 
 // ── MUTATIONS ─────────────────────────────────────────────────────────────────
-function commitRoom(isVent){
+// kind is the tool that drew this room: 'room' (a normal, family-owned
+// room), 'vent' (no family — see roomDisplayFamily, closer to a locker),
+// or 'base' (no family either — the board base/holder layer, no walls or
+// doors of its own, just a boundary shape with the void infill).
+function commitRoom(kind){
   if(!drawingRoom||drawingRoom.points.length<3){drawingRoom=null;render();return;}
   pushUndo();
-  // A vent has no family of its own — see roomDisplayFamily — it's closer
-  // to a locker than a user-defined room type.
-  var room={id:uid('R'),family:isVent?null:activeFamily,label:'',notes:'',points:drawingRoom.points,doors:[],walls:[]};
-  if(isVent)room.isVent=true;
+  var hasFamily=kind==='room';
+  var room={id:uid('R'),family:hasFamily?activeFamily:null,label:'',notes:'',points:drawingRoom.points,doors:[],walls:[]};
+  if(kind==='vent')room.isVent=true;
+  if(kind==='base')room.isBaseLayer=true;
   board.rooms.push(room);
   drawingRoom=null;
   render();
@@ -1731,6 +1905,9 @@ function renderDoorHover(){
 function deleteRoom(id){
   pushUndo();
   board.rooms=board.rooms.filter(function(r){return r.id!==id;});
+  // Points this room owned go back to unowned — eligible to be picked up
+  // by whichever room they're actually inside next time one moves.
+  board.points.forEach(function(p){if(p.ownerRoomId===id)delete p.ownerRoomId;});
   if(selected&&selected.id===id)selected=null;
   render();
 }
@@ -1752,15 +1929,18 @@ function duplicateRoom(id){
   var r=findRoom(id);if(!r)return;
   pushUndo();
   var d={x:GRID,y:GRID};
-  var attached=attachPoints?board.points.filter(function(p){return pointInPolygon(p,r.points);}):[];
+  var fn=function(p){return {x:p.x+d.x,y:p.y+d.y};};
+  var attached=ownedPointsFor(r);
+  var doorCapture=captureRoomDoors(r);
   var copy=JSON.parse(JSON.stringify(r));
   copy.id=uid('R');
-  copy.points=r.points.map(function(p){return {x:p.x+d.x,y:p.y+d.y};});
-  (copy.walls||[]).forEach(function(w){w.id=uid('W');w.p1={x:w.p1.x+d.x,y:w.p1.y+d.y};w.p2={x:w.p2.x+d.x,y:w.p2.y+d.y};});
+  copy.points=r.points.map(fn);
+  (copy.walls||[]).forEach(function(w){w.id=uid('W');w.p1=fn(w.p1);w.p2=fn(w.p2);});
+  reapplyRoomDoors(copy,doorCapture,fn);
   board.rooms.push(copy);
   attached.forEach(function(p){
     var pc=JSON.parse(JSON.stringify(p));
-    pc.id=uid('P');pc.x=p.x+d.x;pc.y=p.y+d.y;
+    pc.id=uid('P');pc.x=p.x+d.x;pc.y=p.y+d.y;pc.ownerRoomId=copy.id;
     board.points.push(pc);
   });
   multiSel=[];selected={kind:'room',id:copy.id};
@@ -1775,21 +1955,44 @@ function duplicatePoint(id){
   multiSel=[];selected={kind:'point',id:copy.id};
   render();
 }
+// The points ATTACH should carry along with this room: once a point is
+// established as this room's OWN (ownerRoomId set, either already or
+// newly — a point currently inside exactly one room becomes that room's
+// the first time this runs), only ITS owner room's transforms move it.
+// A different room sliding over top of / ending up on top of it — even
+// if that leaves it geometrically inside the other room's new footprint —
+// doesn't adopt it; ownership only transfers by an explicit re-placement
+// (see setPointOwnerIfUnique), not by proximity.
+function ownedPointsFor(room){
+  if(!attachPoints)return [];
+  return board.points.filter(function(p){
+    if(p.ownerRoomId===room.id)return true;
+    if(p.ownerRoomId)return false;
+    var containing=board.rooms.filter(function(r){return pointInPolygon(p,r.points);});
+    if(containing.length===1&&containing[0].id===room.id){p.ownerRoomId=room.id;return true;}
+    return false;
+  });
+}
 // Applies fn(p)->{x,y} to a room's own points and interior walls (walls are
 // always structurally part of the room, so they transform with it
 // unconditionally); when the ATTACH toggle is on, also applies it to any
-// point geometrically inside the room's ORIGINAL polygon (captured before
-// the room moves, so a mid-transform point doesn't fall in or out of the
-// set as the shape passes over it).
+// point OWNED by this room (see ownedPointsFor — captured before the room
+// moves, so a mid-transform point doesn't fall in or out of the set as
+// the shape passes over it). Also carries the room's own doors and each
+// interior wall's doors along (see captureRoomDoors/reapplyRoomDoors) —
+// a door is an absolute grid-cell reference, so it doesn't move on its
+// own when the points do.
 // Deliberately NOT run through snapPt(): SNAP governs where a NEWLY placed
 // point/vertex lands, not where an already-placed one ends up after being
 // transformed — re-snapping rotated/mirrored coordinates to whatever SNAP
 // happens to be active right now would round each point by a different
 // amount and distort the shape (and did, before this).
 function applyRoomTransform(room,fn){
-  var attached=attachPoints?board.points.filter(function(p){return pointInPolygon(p,room.points);}):[];
+  var attached=ownedPointsFor(room);
+  var doorCapture=captureRoomDoors(room);
   room.points=room.points.map(fn);
   (room.walls||[]).forEach(function(w){w.p1=fn(w.p1);w.p2=fn(w.p2);});
+  reapplyRoomDoors(room,doorCapture,fn);
   attached.forEach(function(p){var np=fn(p);p.x=np.x;p.y=np.y;});
 }
 // axis is which COORDINATE gets negated, not which axis the flip is "named"
@@ -1834,8 +2037,11 @@ function mirrorMultiSel(axis){
   multiSel.forEach(function(m){
     if(m.kind==='room'){
       var r=findRoom(m.id);if(!r)return;
-      r.points=r.points.map(function(p){return mirrorPt(p,center,axis);});
-      (r.walls||[]).forEach(function(w){w.p1=mirrorPt(w.p1,center,axis);w.p2=mirrorPt(w.p2,center,axis);});
+      var doorCapture=captureRoomDoors(r);
+      var fn=function(p){return mirrorPt(p,center,axis);};
+      r.points=r.points.map(fn);
+      (r.walls||[]).forEach(function(w){w.p1=fn(w.p1);w.p2=fn(w.p2);});
+      reapplyRoomDoors(r,doorCapture,fn);
     }else{
       var p=findPoint(m.id);if(!p)return;
       var np=mirrorPt(p,center,axis);p.x=np.x;p.y=np.y;
@@ -1920,12 +2126,15 @@ function applyRotateDelta(center,theta){
   items.forEach(function(m){
     if(m.kind==='room'){
       var r=findRoom(m.id);if(!r)return;
-      var attached=attachPoints?board.points.filter(function(p){return pointInPolygon(p,r.points);}):[];
-      r.points=r.points.map(function(p){return rotatePoint(p,center,theta);});
-      (r.walls||[]).forEach(function(w){w.p1=rotatePoint(w.p1,center,theta);w.p2=rotatePoint(w.p2,center,theta);});
+      var attached=ownedPointsFor(r);
+      var doorCapture=captureRoomDoors(r);
+      var fn=function(p){return rotatePoint(p,center,theta);};
+      r.points=r.points.map(fn);
+      (r.walls||[]).forEach(function(w){w.p1=fn(w.p1);w.p2=fn(w.p2);});
+      reapplyRoomDoors(r,doorCapture,fn);
       attached.forEach(function(p){
         if(explicitPointIds[p.id])return;
-        var rp=rotatePoint(p,center,theta);
+        var rp=fn(p);
         p.x=rp.x;p.y=rp.y;
       });
     }else if(m.kind==='point'){
@@ -1988,9 +2197,12 @@ function applyMoveDelta(delta){
   items.forEach(function(m){
     if(m.kind==='room'){
       var r=findRoom(m.id);if(!r)return;
-      var attached=attachPoints?board.points.filter(function(p){return pointInPolygon(p,r.points);}):[];
-      r.points=r.points.map(function(p){return {x:p.x+delta.x,y:p.y+delta.y};});
-      (r.walls||[]).forEach(function(w){w.p1={x:w.p1.x+delta.x,y:w.p1.y+delta.y};w.p2={x:w.p2.x+delta.x,y:w.p2.y+delta.y};});
+      var attached=ownedPointsFor(r);
+      var doorCapture=captureRoomDoors(r);
+      var fn=function(p){return {x:p.x+delta.x,y:p.y+delta.y};};
+      r.points=r.points.map(fn);
+      (r.walls||[]).forEach(function(w){w.p1=fn(w.p1);w.p2=fn(w.p2);});
+      reapplyRoomDoors(r,doorCapture,fn);
       attached.forEach(function(p){
         if(explicitPointIds[p.id])return;
         p.x+=delta.x;p.y+=delta.y;
@@ -2057,7 +2269,7 @@ var HOTKEY_ACTIONS={
   snapWhole:{label:'Snap: Whole',fn:function(){setSnap(1);}},
   snapHalf:{label:'Snap: Half',fn:function(){setSnap(2);}},
   snapQuarter:{label:'Snap: Quarter',fn:function(){setSnap(4);}},
-  spaces:{label:'Toggle spaces overlay',fn:function(){toggleSpaces();}},
+  spaces:{label:'Toggle grid overlay',fn:function(){toggleSpaces();}},
   info:{label:'Toggle room info',fn:function(){toggleRoomInfo();}},
   attach:{label:'Toggle attach points',fn:function(){toggleAttachPoints();}},
   linkDoors:{label:'Toggle link doors',fn:function(){toggleLinkDoors();}},
@@ -2089,7 +2301,7 @@ var HOTKEY_ACTIONS={
 var DEFAULT_HOTKEYS={
   select:['s'],room:['r'],wall:['w'],door:['d'],terminal:['t'],vent:['v'],locker:['l'],point:['p'],
   snapWhole:['1'],snapHalf:['2'],snapQuarter:['4'],
-  spaces:['s','p'],info:['i'],attach:['a','t'],linkDoors:['l','d'],boundary:['b','o'],
+  spaces:['g','r'],info:['i'],attach:['a','t'],linkDoors:['l','d'],boundary:['b','o'],
   mirrorX:['m','x'],mirrorY:['m','y'],move:['m','v'],rotate:['r','o'],duplicate:['u'],zoomIn:['='],zoomOut:['-'],
   fit:['f'],shortcuts:['k','s']
 };
@@ -2318,7 +2530,7 @@ function copySelection(){
     toast('Copied '+multiSel.length+' item(s)');
   }else if(selected&&selected.kind==='room'){
     var room=findRoom(selected.id);
-    var attached=attachPoints?board.points.filter(function(p){return pointInPolygon(p,room.points);}):[];
+    var attached=ownedPointsFor(room);
     clipboard={kind:'room',data:JSON.parse(JSON.stringify(room)),attachedPoints:JSON.parse(JSON.stringify(attached))};
     toast('Copied room'+(attached.length?' + '+attached.length+' attached point(s)':''));
   }else if(selected&&selected.kind==='point'){
@@ -2359,10 +2571,13 @@ function pasteClipboard(atPt){
   var newSel=[];
   items.forEach(function(it){
     if(it.kind==='room'){
+      var pasteFn=function(p){return {x:p.x+delta.x,y:p.y+delta.y};};
+      var pasteDoorCapture=captureRoomDoors(it.data);
       var copy=JSON.parse(JSON.stringify(it.data));
       copy.id=uid('R');
-      copy.points=it.data.points.map(function(p){return {x:p.x+delta.x,y:p.y+delta.y};});
-      (copy.walls||[]).forEach(function(w){w.id=uid('W');w.p1={x:w.p1.x+delta.x,y:w.p1.y+delta.y};w.p2={x:w.p2.x+delta.x,y:w.p2.y+delta.y};});
+      copy.points=it.data.points.map(pasteFn);
+      (copy.walls||[]).forEach(function(w){w.id=uid('W');w.p1=pasteFn(w.p1);w.p2=pasteFn(w.p2);});
+      reapplyRoomDoors(copy,pasteDoorCapture,pasteFn);
       board.rooms.push(copy);
       newSel.push({kind:'room',id:copy.id});
     }else{
@@ -2377,9 +2592,10 @@ function pasteClipboard(atPt){
   // with the same delta — created but left out of the new selection, same as
   // duplicateRoom.
   if(clipboard.kind==='room'&&clipboard.attachedPoints&&clipboard.attachedPoints.length){
+    var pastedRoomId=newSel.length===1&&newSel[0].kind==='room'?newSel[0].id:null;
     clipboard.attachedPoints.forEach(function(p){
       var pc=JSON.parse(JSON.stringify(p));
-      pc.id=uid('P');pc.x=p.x+delta.x;pc.y=p.y+delta.y;
+      pc.id=uid('P');pc.x=p.x+delta.x;pc.y=p.y+delta.y;pc.ownerRoomId=pastedRoomId;
       board.points.push(pc);
     });
   }
@@ -2506,9 +2722,10 @@ function startGroupDrag(e){
     orig:multiSel.map(function(m){
       if(m.kind==='room'){
         var r=findRoom(m.id);
-        var attached=attachPoints?board.points.filter(function(p){return pointInPolygon(p,r.points);}):[];
+        var attached=ownedPointsFor(r);
         return {kind:'room',id:m.id,points:JSON.parse(JSON.stringify(r.points)),
           walls:JSON.parse(JSON.stringify(r.walls||[])),
+          doors:captureRoomDoors(r),
           attached:attached.map(function(p){return {id:p.id,x:p.x,y:p.y};})};
       }
       var p=findPoint(m.id);return {kind:'point',id:m.id,x:p.x,y:p.y};
@@ -2524,13 +2741,15 @@ function onRoomMouseDown(e,roomId){
   multiSel=[];
   selected={kind:'room',id:roomId};
   var room=findRoom(roomId);
-  // Attached points are captured once, up front — recomputing "inside the
-  // room" on every mousemove tick would gain/lose points as the room slides
-  // across them mid-drag instead of carrying whatever set started inside.
-  var attached=attachPoints?board.points.filter(function(p){return pointInPolygon(p,room.points);}):[];
+  // Attached points and doors are captured once, up front — recomputing
+  // "inside the room"/"which cell" on every mousemove tick would gain or
+  // lose them as the room slides across mid-drag, instead of carrying
+  // whatever set/positions started with it.
+  var attached=ownedPointsFor(room);
   draggingWhole={kind:'room',id:roomId,mouse0:screenToBoard(e.clientX,e.clientY),
     orig:JSON.parse(JSON.stringify(room.points)),
     origWalls:JSON.parse(JSON.stringify(room.walls||[])),
+    origDoors:captureRoomDoors(room),
     attached:attached.map(function(p){return {id:p.id,x:p.x,y:p.y};})};
   render();
 }
@@ -2546,8 +2765,9 @@ function onPointMouseDown(e,ptId){
   draggingWhole={kind:'point',id:ptId,mouse0:screenToBoard(e.clientX,e.clientY),orig:{x:pt.x,y:pt.y}};
   render();
 }
-// Interior walls are select/delete/door-target only — fixed to the room
-// they were drawn in, no independent repositioning after placement.
+// Interior walls move/rotate/mirror with their room (see applyRoomTransform
+// etc.) and, once selected, can be reshaped directly via the two endpoint
+// grips renderHandles draws for a selected wall (see draggingWallVertex).
 function onWallMouseDown(e,roomId,wallId){
   if(moveOp&&e.button===0){e.stopPropagation();handleMoveClick(snapPt(screenToBoard(e.clientX,e.clientY)));return;}
   if(rotateOp&&e.button===0){e.stopPropagation();handleRotateClick(snapPt(screenToBoard(e.clientX,e.clientY)));return;}
@@ -2616,6 +2836,7 @@ function initCanvas(){
     var rawBoard=screenToBoard(e.clientX,e.clientY);
     var bp=tool==='vent'?
       (drawingRoom&&drawingRoom.points.length?snapVentVertex(rawBoard,drawingRoom.points[drawingRoom.points.length-1]):snapPtGrid(rawBoard))
+      :tool==='wall'?snapPtForWall(rawBoard)
       :snapPt(rawBoard);
     if(e.button===1){
       var now=Date.now();
@@ -2636,11 +2857,11 @@ function initCanvas(){
     if(moveOp){handleMoveClick(bp);return;}
     if(rotateOp){handleRotateClick(bp);return;}
 
-    if(tool==='room'||tool==='vent'){
+    if(tool==='room'||tool==='vent'||tool==='base'){
       if(!drawingRoom){drawingRoom={points:[bp]};}
       else{
         var first=drawingRoom.points[0];
-        if(drawingRoom.points.length>=3&&dist(bp,first)<10/zoom){commitRoom(tool==='vent');}
+        if(drawingRoom.points.length>=3&&dist(bp,first)<10/zoom){commitRoom(tool);}
         else drawingRoom.points.push(bp);
       }
       render();
@@ -2709,6 +2930,16 @@ function initCanvas(){
       if(r){r.points[draggingVertex.idx]=r.isVent?snapPtGrid(mouseBoard):snapPt(mouseBoard);renderRooms();renderHandles();}
       return;
     }
+    if(draggingWallVertex){
+      if(!draggingWallVertex._pushed){pushUndo();draggingWallVertex._pushed=true;}
+      var wr=findRoom(draggingWallVertex.roomId),ww=wr&&findWall(draggingWallVertex.roomId,draggingWallVertex.wallId);
+      if(ww){
+        ww[draggingWallVertex.which]=snapPtForWall(mouseBoard);
+        ww.doors=draggingWallVertex.origDoors.map(function(c){return nearestCellOnWall(ww,c);}).filter(Boolean);
+        renderRooms();renderHandles();
+      }
+      return;
+    }
     if(draggingWhole){
       if(!draggingWhole._pushed){pushUndo();draggingWhole._pushed=true;}
       if(draggingWhole.kind==='boundary'){
@@ -2721,8 +2952,10 @@ function initCanvas(){
       if(draggingWhole.kind==='room'){
         var r2=findRoom(draggingWhole.id);
         if(r2){
-          r2.points=draggingWhole.orig.map(function(p){return {x:p.x+d.x,y:p.y+d.y};});
-          r2.walls=draggingWhole.origWalls.map(function(w){return {id:w.id,doors:w.doors,p1:{x:w.p1.x+d.x,y:w.p1.y+d.y},p2:{x:w.p2.x+d.x,y:w.p2.y+d.y}};});
+          var dragFn=function(p){return {x:p.x+d.x,y:p.y+d.y};};
+          r2.points=draggingWhole.orig.map(dragFn);
+          r2.walls=draggingWhole.origWalls.map(function(w){return {id:w.id,doors:w.doors,p1:dragFn(w.p1),p2:dragFn(w.p2)};});
+          reapplyRoomDoors(r2,draggingWhole.origDoors,dragFn);
           draggingWhole.attached.forEach(function(a){
             var ap=findPoint(a.id);
             if(ap){ap.x=a.x+d.x;ap.y=a.y+d.y;}
@@ -2764,8 +2997,10 @@ function initCanvas(){
         if(o2.kind==='room'){
           var r3=findRoom(o2.id);
           if(r3){
-            r3.points=o2.points.map(function(p){return {x:p.x+gd.x,y:p.y+gd.y};});
-            r3.walls=o2.walls.map(function(w){return {id:w.id,doors:w.doors,p1:{x:w.p1.x+gd.x,y:w.p1.y+gd.y},p2:{x:w.p2.x+gd.x,y:w.p2.y+gd.y}};});
+            var gdFn=function(p){return {x:p.x+gd.x,y:p.y+gd.y};};
+            r3.points=o2.points.map(gdFn);
+            r3.walls=o2.walls.map(function(w){return {id:w.id,doors:w.doors,p1:gdFn(w.p1),p2:gdFn(w.p2)};});
+            reapplyRoomDoors(r3,o2.doors,gdFn);
             o2.attached.forEach(function(a){
               if(explicitPointIds[a.id])return;
               var ap=findPoint(a.id);
@@ -2790,7 +3025,7 @@ function initCanvas(){
       if(rr){rr.points=rotatingRoom.origPoints.map(function(p){return rotatePoint(p,center,snappedRad);});renderRooms();renderHandles();}
       return;
     }
-    if((tool==='room'||tool==='vent')&&drawingRoom)renderDrawPreview();
+    if((tool==='room'||tool==='vent'||tool==='base')&&drawingRoom)renderDrawPreview();
     if(tool==='wall'&&drawingWall)renderWallPreview();
     if(tool==='door')renderDoorHover();
     if(moveOp&&moveOp.stage==='destination')renderMoveHint();
@@ -2799,7 +3034,7 @@ function initCanvas(){
 
   window.addEventListener('mouseup',function(e){
     isPanning=false;panStart=null;wrap.classList.remove('panning');
-    draggingVertex=null;draggingWhole=null;draggingBoundaryHandle=null;
+    draggingVertex=null;draggingWhole=null;draggingBoundaryHandle=null;draggingWallVertex=null;
     if(groupDrag){groupDrag=null;render();}
     if(rotatingRoom){rotatingRoom=null;render();}
     if(selBoxStart)finishSelBox(e);
@@ -2836,7 +3071,7 @@ function initCanvas(){
       if(now-lastEscAt<450)fireHotkeyAction('select');
       lastEscAt=now;
     }else if(e.key==='Enter'&&!typing){
-      if(drawingRoom&&drawingRoom.points.length>=3)commitRoom(tool==='vent');
+      if(drawingRoom&&drawingRoom.points.length>=3)commitRoom(tool);
     }else if((e.key==='Delete'||e.key==='Backspace')&&!typing){
       if(multiSel.length){deleteMultiSel();e.preventDefault();}
       else if(selected&&selected.kind==='room'){deleteRoom(selected.id);e.preventDefault();}

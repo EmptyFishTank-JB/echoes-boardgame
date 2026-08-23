@@ -95,11 +95,6 @@
       "label": "---",
       "color": "#ffffff",
       "type": "tile"
-    },
-    "board_base_layer": {
-      "label": "Board Base Layer (Holder)",
-      "color": "#2b3038",
-      "type": "void"
     }
   },
   "rooms": [
