@@ -201,11 +201,11 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
 <div id="toolbar">
   <button class="tbtn on" id="btn-select" onclick="setTool('select')">&#9654; SELECT</button>
   <button class="tbtn" id="btn-room" onclick="setTool('room')">&#9635; ROOM</button>
-  <button class="tbtn" id="btn-vent" onclick="setTool('vent')" title="Draw a vent passageway — same click-to-place-vertices workflow as ROOM, but rendered with thick hazard-margin walls and vent-style openings">&#9635; VENT</button>
   <button class="tbtn" id="btn-wall" onclick="setTool('wall')" title="Interior wall — both ends must land inside the same room">&#9552; WALL</button>
   <button class="tbtn" id="btn-door" onclick="setTool('door')">&#8862; DOOR</button>
   <div class="tsep"></div>
   <button class="tbtn" id="btn-terminal" onclick="setPointTool('terminal')">&#9670; TERMINAL</button>
+  <button class="tbtn" id="btn-vent" onclick="setPointTool('vent')">&#9635; VENT</button>
   <button class="tbtn" id="btn-locker" onclick="setPointTool('locker')">&#9633; LOCKER</button>
   <button class="tbtn" id="btn-other" onclick="setPointTool('other')">&#9679; POINT</button>
   <div class="tsep"></div>
@@ -523,125 +523,6 @@ function renderWallLine(container,p1,p2,edgeDoors,color,sw,markSize,lineClass,ro
   });
   wallLine(cursor,edgeLen);
 }
-// THICK_WALL_MARGIN matches the locker's own inset exactly: a locker's
-// inner box is half*0.7 where half=GRID/2, so the margin between its
-// outer and inner box is half*0.3 = GRID/2*0.3.
-var THICK_WALL_MARGIN=(GRID/2)*0.3;
-// Inward-offsets an entire closed polygon by `margin`, MITERING each
-// corner (intersecting each pair of adjacent offset edge-lines) instead
-// of offsetting every edge independently — so the inner line one edge
-// draws and the inner line its neighbor draws are the exact same point
-// at the shared vertex: touching/joined at concave corners, and the
-// inset naturally extends out to meet its neighbor at convex corners,
-// instead of the two edges' insets floating separately or overlapping.
-function insetPolygonMiter(points,margin,roomPts){
-  var n=points.length;
-  var inward=points.map(function(p,i){return edgeInwardNormal(p,points[(i+1)%n],roomPts);});
-  function lineIntersect(p1,d1,p2,d2){
-    var denom=d1.x*d2.y-d1.y*d2.x;
-    if(Math.abs(denom)<1e-9)return null;
-    var t=((p2.x-p1.x)*d2.y-(p2.y-p1.y)*d2.x)/denom;
-    return {x:p1.x+d1.x*t,y:p1.y+d1.y*t};
-  }
-  return points.map(function(curr,i){
-    var prevIdx=(i-1+n)%n,nextIdx=(i+1)%n;
-    var prevP=points[prevIdx],nextP=points[nextIdx];
-    var n1=inward[prevIdx],n2=inward[i];
-    var a1={x:prevP.x+n1.x*margin,y:prevP.y+n1.y*margin},d1={x:curr.x-prevP.x,y:curr.y-prevP.y};
-    var a2={x:curr.x+n2.x*margin,y:curr.y+n2.y*margin},d2={x:nextP.x-curr.x,y:nextP.y-curr.y};
-    return lineIntersect(a1,d1,a2,d2)||{x:curr.x+n2.x*margin,y:curr.y+n2.y*margin};
-  });
-}
-// A vent's boundary edge, drawn thick like a locker's sides — an outer
-// line ON the actual room edge plus a mitered inset line (innerP1/innerP2,
-// precomputed per-room by insetPolygonMiter so adjacent edges join
-// cleanly at every corner), with the gap between the two filled by the
-// same hazard hatch used for excluded room cells. A door reuses the
-// locker's own jamb treatment — a 2/3-width opening centered in the
-// door's span, hazard continuing on the flanking portions, short jamb
-// connectors closing the frame at each end — but with no dashed lines
-// across the gap, just the vent glyph centered on it.
-function renderThickWallEdge(container,p1,p2,innerP1,innerP2,inward,edgeDoors,color){
-  var edgeLen=dist(p1,p2);
-  if(edgeLen<0.3)return;
-  var ux=(p2.x-p1.x)/edgeLen,uy=(p2.y-p1.y)/edgeLen;
-  function outerAt(t){return {x:p1.x+ux*t,y:p1.y+uy*t};}
-  // The mitered corner points (innerP1/innerP2) are only guaranteed to sit
-  // at the SAME "t" as their outer counterparts at the true ends of the
-  // edge (t=0 / t=edgeLen) — at a non-right-angle corner, mitering shifts
-  // them along the offset line by a different amount at each end, so
-  // naively lerping between them for an in-between t (a door boundary)
-  // would put that inner point off to the side rather than straight in
-  // from the wall, making the jamb connector visibly slanted instead of
-  // perpendicular. Everywhere except the two true corners, use a plain
-  // perpendicular offset instead, so every door's jamb — regardless of
-  // how sharp the room's corners are — stays perpendicular to this edge.
-  function simpleInnerAt(t){var o=outerAt(t);return {x:o.x+inward.x*THICK_WALL_MARGIN,y:o.y+inward.y*THICK_WALL_MARGIN};}
-  function hazardBand(t0,t1,miterA,miterB){
-    // Corner-touching bands (miterA/miterB set) must always render even if
-    // paper-thin — a door sitting immediately at a corner otherwise leaves
-    // that corner's mitered join with no fill/border at all, since the
-    // sliver between the true corner and the door boundary rounds to
-    // near-zero. A non-corner band skipping when negligibly thin is fine.
-    if(t1-t0<0.3&&!miterA&&!miterB)return;
-    var oA=outerAt(t0),oB=outerAt(t1);
-    var iA=miterA||simpleInnerAt(t0),iB=miterB||simpleInnerAt(t1);
-    var quad=oA.x+','+oA.y+' '+oB.x+','+oB.y+' '+iB.x+','+iB.y+' '+iA.x+','+iA.y;
-    container.appendChild(el('polygon',{points:quad,fill:'url(#hatchPattern)',class:'locker-hazard-ring'}));
-    container.appendChild(el('line',{x1:oA.x,y1:oA.y,x2:oB.x,y2:oB.y,stroke:color,'stroke-width':3,class:'locker-side-outer'}));
-    container.appendChild(el('line',{x1:iA.x,y1:iA.y,x2:iB.x,y2:iB.y,stroke:color,'stroke-width':2,class:'locker-side-inner'}));
-  }
-  var segs=edgeDoors.map(function(d){
-    var half=(d.width||GRID)/2;
-    return {start:Math.max(0,d.pos-half),end:Math.min(edgeLen,d.pos+half)};
-  }).sort(function(a,b){return a.start-b.start;});
-  // Below this width, a "flanking" hazard sliver between a door and the
-  // true corner reads as a stray broken fragment rather than a wall, so
-  // instead the door's own opening is extended to meet the corner
-  // directly (using the mitered corner point as that jamb's inner
-  // reference) — the same clean "opens right up to the corner" look a
-  // locker gets automatically since its sides are never split like this.
-  var MIN_CORNER_FLANK=THICK_WALL_MARGIN*1.5;
-  var cursor=0,endCornerConsumed=false;
-  segs.forEach(function(s,idx){
-    // Match the locker's actual proportions exactly: a locker's opening is
-    // 2/3 of its INNER box's side (the door slot minus the margin already
-    // eaten on each side), not 2/3 of the slot's full/outer width — using
-    // the raw slot width here (as before) made vent openings noticeably
-    // bigger than a locker's for the same slot size.
-    var doorSpan=s.end-s.start,openLen=Math.max(0,doorSpan-2*THICK_WALL_MARGIN)*(2/3);
-    var openStart=s.start+(doorSpan-openLen)/2,openEnd=s.end-(doorSpan-openLen)/2;
-    // cursor===0 (not a fixed first-iteration flag) so this still applies
-    // correctly if an earlier segment's band got skipped for being <0.3
-    // long (immediately adjacent doors, edge starts right at t=0, etc).
-    // The distance that matters here is the door's OWN stored span to the
-    // corner (s.start/s.end vs 0/edgeLen) — not the narrowed 2/3-width
-    // opening's distance — since that's what actually determines whether
-    // any wall is left to draw between the door and the corner at all.
-    // Getting this wrong (comparing the narrowed-opening distance instead)
-    // let a door whose stored span exactly reaches the corner still try to
-    // render a zero-width trailing/leading band, producing a degenerate
-    // sliver-triangle instead of a clean flush-to-corner opening.
-    var atStartCorner=cursor===0&&(s.start-cursor)<MIN_CORNER_FLANK;
-    var atEndCorner=idx===segs.length-1&&(edgeLen-s.end)<MIN_CORNER_FLANK;
-    if(atStartCorner)openStart=0;else hazardBand(cursor,openStart,cursor===0?innerP1:null,null);
-    if(atEndCorner){openEnd=edgeLen;endCornerConsumed=true;}else hazardBand(openEnd,s.end);
-    var iStart=atStartCorner?innerP1:simpleInnerAt(openStart);
-    var iEnd=atEndCorner?innerP2:simpleInnerAt(openEnd);
-    var oStart=outerAt(openStart),oEnd=outerAt(openEnd);
-    container.appendChild(el('line',{x1:oStart.x,y1:oStart.y,x2:iStart.x,y2:iStart.y,stroke:color,'stroke-width':2,class:'locker-door-frame'}));
-    container.appendChild(el('line',{x1:oEnd.x,y1:oEnd.y,x2:iEnd.x,y2:iEnd.y,stroke:color,'stroke-width':2,class:'locker-door-frame'}));
-    var midT=(openStart+openEnd)/2;
-    var midOuter=outerAt(midT),midInner=simpleInnerAt(midT);
-    var iconAt={x:(midOuter.x+midInner.x)/2,y:(midOuter.y+midInner.y)/2};
-    container.appendChild(el('rect',{x:iconAt.x-8,y:iconAt.y-6,width:16,height:12,fill:color,rx:2,class:'vent-jamb-icon'}));
-    var glyph=el('text',{x:iconAt.x,y:iconAt.y+1,class:'bpoint-glyph'});
-    glyph.textContent='V';
-    container.appendChild(glyph);
-    cursor=Math.max(cursor,s.end);
-  });
-  if(!endCornerConsumed)hazardBand(cursor,edgeLen,cursor===0?innerP1:null,innerP2);
-}
 // Small solid triangle at a door's midpoint, pointing along the INWARD
 // normal (into the room) — an "exit" pointer that stays inside its own
 // room's footprint instead of sitting in the neighboring room, so it's
@@ -720,7 +601,7 @@ function drawDoorStripes(container,dp1,dp2,ux,uy,color,markSize,inward){
 // inside (an open pathway) and instead place the small vent glyph on
 // each door's jamb.
 var LOCKER_WHITE='#eef0f5';
-function isCellPointType(t){return t==='locker';}
+function isCellPointType(t){return t==='locker'||t==='vent';}
 function lockerSides(pt){
   var half=GRID/2;
   var TL={x:pt.x-half,y:pt.y-half},TR={x:pt.x+half,y:pt.y-half},
@@ -804,6 +685,21 @@ function renderLockerCell(container,pt){
   // point type.
   container.appendChild(el('rect',{x:pt.x-half,y:pt.y-half,width:GRID,height:GRID,fill:'none',class:'bpoint-shape locker-select-outline'}));
 }
+// A vent is a literal walkable pathway (not furniture) — same thick
+// hazard-margin walls and door treatment as a locker, but nothing drawn
+// inside. The vent glyph sits fixed at the vent's own center (not on a
+// door's jamb) so it always renders in exactly one place regardless of
+// how many doors the cell has or where they are.
+function renderVentCell(container,pt){
+  var half=GRID/2;
+  var color=cellPointColor(pt);
+  renderCellWalls(container,pt,color);
+  container.appendChild(el('rect',{x:pt.x-8,y:pt.y-6,width:16,height:12,fill:color,rx:2,class:'vent-jamb-icon'}));
+  var glyph=el('text',{x:pt.x,y:pt.y+1,class:'bpoint-glyph'});
+  glyph.textContent='V';
+  container.appendChild(glyph);
+  container.appendChild(el('rect',{x:pt.x-half,y:pt.y-half,width:GRID,height:GRID,fill:'none',class:'bpoint-shape locker-select-outline'}));
+}
 
 // A "space" is one GRID cell (the token/miniature unit) — independent of
 // SNAP, which is finer (half-cell) so wall vertices can notch mid-cell.
@@ -847,14 +743,6 @@ function screenToBoard(cx,cy){
   return {x:(cx-rect.left-pan.x)/zoom, y:(cy-rect.top-pan.y)/zoom};
 }
 function snapPt(p){return {x:Math.round(p.x/SNAP)*SNAP, y:Math.round(p.y/SNAP)*SNAP};}
-// Vent shapes always land on whole GRID lines, regardless of the current
-// WHOLE/HALF/QUARTER snap setting — so every vent wall length (and every
-// door placed on it, via findNearestWallSegment's GRID step) is a clean
-// multiple of one GRID cell, the same fixed unit a locker's door slot
-// uses. This is what keeps every vent door's near-corner distance a
-// whole GRID multiple too, instead of landing on an odd fraction that
-// produces an awkward sliver at the join.
-function snapPtGrid(p){return {x:Math.round(p.x/GRID)*GRID, y:Math.round(p.y/GRID)*GRID};}
 // Lockers occupy a whole grid cell, so they snap to the CELL CENTER (the
 // midpoint of the nearest GRID square) rather than to a grid line/vertex
 // like every other point type.
@@ -877,15 +765,15 @@ function setTool(t){
   drawingRoom=null;
   drawingWall=null;
   clearToolBtns();
-  var idMap={select:'btn-select',room:'btn-room',vent:'btn-vent',wall:'btn-wall',door:'btn-door'};
+  var idMap={select:'btn-select',room:'btn-room',wall:'btn-wall',door:'btn-door'};
   if(idMap[t])document.getElementById(idMap[t]).classList.add('on');
-  document.getElementById('canvas-wrap').className=t!=='select'?'tool-'+(t==='vent'?'room':t):'';
+  document.getElementById('canvas-wrap').className=t!=='select'?'tool-'+t:'';
   render();
 }
 function setPointTool(pt){
   tool='point';pointType=pt;
   clearToolBtns();
-  var idMap={terminal:'btn-terminal',locker:'btn-locker',other:'btn-other'};
+  var idMap={terminal:'btn-terminal',vent:'btn-vent',locker:'btn-locker',other:'btn-other'};
   document.getElementById(idMap[pt]).classList.add('on');
   document.getElementById('canvas-wrap').className='tool-point';
   drawingRoom=null;drawingWall=null;render();
@@ -1109,12 +997,10 @@ function renderRooms(){
     }
 
     var doors=room.doors||[];
-    var ventInner=room.isVent?insetPolygonMiter(room.points,THICK_WALL_MARGIN,room.points):null;
     room.points.forEach(function(p1,i){
       var p2=room.points[(i+1)%room.points.length];
       var edgeDoors=doors.filter(function(d){return d.edge===i;});
-      if(room.isVent)renderThickWallEdge(g,p1,p2,ventInner[i],ventInner[(i+1)%room.points.length],edgeInwardNormal(p1,p2,room.points),edgeDoors,fam.color);
-      else renderWallLine(g,p1,p2,edgeDoors,fam.color,4,8,'room-edge',room.points);
+      renderWallLine(g,p1,p2,edgeDoors,fam.color,4,8,'room-edge',room.points);
     });
     // Interior walls — always confined to this room, so they render/move/
     // transform with it.
@@ -1153,11 +1039,9 @@ function renderPoints(){
       shape=el('rect',{x:pt.x-7,y:pt.y-7,width:14,height:14,fill:color,transform:'rotate(45 '+pt.x+' '+pt.y+')',class:'bpoint-shape'});
     }else if(pt.type==='locker'){
       renderLockerCell(g,pt);
+    }else if(pt.type==='vent'){
+      renderVentCell(g,pt);
     }else{
-      // Also covers any legacy point-typed 'vent' from before vents became
-      // drawable room-like shapes — falls back to the plain glyph marker
-      // (POINT_GLYPH/POINT_COLOR still carry a 'vent' entry) rather than
-      // losing the data or crashing on an old file.
       shape=el('circle',{cx:pt.x,cy:pt.y,r:7,fill:color,class:'bpoint-shape'});
     }
     if(shape)g.appendChild(shape);
@@ -1240,7 +1124,7 @@ function renderHandles(){
     mh.addEventListener('mousedown',function(e){
       if(e.button!==0)return;
       e.stopPropagation();
-      insertVertexOnEdge(room.id,i,room.isVent?snapPtGrid(mid):snapPt(mid));
+      insertVertexOnEdge(room.id,i,snapPt(mid));
       draggingVertex={roomId:room.id,idx:i+1,_pushed:true}; // insertVertexOnEdge already pushed undo for this gesture
       render();
     });
@@ -1450,11 +1334,10 @@ function addFamily(){
 }
 
 // ── MUTATIONS ─────────────────────────────────────────────────────────────────
-function commitRoom(isVent){
+function commitRoom(){
   if(!drawingRoom||drawingRoom.points.length<3){drawingRoom=null;render();return;}
   pushUndo();
-  var room={id:uid('R'),family:isVent?'vent':activeFamily,label:'',notes:'',points:drawingRoom.points,doors:[],walls:[]};
-  if(isVent)room.isVent=true;
+  var room={id:uid('R'),family:activeFamily,label:'',notes:'',points:drawingRoom.points,doors:[],walls:[]};
   board.rooms.push(room);
   drawingRoom=null;
   render();
@@ -1537,14 +1420,9 @@ function toggleDoorAt(target){
 function findNearestWallSegment(pt){
   var best=null,bestDist=GRID*0.85;
   board.rooms.forEach(function(room){
-    // Vent walls always use the whole GRID step for door sizing/position —
-    // never the current SNAP setting — so a vent door is always exactly
-    // one GRID cell wide, the same fixed unit a locker's door slot uses,
-    // regardless of whether HALF/QUARTER snap happens to be active.
-    var step=room.isVent?GRID:undefined;
     room.points.forEach(function(p1,i){
       var p2=room.points[(i+1)%room.points.length];
-      var segs=wallSegments(p1,p2,step);
+      var segs=wallSegments(p1,p2);
       segs.forEach(function(seg){
         var d=distToSeg(pt,seg.p1,seg.p2);
         if(d>=bestDist)return;
@@ -1904,7 +1782,7 @@ var HOTKEY_ACTIONS={
   wall:{label:'Wall tool',fn:function(){setTool('wall');}},
   door:{label:'Door tool',fn:function(){setTool('door');}},
   terminal:{label:'Terminal point tool',fn:function(){setPointTool('terminal');}},
-  vent:{label:'Vent tool (draw like a room)',fn:function(){setTool('vent');}},
+  vent:{label:'Vent point tool',fn:function(){setPointTool('vent');}},
   locker:{label:'Locker point tool',fn:function(){setPointTool('locker');}},
   point:{label:'Point tool (other)',fn:function(){setPointTool('other');}},
   snapWhole:{label:'Snap: Whole',fn:function(){setSnap(1);}},
@@ -2466,8 +2344,7 @@ function initCanvas(){
   });
 
   wrap.addEventListener('mousedown',function(e){
-    var rawBoard=screenToBoard(e.clientX,e.clientY);
-    var bp=tool==='vent'?snapPtGrid(rawBoard):snapPt(rawBoard);
+    var bp=snapPt(screenToBoard(e.clientX,e.clientY));
     if(e.button===1){
       var now=Date.now();
       if(now-lastMidClick<400){resetView();lastMidClick=0;return;}
@@ -2487,11 +2364,11 @@ function initCanvas(){
     if(moveOp){handleMoveClick(bp);return;}
     if(rotateOp){handleRotateClick(bp);return;}
 
-    if(tool==='room'||tool==='vent'){
+    if(tool==='room'){
       if(!drawingRoom){drawingRoom={points:[bp]};}
       else{
         var first=drawingRoom.points[0];
-        if(drawingRoom.points.length>=3&&dist(bp,first)<10/zoom){commitRoom(tool==='vent');}
+        if(drawingRoom.points.length>=3&&dist(bp,first)<10/zoom){commitRoom();}
         else drawingRoom.points.push(bp);
       }
       render();
@@ -2557,7 +2434,7 @@ function initCanvas(){
     if(draggingVertex){
       if(!draggingVertex._pushed){pushUndo();draggingVertex._pushed=true;}
       var r=findRoom(draggingVertex.roomId);
-      if(r){r.points[draggingVertex.idx]=r.isVent?snapPtGrid(mouseBoard):snapPt(mouseBoard);renderRooms();renderHandles();}
+      if(r){r.points[draggingVertex.idx]=snapPt(mouseBoard);renderRooms();renderHandles();}
       return;
     }
     if(draggingWhole){
@@ -2641,7 +2518,7 @@ function initCanvas(){
       if(rr){rr.points=rotatingRoom.origPoints.map(function(p){return rotatePoint(p,center,snappedRad);});renderRooms();renderHandles();}
       return;
     }
-    if((tool==='room'||tool==='vent')&&drawingRoom)renderDrawPreview();
+    if(tool==='room'&&drawingRoom)renderDrawPreview();
     if(tool==='wall'&&drawingWall)renderWallPreview();
     if(tool==='door')renderDoorHover();
     if(moveOp&&moveOp.stage==='destination')renderMoveHint();
@@ -2687,7 +2564,7 @@ function initCanvas(){
       if(now-lastEscAt<450)fireHotkeyAction('select');
       lastEscAt=now;
     }else if(e.key==='Enter'&&!typing){
-      if(drawingRoom&&drawingRoom.points.length>=3)commitRoom(tool==='vent');
+      if(drawingRoom&&drawingRoom.points.length>=3)commitRoom();
     }else if((e.key==='Delete'||e.key==='Backspace')&&!typing){
       if(multiSel.length){deleteMultiSel();e.preventDefault();}
       else if(selected&&selected.kind==='room'){deleteRoom(selected.id);e.preventDefault();}
