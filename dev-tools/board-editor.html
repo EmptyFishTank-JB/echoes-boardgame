@@ -629,9 +629,16 @@ function cellPointColor(pt){
 // Shared box+wall+door rendering for both lockers and vents. Returns the
 // list of {i, mid} door-opening midpoints (in outer-boundary terms), so a
 // caller (vent) can drop an icon on each jamb; lockers just ignore it.
-function renderCellWalls(container,pt,color,skipSides){
+// cornerPts, when given, is [TL,TR,BR,BL] — the inner-boundary corner
+// points a multi-cell vent run has already worked out (see
+// ventInnerCornerPts) so this cell's inner lines land exactly on its
+// neighbors' instead of independently tapering to its own box corner.
+// Lockers (always isolated, no cornerPts) fall back to the plain
+// per-cell diagonal inset from lockerInnerSides.
+function renderCellWalls(container,pt,color,skipSides,cornerPts){
   var half=GRID/2,innerHalf=half*0.7;
-  var outer=lockerSides(pt),inner=lockerInnerSides(pt,innerHalf);
+  var outer=lockerSides(pt);
+  var inner=cornerPts?[[cornerPts[0],cornerPts[1]],[cornerPts[1],cornerPts[2]],[cornerPts[2],cornerPts[3]],[cornerPts[3],cornerPts[0]]]:lockerInnerSides(pt,innerHalf);
   var doors=pt.doors||[false,false,false,false];
   var doorMids=[];
   function hazardBand(oA,oB,iA,iB){
@@ -695,14 +702,20 @@ function renderLockerCell(container,pt){
 // inside. The vent glyph sits fixed at the vent's own center (not on a
 // door's jamb) so it always renders in exactly one place regardless of
 // how many doors the cell has or where they are.
-function renderVentCell(container,pt,skipSides,colorOverride){
+function renderVentCell(container,pt,skipSides,colorOverride,cornerPts){
   var half=GRID/2;
   var color=colorOverride||cellPointColor(pt);
-  renderCellWalls(container,pt,color,skipSides);
-  container.appendChild(el('rect',{x:pt.x-8,y:pt.y-6,width:16,height:12,fill:color,rx:2,class:'vent-jamb-icon'}));
-  var glyph=el('text',{x:pt.x,y:pt.y+1,class:'bpoint-glyph'});
-  glyph.textContent='V';
-  container.appendChild(glyph);
+  renderCellWalls(container,pt,color,skipSides,cornerPts);
+  // The V icon marks "this cell has a door" — cells with no door on any
+  // side stay unmarked so the icon reads as a door indicator, not a
+  // generic vent-cell label.
+  var hasDoor=(pt.doors||[]).some(function(d){return d;});
+  if(hasDoor){
+    container.appendChild(el('rect',{x:pt.x-8,y:pt.y-6,width:16,height:12,fill:color,rx:2,class:'vent-jamb-icon'}));
+    var glyph=el('text',{x:pt.x,y:pt.y+1,class:'bpoint-glyph'});
+    glyph.textContent='V';
+    container.appendChild(glyph);
+  }
   container.appendChild(el('rect',{x:pt.x-half,y:pt.y-half,width:GRID,height:GRID,fill:'none',class:'bpoint-shape locker-select-outline'}));
 }
 
@@ -1004,6 +1017,48 @@ function ventCellKey(cx,cy){return cx+','+cy;}
 function ventDoorAt(room,cx,cy,side){
   return (room.doors||[]).some(function(d){return d.cx===cx&&d.cy===cy&&d.side===side;});
 }
+// Per-cell inner (hazard-margin) corners, computed once across the whole
+// vent so adjacent cells' inner boundary lines land on exactly the same
+// point instead of each cell independently tapering to its own box
+// corner. The idea: every rendered (non-skipped) cell side contributes its
+// own inward normal to the two grid-lattice vertices at its ends. A given
+// vertex's inner point is then the outer vertex nudged in by margin along
+// the SUM of whatever distinct normal directions land on it — one
+// direction (a straight corridor run, or a dead-straight wall) just slides
+// the point straight in; two perpendicular directions (a real box corner,
+// OR two different cells' walls meeting at a reflex/convex vent corner)
+// combine into the same diagonal miter a single locker cell already gets
+// right. This replaces per-cell guesswork with one shared ledger, so it
+// keeps working regardless of how many cells happen to touch that corner.
+var VENT_CORNER_NORMALS=[{x:0,y:1},{x:-1,y:0},{x:0,y:-1},{x:1,y:0}];
+function ventInnerCornerPts(cells,occupied){
+  var half=GRID/2,innerHalf=half*0.7,margin=half-innerHalf;
+  var vertexDirs={};
+  function addDir(vx,vy,n){
+    var key=vx+','+vy;
+    if(!vertexDirs[key])vertexDirs[key]={};
+    vertexDirs[key][n.x+','+n.y]=n;
+  }
+  cells.forEach(function(c){
+    var cornersV=[[c.cx,c.cy],[c.cx+1,c.cy],[c.cx+1,c.cy+1],[c.cx,c.cy+1]];
+    for(var side=0;side<4;side++){
+      if(occupied[ventCellKey(c.cx+VENT_SIDE_DX[side],c.cy+VENT_SIDE_DY[side])])continue;
+      var a=cornersV[side],b=cornersV[(side+1)%4];
+      addDir(a[0],a[1],VENT_CORNER_NORMALS[side]);
+      addDir(b[0],b[1],VENT_CORNER_NORMALS[side]);
+    }
+  });
+  function innerAt(vx,vy){
+    var dirs=vertexDirs[vx+','+vy],sx=0,sy=0;
+    if(dirs)for(var k in dirs){sx+=dirs[k].x;sy+=dirs[k].y;}
+    return {x:vx*GRID+sx*margin,y:vy*GRID+sy*margin};
+  }
+  var pts={};
+  cells.forEach(function(c){
+    pts[ventCellKey(c.cx,c.cy)]=[innerAt(c.cx,c.cy),innerAt(c.cx+1,c.cy),innerAt(c.cx+1,c.cy+1),innerAt(c.cx,c.cy+1)];
+  });
+  return pts;
+}
 function renderRooms(){
   var layer=document.getElementById('rooms-layer');
   var clips=document.getElementById('room-clips');
@@ -1047,12 +1102,13 @@ function renderRooms(){
       var cells=ventCellsOf(room);
       var occupied={};
       cells.forEach(function(c){occupied[ventCellKey(c.cx,c.cy)]=true;});
+      var cornerPtsByCell=ventInnerCornerPts(cells,occupied);
       cells.forEach(function(c){
         var skipSides=[0,1,2,3].map(function(side){
           return !!occupied[ventCellKey(c.cx+VENT_SIDE_DX[side],c.cy+VENT_SIDE_DY[side])];
         });
         var pt={x:c.cx*GRID+GRID/2,y:c.cy*GRID+GRID/2,doors:[0,1,2,3].map(function(side){return ventDoorAt(room,c.cx,c.cy,side);})};
-        renderVentCell(g,pt,skipSides,fam.color);
+        renderVentCell(g,pt,skipSides,fam.color,cornerPtsByCell[ventCellKey(c.cx,c.cy)]);
       });
     }else{
       room.points.forEach(function(p1,i){
