@@ -32,7 +32,8 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
 .back:hover{color:var(--blue);}
 
 /* TOOLBAR */
-#toolbar{display:flex;align-items:center;gap:6px;padding:5px 13px;border-bottom:1px solid var(--bdr);flex-shrink:0;flex-wrap:wrap;}
+#toolbar{display:flex;flex-direction:column;gap:5px;padding:5px 13px;border-bottom:1px solid var(--bdr);flex-shrink:0;}
+.toolbar-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
 .tbtn{background:transparent;border:1px solid rgba(79,195,247,0.14);color:var(--dim);font-family:"Share Tech Mono",monospace;font-size:12px;padding:4px 9px;cursor:pointer;transition:all 0.15s;letter-spacing:0.05em;white-space:nowrap;}
 .tbtn:disabled{opacity:0.25;cursor:default;}
 .tbtn:disabled:hover{border-color:rgba(79,195,247,0.14);color:var(--dim);filter:none;box-shadow:none;}
@@ -108,6 +109,7 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
 /* PROPS PANEL */
 #props-panel{width:270px;flex-shrink:0;border-left:1px solid var(--bdr);background:rgba(0,4,10,0.98);overflow-y:auto;padding:14px;}
 .pp-h{font-size:11px;letter-spacing:0.14em;color:var(--dim);margin:0 0 8px;padding-bottom:6px;border-bottom:1px solid var(--bdr);}
+.pp-h-sub{margin-top:10px;}
 .pp-h:not(:first-child){margin-top:18px;}
 .pp-row{margin-bottom:10px;}
 .pp-row label{display:block;font-size:10px;color:rgba(79,195,247,0.45);letter-spacing:0.08em;margin-bottom:3px;}
@@ -124,11 +126,25 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
 .fam-void-toggle input{margin:0;cursor:pointer;}
 .fam-del{background:transparent;border:none;color:rgba(224,80,80,0.55);cursor:pointer;font-size:13px;flex-shrink:0;padding:0 2px;}
 .fam-del:hover{color:#e05050;}
-.layers-list{max-height:220px;overflow-y:auto;margin-bottom:8px;}
+.layers-type-toggles{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;}
+.ltt{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:3px;padding:2px 6px;font-family:"Share Tech Mono",monospace;font-size:9px;letter-spacing:0.03em;color:rgba(255,255,255,0.55);cursor:pointer;}
+.ltt.off{color:rgba(255,255,255,0.22);}
+.layers-hdr{display:flex;align-items:center;gap:6px;padding:2px 0 3px;font-size:9px;letter-spacing:0.05em;color:var(--dim);border-bottom:1px solid rgba(255,255,255,0.08);margin-bottom:2px;}
+.lh-eye{width:15px;flex-shrink:0;}
+.lh-type{width:34px;flex-shrink:0;}
+.lh-fam{width:52px;flex-shrink:0;}
+.lh-label{flex:1;}
+.layers-list{max-height:260px;overflow-y:auto;margin-bottom:8px;}
+.layer-group-hdr{display:flex;align-items:center;gap:6px;padding:5px 0 2px;font-size:10px;letter-spacing:0.05em;color:rgba(255,255,255,0.6);text-transform:uppercase;}
+.layer-group-hdr:first-child{padding-top:0;}
+.layer-group-label{flex:1;}
 .layer-row{display:flex;align-items:center;gap:6px;padding:2px 0;font-size:11px;}
+.layer-row.active .layer-label{color:var(--blue);}
 .layer-eye{background:transparent;border:none;cursor:pointer;font-size:13px;color:rgba(255,255,255,0.25);flex-shrink:0;padding:0;line-height:1;}
 .layer-eye.on{color:var(--blue);}
+.layer-eye-group{font-size:12px;}
 .layer-tag{flex-shrink:0;font-size:9px;letter-spacing:0.04em;color:var(--dim);width:34px;}
+.layer-fam{flex-shrink:0;font-size:9px;color:rgba(255,255,255,0.4);width:52px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .layer-label{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:rgba(255,255,255,0.72);cursor:pointer;}
 .layer-label:hover{color:var(--blue);}
 .fam-add{width:100%;background:transparent;border:1px dashed rgba(79,195,247,0.24);color:var(--dim);font-family:"Share Tech Mono",monospace;font-size:11px;padding:5px;cursor:pointer;margin-top:4px;}
@@ -206,38 +222,41 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
 </div>
 
 <div id="toolbar">
-  <button class="tbtn on" id="btn-select" onclick="setTool('select')">&#9654; SELECT</button>
-  <button class="tbtn" id="btn-room" onclick="setTool('room')">&#9635; ROOM</button>
-  <button class="tbtn" id="btn-vent" onclick="setTool('vent')" title="Draw a vent passageway — same click-to-place-vertices workflow as ROOM. Always GRID-aligned; each covered grid cell gets its own locker-style walls/doors.">&#9635; VENT</button>
-  <button class="tbtn" id="btn-base" onclick="setTool('base')" title="Draw a board base layer (holder) area — same click-to-place-vertices workflow as ROOM, using the current WHOLE/HALF/QUARTER snap. No walls or doors of its own, just a boundary shape with the base-layer infill.">&#9635; BASE</button>
-  <button class="tbtn" id="btn-wall" onclick="setTool('wall')" title="Interior wall — both ends must land inside the same room">&#9552; WALL</button>
-  <button class="tbtn" id="btn-door" onclick="setTool('door')">&#8862; DOOR</button>
-  <div class="tsep"></div>
-  <button class="tbtn" id="btn-terminal" onclick="setPointTool('terminal')">&#9670; TERMINAL</button>
-  <button class="tbtn" id="btn-locker" onclick="setPointTool('locker')">&#9633; LOCKER</button>
-  <button class="tbtn" id="btn-other" onclick="setPointTool('other')">&#9679; POINT</button>
-  <div class="tsep"></div>
-  <span class="tlabel">FAMILY</span>
-  <select id="tool-family" onchange="activeFamily=this.value"></select>
-  <div class="tsep"></div>
-  <span class="tlabel">SNAP</span>
-  <button class="tbtn on" id="btn-snap-1" onclick="setSnap(1)">WHOLE</button>
-  <button class="tbtn" id="btn-snap-2" onclick="setSnap(2)">HALF</button>
-  <button class="tbtn" id="btn-snap-4" onclick="setSnap(4)">QUARTER</button>
-  <div class="tsep"></div>
-  <button class="tbtn" onclick="zoomBy(1.2)">+</button>
-  <span id="zoom-info">100%</span>
-  <button class="tbtn" onclick="zoomBy(1/1.2)">&minus;</button>
-  <button class="tbtn" onclick="resetView()">FIT</button>
-  <div class="tsep"></div>
-  <button class="tbtn on" id="btn-spaces" onclick="toggleSpaces()">&#9638; GRID</button>
-  <button class="tbtn on" id="btn-info" onclick="toggleRoomInfo()" title="Room name/family/space-count text">&#9432; INFO</button>
-  <button class="tbtn on" id="btn-attach" onclick="toggleAttachPoints()" title="Points inside a room move/copy/mirror/duplicate/rotate with it">&#128279; ATTACH</button>
-  <button class="tbtn on" id="btn-linkdoors" onclick="toggleLinkDoors()" title="A door on a wall shared with another room also opens that room's side">&#128682; LINK DOORS</button>
-  <button class="tbtn" id="btn-boundary" onclick="addOrSelectBoundary()">&#9645; BOUNDARY</button>
-  <div class="tsep"></div>
-  <button class="tbtn" id="btn-undo" onclick="doUndo()" disabled>&#8617; UNDO</button>
-  <button class="tbtn" id="btn-redo" onclick="doRedo()" disabled>&#8618; REDO</button>
+  <div class="toolbar-row">
+    <button class="tbtn on" id="btn-select" onclick="setTool('select')">&#9654; SELECT</button>
+    <button class="tbtn" id="btn-room" onclick="setTool('room')">&#9635; ROOM</button>
+    <button class="tbtn" id="btn-wall" onclick="setTool('wall')" title="Interior wall — both ends must land inside the same room">&#9552; WALL</button>
+    <button class="tbtn" id="btn-door" onclick="setTool('door')">&#8862; DOOR</button>
+    <button class="tbtn" id="btn-base" onclick="setTool('base')" title="Draw a board base layer (holder) area — same click-to-place-vertices workflow as ROOM, using the current WHOLE/HALF/QUARTER snap. No walls or doors of its own, just a boundary shape with the base-layer infill.">&#9635; BASE</button>
+    <button class="tbtn" id="btn-terminal" onclick="setPointTool('terminal')">&#9670; TERMINAL</button>
+    <button class="tbtn" id="btn-locker" onclick="setPointTool('locker')">&#9633; LOCKER</button>
+    <button class="tbtn" id="btn-vent" onclick="setTool('vent')" title="Draw a vent passageway — same click-to-place-vertices workflow as ROOM. Always GRID-aligned; each covered grid cell gets its own locker-style walls/doors.">&#9635; VENT</button>
+    <button class="tbtn" id="btn-other" onclick="setPointTool('other')">&#9679; POINT</button>
+    <div class="tsep"></div>
+    <span class="tlabel">FAMILY</span>
+    <select id="tool-family" onchange="activeFamily=this.value"></select>
+    <div class="tsep"></div>
+    <span class="tlabel">SNAP</span>
+    <button class="tbtn on" id="btn-snap-1" onclick="setSnap(1)">WHOLE</button>
+    <button class="tbtn" id="btn-snap-2" onclick="setSnap(2)">HALF</button>
+    <button class="tbtn" id="btn-snap-4" onclick="setSnap(4)">QUARTER</button>
+  </div>
+  <div class="toolbar-row">
+    <span class="tlabel">ZOOM</span>
+    <span id="zoom-info">100%</span>
+    <button class="tbtn" onclick="zoomBy(1/1.2)">&minus;</button>
+    <button class="tbtn" onclick="zoomBy(1.2)">+</button>
+    <button class="tbtn" onclick="resetView()">FIT</button>
+    <div class="tsep"></div>
+    <button class="tbtn on" id="btn-info" onclick="toggleRoomInfo()" title="Room name/family/space-count text">&#9432; INFO</button>
+    <button class="tbtn on" id="btn-spaces" onclick="toggleSpaces()">&#9638; GRID</button>
+    <button class="tbtn on" id="btn-attach" onclick="toggleAttachPoints()" title="Points inside a room move/copy/mirror/duplicate/rotate with it">&#128279; ATTACH</button>
+    <button class="tbtn on" id="btn-linkdoors" onclick="toggleLinkDoors()" title="A door on a wall shared with another room also opens that room's side">&#128682; LINK DOORS</button>
+    <button class="tbtn" id="btn-boundary" onclick="addOrSelectBoundary()">&#9645; BOUNDARY</button>
+    <div class="tsep"></div>
+    <button class="tbtn" id="btn-undo" onclick="doUndo()" disabled>&#8617; UNDO</button>
+    <button class="tbtn" id="btn-redo" onclick="doRedo()" disabled>&#8618; REDO</button>
+  </div>
 </div>
 
 <div id="body-main">
@@ -371,6 +390,8 @@ var lastMidClick=0;                 // timestamp — detects a double-click on t
 var clipboard=null;                 // {kind:'room'|'point'|'multi', data|items}
 var moveOp=null;                    // {stage:'basepoint'|'destination', base:{x,y}} — click-click MOVE command
 var rotateOp=null;                  // {stage:'start'|'end', center:{x,y}, startAngle} — click-click ROTATE command
+var hiddenFamilies={};              // {bucketKey:true} — global per-room-family/vent/base visibility, on top of each room's own .hidden
+var hiddenPointTypes={};            // {pointType:true} — global per-point-type (terminal/vent/locker/other) visibility, on top of each point's own .hidden
 
 // ── UNDO / REDO ───────────────────────────────────────────────────────────────
 // Snapshot-based: pushUndo() is called right before each discrete mutation
@@ -557,6 +578,24 @@ function cellPointColor(pt){
 // The family-like {color,label} a room displays as: a normal room's own
 // family, or — for a vent, which isn't part of the user-defined family
 // list and isn't placed inside other rooms — a fixed neutral grey.
+// Groups rooms (and, through their owner, points) into the same buckets the
+// LAYERS panel displays: vents, the base layer, and each real family —
+// so a global visibility toggle on one bucket in that panel hides
+// everything in it here too, without touching each item's own .hidden bit.
+function familyBucketKey(room){
+  if(room.isVent)return '__vent__';
+  if(room.isBaseLayer)return '__base__';
+  return room.family||'__none__';
+}
+function isFamilyHidden(room){return !!hiddenFamilies[familyBucketKey(room)];}
+function isPointHidden(pt){
+  if(pt.hidden||hiddenPointTypes[pt.type])return true;
+  var owner=pt.ownerRoomId&&findRoom(pt.ownerRoomId);
+  return !!(owner&&isFamilyHidden(owner));
+}
+function toggleFamilyVisibility(key){hiddenFamilies[key]=!hiddenFamilies[key];render();}
+function togglePointTypeVisibility(t){hiddenPointTypes[t]=!hiddenPointTypes[t];render();}
+
 function roomDisplayFamily(room){
   if(room.isVent)return {color:VENT_GREY,label:'Vent',type:'tile'};
   if(room.isBaseLayer)return {color:'#2b3038',label:'Board Base Layer',type:'void'};
@@ -580,12 +619,12 @@ function drawHazardBand(container,oA,oB,iA,iB,color){
 // striped hazard margin.
 function drawPlainBand(container,oA,oB,iA,iB,color){
   if(dist(oA,oB)<0.3)return;
-  // The outer line stays thin (not the vent/locker hazard wall's heavier
-  // 3px) — it sits exactly on the shared boundary between two rooms, so a
-  // thin line lets each room's own colored INNER line (offset into its
-  // own interior, on its own side) read clearly instead of the outer
-  // line visually dominating both rooms' shared edge.
-  container.appendChild(el('line',{x1:oA.x,y1:oA.y,x2:oB.x,y2:oB.y,stroke:color,'stroke-width':2,class:'locker-side-outer'}));
+  // The outer line sits exactly on the shared boundary between two rooms —
+  // fixed black and extra-thin so it reads as a neutral seam instead of
+  // visually dominating both rooms' shared edge; each room's own colored
+  // INNER line (offset into its own interior, on its own side) carries the
+  // family color instead.
+  container.appendChild(el('line',{x1:oA.x,y1:oA.y,x2:oB.x,y2:oB.y,stroke:'#000000','stroke-width':0.75,class:'locker-side-outer'}));
   container.appendChild(el('line',{x1:iA.x,y1:iA.y,x2:iB.x,y2:iB.y,stroke:color,'stroke-width':2,class:'locker-side-inner'}));
 }
 function drawWallBand(container,oA,oB,iA,iB,color,hazard){
@@ -1368,7 +1407,7 @@ function renderRooms(){
   layer.innerHTML='';
   clips.innerHTML='';
   board.rooms.forEach(function(room){
-    if(room.hidden)return;
+    if(room.hidden||isFamilyHidden(room))return;
     var fam=roomDisplayFamily(room);
     var isVoid=fam.type==='void';
     var g=el('g',{'data-room-id':room.id});
@@ -1440,7 +1479,7 @@ function renderPoints(){
   var layer=document.getElementById('points-layer');
   layer.innerHTML='';
   board.points.forEach(function(pt){
-    if(pt.hidden)return;
+    if(isPointHidden(pt))return;
     var color=pt.type==='terminal'&&pt.family&&board.families[pt.family]?board.families[pt.family].color:POINT_COLOR[pt.type]||'#9ca3af';
     var g=el('g',{class:'bpoint'+(selected&&selected.kind==='point'&&selected.id===pt.id?' selected':'')+(isInMultiSel('point',pt.id)?' multi-sel':''),'data-point-id':pt.id});
     var shape;
@@ -1638,6 +1677,85 @@ function pointInOrOnPolygon(p,pts){
 }
 
 // ── PROPS PANEL ───────────────────────────────────────────────────────────────
+// Buckets every room (and every point, via its owning room) into the same
+// alphabetical-by-family / base / vent / unassociated-points groups the
+// LAYERS panel displays. A point with no owner, or whose owner room isn't
+// found, falls into the trailing "Unassociated Points" bucket.
+var POINT_TYPE_LABEL={terminal:'TERMINAL',vent:'VENT',locker:'LOCKER',other:'POINT'};
+function layersGroups(){
+  var groups=[],byKey={};
+  function group(key,label){
+    if(!byKey[key]){byKey[key]={key:key,label:label,rooms:[],points:[]};groups.push(byKey[key]);}
+    return byKey[key];
+  }
+  Object.keys(board.families).sort(function(a,b){
+    return (board.families[a].label||a).localeCompare(board.families[b].label||b);
+  }).forEach(function(k){group(k,board.families[k].label||k);});
+  var baseG=null,ventG=null,unassocG=null;
+  board.rooms.forEach(function(r){
+    if(r.isVent){ventG=ventG||group('__vent__','Vents');ventG.rooms.push(r);}
+    else if(r.isBaseLayer){baseG=baseG||group('__base__','Base Layer');baseG.rooms.push(r);}
+    else group(r.family||'__none__',(board.families[r.family]&&board.families[r.family].label)||'Unassigned').rooms.push(r);
+  });
+  var ownerGroup={};
+  groups.forEach(function(g){g.rooms.forEach(function(r){ownerGroup[r.id]=g;});});
+  board.points.forEach(function(p){
+    var g=p.ownerRoomId&&ownerGroup[p.ownerRoomId];
+    if(g)g.points.push(p);
+    else{unassocG=unassocG||group('__unassoc__','Unassociated Points');unassocG.points.push(p);}
+  });
+  var famGroups=groups.filter(function(g){return g.key!=='__vent__'&&g.key!=='__base__'&&g.key!=='__unassoc__'&&(g.rooms.length||g.points.length);});
+  var ordered=famGroups;
+  if(baseG)ordered.push(baseG);
+  if(ventG)ordered.push(ventG);
+  if(unassocG)ordered.push(unassocG);
+  return ordered;
+}
+function renderLayersSection(){
+  var html='';
+  html+='<div class="layers-type-toggles">';
+  Object.keys(POINT_TYPE_LABEL).forEach(function(t){
+    var on=!hiddenPointTypes[t];
+    html+='<button class="ltt'+(on?'':' off')+'" onclick="togglePointTypeVisibility(\''+t+'\')" title="'+(on?'Hide':'Show')+' all '+POINT_TYPE_LABEL[t].toLowerCase()+' points">'+(on?'&#9673;':'&#9678;')+' '+POINT_TYPE_LABEL[t]+'</button>';
+  });
+  html+='</div>';
+  html+='<div class="layers-hdr"><span class="lh-eye"></span><span class="lh-type">TYPE</span><span class="lh-fam">FAMILY</span><span class="lh-label">NAME</span></div>';
+  html+='<div class="layers-list">';
+  var groups=layersGroups();
+  groups.forEach(function(g){
+    var famVisible=!hiddenFamilies[g.key];
+    html+='<div class="layer-group-hdr">'+
+      '<button class="layer-eye layer-eye-group'+(famVisible?' on':'')+'" onclick="toggleFamilyVisibility(\''+g.key+'\')" title="'+(famVisible?'Hide':'Show')+' all in '+esc(g.label)+'">'+(famVisible?'&#9673;':'&#9678;')+'</button>'+
+      '<span class="layer-group-label">'+esc(g.label)+'</span></div>';
+    g.rooms.forEach(function(r){
+      var visible=!r.hidden;
+      var kindTag=r.isVent?'VENT':(r.isBaseLayer?'BASE':'ROOM');
+      var label=r.label||roomDisplayFamily(r).label||r.id;
+      var active=selected&&selected.kind==='room'&&selected.id===r.id;
+      html+='<div class="layer-row'+(active?' active':'')+'">'+
+        '<button class="layer-eye'+(visible?' on':'')+'" onclick="toggleRoomVisibility(\''+r.id+'\')" title="'+(visible?'Hide':'Show')+'">'+(visible?'&#9673;':'&#9678;')+'</button>'+
+        '<span class="layer-tag">'+kindTag+'</span>'+
+        '<span class="layer-fam"></span>'+
+        '<span class="layer-label" onclick="selected={kind:\'room\',id:\''+r.id+'\'};multiSel=[];render();" title="'+esc(label)+'">'+esc(label)+'</span></div>';
+    });
+    g.points.forEach(function(p){
+      var visible=!p.hidden;
+      var label=p.label||p.type;
+      var owner=p.ownerRoomId&&findRoom(p.ownerRoomId);
+      var ownerLabel=owner?(owner.label||owner.id):'';
+      var active=selected&&selected.kind==='point'&&selected.id===p.id;
+      html+='<div class="layer-row'+(active?' active':'')+'">'+
+        '<button class="layer-eye'+(visible?' on':'')+'" onclick="togglePointVisibility(\''+p.id+'\')" title="'+(visible?'Hide':'Show')+'">'+(visible?'&#9673;':'&#9678;')+'</button>'+
+        '<span class="layer-tag">'+p.type.toUpperCase()+'</span>'+
+        '<span class="layer-fam" title="'+esc(ownerLabel)+'">'+esc(ownerLabel)+'</span>'+
+        '<span class="layer-label" onclick="selected={kind:\'point\',id:\''+p.id+'\'};multiSel=[];render();" title="'+esc(label)+'">'+esc(label)+'</span></div>';
+    });
+  });
+  if(!groups.length)html+='<div class="pp-empty">Nothing on the board yet.</div>';
+  html+='</div>';
+  return html;
+}
+
 function renderProps(){
   var body=document.getElementById('pp-body');
   var html='';
@@ -1649,43 +1767,7 @@ function renderProps(){
     html+='<button class="pp-del" onclick="deleteMultiSel()">DELETE ALL ('+multiSel.length+')</button>';
     body.innerHTML=html;return;
   }
-  if(selected&&selected.kind==='room'){
-    var room=board.rooms.filter(function(r){return r.id===selected.id;})[0];
-    if(room){
-      var roomKindLabel=room.isVent?'VENT':(room.isBaseLayer?'BASE LAYER':'ROOM');
-      html+='<div class="pp-h">'+roomKindLabel+'</div>';
-      if(room.isVent){
-        html+='<div class="pp-empty">Vents aren\'t part of a user-defined family — closer to a locker, taking its color from whatever room it physically sits inside.</div>';
-      }else if(room.isBaseLayer){
-        html+='<div class="pp-empty">The board base/holder layer isn\'t part of a user-defined family either — just a boundary shape with the void infill. No walls or doors of its own.</div>';
-      }else{
-        html+='<div class="pp-row"><label>FAMILY</label><select onchange="setRoomFamily(\''+room.id+'\',this.value)">'+
-          Object.keys(board.families).map(function(k){return '<option value="'+k+'"'+(k===room.family?' selected':'')+'>'+esc(board.families[k].label)+'</option>';}).join('')+
-          '</select></div>';
-      }
-      html+='<div class="pp-row"><label>LABEL (optional)</label><input type="text" value="'+esc(room.label||'')+'" onfocus="pushUndo()" oninput="setRoomLabel(\''+room.id+'\',this.value)"></div>';
-      html+='<div class="pp-row"><label>NOTES</label><textarea onfocus="pushUndo()" oninput="setRoomNotes(\''+room.id+'\',this.value)">'+esc(room.notes||'')+'</textarea></div>';
-      var spCount=room._spaceCount||0, spExcl=room._spaceInvalid||0;
-      html+='<div class="pp-empty"><strong style="color:var(--blue);">'+spCount+' traversable space'+(spCount===1?'':'s')+'</strong>'+(spExcl?' ('+spExcl+' cell'+(spExcl===1?'':'s')+' excluded — notched/partial)':'')+'<br>'+room.points.length+' vertices'+(room.isBaseLayer?'':' &middot; '+(room.doors||[]).length+' door(s)')+'<br>Drag a corner to reshape, drag a mid-edge dot to add a vertex, double-click a corner to remove it.'+(room.isBaseLayer?'':' DOOR tool toggles an edge.')+'</div>';
-      html+='<button class="pp-del" onclick="deleteRoom(\''+room.id+'\')">DELETE ROOM</button>';
-    }
-  }else if(selected&&selected.kind==='point'){
-    var pt=board.points.filter(function(p){return p.id===selected.id;})[0];
-    if(pt){
-      html+='<div class="pp-h">POINT</div>';
-      html+='<div class="pp-row"><label>TYPE</label><select onchange="setPointType(\''+pt.id+'\',this.value)">'+
-        ['terminal','vent','locker','other'].map(function(t){return '<option value="'+t+'"'+(t===pt.type?' selected':'')+'>'+t.toUpperCase()+'</option>';}).join('')+
-        '</select></div>';
-      if(pt.type==='terminal'){
-        html+='<div class="pp-row"><label>FAMILY (which terminal)</label><select onchange="setPointFamily(\''+pt.id+'\',this.value)">'+
-          '<option value=""'+(!pt.family?' selected':'')+'>&mdash;</option>'+
-          Object.keys(board.families).map(function(k){return '<option value="'+k+'"'+(k===pt.family?' selected':'')+'>'+esc(board.families[k].label)+'</option>';}).join('')+
-          '</select></div>';
-      }
-      html+='<div class="pp-row"><label>LABEL</label><input type="text" value="'+esc(pt.label||'')+'" onfocus="pushUndo()" oninput="setPointLabel(\''+pt.id+'\',this.value)"></div>';
-      html+='<button class="pp-del" onclick="deletePoint(\''+pt.id+'\')">DELETE POINT</button>';
-    }
-  }else if(selected&&selected.kind==='boundary'&&board.boundary){
+  if(selected&&selected.kind==='boundary'&&board.boundary){
     var stats=computeBoundaryStats();
     html+='<div class="pp-h">BOARD BOUNDARY</div>';
     html+='<div class="pp-empty"><strong style="color:var(--blue);">'+stats.wSpaces+' × '+stats.hSpaces+' spaces</strong> ('+stats.total+' total)<br><br>'+
@@ -1701,6 +1783,9 @@ function renderProps(){
       html+='<button class="pp-del" onclick="deleteWall(\''+selected.roomId+'\',\''+selected.id+'\')">DELETE WALL</button>';
     }
   }else{
+    var selRoom=(selected&&selected.kind==='room')?findRoom(selected.id):null;
+    var selPoint=(!selRoom&&selected&&selected.kind==='point')?findPoint(selected.id):null;
+
     html+='<div class="pp-h">BOARD</div>';
     html+='<div class="pp-row"><label>NAME</label><input type="text" value="'+esc(board.meta.name||'')+'" onfocus="pushUndo()" oninput="board.meta.name=this.value"></div>';
     html+='<div class="pp-empty">'+board.rooms.length+' room(s) &middot; '+board.points.length+' point(s)</div>';
@@ -1710,26 +1795,39 @@ function renderProps(){
     }
 
     html+='<div class="pp-h">LAYERS</div>';
-    html+='<div class="layers-list">';
-    board.rooms.forEach(function(r){
-      var visible=!r.hidden;
-      var kindTag=r.isVent?'VENT':(r.isBaseLayer?'BASE':'ROOM');
-      var label=r.label||roomDisplayFamily(r).label||r.id;
-      html+='<div class="layer-row">'+
-        '<button class="layer-eye'+(visible?' on':'')+'" onclick="toggleRoomVisibility(\''+r.id+'\')" title="'+(visible?'Hide':'Show')+'">'+(visible?'&#9673;':'&#9678;')+'</button>'+
-        '<span class="layer-tag">'+kindTag+'</span>'+
-        '<span class="layer-label" onclick="selected={kind:\'room\',id:\''+r.id+'\'};multiSel=[];render();" title="'+esc(label)+'">'+esc(label)+'</span></div>';
-    });
-    board.points.forEach(function(p){
-      var visible=!p.hidden;
-      var label=p.label||p.type;
-      html+='<div class="layer-row">'+
-        '<button class="layer-eye'+(visible?' on':'')+'" onclick="togglePointVisibility(\''+p.id+'\')" title="'+(visible?'Hide':'Show')+'">'+(visible?'&#9673;':'&#9678;')+'</button>'+
-        '<span class="layer-tag">'+p.type.toUpperCase()+'</span>'+
-        '<span class="layer-label" onclick="selected={kind:\'point\',id:\''+p.id+'\'};multiSel=[];render();" title="'+esc(label)+'">'+esc(label)+'</span></div>';
-    });
-    if(!board.rooms.length&&!board.points.length)html+='<div class="pp-empty">Nothing on the board yet.</div>';
-    html+='</div>';
+    html+=renderLayersSection();
+
+    if(selRoom){
+      var roomKindLabel=selRoom.isVent?'VENT':(selRoom.isBaseLayer?'BASE LAYER':'ROOM');
+      html+='<div class="pp-h pp-h-sub">'+roomKindLabel+'</div>';
+      if(selRoom.isVent){
+        html+='<div class="pp-empty">Vents aren\'t part of a user-defined family — closer to a locker, taking its color from whatever room it physically sits inside.</div>';
+      }else if(selRoom.isBaseLayer){
+        html+='<div class="pp-empty">The board base/holder layer isn\'t part of a user-defined family either — just a boundary shape with the void infill. No walls or doors of its own.</div>';
+      }else{
+        html+='<div class="pp-row"><label>FAMILY</label><select onchange="setRoomFamily(\''+selRoom.id+'\',this.value)">'+
+          Object.keys(board.families).map(function(k){return '<option value="'+k+'"'+(k===selRoom.family?' selected':'')+'>'+esc(board.families[k].label)+'</option>';}).join('')+
+          '</select></div>';
+      }
+      html+='<div class="pp-row"><label>LABEL (optional)</label><input type="text" value="'+esc(selRoom.label||'')+'" onfocus="pushUndo()" oninput="setRoomLabel(\''+selRoom.id+'\',this.value)"></div>';
+      html+='<div class="pp-row"><label>NOTES</label><textarea onfocus="pushUndo()" oninput="setRoomNotes(\''+selRoom.id+'\',this.value)">'+esc(selRoom.notes||'')+'</textarea></div>';
+      var spCount=selRoom._spaceCount||0, spExcl=selRoom._spaceInvalid||0;
+      html+='<div class="pp-empty"><strong style="color:var(--blue);">'+spCount+' traversable space'+(spCount===1?'':'s')+'</strong>'+(spExcl?' ('+spExcl+' cell'+(spExcl===1?'':'s')+' excluded — notched/partial)':'')+'<br>'+selRoom.points.length+' vertices'+(selRoom.isBaseLayer?'':' &middot; '+(selRoom.doors||[]).length+' door(s)')+'<br>Drag a corner to reshape, drag a mid-edge dot to add a vertex, double-click a corner to remove it.'+(selRoom.isBaseLayer?'':' DOOR tool toggles an edge.')+'</div>';
+      html+='<button class="pp-del" onclick="deleteRoom(\''+selRoom.id+'\')">DELETE ROOM</button>';
+    }else if(selPoint){
+      html+='<div class="pp-h pp-h-sub">POINT</div>';
+      html+='<div class="pp-row"><label>TYPE</label><select onchange="setPointType(\''+selPoint.id+'\',this.value)">'+
+        ['terminal','vent','locker','other'].map(function(t){return '<option value="'+t+'"'+(t===selPoint.type?' selected':'')+'>'+t.toUpperCase()+'</option>';}).join('')+
+        '</select></div>';
+      if(selPoint.type==='terminal'){
+        html+='<div class="pp-row"><label>FAMILY (which terminal)</label><select onchange="setPointFamily(\''+selPoint.id+'\',this.value)">'+
+          '<option value=""'+(!selPoint.family?' selected':'')+'>&mdash;</option>'+
+          Object.keys(board.families).map(function(k){return '<option value="'+k+'"'+(k===selPoint.family?' selected':'')+'>'+esc(board.families[k].label)+'</option>';}).join('')+
+          '</select></div>';
+      }
+      html+='<div class="pp-row"><label>LABEL</label><input type="text" value="'+esc(selPoint.label||'')+'" onfocus="pushUndo()" oninput="setPointLabel(\''+selPoint.id+'\',this.value)"></div>';
+      html+='<button class="pp-del" onclick="deletePoint(\''+selPoint.id+'\')">DELETE POINT</button>';
+    }
 
     html+='<div class="pp-h">FAMILIES</div>';
     Object.keys(board.families).forEach(function(k){
@@ -3350,6 +3448,7 @@ function loadBoard(raw,name,cls){
   });
   syncUidCounter();
   selected=null;multiSel=[];drawingRoom=null;drawingWall=null;
+  hiddenFamilies={};hiddenPointTypes={};
   undoStack=[];redoStack=[];updateUndoRedoButtons();
   setFstat(name,cls);
   resetView();render();
