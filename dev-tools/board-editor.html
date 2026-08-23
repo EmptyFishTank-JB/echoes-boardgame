@@ -577,7 +577,12 @@ function renderThickWallEdge(container,p1,p2,innerP1,innerP2,inward,edgeDoors,co
   // how sharp the room's corners are — stays perpendicular to this edge.
   function simpleInnerAt(t){var o=outerAt(t);return {x:o.x+inward.x*THICK_WALL_MARGIN,y:o.y+inward.y*THICK_WALL_MARGIN};}
   function hazardBand(t0,t1,miterA,miterB){
-    if(t1-t0<0.3)return;
+    // Corner-touching bands (miterA/miterB set) must always render even if
+    // paper-thin — a door sitting immediately at a corner otherwise leaves
+    // that corner's mitered join with no fill/border at all, since the
+    // sliver between the true corner and the door boundary rounds to
+    // near-zero. A non-corner band skipping when negligibly thin is fine.
+    if(t1-t0<0.3&&!miterA&&!miterB)return;
     var oA=outerAt(t0),oB=outerAt(t1);
     var iA=miterA||simpleInnerAt(t0),iB=miterB||simpleInnerAt(t1);
     var quad=oA.x+','+oA.y+' '+oB.x+','+oB.y+' '+iB.x+','+iB.y+' '+iA.x+','+iA.y;
@@ -589,8 +594,15 @@ function renderThickWallEdge(container,p1,p2,innerP1,innerP2,inward,edgeDoors,co
     var half=(d.width||GRID)/2;
     return {start:Math.max(0,d.pos-half),end:Math.min(edgeLen,d.pos+half)};
   }).sort(function(a,b){return a.start-b.start;});
-  var cursor=0;
-  segs.forEach(function(s){
+  // Below this width, a "flanking" hazard sliver between a door and the
+  // true corner reads as a stray broken fragment rather than a wall, so
+  // instead the door's own opening is extended to meet the corner
+  // directly (using the mitered corner point as that jamb's inner
+  // reference) — the same clean "opens right up to the corner" look a
+  // locker gets automatically since its sides are never split like this.
+  var MIN_CORNER_FLANK=THICK_WALL_MARGIN*1.5;
+  var cursor=0,endCornerConsumed=false;
+  segs.forEach(function(s,idx){
     // Match the locker's actual proportions exactly: a locker's opening is
     // 2/3 of its INNER box's side (the door slot minus the margin already
     // eaten on each side), not 2/3 of the slot's full/outer width — using
@@ -601,9 +613,21 @@ function renderThickWallEdge(container,p1,p2,innerP1,innerP2,inward,edgeDoors,co
     // cursor===0 (not a fixed first-iteration flag) so this still applies
     // correctly if an earlier segment's band got skipped for being <0.3
     // long (immediately adjacent doors, edge starts right at t=0, etc).
-    hazardBand(cursor,openStart,cursor===0?innerP1:null,null);
-    hazardBand(openEnd,s.end);
-    var oStart=outerAt(openStart),oEnd=outerAt(openEnd),iStart=simpleInnerAt(openStart),iEnd=simpleInnerAt(openEnd);
+    // The distance that matters here is the door's OWN stored span to the
+    // corner (s.start/s.end vs 0/edgeLen) — not the narrowed 2/3-width
+    // opening's distance — since that's what actually determines whether
+    // any wall is left to draw between the door and the corner at all.
+    // Getting this wrong (comparing the narrowed-opening distance instead)
+    // let a door whose stored span exactly reaches the corner still try to
+    // render a zero-width trailing/leading band, producing a degenerate
+    // sliver-triangle instead of a clean flush-to-corner opening.
+    var atStartCorner=cursor===0&&(s.start-cursor)<MIN_CORNER_FLANK;
+    var atEndCorner=idx===segs.length-1&&(edgeLen-s.end)<MIN_CORNER_FLANK;
+    if(atStartCorner)openStart=0;else hazardBand(cursor,openStart,cursor===0?innerP1:null,null);
+    if(atEndCorner){openEnd=edgeLen;endCornerConsumed=true;}else hazardBand(openEnd,s.end);
+    var iStart=atStartCorner?innerP1:simpleInnerAt(openStart);
+    var iEnd=atEndCorner?innerP2:simpleInnerAt(openEnd);
+    var oStart=outerAt(openStart),oEnd=outerAt(openEnd);
     container.appendChild(el('line',{x1:oStart.x,y1:oStart.y,x2:iStart.x,y2:iStart.y,stroke:color,'stroke-width':2,class:'locker-door-frame'}));
     container.appendChild(el('line',{x1:oEnd.x,y1:oEnd.y,x2:iEnd.x,y2:iEnd.y,stroke:color,'stroke-width':2,class:'locker-door-frame'}));
     var midT=(openStart+openEnd)/2;
@@ -615,7 +639,7 @@ function renderThickWallEdge(container,p1,p2,innerP1,innerP2,inward,edgeDoors,co
     container.appendChild(glyph);
     cursor=Math.max(cursor,s.end);
   });
-  hazardBand(cursor,edgeLen,cursor===0?innerP1:null,innerP2);
+  if(!endCornerConsumed)hazardBand(cursor,edgeLen,cursor===0?innerP1:null,innerP2);
 }
 // Small solid triangle at a door's midpoint, pointing along the INWARD
 // normal (into the room) — an "exit" pointer that stays inside its own
