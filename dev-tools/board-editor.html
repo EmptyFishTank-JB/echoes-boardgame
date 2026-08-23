@@ -522,20 +522,50 @@ function renderWallLine(container,p1,p2,edgeDoors,color,sw,markSize,lineClass,ro
   });
   wallLine(cursor,edgeLen);
 }
+// THICK_WALL_MARGIN matches the locker's own inset exactly: a locker's
+// inner box is half*0.7 where half=GRID/2, so the margin between its
+// outer and inner box is half*0.3 = GRID/2*0.3.
+var THICK_WALL_MARGIN=(GRID/2)*0.3;
+// Inward-offsets an entire closed polygon by `margin`, MITERING each
+// corner (intersecting each pair of adjacent offset edge-lines) instead
+// of offsetting every edge independently — so the inner line one edge
+// draws and the inner line its neighbor draws are the exact same point
+// at the shared vertex: touching/joined at concave corners, and the
+// inset naturally extends out to meet its neighbor at convex corners,
+// instead of the two edges' insets floating separately or overlapping.
+function insetPolygonMiter(points,margin,roomPts){
+  var n=points.length;
+  var inward=points.map(function(p,i){return edgeInwardNormal(p,points[(i+1)%n],roomPts);});
+  function lineIntersect(p1,d1,p2,d2){
+    var denom=d1.x*d2.y-d1.y*d2.x;
+    if(Math.abs(denom)<1e-9)return null;
+    var t=((p2.x-p1.x)*d2.y-(p2.y-p1.y)*d2.x)/denom;
+    return {x:p1.x+d1.x*t,y:p1.y+d1.y*t};
+  }
+  return points.map(function(curr,i){
+    var prevIdx=(i-1+n)%n,nextIdx=(i+1)%n;
+    var prevP=points[prevIdx],nextP=points[nextIdx];
+    var n1=inward[prevIdx],n2=inward[i];
+    var a1={x:prevP.x+n1.x*margin,y:prevP.y+n1.y*margin},d1={x:curr.x-prevP.x,y:curr.y-prevP.y};
+    var a2={x:curr.x+n2.x*margin,y:curr.y+n2.y*margin},d2={x:nextP.x-curr.x,y:nextP.y-curr.y};
+    return lineIntersect(a1,d1,a2,d2)||{x:curr.x+n2.x*margin,y:curr.y+n2.y*margin};
+  });
+}
 // A vent's boundary edge, drawn thick like a locker's sides — an outer
-// line ON the actual room edge plus an inset line offset inward by
-// THICK_WALL_MARGIN, with the gap between the two filled by the same
-// hazard hatch used for excluded room cells. A door on the edge breaks
-// both the hazard fill AND the outer/inner lines entirely — no dashes,
-// no striping, just a plain opening with the vent glyph centered on it.
-var THICK_WALL_MARGIN=10;
-function renderThickWallEdge(container,p1,p2,edgeDoors,color,roomPts){
+// line ON the actual room edge plus a mitered inset line (innerP1/innerP2,
+// precomputed per-room by insetPolygonMiter so adjacent edges join
+// cleanly at every corner), with the gap between the two filled by the
+// same hazard hatch used for excluded room cells. A door reuses the
+// locker's own jamb treatment — a 2/3-width opening centered in the
+// door's span, hazard continuing on the flanking portions, short jamb
+// connectors closing the frame at each end — but with no dashed lines
+// across the gap, just the vent glyph centered on it.
+function renderThickWallEdge(container,p1,p2,innerP1,innerP2,edgeDoors,color){
   var edgeLen=dist(p1,p2);
   if(edgeLen<0.3)return;
   var ux=(p2.x-p1.x)/edgeLen,uy=(p2.y-p1.y)/edgeLen;
-  var inward=edgeInwardNormal(p1,p2,roomPts);
   function outerAt(t){return {x:p1.x+ux*t,y:p1.y+uy*t};}
-  function innerAt(t){return {x:p1.x+ux*t+inward.x*THICK_WALL_MARGIN,y:p1.y+uy*t+inward.y*THICK_WALL_MARGIN};}
+  function innerAt(t){var f=t/edgeLen;return {x:innerP1.x+(innerP2.x-innerP1.x)*f,y:innerP1.y+(innerP2.y-innerP1.y)*f};}
   function hazardBand(t0,t1){
     if(t1-t0<0.3)return;
     var oA=outerAt(t0),oB=outerAt(t1),iA=innerAt(t0),iB=innerAt(t1);
@@ -550,8 +580,14 @@ function renderThickWallEdge(container,p1,p2,edgeDoors,color,roomPts){
   }).sort(function(a,b){return a.start-b.start;});
   var cursor=0;
   segs.forEach(function(s){
-    hazardBand(cursor,s.start);
-    var midT=(s.start+s.end)/2;
+    var doorSpan=s.end-s.start,openLen=doorSpan*(2/3);
+    var openStart=s.start+(doorSpan-openLen)/2,openEnd=s.end-(doorSpan-openLen)/2;
+    hazardBand(cursor,openStart);
+    hazardBand(openEnd,s.end);
+    var oStart=outerAt(openStart),oEnd=outerAt(openEnd),iStart=innerAt(openStart),iEnd=innerAt(openEnd);
+    container.appendChild(el('line',{x1:oStart.x,y1:oStart.y,x2:iStart.x,y2:iStart.y,stroke:color,'stroke-width':2,class:'locker-door-frame'}));
+    container.appendChild(el('line',{x1:oEnd.x,y1:oEnd.y,x2:iEnd.x,y2:iEnd.y,stroke:color,'stroke-width':2,class:'locker-door-frame'}));
+    var midT=(openStart+openEnd)/2;
     var iconAt={x:(outerAt(midT).x+innerAt(midT).x)/2,y:(outerAt(midT).y+innerAt(midT).y)/2};
     container.appendChild(el('rect',{x:iconAt.x-8,y:iconAt.y-6,width:16,height:12,fill:color,rx:2,class:'vent-jamb-icon'}));
     var glyph=el('text',{x:iconAt.x,y:iconAt.y+1,class:'bpoint-glyph'});
@@ -1020,10 +1056,11 @@ function renderRooms(){
     }
 
     var doors=room.doors||[];
+    var ventInner=room.isVent?insetPolygonMiter(room.points,THICK_WALL_MARGIN,room.points):null;
     room.points.forEach(function(p1,i){
       var p2=room.points[(i+1)%room.points.length];
       var edgeDoors=doors.filter(function(d){return d.edge===i;});
-      if(room.isVent)renderThickWallEdge(g,p1,p2,edgeDoors,fam.color,room.points);
+      if(room.isVent)renderThickWallEdge(g,p1,p2,ventInner[i],ventInner[(i+1)%room.points.length],edgeDoors,fam.color);
       else renderWallLine(g,p1,p2,edgeDoors,fam.color,4,8,'room-edge',room.points);
     });
     // Interior walls — always confined to this room, so they render/move/
