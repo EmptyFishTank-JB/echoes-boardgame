@@ -124,6 +124,13 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
 .fam-void-toggle input{margin:0;cursor:pointer;}
 .fam-del{background:transparent;border:none;color:rgba(224,80,80,0.55);cursor:pointer;font-size:13px;flex-shrink:0;padding:0 2px;}
 .fam-del:hover{color:#e05050;}
+.layers-list{max-height:220px;overflow-y:auto;margin-bottom:8px;}
+.layer-row{display:flex;align-items:center;gap:6px;padding:2px 0;font-size:11px;}
+.layer-eye{background:transparent;border:none;cursor:pointer;font-size:13px;color:rgba(255,255,255,0.25);flex-shrink:0;padding:0;line-height:1;}
+.layer-eye.on{color:var(--blue);}
+.layer-tag{flex-shrink:0;font-size:9px;letter-spacing:0.04em;color:var(--dim);width:34px;}
+.layer-label{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:rgba(255,255,255,0.72);cursor:pointer;}
+.layer-label:hover{color:var(--blue);}
 .fam-add{width:100%;background:transparent;border:1px dashed rgba(79,195,247,0.24);color:var(--dim);font-family:"Share Tech Mono",monospace;font-size:11px;padding:5px;cursor:pointer;margin-top:4px;}
 .fam-add:hover{border-color:var(--blue);color:var(--blue);}
 .legend-row{display:flex;align-items:center;gap:6px;font-size:11px;color:rgba(79,195,247,0.65);margin-bottom:4px;}
@@ -521,6 +528,7 @@ function drawExitArrow(container,at,inward,color,size){
 // inside (an open pathway) and instead place the small vent glyph on
 // each door's jamb.
 var LOCKER_WHITE='#eef0f5';
+var VENT_GREY='#9aa3ad';
 function isCellPointType(t){return t==='locker'||t==='vent';}
 function lockerSides(pt){
   var half=GRID/2;
@@ -546,19 +554,11 @@ function cellPointColor(pt){
   }
   return LOCKER_WHITE;
 }
-// A vent has no family of its own (it's closer to a locker than a room —
-// see roomDisplayFamily) — same idea as cellPointColor, using the vent's
-// own centroid as its representative point.
-function ventRoomColor(room){
-  return cellPointColor(centroid(room.points));
-}
 // The family-like {color,label} a room displays as: a normal room's own
 // family, or — for a vent, which isn't part of the user-defined family
-// list — a synthesized one taking its color from whatever room it
-// physically sits inside (falling back to LOCKER_WHITE), same as a
-// locker.
+// list and isn't placed inside other rooms — a fixed neutral grey.
 function roomDisplayFamily(room){
-  if(room.isVent)return {color:ventRoomColor(room),label:'Vent',type:'tile'};
+  if(room.isVent)return {color:VENT_GREY,label:'Vent',type:'tile'};
   if(room.isBaseLayer)return {color:'#2b3038',label:'Board Base Layer',type:'void'};
   return board.families[room.family]||{color:'#4fc3f7',label:room.family};
 }
@@ -648,7 +648,7 @@ function renderCellWalls(container,pt,color){
 // with, so the plain per-cell rendering is exactly right here.
 function renderLegacyVentPoint(container,pt){
   var half=GRID/2;
-  var color=cellPointColor(pt);
+  var color=VENT_GREY;
   renderCellWalls(container,pt,color);
   var hasDoor=(pt.doors||[]).some(function(d){return d;});
   if(hasDoor){
@@ -725,6 +725,22 @@ function snapPt(p){return {x:Math.round(p.x/SNAP)*SNAP, y:Math.round(p.y/SNAP)*S
 // snapping straight onto the nearest room edge within reach first (a true
 // "click near this line, land on it" like most CAD tools); only fall back
 // to the plain grid snap when nothing is close enough.
+// Snaps the along-edge position to the current SNAP grid too — not just
+// perpendicular onto the line — so a wall endpoint landing near an edge
+// still respects WHOLE/HALF/QUARTER instead of settling at whatever
+// continuous point the raw click happened to project to. For an
+// axis-aligned edge that's just rounding the free coordinate (the other
+// one is already exact, pinned to the line); for anything else (a
+// diagonal edge) it's the arc-length from p1 that gets rounded instead,
+// since there's no single world-grid axis to round to.
+function snapAlongEdge(pt,p1,p2){
+  var dx=p2.x-p1.x,dy=p2.y-p1.y;
+  if(Math.abs(dx)<1e-6)return {x:pt.x,y:Math.round(pt.y/SNAP)*SNAP};
+  if(Math.abs(dy)<1e-6)return {x:Math.round(pt.x/SNAP)*SNAP,y:pt.y};
+  var len=Math.hypot(dx,dy),ux=dx/len,uy=dy/len;
+  var t=Math.round((((pt.x-p1.x)*ux+(pt.y-p1.y)*uy))/SNAP)*SNAP;
+  return {x:p1.x+ux*t,y:p1.y+uy*t};
+}
 function snapPtToRoomEdges(raw,maxDist){
   var best=null,bestDist=maxDist;
   board.rooms.forEach(function(r){
@@ -735,7 +751,7 @@ function snapPtToRoomEdges(raw,maxDist){
       var d=distToSeg(raw,p1,p2);
       if(d>=bestDist)return;
       var t=Math.max(0,Math.min(1,((raw.x-p1.x)*(p2.x-p1.x)+(raw.y-p1.y)*(p2.y-p1.y))/(len*len)));
-      best={x:p1.x+t*(p2.x-p1.x),y:p1.y+t*(p2.y-p1.y)};
+      best=snapAlongEdge({x:p1.x+t*(p2.x-p1.x),y:p1.y+t*(p2.y-p1.y)},p1,p2);
       bestDist=d;
     });
     (r.walls||[]).forEach(function(w){
@@ -744,7 +760,7 @@ function snapPtToRoomEdges(raw,maxDist){
       var d=distToSeg(raw,w.p1,w.p2);
       if(d>=bestDist)return;
       var t=Math.max(0,Math.min(1,((raw.x-w.p1.x)*(w.p2.x-w.p1.x)+(raw.y-w.p1.y)*(w.p2.y-w.p1.y))/(len*len)));
-      best={x:w.p1.x+t*(w.p2.x-w.p1.x),y:w.p1.y+t*(w.p2.y-w.p1.y)};
+      best=snapAlongEdge({x:w.p1.x+t*(w.p2.x-w.p1.x),y:w.p1.y+t*(w.p2.y-w.p1.y)},w.p1,w.p2);
       bestDist=d;
     });
   });
@@ -1305,16 +1321,22 @@ function renderInteriorWall(g,room,wall,color){
   var axisAligned=Math.abs(ux)<1e-6||Math.abs(uy)<1e-6;
   var perp={x:-uy,y:ux};
   function sideAt(t,sign){return {x:p1.x+ux*t+perp.x*CELL_WALL_MARGIN*sign,y:p1.y+uy*t+perp.y*CELL_WALL_MARGIN*sign};}
+  // A thin two-line wall is nearly impossible to click on — the whole
+  // margin's worth of width between the lines gets a faint fill so the
+  // wall is selectable anywhere across its own thickness, not just
+  // exactly on one of the two boundary strokes.
+  var a1=sideAt(0,1),a2=sideAt(len,1),b1=sideAt(0,-1),b2=sideAt(len,-1);
+  g.appendChild(el('polygon',{points:a1.x+','+a1.y+' '+a2.x+','+a2.y+' '+b2.x+','+b2.y+' '+b1.x+','+b1.y,fill:hexToRgba(color,0.16),class:'iwall-infill'}));
   function band(t0,t1){
     if(t1-t0<0.3)return;
-    g.appendChild(el('line',{x1:sideAt(t0,1).x,y1:sideAt(t0,1).y,x2:sideAt(t1,1).x,y2:sideAt(t1,1).y,stroke:color,'stroke-width':2,class:'locker-side-outer'}));
-    g.appendChild(el('line',{x1:sideAt(t0,-1).x,y1:sideAt(t0,-1).y,x2:sideAt(t1,-1).x,y2:sideAt(t1,-1).y,stroke:color,'stroke-width':2,class:'locker-side-inner'}));
+    g.appendChild(el('line',{x1:sideAt(t0,1).x,y1:sideAt(t0,1).y,x2:sideAt(t1,1).x,y2:sideAt(t1,1).y,stroke:color,'stroke-width':2,class:'locker-side-outer iwall-line'}));
+    g.appendChild(el('line',{x1:sideAt(t0,-1).x,y1:sideAt(t0,-1).y,x2:sideAt(t1,-1).x,y2:sideAt(t1,-1).y,stroke:color,'stroke-width':2,class:'locker-side-inner iwall-line'}));
   }
   if(!wallEndIsJoined(room,wall,p1)){
-    g.appendChild(el('line',{x1:sideAt(0,1).x,y1:sideAt(0,1).y,x2:sideAt(0,-1).x,y2:sideAt(0,-1).y,stroke:color,'stroke-width':2,class:'locker-door-frame'}));
+    g.appendChild(el('line',{x1:sideAt(0,1).x,y1:sideAt(0,1).y,x2:sideAt(0,-1).x,y2:sideAt(0,-1).y,stroke:color,'stroke-width':2,class:'locker-door-frame iwall-line'}));
   }
   if(!wallEndIsJoined(room,wall,p2)){
-    g.appendChild(el('line',{x1:sideAt(len,1).x,y1:sideAt(len,1).y,x2:sideAt(len,-1).x,y2:sideAt(len,-1).y,stroke:color,'stroke-width':2,class:'locker-door-frame'}));
+    g.appendChild(el('line',{x1:sideAt(len,1).x,y1:sideAt(len,1).y,x2:sideAt(len,-1).x,y2:sideAt(len,-1).y,stroke:color,'stroke-width':2,class:'locker-door-frame iwall-line'}));
   }
   var k=Math.round(len/GRID);
   var gridMultiple=axisAligned&&Math.abs(len-k*GRID)<0.5&&k>=1;
@@ -1346,6 +1368,7 @@ function renderRooms(){
   layer.innerHTML='';
   clips.innerHTML='';
   board.rooms.forEach(function(room){
+    if(room.hidden)return;
     var fam=roomDisplayFamily(room);
     var isVoid=fam.type==='void';
     var g=el('g',{'data-room-id':room.id});
@@ -1412,11 +1435,12 @@ function renderRooms(){
 }
 
 var POINT_GLYPH={terminal:'T',vent:'V',locker:'L',other:'?'};
-var POINT_COLOR={terminal:'#4fc3f7',vent:'#6fb06f',locker:'#c9a24a',other:'#9ca3af'};
+var POINT_COLOR={terminal:'#4fc3f7',vent:VENT_GREY,locker:'#c9a24a',other:'#9ca3af'};
 function renderPoints(){
   var layer=document.getElementById('points-layer');
   layer.innerHTML='';
   board.points.forEach(function(pt){
+    if(pt.hidden)return;
     var color=pt.type==='terminal'&&pt.family&&board.families[pt.family]?board.families[pt.family].color:POINT_COLOR[pt.type]||'#9ca3af';
     var g=el('g',{class:'bpoint'+(selected&&selected.kind==='point'&&selected.id===pt.id?' selected':'')+(isInMultiSel('point',pt.id)?' multi-sel':''),'data-point-id':pt.id});
     var shape;
@@ -1685,6 +1709,28 @@ function renderProps(){
       html+='<div class="pp-row"><button class="hbtn" style="width:100%;" onclick="selected={kind:\'boundary\'};render();">EDIT BOUNDARY ('+st2.wSpaces+'×'+st2.hSpaces+')</button></div>';
     }
 
+    html+='<div class="pp-h">LAYERS</div>';
+    html+='<div class="layers-list">';
+    board.rooms.forEach(function(r){
+      var visible=!r.hidden;
+      var kindTag=r.isVent?'VENT':(r.isBaseLayer?'BASE':'ROOM');
+      var label=r.label||roomDisplayFamily(r).label||r.id;
+      html+='<div class="layer-row">'+
+        '<button class="layer-eye'+(visible?' on':'')+'" onclick="toggleRoomVisibility(\''+r.id+'\')" title="'+(visible?'Hide':'Show')+'">'+(visible?'&#9673;':'&#9678;')+'</button>'+
+        '<span class="layer-tag">'+kindTag+'</span>'+
+        '<span class="layer-label" onclick="selected={kind:\'room\',id:\''+r.id+'\'};multiSel=[];render();" title="'+esc(label)+'">'+esc(label)+'</span></div>';
+    });
+    board.points.forEach(function(p){
+      var visible=!p.hidden;
+      var label=p.label||p.type;
+      html+='<div class="layer-row">'+
+        '<button class="layer-eye'+(visible?' on':'')+'" onclick="togglePointVisibility(\''+p.id+'\')" title="'+(visible?'Hide':'Show')+'">'+(visible?'&#9673;':'&#9678;')+'</button>'+
+        '<span class="layer-tag">'+p.type.toUpperCase()+'</span>'+
+        '<span class="layer-label" onclick="selected={kind:\'point\',id:\''+p.id+'\'};multiSel=[];render();" title="'+esc(label)+'">'+esc(label)+'</span></div>';
+    });
+    if(!board.rooms.length&&!board.points.length)html+='<div class="pp-empty">Nothing on the board yet.</div>';
+    html+='</div>';
+
     html+='<div class="pp-h">FAMILIES</div>';
     Object.keys(board.families).forEach(function(k){
       var f=board.families[k];
@@ -1901,6 +1947,18 @@ function renderDoorHover(){
   var target=findNearestWallSegment(mouseBoard);
   if(!target)return;
   layer.appendChild(el('line',{x1:target.p1.x,y1:target.p1.y,x2:target.p2.x,y2:target.p2.y,class:'door-hover-line'}));
+}
+function toggleRoomVisibility(id){
+  var r=findRoom(id);if(!r)return;
+  pushUndo();
+  r.hidden=!r.hidden;
+  render();
+}
+function togglePointVisibility(id){
+  var p=findPoint(id);if(!p)return;
+  pushUndo();
+  p.hidden=!p.hidden;
+  render();
 }
 function deleteRoom(id){
   pushUndo();
@@ -2264,6 +2322,7 @@ var HOTKEY_ACTIONS={
   door:{label:'Door tool',fn:function(){setTool('door');}},
   terminal:{label:'Terminal point tool',fn:function(){setPointTool('terminal');}},
   vent:{label:'Vent tool (draw like a room)',fn:function(){setTool('vent');}},
+  base:{label:'Base layer tool (draw like a room, no walls/doors)',fn:function(){setTool('base');}},
   locker:{label:'Locker point tool',fn:function(){setPointTool('locker');}},
   point:{label:'Point tool (other)',fn:function(){setPointTool('other');}},
   snapWhole:{label:'Snap: Whole',fn:function(){setSnap(1);}},
@@ -2299,7 +2358,7 @@ var HOTKEY_ACTIONS={
   openFileAction:{label:'Open board file',fixedLabel:'toolbar only'}
 };
 var DEFAULT_HOTKEYS={
-  select:['s'],room:['r'],wall:['w'],door:['d'],terminal:['t'],vent:['v'],locker:['l'],point:['p'],
+  select:['s'],room:['r'],wall:['w'],door:['d'],terminal:['t'],vent:['v'],base:['b'],locker:['l'],point:['p'],
   snapWhole:['1'],snapHalf:['2'],snapQuarter:['4'],
   spaces:['g','r'],info:['i'],attach:['a','t'],linkDoors:['l','d'],boundary:['b','o'],
   mirrorX:['m','x'],mirrorY:['m','y'],move:['m','v'],rotate:['r','o'],duplicate:['u'],zoomIn:['='],zoomOut:['-'],
@@ -2316,6 +2375,33 @@ function rebuildHotkeyLookup(){
     if(!seq||!seq.length)return;
     if(seq.length===1)hkSingleMap[seq[0]]=id;
     else{hkPrefixSet[seq[0]]=true;hkChordMap[seq[0]+'|'+seq[1]]=id;}
+  });
+  updateButtonTooltips();
+}
+// Which toolbar button corresponds to which HOTKEY_ACTIONS id — used to
+// keep each button's hover tooltip showing the CURRENT key binding, not
+// whatever was true when the page first loaded.
+var TOOL_BUTTON_HOTKEY_MAP={
+  'btn-select':'select','btn-room':'room','btn-vent':'vent','btn-base':'base','btn-wall':'wall','btn-door':'door',
+  'btn-terminal':'terminal','btn-locker':'locker','btn-other':'point',
+  'btn-snap-1':'snapWhole','btn-snap-2':'snapHalf','btn-snap-4':'snapQuarter',
+  'btn-spaces':'spaces','btn-info':'info','btn-attach':'attach','btn-linkdoors':'linkDoors','btn-boundary':'boundary'
+};
+// Prepends "[KEY] - " to each mapped button's tooltip, ahead of whatever
+// descriptive text it already had (captured once into data-base-title so
+// repeat calls — e.g. after loading a different shortcuts file — don't
+// keep stacking prefixes onto an already-rewritten title).
+function updateButtonTooltips(){
+  Object.keys(TOOL_BUTTON_HOTKEY_MAP).forEach(function(btnId){
+    var btn=document.getElementById(btnId);
+    if(!btn)return;
+    var actionId=TOOL_BUTTON_HOTKEY_MAP[btnId];
+    var action=HOTKEY_ACTIONS[actionId];
+    if(!action)return;
+    if(btn.dataset.baseTitle===undefined)btn.dataset.baseTitle=btn.getAttribute('title')||action.label;
+    var seq=(typeof hotkeys!=='undefined'&&hotkeys[actionId])||[];
+    var keyStr=seq.length?seq.join('').toUpperCase():'unbound';
+    btn.title='['+keyStr+'] - '+btn.dataset.baseTitle;
   });
 }
 rebuildHotkeyLookup();
