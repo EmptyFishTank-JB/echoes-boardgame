@@ -666,22 +666,29 @@ function renderCellWalls(container,pt,color,skipSides,cornerPts){
     if(skipSides&&skipSides[i])return;
     var iN=inner[i];
     if(doors[i]){
-      // The opening is a fixed half a grid cell wide, centered on the
-      // cell's own side — not on whatever this side's (possibly
-      // corner-tapered) inner segment happens to span. Its inner edge is
-      // the outer edge nudged straight in by the wall margin, so the two
-      // jambs are exactly perpendicular to both boundary lines.
+      // The opening is a fixed half a grid cell wide, starting a quarter
+      // cell in from each end (2/8 to 6/8 of the side's own width) —
+      // always measured from this cell's own true GRID corners, never
+      // from wherever a neighboring cell's wall happened to leave off.
+      // The flanking hazard margin on either side of the opening is a
+      // plain rectangle: the outer corner nudged straight in by the wall
+      // margin, on BOTH ends, regardless of whether that end sits next to
+      // a real corner (which would otherwise taper it) or an open
+      // interior connection (which would otherwise extend it) — so a
+      // door's opening and its immediate framing always look the same
+      // everywhere on a vent, independent of neighbor topology.
       var outerLen=dist(o[0],o[1]);
       var ux=(o[1].x-o[0].x)/outerLen,uy=(o[1].y-o[0].y)/outerLen;
       var n=SIDE_NORMALS[i];
-      var mid={x:(o[0].x+o[1].x)/2,y:(o[0].y+o[1].y)/2};
-      var doorLen=GRID/2;
-      var oStart={x:mid.x-ux*(doorLen/2),y:mid.y-uy*(doorLen/2)};
-      var oEnd={x:mid.x+ux*(doorLen/2),y:mid.y+uy*(doorLen/2)};
+      var doorLen=GRID/2,offset=GRID*0.25;
+      var oStart={x:o[0].x+ux*offset,y:o[0].y+uy*offset};
+      var oEnd={x:o[0].x+ux*(offset+doorLen),y:o[0].y+uy*(offset+doorLen)};
       var iStart={x:oStart.x+n.x*CELL_WALL_MARGIN,y:oStart.y+n.y*CELL_WALL_MARGIN};
       var iEnd={x:oEnd.x+n.x*CELL_WALL_MARGIN,y:oEnd.y+n.y*CELL_WALL_MARGIN};
-      hazardBand(o[0],oStart,iN[0],iStart);
-      hazardBand(oEnd,o[1],iEnd,iN[1]);
+      var iCorner0={x:o[0].x+n.x*CELL_WALL_MARGIN,y:o[0].y+n.y*CELL_WALL_MARGIN};
+      var iCorner1={x:o[1].x+n.x*CELL_WALL_MARGIN,y:o[1].y+n.y*CELL_WALL_MARGIN};
+      hazardBand(o[0],oStart,iCorner0,iStart);
+      hazardBand(oEnd,o[1],iEnd,iCorner1);
       // Door-frame jambs: short connectors between the outer and inner
       // boundary right at each edge of the opening, closing the frame.
       container.appendChild(el('line',{x1:oStart.x,y1:oStart.y,x2:iStart.x,y2:iStart.y,stroke:color,'stroke-width':2,class:'locker-door-frame'}));
