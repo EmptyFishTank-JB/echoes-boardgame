@@ -418,6 +418,10 @@ function toggleAttachPoints(){attachPoints=!attachPoints;document.getElementById
 function toggleLinkDoors(){linkSharedDoors=!linkSharedDoors;document.getElementById('btn-linkdoors').classList.toggle('on',linkSharedDoors);}
 
 var GRID=40, SNAP=GRID/2;
+// Locker/vent cell wall thickness: 1/8 of a grid cell's width. The
+// exterior of the wall sits flush with the cell's own grid boundary; this
+// margin is how far the inner (walkway-facing) boundary sits in from it.
+var CELL_WALL_MARGIN=GRID/8;
 function setSnap(div){
   SNAP=GRID/div;
   document.querySelectorAll('#btn-snap-1,#btn-snap-2,#btn-snap-4').forEach(function(b){b.classList.remove('on');});
@@ -594,7 +598,7 @@ function drawDoorStripes(container,dp1,dp2,ux,uy,color,markSize,inward){
 // excluded room cells elsewhere). Sides are indexed 0=top,1=right,
 // 2=bottom,3=left. A side with no door draws the hazard margin + a solid
 // outer/inner border; a side with a door skips the hazard for the middle
-// 2/3 of the inner box's width and draws a double dashed line instead
+// half of the cell's own width and draws a double dashed line instead
 // (one dash at the outer position, one at the inner) with short "jamb"
 // connectors closing the frame at each end — an opening, not a wall.
 // Lockers show an X inside (furniture, not walkable); vents show nothing
@@ -636,7 +640,7 @@ function cellPointColor(pt){
 // Lockers (always isolated, no cornerPts) fall back to the plain
 // per-cell diagonal inset from lockerInnerSides.
 function renderCellWalls(container,pt,color,skipSides,cornerPts){
-  var half=GRID/2,innerHalf=half*0.7;
+  var half=GRID/2,innerHalf=half-CELL_WALL_MARGIN;
   var outer=lockerSides(pt);
   var inner=cornerPts?[[cornerPts[0],cornerPts[1]],[cornerPts[1],cornerPts[2]],[cornerPts[2],cornerPts[3]],[cornerPts[3],cornerPts[0]]]:lockerInnerSides(pt,innerHalf);
   var doors=pt.doors||[false,false,false,false];
@@ -656,15 +660,15 @@ function renderCellWalls(container,pt,color,skipSides,cornerPts){
     if(skipSides&&skipSides[i])return;
     var iN=inner[i];
     if(doors[i]){
-      // The opening is only 2/3 the inner box's own side width, centered —
-      // not the full side. Outside that gap (both ends), the hazard
-      // margin + border continue as normal (same as a non-door side), so
-      // only the middle actually reads as a doorway.
+      // The opening is a fixed half a grid cell wide, centered — not the
+      // full side. Outside that gap (both ends), the hazard margin +
+      // border continue as normal (same as a non-door side), so only the
+      // middle actually reads as a doorway.
       var outerLen=dist(o[0],o[1]),innerLen=dist(iN[0],iN[1]);
       var ux=(o[1].x-o[0].x)/outerLen,uy=(o[1].y-o[0].y)/outerLen;
       function ptAtOuter(t){return {x:o[0].x+ux*t,y:o[0].y+uy*t};}
       function ptAtInner(t){return {x:iN[0].x+ux*t,y:iN[0].y+uy*t};}
-      var doorLen=innerLen*(2/3);
+      var doorLen=GRID/2;
       var oStart=ptAtOuter(outerLen/2-doorLen/2),oEnd=ptAtOuter(outerLen/2+doorLen/2);
       var iStart=ptAtInner(innerLen/2-doorLen/2),iEnd=ptAtInner(innerLen/2+doorLen/2);
       hazardBand(o[0],oStart,iN[0],iStart);
@@ -1032,7 +1036,7 @@ function ventDoorAt(room,cx,cy,side){
 // keeps working regardless of how many cells happen to touch that corner.
 var VENT_CORNER_NORMALS=[{x:0,y:1},{x:-1,y:0},{x:0,y:-1},{x:1,y:0}];
 function ventInnerCornerPts(cells,occupied){
-  var half=GRID/2,innerHalf=half*0.7,margin=half-innerHalf;
+  var margin=CELL_WALL_MARGIN;
   var vertexDirs={};
   function addDir(vx,vy,n){
     var key=vx+','+vy;
