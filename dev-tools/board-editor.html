@@ -213,8 +213,8 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
   <select id="tool-family" onchange="activeFamily=this.value"></select>
   <div class="tsep"></div>
   <span class="tlabel">SNAP</span>
-  <button class="tbtn" id="btn-snap-1" onclick="setSnap(1)">WHOLE</button>
-  <button class="tbtn on" id="btn-snap-2" onclick="setSnap(2)">HALF</button>
+  <button class="tbtn on" id="btn-snap-1" onclick="setSnap(1)">WHOLE</button>
+  <button class="tbtn" id="btn-snap-2" onclick="setSnap(2)">HALF</button>
   <button class="tbtn" id="btn-snap-4" onclick="setSnap(4)">QUARTER</button>
   <div class="tsep"></div>
   <button class="tbtn" onclick="zoomBy(1.2)">+</button>
@@ -224,7 +224,7 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
   <div class="tsep"></div>
   <button class="tbtn on" id="btn-spaces" onclick="toggleSpaces()">&#9638; SPACES</button>
   <button class="tbtn on" id="btn-info" onclick="toggleRoomInfo()" title="Room name/family/space-count text">&#9432; INFO</button>
-  <button class="tbtn" id="btn-attach" onclick="toggleAttachPoints()" title="Points inside a room move/copy/mirror/duplicate/rotate with it">&#128279; ATTACH</button>
+  <button class="tbtn on" id="btn-attach" onclick="toggleAttachPoints()" title="Points inside a room move/copy/mirror/duplicate/rotate with it">&#128279; ATTACH</button>
   <button class="tbtn on" id="btn-linkdoors" onclick="toggleLinkDoors()" title="A door on a wall shared with another room also opens that room's side">&#128682; LINK DOORS</button>
   <button class="tbtn" id="btn-boundary" onclick="addOrSelectBoundary()">&#9645; BOUNDARY</button>
   <div class="tsep"></div>
@@ -347,7 +347,7 @@ var drawingRoom=null;               // {points:[{x,y},...]}
 var drawingWall=null;               // {roomId, p1:{x,y}} — second click, in the same room, commits it
 var selected=null;                  // {kind:'room'|'point'|'wall', id} — wall id is {roomId,wallId} packed as 'roomId|wallId'
 var showRoomInfo=true;              // toggle: room name/family/space-count text overlay
-var attachPoints=false;             // toggle: points geometrically inside a room move/copy/mirror/duplicate/rotate with it
+var attachPoints=true;              // toggle: points geometrically inside a room move/copy/mirror/duplicate/rotate with it
 var linkSharedDoors=true;           // toggle: a door on a wall shared with another room also opens that room's side (on by default)
 var isPanning=false, panStart=null;
 var draggingVertex=null;            // {roomId, idx}
@@ -417,7 +417,7 @@ function toggleRoomInfo(){showRoomInfo=!showRoomInfo;document.getElementById('bt
 function toggleAttachPoints(){attachPoints=!attachPoints;document.getElementById('btn-attach').classList.toggle('on',attachPoints);}
 function toggleLinkDoors(){linkSharedDoors=!linkSharedDoors;document.getElementById('btn-linkdoors').classList.toggle('on',linkSharedDoors);}
 
-var GRID=40, SNAP=GRID/2;
+var GRID=40, SNAP=GRID;
 // Locker/vent cell wall thickness: 1/8 of a grid cell's width. The
 // exterior of the wall sits flush with the cell's own grid boundary; this
 // margin is how far the inner (walkway-facing) boundary sits in from it.
@@ -468,18 +468,8 @@ function wallSegments(p1,p2,step){
 // every other point defined relative to the room's own geometry.
 function doorPosOf(p1,seg){return dist(p1,{x:(seg.p1.x+seg.p2.x)/2,y:(seg.p1.y+seg.p2.y)/2});}
 function doorWidthOf(seg){return dist(seg.p1,seg.p2);}
-// Draws one wall (p1->p2) as a solid line with fixed-position, fixed-width
-// gaps cut out for each door — purely a function of the doors' own stored
-// pos/width, with no reference to wallSegments()/SNAP at all, so how it
-// renders can't drift when the snap setting changes.
-// roomPts, when given, is that edge's owning room polygon — used to find
-// which side of the wall is the room's interior, so door stripes/arrows
-// can be drawn one-sided (interior-only) instead of straddling the line.
-// Interior walls don't pass this (both sides are "interior" to the same
-// room, so there's no meaningful side to pick) and keep the old symmetric
-// look.
-// Which side of an edge (p1->p2) is the room's own interior — used both to
-// keep door striping/arrows one-sided and to know which way a thick vent
+// Which side of an edge (p1->p2) is the room's own interior — used both
+// for a room door's exit-arrow direction and to know which way a thick
 // wall's inset line should offset. Samples a point just off the edge
 // midpoint and checks which of the two perpendiculars lands inside.
 function edgeInwardNormal(p1,p2,roomPts){
@@ -489,43 +479,6 @@ function edgeInwardNormal(p1,p2,roomPts){
   var nx=-uy,ny=ux;
   var testPt={x:mid.x+nx*4,y:mid.y+ny*4};
   return pointInOrOnPolygon(testPt,roomPts)?{x:nx,y:ny}:{x:-nx,y:-ny};
-}
-function renderWallLine(container,p1,p2,edgeDoors,color,sw,markSize,lineClass,roomPts){
-  var edgeLen=dist(p1,p2);
-  if(edgeLen<0.3)return;
-  var ux=(p2.x-p1.x)/edgeLen,uy=(p2.y-p1.y)/edgeLen;
-  function ptAt(t){return {x:p1.x+ux*t,y:p1.y+uy*t};}
-  function wallLine(t0,t1){
-    if(t1-t0<0.3)return;
-    var a=ptAt(t0),b=ptAt(t1);
-    container.appendChild(el('line',{x1:a.x,y1:a.y,x2:b.x,y2:b.y,stroke:color,'stroke-width':sw,class:lineClass}));
-  }
-  var inward=roomPts?edgeInwardNormal(p1,p2,roomPts):null;
-  var segs=edgeDoors.map(function(d){
-    var half=(d.width||GRID)/2;
-    return {start:Math.max(0,d.pos-half),end:Math.min(edgeLen,d.pos+half)};
-  }).sort(function(a,b){return a.start-b.start;});
-  var cursor=0;
-  segs.forEach(function(s){
-    wallLine(cursor,s.start);
-    // Door gap: no wall line crosses it at all (it's an opening) — instead
-    // a band of diagonal hazard/"watch your step" ticks marks the
-    // threshold, the same idea as caution-tape striping across a doorway.
-    if(inward){
-      // Interior-only + 75% width: the physical opening (the gap in the
-      // wall line above) stays full width, but the decorative striping is
-      // narrower and hugs only the room's own interior side — so a shared
-      // wall shows each room's own striping on its own side, in its own
-      // color, instead of one combined mark straddling the line.
-      var full=s.end-s.start,shrink=full*0.125;
-      drawDoorStripes(container,ptAt(s.start+shrink),ptAt(s.end-shrink),ux,uy,color,markSize,inward);
-      drawExitArrow(container,ptAt((s.start+s.end)/2),inward,color,markSize);
-    }else{
-      drawDoorStripes(container,ptAt(s.start),ptAt(s.end),ux,uy,color,markSize,null);
-    }
-    cursor=Math.max(cursor,s.end);
-  });
-  wallLine(cursor,edgeLen);
 }
 // Small solid triangle at a door's midpoint, pointing along the INWARD
 // normal (into the room) — an "exit" pointer that stays inside its own
@@ -552,44 +505,6 @@ function drawExitArrow(container,at,inward,color,size){
   var b2={x:at.x+ox*baseDist-px*halfW,y:at.y+oy*baseDist-py*halfW};
   container.appendChild(el('polygon',{points:tip.x+','+tip.y+' '+b1.x+','+b1.y+' '+b2.x+','+b2.y,fill:color,opacity:0.9,class:'door-exit-arrow'}));
 }
-// Diagonal caution-stripe band across a door gap (dp1->dp2 along the wall).
-// bandHalf is how far each tick reaches. With no `inward` given, ticks
-// straddle the wall line symmetrically (old behavior, used for interior
-// walls). With `inward` given, each tick instead runs FROM the wall line
-// INTO the room only — one-sided, like caution tape hanging off the
-// threshold.
-//
-// The tick's along-wall lean is a FIXED canonical shape based purely on
-// whether the wall itself is more horizontal or more vertical — never on
-// ux/uy's sign (i.e. never on which direction the wall happens to have
-// been drawn, or which side of it the room sits on) — so every horizontal
-// door always leans "/" (up going left-to-right) and every vertical door
-// always leans "\" (down going left-to-right), board-wide.
-function drawDoorStripes(container,dp1,dp2,ux,uy,color,markSize,inward){
-  var px=-uy,py=ux;
-  var len=dist(dp1,dp2);
-  var bandHalf=markSize*0.5;
-  var spacing=markSize*0.55;
-  var n=Math.max(2,Math.round(len/spacing));
-  var leanX,leanY;
-  if(Math.abs(ux)>=Math.abs(uy)){leanX=1;leanY=-1;}else{leanX=1;leanY=1;}
-  var leanLen=Math.sqrt(leanX*leanX+leanY*leanY);
-  leanX/=leanLen;leanY/=leanLen;
-  for(var k=0;k<=n;k++){
-    var t=(k/n)*len;
-    var cx=dp1.x+ux*t,cy=dp1.y+uy*t;
-    var a,b;
-    if(inward){
-      a={x:cx,y:cy};
-      b={x:cx+inward.x*bandHalf*0.85+leanX*bandHalf*0.6,y:cy+inward.y*bandHalf*0.85+leanY*bandHalf*0.6};
-    }else{
-      a={x:cx-ux*bandHalf*0.55+px*bandHalf,y:cy-uy*bandHalf*0.55+py*bandHalf};
-      b={x:cx+ux*bandHalf*0.55-px*bandHalf,y:cy+uy*bandHalf*0.55-py*bandHalf};
-    }
-    container.appendChild(el('line',{x1:a.x,y1:a.y,x2:b.x,y2:b.y,stroke:color,'stroke-width':1.6,'stroke-linecap':'round',class:'door-stripe'}));
-  }
-}
-
 // Lockers AND vents both occupy their whole GRID cell — their
 // clickable/door-bearing footprint (lockerSides, used by
 // findNearestWallSegment/toggleDoorAt) is the FULL cell, but the drawn
@@ -630,6 +545,21 @@ function cellPointColor(pt){
   }
   return LOCKER_WHITE;
 }
+// A vent has no family of its own (it's closer to a locker than a room —
+// see roomDisplayFamily) — same idea as cellPointColor, using the vent's
+// own centroid as its representative point.
+function ventRoomColor(room){
+  return cellPointColor(centroid(room.points));
+}
+// The family-like {color,label} a room displays as: a normal room's own
+// family, or — for a vent, which isn't part of the user-defined family
+// list — a synthesized one taking its color from whatever room it
+// physically sits inside (falling back to LOCKER_WHITE), same as a
+// locker.
+function roomDisplayFamily(room){
+  if(room.isVent)return {color:ventRoomColor(room),label:'Vent',type:'tile'};
+  return board.families[room.family]||{color:'#4fc3f7',label:room.family};
+}
 // One hazard-margin wall band: the striped quad between a boundary's outer
 // (flush) line and its inner (walkway-facing) line, plus the two solid
 // border strokes. Shared by lockers (a fixed 40×40 box) and vents (an
@@ -642,6 +572,21 @@ function drawHazardBand(container,oA,oB,iA,iB,color){
   container.appendChild(el('line',{x1:oA.x,y1:oA.y,x2:oB.x,y2:oB.y,stroke:color,'stroke-width':3,class:'locker-side-outer'}));
   container.appendChild(el('line',{x1:iA.x,y1:iA.y,x2:iB.x,y2:iB.y,stroke:color,'stroke-width':2,class:'locker-side-inner'}));
 }
+// Same double-boundary shape, but without the hazard-margin hatch fill —
+// used for room walls, which get the same outer+inner joined-boundary
+// treatment as a vent but read as a normal (non-excluded) wall, not a
+// striped hazard margin.
+function drawPlainBand(container,oA,oB,iA,iB,color){
+  if(dist(oA,oB)<0.3)return;
+  container.appendChild(el('line',{x1:oA.x,y1:oA.y,x2:oB.x,y2:oB.y,stroke:color,'stroke-width':3,class:'locker-side-outer'}));
+  container.appendChild(el('line',{x1:iA.x,y1:iA.y,x2:iB.x,y2:iB.y,stroke:color,'stroke-width':2,class:'locker-side-inner'}));
+}
+function drawWallBand(container,oA,oB,iA,iB,color,hazard){
+  (hazard?drawHazardBand:drawPlainBand)(container,oA,oB,iA,iB,color);
+}
+// A room door is 3/4 of a grid cell wide (a vent's is 1/2) — everything
+// else about the opening/jamb geometry is identical.
+var ROOM_DOOR_WIDTH=GRID*0.75;
 // Box+wall+door rendering for a locker: a fixed, isolated 40×40 cell, so
 // its four inner corners are always the plain diagonal inset from
 // lockerInnerSides — no neighbor to join with, unlike a vent's cells.
@@ -660,10 +605,13 @@ function renderCellWalls(container,pt,color){
     if(doors[i]){
       // The opening is a fixed half a grid cell wide, starting a quarter
       // cell in from each end (2/8 to 6/8 of the side's own width),
-      // always measured from this cell's own true GRID corners. The
-      // flanking hazard margin on either side of the opening is a plain
-      // rectangle: the outer corner nudged straight in by the wall
-      // margin, on both ends.
+      // always measured from this cell's own true GRID corners — the
+      // door itself never changes shape. The flanking wall on either side
+      // reaches this side's own TRUE corner (the same diagonal-tapered
+      // point a plain, doorless side already uses — a locker is a
+      // self-contained box, so every corner is always "real"), the same
+      // joining method a vent's walls use, instead of stopping short at a
+      // simple perpendicular projection.
       var outerLen=dist(o[0],o[1]);
       var ux=(o[1].x-o[0].x)/outerLen,uy=(o[1].y-o[0].y)/outerLen;
       var n=SIDE_NORMALS[i];
@@ -672,10 +620,8 @@ function renderCellWalls(container,pt,color){
       var oEnd={x:o[0].x+ux*(offset+doorLen),y:o[0].y+uy*(offset+doorLen)};
       var iStart={x:oStart.x+n.x*CELL_WALL_MARGIN,y:oStart.y+n.y*CELL_WALL_MARGIN};
       var iEnd={x:oEnd.x+n.x*CELL_WALL_MARGIN,y:oEnd.y+n.y*CELL_WALL_MARGIN};
-      var iCorner0={x:o[0].x+n.x*CELL_WALL_MARGIN,y:o[0].y+n.y*CELL_WALL_MARGIN};
-      var iCorner1={x:o[1].x+n.x*CELL_WALL_MARGIN,y:o[1].y+n.y*CELL_WALL_MARGIN};
-      drawHazardBand(container,o[0],oStart,iCorner0,iStart,color);
-      drawHazardBand(container,oEnd,o[1],iEnd,iCorner1,color);
+      drawHazardBand(container,o[0],oStart,iN[0],iStart,color);
+      drawHazardBand(container,oEnd,o[1],iEnd,iN[1],color);
       // Door-frame jambs: short connectors between the outer and inner
       // boundary right at each edge of the opening, closing the frame.
       container.appendChild(el('line',{x1:oStart.x,y1:oStart.y,x2:iStart.x,y2:iStart.y,stroke:color,'stroke-width':2,class:'locker-door-frame'}));
@@ -1037,8 +983,20 @@ function polygonInnerCorners(pts,margin){
   for(var i=0;i<n;i++){
     var p1=pts[i],p2=pts[(i+1)%n];
     var len=dist(p1,p2);
-    var ux=(p2.x-p1.x)/len,uy=(p2.y-p1.y)/len;
-    var inward=edgeInwardNormal(p1,p2,pts);
+    var ux,uy,inward;
+    if(len<0.5){
+      // A zero-length edge (a duplicate consecutive point — stray data,
+      // not something a real polygon should have, but shouldn't crash
+      // rendering either) has no direction of its own; reuse whichever
+      // real edge came before so the offset-line chain stays valid
+      // instead of dividing by zero.
+      var prevDir=dirs.length?dirs[dirs.length-1]:{x:1,y:0};
+      var prevNorm=normals.length?normals[normals.length-1]:{x:0,y:1};
+      ux=prevDir.x;uy=prevDir.y;inward=prevNorm;
+    }else{
+      ux=(p2.x-p1.x)/len;uy=(p2.y-p1.y)/len;
+      inward=edgeInwardNormal(p1,p2,pts);
+    }
     dirs.push({x:ux,y:uy});
     normals.push(inward);
     offsetP.push({x:p1.x+inward.x*margin,y:p1.y+inward.y*margin});
@@ -1082,39 +1040,56 @@ function normalToSide(n){
 // wall piece between that corner and the door itself, so a door sitting
 // in the very first or last cell of an edge still joins the neighboring
 // wall's true corner, without changing the door opening's own shape.
-function drawVentDoor(container,p1,p2,normal,color,trueCorner0,trueCorner1){
+// A grid-cell door's opening — the fixed opts.doorWidth-of-the-cell
+// rectangle, centered, with jambs running purely perpendicular to the
+// wall — is always the same shape, independent of anything beyond p1/p2:
+// mid-run, at a 90° corner, or at a 45° corner. trueCorner0/trueCorner1,
+// when given, are this cell's true polygon-vertex miter points (see
+// polygonInnerCorners) for whichever end of p1/p2 actually IS a real
+// corner (as opposed to a plain grid-cell boundary mid-edge) — used only
+// for the small flanking wall piece between that corner and the door
+// itself, so a door sitting in the very first or last cell of an edge
+// still joins the neighboring wall's true corner, without changing the
+// door opening's own shape. opts: {hazard, doorWidth, doorStyle:
+// 'dash'|'arrow'|'none'}.
+function drawGridDoor(container,p1,p2,normal,color,trueCorner0,trueCorner1,opts){
   var outerLen=dist(p1,p2);
   var ux=(p2.x-p1.x)/outerLen,uy=(p2.y-p1.y)/outerLen;
-  var doorLen=GRID/2,offset=GRID*0.25;
+  var doorLen=opts.doorWidth,offset=(GRID-doorLen)/2;
   var oStart={x:p1.x+ux*offset,y:p1.y+uy*offset};
   var oEnd={x:p1.x+ux*(offset+doorLen),y:p1.y+uy*(offset+doorLen)};
   var iStart={x:oStart.x+normal.x*CELL_WALL_MARGIN,y:oStart.y+normal.y*CELL_WALL_MARGIN};
   var iEnd={x:oEnd.x+normal.x*CELL_WALL_MARGIN,y:oEnd.y+normal.y*CELL_WALL_MARGIN};
   var iCorner0=trueCorner0||{x:p1.x+normal.x*CELL_WALL_MARGIN,y:p1.y+normal.y*CELL_WALL_MARGIN};
   var iCorner1=trueCorner1||{x:p2.x+normal.x*CELL_WALL_MARGIN,y:p2.y+normal.y*CELL_WALL_MARGIN};
-  drawHazardBand(container,p1,oStart,iCorner0,iStart,color);
-  drawHazardBand(container,oEnd,p2,iEnd,iCorner1,color);
+  drawWallBand(container,p1,oStart,iCorner0,iStart,color,opts.hazard);
+  drawWallBand(container,oEnd,p2,iEnd,iCorner1,color,opts.hazard);
   container.appendChild(el('line',{x1:oStart.x,y1:oStart.y,x2:iStart.x,y2:iStart.y,stroke:color,'stroke-width':2,class:'locker-door-frame'}));
   container.appendChild(el('line',{x1:oEnd.x,y1:oEnd.y,x2:iEnd.x,y2:iEnd.y,stroke:color,'stroke-width':2,class:'locker-door-frame'}));
-  container.appendChild(el('line',{x1:oStart.x,y1:oStart.y,x2:oEnd.x,y2:oEnd.y,stroke:color,'stroke-width':2,'stroke-dasharray':'5,4',class:'locker-door-dash'}));
-  container.appendChild(el('line',{x1:iStart.x,y1:iStart.y,x2:iEnd.x,y2:iEnd.y,stroke:color,'stroke-width':2,'stroke-dasharray':'5,4',class:'locker-door-dash'}));
+  if(opts.doorStyle==='dash'){
+    container.appendChild(el('line',{x1:oStart.x,y1:oStart.y,x2:oEnd.x,y2:oEnd.y,stroke:color,'stroke-width':2,'stroke-dasharray':'5,4',class:'locker-door-dash'}));
+    container.appendChild(el('line',{x1:iStart.x,y1:iStart.y,x2:iEnd.x,y2:iEnd.y,stroke:color,'stroke-width':2,'stroke-dasharray':'5,4',class:'locker-door-dash'}));
+  }else if(opts.doorStyle==='arrow'){
+    var mid={x:(oStart.x+oEnd.x)/2,y:(oStart.y+oEnd.y)/2};
+    drawExitArrow(container,mid,normal,color,8);
+  }
 }
-// Renders a vent room's own boundary: walks its edges (any mix of
-// horizontal, vertical, and 45° per snapPtGrid), joining the inner
-// (hazard-margin) boundary at true polygon corners via polygonInnerCorners
-// — extending each edge's own inset line to meet its neighbor's, at
-// whatever angle they happen to meet. Only whole-GRID-length
+// Renders a room's own boundary — a vent or an ordinary room, both are
+// just a polygon of horizontal/vertical/45° edges (per snapPtGrid) now —
+// joining the inner boundary at true polygon corners via
+// polygonInnerCorners, extending each edge's own inset line to meet its
+// neighbor's at whatever angle they happen to meet. Only whole-GRID-length
 // horizontal/vertical edges carry doors (a diagonal edge, or a stray
 // non-grid-multiple one, just renders as one continuous wall from corner
 // to corner); each such edge is walked one grid cell at a time so any
-// individual cell along it can be a door, with the door's own geometry
-// always the fixed, angle-independent rectangle from drawVentDoor.
-function renderVentPolygon(g,room,color){
+// individual cell along it can be a door. opts: {hazard, doorWidth,
+// doorStyle, showIcon} — see renderRooms for the vent vs. room settings.
+function renderWallPolygon(g,room,color,opts){
   var pts=room.points,n=pts.length;
   if(n<3)return;
   var innerCorners=polygonInnerCorners(pts,CELL_WALL_MARGIN);
   var doorCells={};
-  (room.doors||[]).forEach(function(d){doorCells[ventCellKey(d.cx,d.cy)]=true;});
+  if(opts.showIcon)(room.doors||[]).forEach(function(d){doorCells[ventCellKey(d.cx,d.cy)]=true;});
   for(var i=0;i<n;i++){
     var p1=pts[i],p2=pts[(i+1)%n];
     var iP1=innerCorners[i],iP2=innerCorners[(i+1)%n];
@@ -1125,7 +1100,7 @@ function renderVentPolygon(g,room,color){
     var k=Math.round(edgeLen/GRID);
     var gridMultiple=axisAligned&&Math.abs(edgeLen-k*GRID)<0.5&&k>=1;
     if(!gridMultiple){
-      drawHazardBand(g,p1,p2,iP1,iP2,color);
+      drawWallBand(g,p1,p2,iP1,iP2,color,opts.hazard);
       continue;
     }
     var normal=edgeInwardNormal(p1,p2,pts);
@@ -1146,12 +1121,12 @@ function renderVentPolygon(g,room,color){
           var rp1={x:p1.x+ux*t0,y:p1.y+uy*t0},rp2={x:p1.x+ux*t1,y:p1.y+uy*t1};
           var ri1=runStart===0?iP1:{x:rp1.x+normal.x*CELL_WALL_MARGIN,y:rp1.y+normal.y*CELL_WALL_MARGIN};
           var ri2=j===k?iP2:{x:rp2.x+normal.x*CELL_WALL_MARGIN,y:rp2.y+normal.y*CELL_WALL_MARGIN};
-          drawHazardBand(g,rp1,rp2,ri1,ri2,color);
+          drawWallBand(g,rp1,rp2,ri1,ri2,color,opts.hazard);
         }
         if(doored){
           var dt0=j*GRID,dt1=(j+1)*GRID;
           var dp1={x:p1.x+ux*dt0,y:p1.y+uy*dt0},dp2={x:p1.x+ux*dt1,y:p1.y+uy*dt1};
-          drawVentDoor(g,dp1,dp2,normal,color,j===0?iP1:null,j===k-1?iP2:null);
+          drawGridDoor(g,dp1,dp2,normal,color,j===0?iP1:null,j===k-1?iP2:null,opts);
           runStart=j+1;
         }else{
           runStart=j;
@@ -1159,17 +1134,65 @@ function renderVentPolygon(g,room,color){
       }
     }
   }
-  // One V icon per doored cell, centered on the cell — drawn once here
-  // (not inline per door) so a cell with doors on more than one side only
-  // gets a single icon.
-  Object.keys(doorCells).forEach(function(key){
-    var parts=key.split(','),cx=+parts[0],cy=+parts[1];
-    var cx2=cx*GRID+GRID/2,cy2=cy*GRID+GRID/2;
-    g.appendChild(el('rect',{x:cx2-8,y:cy2-6,width:16,height:12,fill:color,rx:2,class:'vent-jamb-icon'}));
-    var glyph=el('text',{x:cx2,y:cy2+1,class:'bpoint-glyph'});
-    glyph.textContent='V';
-    g.appendChild(glyph);
-  });
+  if(opts.showIcon){
+    // One V icon per doored cell, centered on the cell — drawn once here
+    // (not inline per door) so a cell with doors on more than one side
+    // only gets a single icon.
+    Object.keys(doorCells).forEach(function(key){
+      var parts=key.split(','),cx=+parts[0],cy=+parts[1];
+      var cx2=cx*GRID+GRID/2,cy2=cy*GRID+GRID/2;
+      g.appendChild(el('rect',{x:cx2-8,y:cy2-6,width:16,height:12,fill:color,rx:2,class:'vent-jamb-icon'}));
+      var glyph=el('text',{x:cx2,y:cy2+1,class:'bpoint-glyph'});
+      glyph.textContent='V';
+      g.appendChild(glyph);
+    });
+  }
+}
+// A room's independently-drawn interior wall is CENTERED on its own
+// stored p1/p2 (unlike the room's own boundary, which is flush to the
+// polygon edge) — its two boundary lines sit an equal CELL_WALL_MARGIN on
+// either side of that centerline, since there's no natural "outer" face
+// to flush against. A standalone 2-point segment has no neighbor to miter
+// with, so no polygonInnerCorners pass is needed — both ends are just a
+// flat cap. Doors are grid-cell indexed along the wall from its own p1
+// (see migrateWallDoorToCell), fixed ROOM_DOOR_WIDTH wide, no hazard
+// striping, no dash/arrow (a centered wall has no single "inward" side).
+function renderInteriorWall(g,room,wall,color){
+  var p1=wall.p1,p2=wall.p2;
+  var len=dist(p1,p2);
+  if(len<0.5)return;
+  var ux=(p2.x-p1.x)/len,uy=(p2.y-p1.y)/len;
+  var axisAligned=Math.abs(ux)<1e-6||Math.abs(uy)<1e-6;
+  var perp={x:-uy,y:ux};
+  function sideAt(t,sign){return {x:p1.x+ux*t+perp.x*CELL_WALL_MARGIN*sign,y:p1.y+uy*t+perp.y*CELL_WALL_MARGIN*sign};}
+  function band(t0,t1){
+    if(t1-t0<0.3)return;
+    g.appendChild(el('line',{x1:sideAt(t0,1).x,y1:sideAt(t0,1).y,x2:sideAt(t1,1).x,y2:sideAt(t1,1).y,stroke:color,'stroke-width':2,class:'locker-side-outer'}));
+    g.appendChild(el('line',{x1:sideAt(t0,-1).x,y1:sideAt(t0,-1).y,x2:sideAt(t1,-1).x,y2:sideAt(t1,-1).y,stroke:color,'stroke-width':2,class:'locker-side-inner'}));
+  }
+  var k=Math.round(len/GRID);
+  var gridMultiple=axisAligned&&Math.abs(len-k*GRID)<0.5&&k>=1;
+  if(!gridMultiple){band(0,len);return;}
+  var doorCells={};
+  (wall.doors||[]).forEach(function(d){doorCells[d.i]=true;});
+  var runStart=0;
+  for(var j=0;j<=k;j++){
+    var atEnd=j===k;
+    var doored=!atEnd&&doorCells[j];
+    if(atEnd||doored){
+      if(j>runStart)band(runStart*GRID,j*GRID);
+      if(doored){
+        var dt0=j*GRID,doorLen=ROOM_DOOR_WIDTH,offset=(GRID-doorLen)/2;
+        var ds=dt0+offset,de=dt0+offset+doorLen;
+        band(dt0,ds);
+        band(de,dt0+GRID);
+        var jA1=sideAt(ds,1),jB1=sideAt(ds,-1),jA2=sideAt(de,1),jB2=sideAt(de,-1);
+        g.appendChild(el('line',{x1:jA1.x,y1:jA1.y,x2:jB1.x,y2:jB1.y,stroke:color,'stroke-width':2,class:'locker-door-frame'}));
+        g.appendChild(el('line',{x1:jA2.x,y1:jA2.y,x2:jB2.x,y2:jB2.y,stroke:color,'stroke-width':2,class:'locker-door-frame'}));
+        runStart=j+1;
+      }else runStart=j;
+    }
+  }
 }
 function renderRooms(){
   var layer=document.getElementById('rooms-layer');
@@ -1177,7 +1200,7 @@ function renderRooms(){
   layer.innerHTML='';
   clips.innerHTML='';
   board.rooms.forEach(function(room){
-    var fam=board.families[room.family]||{color:'#4fc3f7',label:room.family};
+    var fam=roomDisplayFamily(room);
     var isVoid=fam.type==='void';
     var g=el('g',{'data-room-id':room.id});
     var poly=el('polygon',{
@@ -1209,22 +1232,16 @@ function renderRooms(){
       g.appendChild(gridG);
     }
 
-    var doors=room.doors||[];
-    if(room.isVent){
-      renderVentPolygon(g,room,fam.color);
-    }else{
-      room.points.forEach(function(p1,i){
-        var p2=room.points[(i+1)%room.points.length];
-        var edgeDoors=doors.filter(function(d){return d.edge===i;});
-        renderWallLine(g,p1,p2,edgeDoors,fam.color,4,8,'room-edge',room.points);
-      });
-    }
+    var wallOpts=room.isVent?
+      {hazard:true,doorWidth:GRID/2,doorStyle:'dash',showIcon:true}:
+      {hazard:false,doorWidth:ROOM_DOOR_WIDTH,doorStyle:'arrow',showIcon:false};
+    renderWallPolygon(g,room,fam.color,wallOpts);
     // Interior walls — always confined to this room, so they render/move/
     // transform with it.
     (room.walls||[]).forEach(function(w){
       var isWallSel=selected&&selected.kind==='wall'&&selected.roomId===room.id&&selected.id===w.id;
       var wg=el('g',{'data-wall-id':w.id,'data-room-id':room.id,class:'iwall'+(isWallSel?' selected':'')});
-      renderWallLine(wg,w.p1,w.p2,w.doors||[],fam.color,3,7,'room-edge iwall-line');
+      renderInteriorWall(wg,room,w,fam.color);
       wg.addEventListener('mousedown',function(e){onWallMouseDown(e,room.id,w.id);});
       wg.addEventListener('contextmenu',function(e){onWallContextMenu(e,room.id,w.id);});
       g.appendChild(wg);
@@ -1236,7 +1253,7 @@ function renderRooms(){
       label.textContent=room.label||fam.label;
       g.appendChild(label);
       var sub=el('text',{x:c.x,y:c.y+8,class:'room-sublabel'});
-      sub.textContent=fam.label+' · '+spaces.count+' sp'+(room._spaceInvalid?' ('+room._spaceInvalid+' excl.)':'');
+      sub.textContent=(room.isVent?spaces.count+' sp':fam.label+' · '+spaces.count+' sp')+(room._spaceInvalid?' ('+room._spaceInvalid+' excl.)':'');
       g.appendChild(sub);
     }
     layer.appendChild(g);
@@ -1444,10 +1461,14 @@ function renderProps(){
   if(selected&&selected.kind==='room'){
     var room=board.rooms.filter(function(r){return r.id===selected.id;})[0];
     if(room){
-      html+='<div class="pp-h">ROOM</div>';
-      html+='<div class="pp-row"><label>FAMILY</label><select onchange="setRoomFamily(\''+room.id+'\',this.value)">'+
-        Object.keys(board.families).map(function(k){return '<option value="'+k+'"'+(k===room.family?' selected':'')+'>'+esc(board.families[k].label)+'</option>';}).join('')+
-        '</select></div>';
+      html+='<div class="pp-h">'+(room.isVent?'VENT':'ROOM')+'</div>';
+      if(room.isVent){
+        html+='<div class="pp-empty">Vents aren\'t part of a user-defined family — closer to a locker, taking its color from whatever room it physically sits inside.</div>';
+      }else{
+        html+='<div class="pp-row"><label>FAMILY</label><select onchange="setRoomFamily(\''+room.id+'\',this.value)">'+
+          Object.keys(board.families).map(function(k){return '<option value="'+k+'"'+(k===room.family?' selected':'')+'>'+esc(board.families[k].label)+'</option>';}).join('')+
+          '</select></div>';
+      }
       html+='<div class="pp-row"><label>LABEL (optional)</label><input type="text" value="'+esc(room.label||'')+'" onfocus="pushUndo()" oninput="setRoomLabel(\''+room.id+'\',this.value)"></div>';
       html+='<div class="pp-row"><label>NOTES</label><textarea onfocus="pushUndo()" oninput="setRoomNotes(\''+room.id+'\',this.value)">'+esc(room.notes||'')+'</textarea></div>';
       var spCount=room._spaceCount||0, spExcl=room._spaceInvalid||0;
@@ -1554,48 +1575,56 @@ function addFamily(){
 function commitRoom(isVent){
   if(!drawingRoom||drawingRoom.points.length<3){drawingRoom=null;render();return;}
   pushUndo();
-  var room={id:uid('R'),family:isVent?'vent':activeFamily,label:'',notes:'',points:drawingRoom.points,doors:[],walls:[]};
+  // A vent has no family of its own — see roomDisplayFamily — it's closer
+  // to a locker than a user-defined room type.
+  var room={id:uid('R'),family:isVent?null:activeFamily,label:'',notes:'',points:drawingRoom.points,doors:[],walls:[]};
   if(isVent)room.isVent=true;
   board.rooms.push(room);
   drawingRoom=null;
   render();
 }
-function doorCoversPos(d,pos){var half=(d.width||GRID)/2;return pos>=d.pos-half-0.5&&pos<=d.pos+half+0.5;}
-// Two rooms' edges that physically coincide (a shared party wall) put the
-// clicked point almost exactly ON the other room's edge line too — so "is
-// this the same wall as seen from the other room" is just "is there an edge,
-// anywhere but this room, that passes within a hair of this point." Matches
-// directly against the edge's own line (distToSeg), NOT against a
-// SNAP-segmented sub-piece of it: the door's position on the other room is
-// derived straight from that edge's own p1 (dist(p1,absPt)), so it can't
-// miss just because the point happens to land on a segment BOUNDARY rather
-// than a segment MIDPOINT under whatever segmentation the other room's wall
-// happens to cut into right now — segment midpoints were the previous
-// (buggy) matching key, and any door sitting on a boundary rather than a
-// center never matched anything.
-function findCoincidentEdge(excludeRoomId,absPt,width){
+// target: {roomId, cx, cy, side} for a room boundary cell (vent or not),
+// or {roomId, wallId, i} for an interior wall's cell — from
+// findNearestWallSegment. When LINK DOORS is on, toggling a
+// door on a room edge that coincides with another room's edge (a shared
+// party wall) also toggles the matching door on that other room.
+// Two rooms' edges that physically coincide (a shared party wall) put a
+// door's cell midpoint almost exactly on the other room's own matching
+// grid-cell sub-segment too — so "find the same wall as seen from the
+// other room" is just "find the closest edge sub-segment, in any OTHER
+// room, whose midpoint is right here." That room's own edge-walk
+// naturally works out its own (cx,cy,side) — no separate "opposite side"
+// math needed.
+function findCoincidentCellDoor(excludeRoomId,target){
+  var mid={x:(target.p1.x+target.p2.x)/2,y:(target.p1.y+target.p2.y)/2};
   var best=null,bestDist=3;
   board.rooms.forEach(function(room){
     if(room.id===excludeRoomId)return;
-    room.points.forEach(function(p1,i){
-      var p2=room.points[(i+1)%room.points.length];
-      if(dist(p1,p2)<0.5)return;
-      var d=distToSeg(absPt,p1,p2);
-      if(d>=bestDist)return;
-      bestDist=d;
-      best={roomId:room.id,edge:i,pos:dist(p1,absPt),width:width};
-    });
+    var pts=room.points,rn=pts.length;
+    for(var ei=0;ei<rn;ei++){
+      var ep1=pts[ei],ep2=pts[(ei+1)%rn];
+      var elen=dist(ep1,ep2);
+      if(elen<0.5)continue;
+      var eux=(ep2.x-ep1.x)/elen,euy=(ep2.y-ep1.y)/elen;
+      var eAxis=Math.abs(eux)<1e-6||Math.abs(euy)<1e-6;
+      var ek=Math.round(elen/GRID);
+      if(!eAxis||Math.abs(elen-ek*GRID)>=0.5||ek<1)continue;
+      var eNormal=edgeInwardNormal(ep1,ep2,pts);
+      var eSide=normalToSide(eNormal);
+      for(var ej=0;ej<ek;ej++){
+        var s0={x:ep1.x+eux*ej*GRID,y:ep1.y+euy*ej*GRID};
+        var s1={x:ep1.x+eux*(ej+1)*GRID,y:ep1.y+euy*(ej+1)*GRID};
+        var segMid={x:(s0.x+s1.x)/2,y:(s0.y+s1.y)/2};
+        var d=dist(mid,segMid);
+        if(d>=bestDist)continue;
+        var cellCenter={x:segMid.x+eNormal.x*(GRID/2),y:segMid.y+eNormal.y*(GRID/2)};
+        best={roomId:room.id,cx:Math.floor(cellCenter.x/GRID),cy:Math.floor(cellCenter.y/GRID),side:eSide};
+        bestDist=d;
+      }
+    }
   });
   return best;
 }
-// target: {roomId, edge, p1, p2, pos, width} for a room boundary edge, or
-// {roomId, wallId, p1, p2, pos, width} for an interior wall — from
-// findNearestWallSegment. Existing-door lookup checks target.pos against
-// each door's OWN stored pos/width (set once, at that door's creation) —
-// not against the current SNAP-based segment — so toggling is unaffected by
-// whatever SNAP happens to be active now. When LINK DOORS is on, toggling a
-// door on a room edge that coincides with another room's edge (a shared
-// party wall) also toggles the matching door on that other room.
 function toggleDoorAt(target){
   if(!target)return;
   pushUndo();
@@ -1603,31 +1632,25 @@ function toggleDoorAt(target){
     var lp=findPoint(target.pointId);if(!lp)return;
     lp.doors=lp.doors||[false,false,false,false];
     lp.doors[target.side]=!lp.doors[target.side];
-  }else if(target.cx!=null){
-    var vr=findRoom(target.roomId);if(!vr)return;
-    vr.doors=vr.doors||[];
-    var vi=vr.doors.findIndex(function(d){return d.cx===target.cx&&d.cy===target.cy&&d.side===target.side;});
-    if(vi===-1)vr.doors.push({cx:target.cx,cy:target.cy,side:target.side});else vr.doors.splice(vi,1);
   }else if(target.wallId!=null){
     var w=findWall(target.roomId,target.wallId);if(!w)return;
     w.doors=w.doors||[];
-    var wi=w.doors.findIndex(function(d){return doorCoversPos(d,target.pos);});
-    if(wi===-1)w.doors.push({pos:target.pos,width:target.width});else w.doors.splice(wi,1);
-  }else{
+    var wi=w.doors.findIndex(function(d){return d.i===target.i;});
+    if(wi===-1)w.doors.push({i:target.i});else w.doors.splice(wi,1);
+  }else if(target.cx!=null){
     var r=findRoom(target.roomId);if(!r)return;
     r.doors=r.doors||[];
-    var i=r.doors.findIndex(function(d){return d.edge===target.edge&&doorCoversPos(d,target.pos);});
+    var i=r.doors.findIndex(function(d){return d.cx===target.cx&&d.cy===target.cy&&d.side===target.side;});
     var adding=i===-1;
-    if(adding)r.doors.push({edge:target.edge,pos:target.pos,width:target.width});else r.doors.splice(i,1);
+    if(adding)r.doors.push({cx:target.cx,cy:target.cy,side:target.side});else r.doors.splice(i,1);
 
     if(linkSharedDoors){
-      var mid={x:(target.p1.x+target.p2.x)/2,y:(target.p1.y+target.p2.y)/2};
-      var shared=findCoincidentEdge(target.roomId,mid,target.width);
+      var shared=findCoincidentCellDoor(target.roomId,target);
       if(shared){
         var r2=findRoom(shared.roomId);
         r2.doors=r2.doors||[];
-        var j=r2.doors.findIndex(function(d){return d.edge===shared.edge&&doorCoversPos(d,shared.pos);});
-        if(adding&&j===-1)r2.doors.push({edge:shared.edge,pos:shared.pos,width:shared.width});
+        var j=r2.doors.findIndex(function(d){return d.cx===shared.cx&&d.cy===shared.cy&&d.side===shared.side;});
+        if(adding&&j===-1)r2.doors.push({cx:shared.cx,cy:shared.cy,side:shared.side});
         else if(!adding&&j!==-1)r2.doors.splice(j,1);
       }
     }
@@ -1637,59 +1660,53 @@ function toggleDoorAt(target){
 // Finds the nearest wall segment to a board-space point, across every
 // room's boundary edges AND interior walls, within a generous threshold —
 // roughly "anywhere in the grid square that wall occupies", not just
-// pixel-precise on the line itself. Segments come from wallSegments(), so
-// this is where SNAP decides the size/position of a NEWLY placed door;
-// existing doors are untouched by it (see toggleDoorAt).
+// pixel-precise on the line itself. Door targets are per grid-cell (one
+// per whole-GRID stretch of an axis-aligned edge/wall — a diagonal edge,
+// or a stray non-grid-multiple one, offers none) for both a room's own
+// boundary (vent or not — {roomId,cx,cy,side}) and its interior walls
+// ({roomId,wallId,i}, i being the 0-based cell index along that wall from
+// its own p1).
 function findNearestWallSegment(pt){
   var best=null,bestDist=GRID*0.85;
   board.rooms.forEach(function(room){
-    if(room.isVent){
-      // A vent's door targets are per grid-cell, per-side — one per
-      // whole-GRID stretch of an axis-aligned edge (a diagonal edge, or a
-      // stray non-grid-multiple one, offers no door targets at all).
-      var pts=room.points,rn=pts.length;
-      for(var ei=0;ei<rn;ei++){
-        var ep1=pts[ei],ep2=pts[(ei+1)%rn];
-        var elen=dist(ep1,ep2);
-        if(elen<0.5)continue;
-        var eux=(ep2.x-ep1.x)/elen,euy=(ep2.y-ep1.y)/elen;
-        var eAxis=Math.abs(eux)<1e-6||Math.abs(euy)<1e-6;
-        var ek=Math.round(elen/GRID);
-        if(!eAxis||Math.abs(elen-ek*GRID)>=0.5||ek<1)continue;
-        var eNormal=edgeInwardNormal(ep1,ep2,pts);
-        var eSide=normalToSide(eNormal);
-        for(var ej=0;ej<ek;ej++){
-          var s0={x:ep1.x+eux*ej*GRID,y:ep1.y+euy*ej*GRID};
-          var s1={x:ep1.x+eux*(ej+1)*GRID,y:ep1.y+euy*(ej+1)*GRID};
-          var d=distToSeg(pt,s0,s1);
-          if(d>=bestDist)continue;
-          var segMid={x:(s0.x+s1.x)/2,y:(s0.y+s1.y)/2};
-          var cellCenter={x:segMid.x+eNormal.x*(GRID/2),y:segMid.y+eNormal.y*(GRID/2)};
-          var cx=Math.floor(cellCenter.x/GRID),cy=Math.floor(cellCenter.y/GRID);
-          best={roomId:room.id,cx:cx,cy:cy,side:eSide,p1:s0,p2:s1,pos:GRID/2,width:GRID};
-          bestDist=d;
-        }
+    var pts=room.points,rn=pts.length;
+    for(var ei=0;ei<rn;ei++){
+      var ep1=pts[ei],ep2=pts[(ei+1)%rn];
+      var elen=dist(ep1,ep2);
+      if(elen<0.5)continue;
+      var eux=(ep2.x-ep1.x)/elen,euy=(ep2.y-ep1.y)/elen;
+      var eAxis=Math.abs(eux)<1e-6||Math.abs(euy)<1e-6;
+      var ek=Math.round(elen/GRID);
+      if(!eAxis||Math.abs(elen-ek*GRID)>=0.5||ek<1)continue;
+      var eNormal=edgeInwardNormal(ep1,ep2,pts);
+      var eSide=normalToSide(eNormal);
+      for(var ej=0;ej<ek;ej++){
+        var s0={x:ep1.x+eux*ej*GRID,y:ep1.y+euy*ej*GRID};
+        var s1={x:ep1.x+eux*(ej+1)*GRID,y:ep1.y+euy*(ej+1)*GRID};
+        var d=distToSeg(pt,s0,s1);
+        if(d>=bestDist)continue;
+        var segMid={x:(s0.x+s1.x)/2,y:(s0.y+s1.y)/2};
+        var cellCenter={x:segMid.x+eNormal.x*(GRID/2),y:segMid.y+eNormal.y*(GRID/2)};
+        var cx=Math.floor(cellCenter.x/GRID),cy=Math.floor(cellCenter.y/GRID);
+        best={roomId:room.id,cx:cx,cy:cy,side:eSide,p1:s0,p2:s1,pos:GRID/2,width:GRID};
+        bestDist=d;
       }
-      return;
     }
-    room.points.forEach(function(p1,i){
-      var p2=room.points[(i+1)%room.points.length];
-      var segs=wallSegments(p1,p2);
-      segs.forEach(function(seg){
-        var d=distToSeg(pt,seg.p1,seg.p2);
-        if(d>=bestDist)return;
-        best={roomId:room.id,edge:i,p1:seg.p1,p2:seg.p2,pos:doorPosOf(p1,seg),width:doorWidthOf(seg)};
-        bestDist=d;
-      });
-    });
     (room.walls||[]).forEach(function(w){
-      var segs=wallSegments(w.p1,w.p2);
-      segs.forEach(function(seg){
-        var d=distToSeg(pt,seg.p1,seg.p2);
-        if(d>=bestDist)return;
-        best={roomId:room.id,wallId:w.id,p1:seg.p1,p2:seg.p2,pos:doorPosOf(w.p1,seg),width:doorWidthOf(seg)};
-        bestDist=d;
-      });
+      var wlen=dist(w.p1,w.p2);
+      if(wlen<0.5)return;
+      var wux=(w.p2.x-w.p1.x)/wlen,wuy=(w.p2.y-w.p1.y)/wlen;
+      var wAxis=Math.abs(wux)<1e-6||Math.abs(wuy)<1e-6;
+      var wk=Math.round(wlen/GRID);
+      if(!wAxis||Math.abs(wlen-wk*GRID)>=0.5||wk<1)return;
+      for(var wj=0;wj<wk;wj++){
+        var ws0={x:w.p1.x+wux*wj*GRID,y:w.p1.y+wuy*wj*GRID};
+        var ws1={x:w.p1.x+wux*(wj+1)*GRID,y:w.p1.y+wuy*(wj+1)*GRID};
+        var wd=distToSeg(pt,ws0,ws1);
+        if(wd>=bestDist)continue;
+        best={roomId:room.id,wallId:w.id,i:wj,p1:ws0,p2:ws1,pos:GRID/2,width:GRID};
+        bestDist=wd;
+      }
     });
   });
   board.points.forEach(function(lp){
@@ -2884,8 +2901,42 @@ function dedupeDoors(doors,hasEdge){
   });
   return kept;
 }
+// Converts a door's old continuous {edge,pos,width} position (an
+// arc-length distance along a room's own polygon edge) into the grid-cell
+// {cx,cy,side} form every door now uses — matching how vent doors have
+// always worked. Only possible on an axis-aligned edge whose length is a
+// whole multiple of GRID; anything else (a diagonal/45° edge, or an edge
+// that isn't a clean grid multiple) can't be mapped and returns null so
+// the caller can flag it instead of guessing.
+function migrateDoorToCell(p1,p2,pos,roomPts){
+  var len=dist(p1,p2);
+  if(len<0.5)return null;
+  var ux=(p2.x-p1.x)/len,uy=(p2.y-p1.y)/len;
+  var axisAligned=Math.abs(ux)<1e-6||Math.abs(uy)<1e-6;
+  var k=Math.round(len/GRID);
+  if(!axisAligned||Math.abs(len-k*GRID)>=0.5||k<1)return null;
+  var normal=edgeInwardNormal(p1,p2,roomPts);
+  var centerPt={x:p1.x+ux*pos,y:p1.y+uy*pos};
+  var cellCenter={x:centerPt.x+normal.x*(GRID/2),y:centerPt.y+normal.y*(GRID/2)};
+  return {cx:Math.floor(cellCenter.x/GRID),cy:Math.floor(cellCenter.y/GRID),side:normalToSide(normal)};
+}
+// Same idea for an interior wall door, but a wall doesn't have a
+// meaningful inward side (it's centered, not flush) — so it's keyed by
+// just the 0-based cell index along the wall from its own p1.
+function migrateWallDoorToCell(p1,p2,pos){
+  var len=dist(p1,p2);
+  if(len<0.5)return null;
+  var ux=(p2.x-p1.x)/len,uy=(p2.y-p1.y)/len;
+  var axisAligned=Math.abs(ux)<1e-6||Math.abs(uy)<1e-6;
+  var k=Math.round(len/GRID);
+  if(!axisAligned||Math.abs(len-k*GRID)>=0.5||k<1)return null;
+  var idx=Math.min(Math.max(0,Math.floor(pos/GRID)),k-1);
+  return {i:idx};
+}
+var doorMigrationWarnings=[];
 function loadBoard(raw,name,cls){
   board=raw;
+  doorMigrationWarnings=[];
   if(!board.meta)board.meta={};
   if(!board.families)board.families=JSON.parse(JSON.stringify(DEFAULT_FAMILIES));
   if(!board.rooms)board.rooms=[];
@@ -2917,6 +2968,25 @@ function loadBoard(raw,name,cls){
     // landed on the same slot. Keep only the first of any that substantially
     // overlap, per edge.
     r.doors=dedupeDoors(r.doors,true);
+    // Finally, migrate the continuous {edge,pos,width} door onto its
+    // matching grid cell — every room's boundary doors now work exactly
+    // like a vent's. A door already in the new form (a board re-saved
+    // after this migration) passes through untouched.
+    r.doors=r.doors.map(function(d){
+      if(d.cx!=null)return d;
+      var p1=r.points[d.edge],p2=r.points[(d.edge+1)%r.points.length];
+      if(!p1||!p2)return null;
+      var cell=migrateDoorToCell(p1,p2,d.pos,r.points);
+      if(!cell){doorMigrationWarnings.push('Room "'+(r.label||r.id)+'": a door on a non-grid-aligned edge was dropped.');return null;}
+      return cell;
+    }).filter(Boolean);
+    var seenDoorCells={};
+    r.doors=r.doors.filter(function(d){
+      var key=d.cx+','+d.cy+','+d.side;
+      if(seenDoorCells[key])return false;
+      seenDoorCells[key]=true;
+      return true;
+    });
     if(!r.walls)r.walls=[];
     r.walls.forEach(function(w){
       if(!w.id)w.id=uid('W');
@@ -2933,6 +3003,19 @@ function loadBoard(raw,name,cls){
         return {pos:doorPosOf(w.p1,seg),width:doorWidthOf(seg)};
       }).filter(function(v){return v!=null;});
       w.doors=dedupeDoors(w.doors,false);
+      // Then onto its grid-cell index, same as a room's boundary doors.
+      w.doors=w.doors.map(function(d){
+        if(d.i!=null)return d;
+        var cell=migrateWallDoorToCell(w.p1,w.p2,d.pos);
+        if(!cell){doorMigrationWarnings.push('Room "'+(r.label||r.id)+'": a door on a non-grid-aligned interior wall was dropped.');return null;}
+        return cell;
+      }).filter(Boolean);
+      var seenWallDoorCells={};
+      w.doors=w.doors.filter(function(d){
+        if(seenWallDoorCells[d.i])return false;
+        seenWallDoorCells[d.i]=true;
+        return true;
+      });
     });
   });
   board.points.forEach(function(p){
@@ -2949,7 +3032,12 @@ function loadBoard(raw,name,cls){
   undoStack=[];redoStack=[];updateUndoRedoButtons();
   setFstat(name,cls);
   resetView();render();
-  toast('Loaded '+board.rooms.length+' rooms, '+board.points.length+' points');
+  if(doorMigrationWarnings.length){
+    console.warn('Door migration to grid cells dropped '+doorMigrationWarnings.length+' door(s):\n'+doorMigrationWarnings.join('\n'));
+    toast('Loaded '+board.rooms.length+' rooms, '+board.points.length+' points — '+doorMigrationWarnings.length+' door(s) could not migrate to the grid, see console');
+  }else{
+    toast('Loaded '+board.rooms.length+' rooms, '+board.points.length+' points');
+  }
 }
 function setFstat(n,cls){
   var e2=document.getElementById('fstat');e2.textContent='['+n+']';e2.className=cls;

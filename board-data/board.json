@@ -96,11 +96,6 @@
       "color": "#ffffff",
       "type": "tile"
     },
-    "vent": {
-      "label": "Ventilation",
-      "color": "#c4c4c4",
-      "type": "tile"
-    },
     "board_base_layer": {
       "label": "Board Base Layer (Holder)",
       "color": "#2b3038",
