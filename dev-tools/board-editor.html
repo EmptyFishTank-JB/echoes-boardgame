@@ -591,7 +591,12 @@ function renderThickWallEdge(container,p1,p2,innerP1,innerP2,inward,edgeDoors,co
   }).sort(function(a,b){return a.start-b.start;});
   var cursor=0;
   segs.forEach(function(s){
-    var doorSpan=s.end-s.start,openLen=doorSpan*(2/3);
+    // Match the locker's actual proportions exactly: a locker's opening is
+    // 2/3 of its INNER box's side (the door slot minus the margin already
+    // eaten on each side), not 2/3 of the slot's full/outer width — using
+    // the raw slot width here (as before) made vent openings noticeably
+    // bigger than a locker's for the same slot size.
+    var doorSpan=s.end-s.start,openLen=Math.max(0,doorSpan-2*THICK_WALL_MARGIN)*(2/3);
     var openStart=s.start+(doorSpan-openLen)/2,openEnd=s.end-(doorSpan-openLen)/2;
     // cursor===0 (not a fixed first-iteration flag) so this still applies
     // correctly if an earlier segment's band got skipped for being <0.3
