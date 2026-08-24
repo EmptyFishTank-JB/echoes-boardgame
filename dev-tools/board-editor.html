@@ -322,7 +322,12 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
     <button class="tbtn" onclick="duplicateSelection()" title="Duplicate the current selection one grid cell over">&#10064; DUPLICATE</button>
     <button class="tbtn" onclick="selectAllRibbon()" title="Grow the current selection to every matching item on the board">&#9733; SELECT ALL</button>
     <div class="tsep"></div>
+    <button class="tbtn" id="btn-align" onclick="startAlignCommand()" title="Click a reference edge, then click the edge to move — that room slides so its edge lines up with the reference">&#8614; ALIGN</button>
+    <button class="tbtn" id="btn-scale" onclick="startScaleCommand()" title="Click a base point, a reference point, then a new point — scales the selection proportionally around the base (wall thickness never changes, only the room's own geometry)">&#8622; SCALE</button>
+    <button class="tbtn" id="btn-chamfer" onclick="startChamferCommand()" title="Click a corner of a room to cut a 45° chamfer there, sized to the current snap — refuses if there isn't enough room on either adjacent edge">&#9698; CHAMFER</button>
+    <div class="tsep"></div>
     <button class="tbtn" id="btn-pin" onclick="togglePinSelection()" title="Pin/unpin the current selection — a pinned room locks itself and everything owned by it against editing">&#128204; PIN/UNPIN</button>
+    <button class="tbtn on" id="btn-grips" onclick="toggleGrips()" title="Show/hide the reshape grips on a selected room, vent, or base layer">&#9635; GRIPS</button>
   </div>
   <div class="toolbar-row" id="tab-settings" style="display:none">
     <button class="tbtn on" id="btn-info" onclick="toggleRoomInfo()" title="Room name/family/space-count text">&#9432; INFO</button>
@@ -334,6 +339,8 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
     <div class="tsep"></div>
     <button class="tbtn on" id="btn-ctxmenu" onclick="toggleCtxMenuEnabled()" title="Right-click context menu (mouse/keyboard only — never available on touch)">&#9776; CTX MENU</button>
     <button class="tbtn on" id="btn-selectpinned" onclick="toggleSelectPinned()" title="When off, clicking a pinned room/point doesn't select it at all — click-through, like Revit's Select Pinned Elements toggle">&#128204; SELECT PINNED</button>
+    <div class="tsep"></div>
+    <button class="tbtn" onclick="purgeOutsideCanvas()" title="Delete any room/point that has drifted entirely outside the visible canvas area (not the board boundary)" style="color:#e05050;border-color:rgba(224,80,80,0.3);">&#10005; PURGE</button>
   </div>
 </div>
 
@@ -471,6 +478,10 @@ var clipboard=null;                 // {kind:'room'|'point'|'multi', data|items}
 var moveOp=null;                    // {stage:'basepoint'|'destination', base:{x,y}} — click-click MOVE command
 var rotateOp=null;                  // {stage:'start'|'end', center:{x,y}, startAngle} — click-click ROTATE command
 var copyOp=null;                    // {stage:'basepoint'|'destination', base:{x,y}} — click-click COPY command (like MOVE, but drops a duplicate)
+var alignOp=null;                   // {stage:'reference'|'target', axis:'x'|'y', refCoord} — click-click ALIGN command
+var scaleOp=null;                   // {stage:'base'|'ref'|'new', base:{x,y}, refDist} — click-click-click SCALE command
+var chamferOp=null;                 // {active:true} — click a room corner to chamfer it
+var gripsEnabled=true;              // toggle: whether reshape grips render at all (on top of the per-room pinned check)
 var hiddenFamilies={};              // {bucketKey:true} — global per-room-family/vent/base visibility, on top of each room's own .hidden
 var hiddenPointTypes={};            // {pointType:true} — global per-point-type (terminal/vent/locker/other) visibility, on top of each point's own .hidden
 var selectPinnedEnabled=true;       // toggle: whether clicking a pinned room/point selects it at all (Revit's "select pinned elements")
@@ -740,6 +751,11 @@ function toggleCtxMenuEnabled(){
   ctxMenuEnabled=!ctxMenuEnabled;
   document.getElementById('btn-ctxmenu').classList.toggle('on',ctxMenuEnabled);
   toast(ctxMenuEnabled?'Right-click menu enabled':'Right-click menu disabled');
+}
+function toggleGrips(){
+  gripsEnabled=!gripsEnabled;
+  document.getElementById('btn-grips').classList.toggle('on',gripsEnabled);
+  renderHandles();
 }
 
 function roomDisplayFamily(room){
@@ -1747,6 +1763,7 @@ function renderWallPreview(){
 function renderHandles(){
   var layer=document.getElementById('handles-layer');
   layer.innerHTML='';
+  if(!gripsEnabled)return;
   if(selected&&selected.kind==='wall'){
     var wRoom2=findRoom(selected.roomId),w2=wRoom2&&findWall(selected.roomId,selected.id);
     if(!w2)return;
@@ -2546,7 +2563,7 @@ function applyRotateDelta(center,theta){
 // the center with the cursor before the end click commits it.
 function renderRotateHint(){
   var layer=document.getElementById('draw-preview-layer');
-  if(!rotateOp||rotateOp.stage!=='end'){if(layer&&!drawingRoom&&!drawingWall&&!(moveOp&&moveOp.stage==='destination')&&!(copyOp&&copyOp.stage==='destination'))layer.innerHTML='';return;}
+  if(!rotateOp||rotateOp.stage!=='end'){if(layer&&!drawingRoom&&!drawingWall&&!(moveOp&&moveOp.stage==='destination')&&!(copyOp&&copyOp.stage==='destination')&&!(scaleOp&&scaleOp.stage==='new'))layer.innerHTML='';return;}
   layer.innerHTML='';
   var center=rotateOp.center;
   var curAngle=Math.atan2(mouseBoard.y-center.y,mouseBoard.x-center.x);
@@ -2618,7 +2635,7 @@ function applyMoveDelta(delta){
 // destination click actually commits it.
 function renderMoveHint(){
   var layer=document.getElementById('draw-preview-layer');
-  if(!moveOp||moveOp.stage!=='destination'){if(layer&&!drawingRoom&&!drawingWall&&!(rotateOp&&rotateOp.stage==='end')&&!(copyOp&&copyOp.stage==='destination'))layer.innerHTML='';return;}
+  if(!moveOp||moveOp.stage!=='destination'){if(layer&&!drawingRoom&&!drawingWall&&!(rotateOp&&rotateOp.stage==='end')&&!(copyOp&&copyOp.stage==='destination')&&!(scaleOp&&scaleOp.stage==='new'))layer.innerHTML='';return;}
   layer.innerHTML='';
   var cur=snapPt(mouseBoard);
   var delta={x:cur.x-moveOp.base.x,y:cur.y-moveOp.base.y};
@@ -2708,7 +2725,7 @@ function applyCopyDelta(delta){
 // normally underneath since nothing about it has actually changed yet.
 function renderCopyHint(){
   var layer=document.getElementById('draw-preview-layer');
-  if(!copyOp||copyOp.stage!=='destination'){if(layer&&!drawingRoom&&!drawingWall&&!(rotateOp&&rotateOp.stage==='end')&&!(moveOp&&moveOp.stage==='destination'))layer.innerHTML='';return;}
+  if(!copyOp||copyOp.stage!=='destination'){if(layer&&!drawingRoom&&!drawingWall&&!(rotateOp&&rotateOp.stage==='end')&&!(moveOp&&moveOp.stage==='destination')&&!(scaleOp&&scaleOp.stage==='new'))layer.innerHTML='';return;}
   layer.innerHTML='';
   var cur=snapPt(mouseBoard);
   var delta={x:cur.x-copyOp.base.x,y:cur.y-copyOp.base.y};
@@ -2770,6 +2787,10 @@ var HOTKEY_ACTIONS={
   copyCommand:{label:'Copy: click basepoint, click destination (drops a duplicate)',fn:function(){startCopyCommand();}},
   rotate:{label:'Rotate: click start point, click end point (center of geometry)',fn:function(){startRotateCommand();}},
   pinToggle:{label:'Pin/unpin the current selection',fn:function(){togglePinSelection();}},
+  align:{label:'Align: click a reference edge, then the edge to move',fn:function(){startAlignCommand();}},
+  scale:{label:'Scale: click base point, reference point, new point',fn:function(){startScaleCommand();}},
+  chamfer:{label:'Chamfer: click a room corner to cut a 45° corner there',fn:function(){startChamferCommand();}},
+  gripsToggle:{label:'Toggle reshape grips on selected items',fn:function(){toggleGrips();}},
   zoomIn:{label:'Zoom in',fn:function(){zoomBy(1.2);}},
   zoomOut:{label:'Zoom out',fn:function(){zoomBy(1/1.2);}},
   fit:{label:'Fit view (also: double-click middle mouse button)',fn:function(){resetView();}},
@@ -2794,7 +2815,8 @@ var DEFAULT_HOTKEYS={
   pan:['p','n'],
   snapWhole:['1'],snapHalf:['2'],snapQuarter:['4'],
   spaces:['g','r'],info:['i'],attach:['a','t'],linkDoors:['l','d'],boundary:['b','o'],
-  mirrorX:['m','x'],mirrorY:['m','y'],move:['m','v'],copyCommand:['c','p'],rotate:['r','o'],pinToggle:['p','i'],duplicate:['u'],zoomIn:['='],zoomOut:['-'],
+  mirrorX:['m','x'],mirrorY:['m','y'],move:['m','v'],copyCommand:['c','p'],rotate:['r','o'],pinToggle:['p','i'],duplicate:['u'],
+  align:['a','l'],scale:['s','c'],chamfer:['c','h'],gripsToggle:['e','g'],zoomIn:['='],zoomOut:['-'],
   fit:['f'],shortcuts:['k','s']
 };
 var hotkeys=JSON.parse(JSON.stringify(DEFAULT_HOTKEYS));
@@ -2819,7 +2841,8 @@ var TOOL_BUTTON_HOTKEY_MAP={
   'btn-terminal':'terminal','btn-locker':'locker','btn-other':'point',
   'btn-snap-1':'snapWhole','btn-snap-2':'snapHalf','btn-snap-4':'snapQuarter',
   'btn-spaces':'spaces','btn-info':'info','btn-attach':'attach','btn-linkdoors':'linkDoors','btn-boundary':'boundary',
-  'btn-pan':'pan','btn-move':'move','btn-copy':'copyCommand','btn-rotate':'rotate','btn-pin':'pinToggle'
+  'btn-pan':'pan','btn-move':'move','btn-copy':'copyCommand','btn-rotate':'rotate','btn-pin':'pinToggle',
+  'btn-align':'align','btn-scale':'scale','btn-chamfer':'chamfer','btn-grips':'gripsToggle'
 };
 // Prepends "[KEY] - " to each mapped button's tooltip, ahead of whatever
 // descriptive text it already had (captured once into data-base-title so
@@ -3209,6 +3232,234 @@ function rotateSelection90(dir){
   rotateRoom90(ref.id,dir);
 }
 
+// ── ALIGN (click a reference edge, then the edge to move) ───────────────────
+// Only axis-aligned (horizontal/vertical) edges are supported — matches
+// every other grid-based tool in the app (walls, doors) and covers the
+// vast majority of real edges here. The target room slides along the
+// single axis perpendicular to the picked edges so its edge's line
+// coincides with the reference edge's line — same idea as applyRoomTransform's
+// other callers (points, walls, doors, attached points all move together).
+function findNearestRoomEdge(pt){
+  var best=null,bestDist=20;
+  board.rooms.forEach(function(room){
+    var pts=room.points,n=pts.length;
+    for(var i=0;i<n;i++){
+      var a=pts[i],b=pts[(i+1)%n];
+      var len=dist(a,b);if(len<0.5)continue;
+      var ux=(b.x-a.x)/len,uy=(b.y-a.y)/len;
+      if(Math.abs(ux)>=1e-6&&Math.abs(uy)>=1e-6)continue; // diagonal — align doesn't support these
+      var d=distToSeg(pt,a,b);
+      if(d<bestDist){bestDist=d;best={roomId:room.id,a:a,b:b,axis:Math.abs(ux)<1e-6?'x':'y'};}
+    }
+  });
+  return best;
+}
+function startAlignCommand(){
+  moveOp=null;rotateOp=null;copyOp=null;scaleOp=null;chamferOp=null;
+  alignOp={stage:'reference'};
+  setRibbonTab('modify');
+  toast('ALIGN: click the reference edge');
+}
+function handleAlignClick(bp){
+  if(!alignOp)return;
+  var edge=findNearestRoomEdge(bp);
+  if(!edge){toast('Click closer to a room edge');return;}
+  if(alignOp.stage==='reference'){
+    alignOp.axis=edge.axis;
+    alignOp.refCoord=edge.axis==='x'?edge.a.x:edge.a.y;
+    alignOp.stage='target';
+    toast('ALIGN: click the edge to move');
+  }else{
+    if(edge.axis!==alignOp.axis){toast('Pick an edge with the same orientation (both vertical or both horizontal)');alignOp=null;return;}
+    var r=findRoom(edge.roomId);
+    if(isLockedRoom(r)){toast('Pinned — unpin before editing');alignOp=null;return;}
+    var targetCoord=edge.axis==='x'?edge.a.x:edge.a.y;
+    var d=alignOp.refCoord-targetCoord;
+    var delta=alignOp.axis==='x'?{x:d,y:0}:{x:0,y:d};
+    alignOp=null;
+    if(Math.abs(d)<0.5)return;
+    pushUndo();
+    applyRoomTransform(r,function(p){return {x:p.x+delta.x,y:p.y+delta.y};});
+    render();
+  }
+}
+
+// ── SCALE (base point, reference point, new point) ──────────────────────────
+// Click-click-click, same idea as the other click-based commands: base
+// point is the fixed scale center, the reference→new distance ratio is
+// the scale factor, applied uniformly to the selection's own points
+// (room vertices, wall endpoints — doors re-derive against the new shape
+// — and owned points). Wall/door rendering thickness is a fixed pixel
+// constant elsewhere, never derived from geometry, so it's already
+// unaffected by this without any special-casing.
+function startScaleCommand(){
+  if(!selected&&!multiSel.length){toast('Select something to scale first');return;}
+  if(pinnedBlocksEdit())return;
+  moveOp=null;rotateOp=null;copyOp=null;alignOp=null;chamferOp=null;
+  scaleOp={stage:'base'};
+  setRibbonTab('modify');
+  toast('SCALE: click a base point');
+}
+function handleScaleClick(bp){
+  if(!scaleOp)return;
+  if(scaleOp.stage==='base'){
+    scaleOp.base=bp;scaleOp.stage='ref';
+    toast('SCALE: click a reference point (marks the current size)');
+  }else if(scaleOp.stage==='ref'){
+    var d0=dist(bp,scaleOp.base);
+    if(d0<1){toast('Pick a reference point away from the base');return;}
+    scaleOp.refDist=d0;scaleOp.stage='new';
+    toast('SCALE: click the new size point');
+  }else{
+    var newDist=dist(bp,scaleOp.base);
+    var factor=newDist/scaleOp.refDist;
+    var base=scaleOp.base;
+    scaleOp=null;
+    applyScaleFactor(base,factor);
+  }
+}
+function applyScaleFactor(base,factor){
+  if(!factor||Math.abs(factor-1)<0.001)return;
+  pushUndo();
+  var items=multiSel.length?multiSel:(selected?[selected]:[]);
+  var fn=function(p){return {x:base.x+(p.x-base.x)*factor,y:base.y+(p.y-base.y)*factor};};
+  var explicitPointIds={};
+  items.forEach(function(m){if(m.kind==='point')explicitPointIds[m.id]=true;});
+  items.forEach(function(m){
+    if(m.kind==='room'){
+      var r=findRoom(m.id);if(!r)return;
+      var attached=ownedPointsFor(r);
+      var doorCapture=captureRoomDoors(r);
+      r.points=r.points.map(fn);
+      (r.walls||[]).forEach(function(w){w.p1=fn(w.p1);w.p2=fn(w.p2);});
+      reapplyRoomDoors(r,doorCapture,fn);
+      attached.forEach(function(p){
+        if(explicitPointIds[p.id])return;
+        var np=fn(p);p.x=np.x;p.y=np.y;
+      });
+    }else if(m.kind==='point'){
+      var p2=findPoint(m.id);if(!p2)return;
+      var np=fn(p2);p2.x=np.x;p2.y=np.y;
+    }
+  });
+  render();
+}
+// Live scale preview — ghost-render the selection at the current
+// (mouse-driven) factor once the reference distance is set.
+function renderScaleHint(){
+  var layer=document.getElementById('draw-preview-layer');
+  if(!scaleOp||scaleOp.stage!=='new'){if(layer&&!drawingRoom&&!drawingWall&&!(rotateOp&&rotateOp.stage==='end')&&!(moveOp&&moveOp.stage==='destination')&&!(copyOp&&copyOp.stage==='destination'))layer.innerHTML='';return;}
+  layer.innerHTML='';
+  var base=scaleOp.base;
+  var factor=dist(mouseBoard,base)/scaleOp.refDist;
+  layer.appendChild(el('circle',{cx:base.x,cy:base.y,r:5,class:'draw-close-hint'}));
+  layer.appendChild(el('line',{x1:base.x,y1:base.y,x2:mouseBoard.x,y2:mouseBoard.y,class:'draw-rubber'}));
+  var fn=function(p){return {x:base.x+(p.x-base.x)*factor,y:base.y+(p.y-base.y)*factor};};
+  var items=multiSel.length?multiSel:(selected?[selected]:[]);
+  items.forEach(function(m){
+    if(m.kind==='room'){
+      var r=findRoom(m.id);if(!r)return;
+      var pts=r.points.map(fn);
+      layer.appendChild(el('polygon',{points:polyPoints(pts),class:'sel-preview-room'}));
+      (r.walls||[]).forEach(function(w){
+        var a=fn(w.p1),b=fn(w.p2);
+        layer.appendChild(el('line',{x1:a.x,y1:a.y,x2:b.x,y2:b.y,class:'sel-preview-wall'}));
+      });
+    }else if(m.kind==='point'){
+      var p=findPoint(m.id);if(!p)return;
+      var np=fn(p);
+      layer.appendChild(el('circle',{cx:np.x,cy:np.y,r:9,class:'sel-preview-point'}));
+    }
+  });
+}
+
+// ── CHAMFER (click a room corner to cut a 45° chamfer there) ────────────────
+// The cut length on each adjacent edge is the current SNAP setting; doors
+// are captured by physical position beforehand and re-derived against the
+// new shape afterward (same as every other room-reshaping transform) —
+// one on the cut corner itself simply won't find a matching cell anymore
+// and gets dropped, same policy as removeVertex/insertVertexOnEdge.
+function startChamferCommand(){
+  moveOp=null;rotateOp=null;copyOp=null;alignOp=null;scaleOp=null;
+  chamferOp={active:true};
+  setRibbonTab('modify');
+  toast('CHAMFER: click a room corner');
+}
+function dedupeAdjacentPoints(pts){
+  var out=[];
+  for(var i=0;i<pts.length;i++){
+    var p=pts[i],prev=out[out.length-1];
+    if(!prev||dist(prev,p)>0.5)out.push(p);
+  }
+  if(out.length>1&&dist(out[0],out[out.length-1])<0.5)out.pop();
+  return out;
+}
+function findNearestRoomVertex(pt){
+  var best=null,bestDist=20;
+  board.rooms.forEach(function(room){
+    room.points.forEach(function(p,i){
+      var d=dist(pt,p);
+      if(d<bestDist){bestDist=d;best={roomId:room.id,idx:i};}
+    });
+  });
+  return best;
+}
+function handleChamferClick(bp){
+  if(!chamferOp)return;
+  var v=findNearestRoomVertex(bp);
+  if(!v){toast('Click closer to a room corner');return;}
+  chamferVertex(v.roomId,v.idx);
+  chamferOp=null;
+}
+function chamferVertex(roomId,vIdx){
+  var r=findRoom(roomId);if(!r)return;
+  if(isLockedRoom(r)){toast('Pinned — unpin before editing');return;}
+  var n=r.points.length;
+  if(n<4){toast('Not enough corners left to chamfer');return;}
+  var prev=r.points[(vIdx-1+n)%n],cur=r.points[vIdx],next=r.points[(vIdx+1)%n];
+  var lenPrev=dist(prev,cur),lenNext=dist(cur,next);
+  var size=SNAP;
+  if(lenPrev<size-0.5||lenNext<size-0.5){toast('Not enough room to chamfer this corner');return;}
+  var uxPrev=(prev.x-cur.x)/lenPrev,uyPrev=(prev.y-cur.y)/lenPrev;
+  var uxNext=(next.x-cur.x)/lenNext,uyNext=(next.y-cur.y)/lenNext;
+  if(Math.abs(uxPrev*uxNext+uyPrev*uyNext)>0.15){toast('Chamfer only works on square (90°) corners');return;}
+  pushUndo();
+  var doorCapture=captureRoomDoors(r);
+  var p1={x:cur.x+uxPrev*size,y:cur.y+uyPrev*size};
+  var p2={x:cur.x+uxNext*size,y:cur.y+uyNext*size};
+  r.points.splice(vIdx,1,p1,p2);
+  r.points=dedupeAdjacentPoints(r.points);
+  reapplyRoomDoors(r,doorCapture,function(p){return p;});
+  render();
+}
+
+// ── PURGE ─────────────────────────────────────────────────────────────────────
+// Deletes any room whose ENTIRE geometry, or any point, has drifted
+// outside the visible canvas area — the SVG's own drawable extent (the
+// grid background rect), not the user-placed board.boundary rectangle.
+// A room merely touching the edge of that huge area is left alone; only
+// something fully off of it (stray/garbage data, e.g. from a bug or a
+// bad paste) counts as purgeable.
+var CANVAS_EXTENT={x:-2000,y:-2000,w:8000,h:7000};
+function isOutsideCanvas(p){
+  return p.x<CANVAS_EXTENT.x||p.x>CANVAS_EXTENT.x+CANVAS_EXTENT.w||p.y<CANVAS_EXTENT.y||p.y>CANVAS_EXTENT.y+CANVAS_EXTENT.h;
+}
+function purgeOutsideCanvas(){
+  var roomsOut=board.rooms.filter(function(r){return r.points.length&&r.points.every(isOutsideCanvas);});
+  var pointsOut=board.points.filter(isOutsideCanvas);
+  if(!roomsOut.length&&!pointsOut.length){toast('Nothing outside the canvas to purge');return;}
+  if(!confirm('Purge '+roomsOut.length+' room(s) and '+pointsOut.length+' point(s) that have drifted entirely outside the canvas? This can be undone with Ctrl+Z.'))return;
+  pushUndo();
+  var roomIds={};roomsOut.forEach(function(r){roomIds[r.id]=true;});
+  var pointIds={};pointsOut.forEach(function(p){pointIds[p.id]=true;});
+  board.rooms=board.rooms.filter(function(r){return !roomIds[r.id];});
+  board.points=board.points.filter(function(p){return !pointIds[p.id];});
+  if(selected&&((selected.kind==='room'&&roomIds[selected.id])||(selected.kind==='point'&&pointIds[selected.id])))selected=null;
+  multiSel=multiSel.filter(function(m){return m.kind==='room'?!roomIds[m.id]:!pointIds[m.id];});
+  toast('Purged '+roomsOut.length+' room(s), '+pointsOut.length+' point(s)');
+  render();
+}
+
 // ── CONTEXT MENU (mouse/keyboard only — see the CTX MENU toggle in
 // SETTINGS, and the document-level 'contextmenu' guard that keeps touch
 // from ever reaching this) ───────────────────────────────────────────────────
@@ -3483,6 +3734,9 @@ function onRoomMouseDown(e,roomId){
   if(moveOp&&e.button===0){e.stopPropagation();handleMoveClick(snapPt(screenToBoard(e.clientX,e.clientY)));return;}
   if(rotateOp&&e.button===0){e.stopPropagation();handleRotateClick(snapPt(screenToBoard(e.clientX,e.clientY)));return;}
   if(copyOp&&e.button===0){e.stopPropagation();handleCopyClick(snapPt(screenToBoard(e.clientX,e.clientY)));return;}
+  if(alignOp&&e.button===0){e.stopPropagation();handleAlignClick(screenToBoard(e.clientX,e.clientY));return;}
+  if(scaleOp&&e.button===0){e.stopPropagation();handleScaleClick(snapPt(screenToBoard(e.clientX,e.clientY)));return;}
+  if(chamferOp&&e.button===0){e.stopPropagation();handleChamferClick(screenToBoard(e.clientX,e.clientY));return;}
   if(tool!=='select'||e.button!==0)return;
   var room=findRoom(roomId);
   // A pinned room with "select pinned" off is click-through — don't
@@ -3513,6 +3767,9 @@ function onPointMouseDown(e,ptId){
   if(moveOp&&e.button===0){e.stopPropagation();handleMoveClick(snapPt(screenToBoard(e.clientX,e.clientY)));return;}
   if(rotateOp&&e.button===0){e.stopPropagation();handleRotateClick(snapPt(screenToBoard(e.clientX,e.clientY)));return;}
   if(copyOp&&e.button===0){e.stopPropagation();handleCopyClick(snapPt(screenToBoard(e.clientX,e.clientY)));return;}
+  if(alignOp&&e.button===0){e.stopPropagation();handleAlignClick(screenToBoard(e.clientX,e.clientY));return;}
+  if(scaleOp&&e.button===0){e.stopPropagation();handleScaleClick(snapPt(screenToBoard(e.clientX,e.clientY)));return;}
+  if(chamferOp&&e.button===0){e.stopPropagation();handleChamferClick(screenToBoard(e.clientX,e.clientY));return;}
   if(tool!=='select'||e.button!==0)return;
   var pt=findPoint(ptId);
   if(isLockedPoint(pt)&&!selectPinnedEnabled)return;
@@ -3534,6 +3791,9 @@ function onWallMouseDown(e,roomId,wallId){
   if(moveOp&&e.button===0){e.stopPropagation();handleMoveClick(snapPt(screenToBoard(e.clientX,e.clientY)));return;}
   if(rotateOp&&e.button===0){e.stopPropagation();handleRotateClick(snapPt(screenToBoard(e.clientX,e.clientY)));return;}
   if(copyOp&&e.button===0){e.stopPropagation();handleCopyClick(snapPt(screenToBoard(e.clientX,e.clientY)));return;}
+  if(alignOp&&e.button===0){e.stopPropagation();handleAlignClick(screenToBoard(e.clientX,e.clientY));return;}
+  if(scaleOp&&e.button===0){e.stopPropagation();handleScaleClick(snapPt(screenToBoard(e.clientX,e.clientY)));return;}
+  if(chamferOp&&e.button===0){e.stopPropagation();handleChamferClick(screenToBoard(e.clientX,e.clientY));return;}
   if(tool==='door'){
     var target=findNearestWallSegment(screenToBoard(e.clientX,e.clientY));
     if(target)toggleDoorAt(target);
@@ -3622,6 +3882,9 @@ function initCanvas(){
     if(moveOp){handleMoveClick(bp);return;}
     if(rotateOp){handleRotateClick(bp);return;}
     if(copyOp){handleCopyClick(bp);return;}
+    if(alignOp){handleAlignClick(rawBoard);return;}
+    if(scaleOp){handleScaleClick(bp);return;}
+    if(chamferOp){handleChamferClick(rawBoard);return;}
 
     if(tool==='pan'){
       isPanning=true;panStart={x:e.clientX,y:e.clientY,pan0:{x:pan.x,y:pan.y}};
@@ -3803,6 +4066,7 @@ function initCanvas(){
     if(moveOp&&moveOp.stage==='destination')renderMoveHint();
     if(rotateOp&&rotateOp.stage==='end')renderRotateHint();
     if(copyOp&&copyOp.stage==='destination')renderCopyHint();
+    if(scaleOp&&scaleOp.stage==='new')renderScaleHint();
   });
 
   window.addEventListener('mouseup',function(e){
@@ -3837,6 +4101,9 @@ function initCanvas(){
       if(moveOp){moveOp=null;renderMoveHint();toast('Move cancelled');}
       else if(rotateOp){rotateOp=null;renderRotateHint();toast('Rotate cancelled');}
       else if(copyOp){copyOp=null;renderCopyHint();toast('Copy cancelled');}
+      else if(alignOp){alignOp=null;toast('Align cancelled');}
+      else if(scaleOp){scaleOp=null;renderScaleHint();toast('Scale cancelled');}
+      else if(chamferOp){chamferOp=null;toast('Chamfer cancelled');}
       else if(drawingRoom){drawingRoom=null;render();}
       else if(drawingWall){drawingWall=null;render();}
       else if(multiSel.length){multiSel=[];render();}
