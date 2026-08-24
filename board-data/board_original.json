@@ -1,0 +1,2208 @@
+{
+  "meta": {
+    "version": "1.0",
+    "name": "ECHOES Board — Draft",
+    "editor_version": "1.0",
+    "last_saved": "2026-08-23T08:14:02.424Z"
+  },
+  "families": {
+    "ops_center": {
+      "label": "Operations Center",
+      "color": "#E8732A",
+      "type": "tile"
+    },
+    "airlock": {
+      "label": "Airlock / Hull Access",
+      "color": "#4A90D9",
+      "type": "fixed"
+    },
+    "transit": {
+      "label": "Transit Infrastructure",
+      "color": "#9ca3af",
+      "type": "fixed"
+    },
+    "dock": {
+      "label": "The Dock",
+      "color": "#4fc3f7",
+      "type": "fixed"
+    },
+    "corridors": {
+      "label": "Corridors",
+      "color": "#556070",
+      "type": "fixed"
+    },
+    "research": {
+      "label": "Research",
+      "color": "#4db896",
+      "type": "tile"
+    },
+    "laboratory": {
+      "label": "Laboratory",
+      "color": "#3f9e8a",
+      "type": "tile"
+    },
+    "medical": {
+      "label": "Medical",
+      "color": "#e05050",
+      "type": "tile"
+    },
+    "engineering": {
+      "label": "Engineering",
+      "color": "#bf7c0a",
+      "type": "tile"
+    },
+    "maintenance": {
+      "label": "Maintenance",
+      "color": "#a66a3c",
+      "type": "tile"
+    },
+    "reactor": {
+      "label": "Reactor",
+      "color": "#ff8800",
+      "type": "tile"
+    },
+    "cargo": {
+      "label": "Cargo",
+      "color": "#c9a24a",
+      "type": "tile"
+    },
+    "storage": {
+      "label": "Storage",
+      "color": "#b08c3e",
+      "type": "tile"
+    },
+    "crew_quarters": {
+      "label": "Crew Quarters",
+      "color": "#7fb0e0",
+      "type": "tile"
+    },
+    "hydroponics": {
+      "label": "Hydroponics",
+      "color": "#6fb06f",
+      "type": "tile"
+    },
+    "life_support": {
+      "label": "Life Support",
+      "color": "#5a9c6a",
+      "type": "tile"
+    },
+    "security": {
+      "label": "Security",
+      "color": "#c0504d",
+      "type": "tile"
+    },
+    "garage": {
+      "label": "Garage / Workshop",
+      "color": "#a0785a",
+      "type": "tile"
+    },
+    "communications": {
+      "label": "Communications",
+      "color": "#c47fc4",
+      "type": "tile"
+    },
+    "dormitories": {
+      "label": "Dormitories",
+      "color": "#8892a6",
+      "type": "tile"
+    },
+    "_": {
+      "label": "Not Specified",
+      "color": "#787878",
+      "type": "tile"
+    },
+    "board_ship_structure": {
+      "label": "---",
+      "color": "#ffffff",
+      "type": "tile"
+    },
+    "board_base_layer": {
+      "label": "Board Base Layer (Holder)",
+      "color": "#2b3038",
+      "type": "void"
+    }
+  },
+  "rooms": [
+    {
+      "id": "R1",
+      "family": "communications",
+      "label": "",
+      "notes": "",
+      "points": [
+        {
+          "x": 1160,
+          "y": 760
+        },
+        {
+          "x": 1160,
+          "y": 880
+        },
+        {
+          "x": 1120,
+          "y": 920
+        },
+        {
+          "x": 1120,
+          "y": 960
+        },
+        {
+          "x": 1000,
+          "y": 960
+        },
+        {
+          "x": 960,
+          "y": 920
+        },
+        {
+          "x": 960,
+          "y": 800
+        },
+        {
+          "x": 1000,
+          "y": 760
+        },
+        {
+          "x": 1000,
+          "y": 720
+        },
+        {
+          "x": 1120,
+          "y": 720
+        }
+      ],
+      "doors": [
+        {
+          "cx": 26,
+          "cy": 18,
+          "side": 0
+        },
+        {
+          "cx": 24,
+          "cy": 21,
+          "side": 3
+        },
+        {
+          "cx": 26,
+          "cy": 23,
+          "side": 2
+        },
+        {
+          "cx": 28,
+          "cy": 20,
+          "side": 1
+        }
+      ],
+      "_spaceCount": 24,
+      "_spaceInvalid": 4,
+      "walls": []
+    },
+    {
+      "id": "R4",
+      "family": "ops_center",
+      "label": "",
+      "notes": "",
+      "points": [
+        {
+          "x": 560,
+          "y": 720
+        },
+        {
+          "x": 680,
+          "y": 720
+        },
+        {
+          "x": 720,
+          "y": 680
+        },
+        {
+          "x": 800,
+          "y": 680
+        },
+        {
+          "x": 840,
+          "y": 720
+        },
+        {
+          "x": 920,
+          "y": 720
+        },
+        {
+          "x": 960,
+          "y": 760
+        },
+        {
+          "x": 960,
+          "y": 880
+        },
+        {
+          "x": 920,
+          "y": 880
+        },
+        {
+          "x": 920,
+          "y": 920
+        },
+        {
+          "x": 880,
+          "y": 920
+        },
+        {
+          "x": 880,
+          "y": 960
+        },
+        {
+          "x": 840,
+          "y": 1000
+        },
+        {
+          "x": 680,
+          "y": 1000
+        },
+        {
+          "x": 640,
+          "y": 960
+        },
+        {
+          "x": 640,
+          "y": 920
+        },
+        {
+          "x": 600,
+          "y": 920
+        },
+        {
+          "x": 600,
+          "y": 880
+        },
+        {
+          "x": 560,
+          "y": 880
+        }
+      ],
+      "doors": [
+        {
+          "cx": 15,
+          "cy": 18,
+          "side": 0
+        },
+        {
+          "cx": 22,
+          "cy": 18,
+          "side": 0
+        },
+        {
+          "cx": 16,
+          "cy": 23,
+          "side": 3
+        },
+        {
+          "cx": 21,
+          "cy": 23,
+          "side": 1
+        },
+        {
+          "cx": 14,
+          "cy": 21,
+          "side": 3
+        },
+        {
+          "cx": 23,
+          "cy": 21,
+          "side": 1
+        }
+      ],
+      "_spaceCount": 59,
+      "_spaceInvalid": 5,
+      "walls": [
+        {
+          "id": "W51",
+          "doors": [],
+          "p1": {
+            "x": 840,
+            "y": 840
+          },
+          "p2": {
+            "x": 800,
+            "y": 880
+          }
+        },
+        {
+          "id": "W52",
+          "doors": [],
+          "p1": {
+            "x": 800,
+            "y": 880
+          },
+          "p2": {
+            "x": 720,
+            "y": 880
+          }
+        },
+        {
+          "id": "W53",
+          "doors": [],
+          "p1": {
+            "x": 680,
+            "y": 840
+          },
+          "p2": {
+            "x": 720,
+            "y": 880
+          }
+        },
+        {
+          "id": "W160",
+          "doors": [
+            {
+              "i": 0
+            }
+          ],
+          "p1": {
+            "x": 680,
+            "y": 840
+          },
+          "p2": {
+            "x": 680,
+            "y": 720
+          }
+        },
+        {
+          "id": "W161",
+          "doors": [
+            {
+              "i": 0
+            }
+          ],
+          "p1": {
+            "x": 840,
+            "y": 840
+          },
+          "p2": {
+            "x": 840,
+            "y": 720
+          }
+        }
+      ]
+    },
+    {
+      "id": "R2",
+      "family": "security",
+      "label": "",
+      "notes": "",
+      "points": [
+        {
+          "x": 360,
+          "y": 760
+        },
+        {
+          "x": 400,
+          "y": 720
+        },
+        {
+          "x": 520,
+          "y": 720
+        },
+        {
+          "x": 520,
+          "y": 760
+        },
+        {
+          "x": 560,
+          "y": 800
+        },
+        {
+          "x": 560,
+          "y": 920
+        },
+        {
+          "x": 520,
+          "y": 960
+        },
+        {
+          "x": 400,
+          "y": 960
+        },
+        {
+          "x": 400,
+          "y": 920
+        },
+        {
+          "x": 360,
+          "y": 880
+        }
+      ],
+      "doors": [
+        {
+          "cx": 11,
+          "cy": 18,
+          "side": 0
+        },
+        {
+          "cx": 11,
+          "cy": 23,
+          "side": 2
+        },
+        {
+          "cx": 13,
+          "cy": 21,
+          "side": 1
+        },
+        {
+          "cx": 9,
+          "cy": 20,
+          "side": 3
+        }
+      ],
+      "_spaceCount": 24,
+      "_spaceInvalid": 4,
+      "walls": []
+    },
+    {
+      "id": "R3",
+      "family": "engineering",
+      "label": "",
+      "notes": "",
+      "points": [
+        {
+          "x": 520,
+          "y": 520
+        },
+        {
+          "x": 560,
+          "y": 480
+        },
+        {
+          "x": 680,
+          "y": 480
+        },
+        {
+          "x": 680,
+          "y": 520
+        },
+        {
+          "x": 720,
+          "y": 560
+        },
+        {
+          "x": 720,
+          "y": 680
+        },
+        {
+          "x": 680,
+          "y": 720
+        },
+        {
+          "x": 560,
+          "y": 720
+        },
+        {
+          "x": 560,
+          "y": 680
+        },
+        {
+          "x": 520,
+          "y": 640
+        }
+      ],
+      "doors": [
+        {
+          "cx": 15,
+          "cy": 12,
+          "side": 0
+        },
+        {
+          "cx": 15,
+          "cy": 17,
+          "side": 2
+        },
+        {
+          "cx": 17,
+          "cy": 15,
+          "side": 1
+        },
+        {
+          "cx": 13,
+          "cy": 14,
+          "side": 3
+        }
+      ],
+      "_spaceCount": 24,
+      "_spaceInvalid": 4,
+      "walls": []
+    },
+    {
+      "id": "R7",
+      "family": "corridors",
+      "label": "",
+      "notes": "",
+      "points": [
+        {
+          "x": 360,
+          "y": 680
+        },
+        {
+          "x": 480,
+          "y": 680
+        },
+        {
+          "x": 520,
+          "y": 640
+        },
+        {
+          "x": 560,
+          "y": 680
+        },
+        {
+          "x": 560,
+          "y": 760
+        },
+        {
+          "x": 520,
+          "y": 760
+        },
+        {
+          "x": 520,
+          "y": 760
+        },
+        {
+          "x": 520,
+          "y": 720
+        },
+        {
+          "x": 360,
+          "y": 720
+        }
+      ],
+      "doors": [
+        {
+          "cx": 10,
+          "cy": 17,
+          "side": 0
+        },
+        {
+          "cx": 11,
+          "cy": 17,
+          "side": 2
+        }
+      ],
+      "_spaceCount": 6,
+      "_spaceInvalid": 2,
+      "walls": [],
+      "hidden": false
+    },
+    {
+      "id": "R8",
+      "family": "corridors",
+      "label": "",
+      "notes": "",
+      "points": [
+        {
+          "x": 400,
+          "y": 680
+        },
+        {
+          "x": 480,
+          "y": 680
+        },
+        {
+          "x": 520,
+          "y": 640
+        },
+        {
+          "x": 520,
+          "y": 520
+        },
+        {
+          "x": 480,
+          "y": 480
+        },
+        {
+          "x": 400,
+          "y": 480
+        },
+        {
+          "x": 360,
+          "y": 520
+        },
+        {
+          "x": 360,
+          "y": 640
+        }
+      ],
+      "doors": [
+        {
+          "cx": 12,
+          "cy": 14,
+          "side": 1
+        },
+        {
+          "cx": 10,
+          "cy": 12,
+          "side": 0
+        },
+        {
+          "cx": 10,
+          "cy": 16,
+          "side": 2
+        },
+        {
+          "cx": 9,
+          "cy": 14,
+          "side": 3
+        }
+      ],
+      "_spaceCount": 16,
+      "_spaceInvalid": 4,
+      "walls": []
+    },
+    {
+      "id": "R6",
+      "family": "corridors",
+      "label": "",
+      "notes": "",
+      "points": [
+        {
+          "x": 360,
+          "y": 920
+        },
+        {
+          "x": 400,
+          "y": 920
+        },
+        {
+          "x": 400,
+          "y": 960
+        },
+        {
+          "x": 560,
+          "y": 960
+        },
+        {
+          "x": 560,
+          "y": 1000
+        },
+        {
+          "x": 360,
+          "y": 1000
+        }
+      ],
+      "doors": [
+        {
+          "cx": 11,
+          "cy": 24,
+          "side": 0
+        }
+      ],
+      "_spaceCount": 6,
+      "_spaceInvalid": 0,
+      "walls": []
+    },
+    {
+      "id": "R5",
+      "family": "medical",
+      "label": "",
+      "notes": "",
+      "points": [
+        {
+          "x": 840,
+          "y": 480
+        },
+        {
+          "x": 960,
+          "y": 480
+        },
+        {
+          "x": 1000,
+          "y": 520
+        },
+        {
+          "x": 1000,
+          "y": 640
+        },
+        {
+          "x": 960,
+          "y": 680
+        },
+        {
+          "x": 960,
+          "y": 720
+        },
+        {
+          "x": 840,
+          "y": 720
+        },
+        {
+          "x": 800,
+          "y": 680
+        },
+        {
+          "x": 800,
+          "y": 560
+        },
+        {
+          "x": 840,
+          "y": 520
+        }
+      ],
+      "doors": [
+        {
+          "cx": 22,
+          "cy": 12,
+          "side": 0
+        },
+        {
+          "cx": 22,
+          "cy": 17,
+          "side": 2
+        },
+        {
+          "cx": 24,
+          "cy": 14,
+          "side": 1
+        },
+        {
+          "cx": 20,
+          "cy": 15,
+          "side": 3
+        }
+      ],
+      "_spaceCount": 24,
+      "_spaceInvalid": 4,
+      "walls": []
+    },
+    {
+      "id": "R12",
+      "family": "corridors",
+      "label": "",
+      "notes": "",
+      "points": [
+        {
+          "x": 1160,
+          "y": 920
+        },
+        {
+          "x": 1120,
+          "y": 920
+        },
+        {
+          "x": 1120,
+          "y": 960
+        },
+        {
+          "x": 960,
+          "y": 960
+        },
+        {
+          "x": 960,
+          "y": 1000
+        },
+        {
+          "x": 1160,
+          "y": 1000
+        }
+      ],
+      "doors": [
+        {
+          "cx": 26,
+          "cy": 24,
+          "side": 0
+        }
+      ],
+      "_spaceCount": 6,
+      "_spaceInvalid": 0,
+      "walls": []
+    },
+    {
+      "id": "R15",
+      "family": "_",
+      "label": "",
+      "notes": "",
+      "points": [
+        {
+          "x": 560,
+          "y": 880
+        },
+        {
+          "x": 600,
+          "y": 880
+        },
+        {
+          "x": 600,
+          "y": 920
+        },
+        {
+          "x": 640,
+          "y": 920
+        },
+        {
+          "x": 640,
+          "y": 1000
+        },
+        {
+          "x": 560,
+          "y": 1000
+        }
+      ],
+      "doors": [
+        {
+          "cx": 15,
+          "cy": 23,
+          "side": 1
+        }
+      ],
+      "walls": [],
+      "_spaceCount": 5,
+      "_spaceInvalid": 0
+    },
+    {
+      "id": "R16",
+      "family": "_",
+      "label": "",
+      "notes": "",
+      "points": [
+        {
+          "x": 960,
+          "y": 880
+        },
+        {
+          "x": 920,
+          "y": 880
+        },
+        {
+          "x": 920,
+          "y": 920
+        },
+        {
+          "x": 880,
+          "y": 920
+        },
+        {
+          "x": 880,
+          "y": 1000
+        },
+        {
+          "x": 960,
+          "y": 1000
+        }
+      ],
+      "doors": [
+        {
+          "cx": 22,
+          "cy": 23,
+          "side": 3
+        }
+      ],
+      "walls": [],
+      "_spaceCount": 5,
+      "_spaceInvalid": 0
+    },
+    {
+      "id": "R20",
+      "family": "garage",
+      "label": "",
+      "notes": "",
+      "points": [
+        {
+          "x": 560,
+          "y": 200
+        },
+        {
+          "x": 680,
+          "y": 200
+        },
+        {
+          "x": 720,
+          "y": 240
+        },
+        {
+          "x": 720,
+          "y": 360
+        },
+        {
+          "x": 680,
+          "y": 400
+        },
+        {
+          "x": 680,
+          "y": 440
+        },
+        {
+          "x": 560,
+          "y": 440
+        },
+        {
+          "x": 520,
+          "y": 400
+        },
+        {
+          "x": 520,
+          "y": 280
+        },
+        {
+          "x": 560,
+          "y": 240
+        }
+      ],
+      "doors": [
+        {
+          "cx": 17,
+          "cy": 7,
+          "side": 1
+        },
+        {
+          "cx": 13,
+          "cy": 8,
+          "side": 3
+        },
+        {
+          "cx": 15,
+          "cy": 10,
+          "side": 2
+        },
+        {
+          "cx": 15,
+          "cy": 5,
+          "side": 0
+        }
+      ],
+      "_spaceCount": 24,
+      "_spaceInvalid": 4,
+      "walls": [
+        {
+          "id": "W166",
+          "p1": {
+            "x": 520,
+            "y": 320
+          },
+          "p2": {
+            "x": 720,
+            "y": 320
+          },
+          "doors": [
+            {
+              "i": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "R21",
+      "family": "dormitories",
+      "label": "",
+      "notes": "",
+      "points": [
+        {
+          "x": 800,
+          "y": 240
+        },
+        {
+          "x": 840,
+          "y": 200
+        },
+        {
+          "x": 960,
+          "y": 200
+        },
+        {
+          "x": 960,
+          "y": 240
+        },
+        {
+          "x": 1000,
+          "y": 280
+        },
+        {
+          "x": 1000,
+          "y": 400
+        },
+        {
+          "x": 960,
+          "y": 440
+        },
+        {
+          "x": 840,
+          "y": 440
+        },
+        {
+          "x": 840,
+          "y": 400
+        },
+        {
+          "x": 800,
+          "y": 360
+        }
+      ],
+      "doors": [
+        {
+          "cx": 20,
+          "cy": 7,
+          "side": 3
+        },
+        {
+          "cx": 24,
+          "cy": 8,
+          "side": 1
+        },
+        {
+          "cx": 22,
+          "cy": 10,
+          "side": 2
+        },
+        {
+          "cx": 22,
+          "cy": 5,
+          "side": 0
+        }
+      ],
+      "_spaceCount": 24,
+      "_spaceInvalid": 4,
+      "walls": []
+    },
+    {
+      "id": "R22",
+      "family": "dock",
+      "label": "",
+      "notes": "",
+      "points": [
+        {
+          "x": 720,
+          "y": 560
+        },
+        {
+          "x": 800,
+          "y": 560
+        },
+        {
+          "x": 840,
+          "y": 520
+        },
+        {
+          "x": 840,
+          "y": 400
+        },
+        {
+          "x": 800,
+          "y": 360
+        },
+        {
+          "x": 720,
+          "y": 360
+        },
+        {
+          "x": 680,
+          "y": 400
+        },
+        {
+          "x": 680,
+          "y": 520
+        }
+      ],
+      "doors": [
+        {
+          "cx": 17,
+          "cy": 11,
+          "side": 3
+        },
+        {
+          "cx": 20,
+          "cy": 11,
+          "side": 1
+        }
+      ],
+      "_spaceCount": 16,
+      "_spaceInvalid": 4,
+      "walls": []
+    },
+    {
+      "id": "R23",
+      "family": "corridors",
+      "label": "",
+      "notes": "",
+      "points": [
+        {
+          "x": 960,
+          "y": 760
+        },
+        {
+          "x": 1000,
+          "y": 760
+        },
+        {
+          "x": 1000,
+          "y": 720
+        },
+        {
+          "x": 1160,
+          "y": 720
+        },
+        {
+          "x": 1160,
+          "y": 680
+        },
+        {
+          "x": 1040,
+          "y": 680
+        },
+        {
+          "x": 1000,
+          "y": 640
+        },
+        {
+          "x": 960,
+          "y": 680
+        }
+      ],
+      "doors": [
+        {
+          "cx": 27,
+          "cy": 17,
+          "side": 0
+        },
+        {
+          "cx": 26,
+          "cy": 17,
+          "side": 2
+        }
+      ],
+      "_spaceCount": 6,
+      "_spaceInvalid": 2,
+      "walls": []
+    },
+    {
+      "id": "R26",
+      "family": "security",
+      "label": "",
+      "notes": "",
+      "points": [
+        {
+          "x": 1040,
+          "y": 680
+        },
+        {
+          "x": 1120,
+          "y": 680
+        },
+        {
+          "x": 1160,
+          "y": 640
+        },
+        {
+          "x": 1160,
+          "y": 520
+        },
+        {
+          "x": 1120,
+          "y": 480
+        },
+        {
+          "x": 1040,
+          "y": 480
+        },
+        {
+          "x": 1000,
+          "y": 520
+        },
+        {
+          "x": 1000,
+          "y": 640
+        }
+      ],
+      "doors": [
+        {
+          "cx": 27,
+          "cy": 12,
+          "side": 0
+        },
+        {
+          "cx": 27,
+          "cy": 16,
+          "side": 2
+        },
+        {
+          "cx": 25,
+          "cy": 14,
+          "side": 3
+        },
+        {
+          "cx": 28,
+          "cy": 14,
+          "side": 1
+        }
+      ],
+      "_spaceCount": 16,
+      "_spaceInvalid": 4,
+      "walls": []
+    },
+    {
+      "id": "R27",
+      "family": "_",
+      "label": "",
+      "notes": "",
+      "points": [
+        {
+          "x": 560,
+          "y": 440
+        },
+        {
+          "x": 560,
+          "y": 480
+        },
+        {
+          "x": 680,
+          "y": 480
+        },
+        {
+          "x": 680,
+          "y": 440
+        }
+      ],
+      "doors": [
+        {
+          "cx": 15,
+          "cy": 11,
+          "side": 0
+        },
+        {
+          "cx": 15,
+          "cy": 11,
+          "side": 2
+        },
+        {
+          "cx": 14,
+          "cy": 11,
+          "side": 3
+        },
+        {
+          "cx": 16,
+          "cy": 11,
+          "side": 1
+        }
+      ],
+      "walls": [],
+      "_spaceCount": 3,
+      "_spaceInvalid": 0
+    },
+    {
+      "id": "R43",
+      "family": "cargo",
+      "label": "",
+      "notes": "",
+      "points": [
+        {
+          "x": 1160,
+          "y": 480
+        },
+        {
+          "x": 1040,
+          "y": 480
+        },
+        {
+          "x": 1000,
+          "y": 520
+        },
+        {
+          "x": 960,
+          "y": 480
+        },
+        {
+          "x": 960,
+          "y": 440
+        },
+        {
+          "x": 1000,
+          "y": 400
+        },
+        {
+          "x": 1000,
+          "y": 280
+        },
+        {
+          "x": 1160,
+          "y": 280
+        }
+      ],
+      "doors": [
+        {
+          "cx": 25,
+          "cy": 8,
+          "side": 3
+        },
+        {
+          "cx": 24,
+          "cy": 11,
+          "side": 3
+        },
+        {
+          "cx": 27,
+          "cy": 11,
+          "side": 2
+        },
+        {
+          "cx": 26,
+          "cy": 7,
+          "side": 0
+        }
+      ],
+      "walls": [
+        {
+          "id": "W70",
+          "doors": [
+            {
+              "i": 2
+            }
+          ],
+          "p1": {
+            "x": 1120,
+            "y": 280
+          },
+          "p2": {
+            "x": 1120,
+            "y": 480
+          }
+        }
+      ],
+      "_spaceCount": 21,
+      "_spaceInvalid": 3
+    },
+    {
+      "id": "R58",
+      "family": "_",
+      "label": "",
+      "notes": "",
+      "points": [
+        {
+          "x": 840,
+          "y": 440
+        },
+        {
+          "x": 840,
+          "y": 480
+        },
+        {
+          "x": 960,
+          "y": 480
+        },
+        {
+          "x": 960,
+          "y": 440
+        }
+      ],
+      "doors": [
+        {
+          "cx": 22,
+          "cy": 11,
+          "side": 0
+        },
+        {
+          "cx": 22,
+          "cy": 11,
+          "side": 2
+        },
+        {
+          "cx": 21,
+          "cy": 11,
+          "side": 3
+        },
+        {
+          "cx": 23,
+          "cy": 11,
+          "side": 1
+        }
+      ],
+      "walls": [],
+      "_spaceCount": 3,
+      "_spaceInvalid": 0
+    },
+    {
+      "id": "R59",
+      "family": "_",
+      "label": "",
+      "notes": "",
+      "points": [
+        {
+          "x": 960,
+          "y": 200
+        },
+        {
+          "x": 1160,
+          "y": 200
+        },
+        {
+          "x": 1160,
+          "y": 240
+        },
+        {
+          "x": 1120,
+          "y": 280
+        },
+        {
+          "x": 1000,
+          "y": 280
+        },
+        {
+          "x": 960,
+          "y": 240
+        }
+      ],
+      "doors": [
+        {
+          "cx": 26,
+          "cy": 6,
+          "side": 2
+        }
+      ],
+      "walls": [],
+      "_spaceCount": 8,
+      "_spaceInvalid": 2
+    },
+    {
+      "id": "R60",
+      "family": "_",
+      "label": "",
+      "notes": "",
+      "points": [
+        {
+          "x": 360,
+          "y": 200
+        },
+        {
+          "x": 560,
+          "y": 200
+        },
+        {
+          "x": 560,
+          "y": 240
+        },
+        {
+          "x": 520,
+          "y": 280
+        },
+        {
+          "x": 400,
+          "y": 280
+        },
+        {
+          "x": 360,
+          "y": 240
+        }
+      ],
+      "doors": [
+        {
+          "cx": 11,
+          "cy": 6,
+          "side": 2
+        }
+      ],
+      "walls": [],
+      "_spaceCount": 8,
+      "_spaceInvalid": 2
+    },
+    {
+      "id": "R61",
+      "family": "_",
+      "label": "",
+      "notes": "",
+      "points": [
+        {
+          "x": 720,
+          "y": 240
+        },
+        {
+          "x": 680,
+          "y": 200
+        },
+        {
+          "x": 840,
+          "y": 200
+        },
+        {
+          "x": 800,
+          "y": 240
+        },
+        {
+          "x": 800,
+          "y": 360
+        },
+        {
+          "x": 720,
+          "y": 360
+        }
+      ],
+      "doors": [
+        {
+          "cx": 18,
+          "cy": 7,
+          "side": 3
+        },
+        {
+          "cx": 19,
+          "cy": 7,
+          "side": 1
+        }
+      ],
+      "walls": [],
+      "_spaceCount": 8,
+      "_spaceInvalid": 2
+    },
+    {
+      "id": "R80",
+      "family": "corridors",
+      "label": "",
+      "notes": "",
+      "points": [
+        {
+          "x": 1640,
+          "y": 720
+        },
+        {
+          "x": 1600,
+          "y": 720
+        },
+        {
+          "x": 1600,
+          "y": 760
+        },
+        {
+          "x": 1520,
+          "y": 760
+        },
+        {
+          "x": 1520,
+          "y": 840
+        },
+        {
+          "x": 1640,
+          "y": 840
+        },
+        {
+          "x": 1640,
+          "y": 1000
+        },
+        {
+          "x": 1720,
+          "y": 1000
+        },
+        {
+          "x": 1720,
+          "y": 840
+        },
+        {
+          "x": 1840,
+          "y": 840
+        },
+        {
+          "x": 1840,
+          "y": 760
+        },
+        {
+          "x": 1760,
+          "y": 760
+        },
+        {
+          "x": 1760,
+          "y": 720
+        },
+        {
+          "x": 1720,
+          "y": 720
+        },
+        {
+          "x": 1720,
+          "y": 760
+        },
+        {
+          "x": 1640,
+          "y": 760
+        }
+      ],
+      "doors": [],
+      "_spaceCount": 26,
+      "_spaceInvalid": 0,
+      "walls": []
+    },
+    {
+      "id": "R143",
+      "family": null,
+      "label": "",
+      "notes": "",
+      "points": [
+        {
+          "x": 720,
+          "y": 560
+        },
+        {
+          "x": 800,
+          "y": 560
+        },
+        {
+          "x": 800,
+          "y": 680
+        },
+        {
+          "x": 720,
+          "y": 680
+        }
+      ],
+      "doors": [
+        {
+          "cx": 19,
+          "cy": 15,
+          "side": 1
+        },
+        {
+          "cx": 18,
+          "cy": 15,
+          "side": 3
+        }
+      ],
+      "walls": [],
+      "isVent": true,
+      "_spaceCount": 6,
+      "_spaceInvalid": 0
+    },
+    {
+      "id": "R154",
+      "family": "cargo",
+      "label": "",
+      "notes": "",
+      "points": [
+        {
+          "x": 360,
+          "y": 480
+        },
+        {
+          "x": 480,
+          "y": 480
+        },
+        {
+          "x": 520,
+          "y": 520
+        },
+        {
+          "x": 560,
+          "y": 480
+        },
+        {
+          "x": 560,
+          "y": 440
+        },
+        {
+          "x": 520,
+          "y": 400
+        },
+        {
+          "x": 520,
+          "y": 280
+        },
+        {
+          "x": 360,
+          "y": 280
+        }
+      ],
+      "doors": [
+        {
+          "cx": 12,
+          "cy": 8,
+          "side": 1
+        },
+        {
+          "cx": 13,
+          "cy": 11,
+          "side": 1
+        },
+        {
+          "cx": 11,
+          "cy": 7,
+          "side": 0
+        },
+        {
+          "cx": 10,
+          "cy": 11,
+          "side": 2
+        }
+      ],
+      "walls": [
+        {
+          "id": "W156",
+          "doors": [
+            {
+              "i": 2
+            }
+          ],
+          "p1": {
+            "x": 400,
+            "y": 280
+          },
+          "p2": {
+            "x": 400,
+            "y": 480
+          }
+        }
+      ],
+      "_spaceCount": 21,
+      "_spaceInvalid": 3
+    },
+    {
+      "id": "R165",
+      "family": null,
+      "label": "",
+      "notes": "",
+      "points": [
+        {
+          "x": 1120,
+          "y": 720
+        },
+        {
+          "x": 1160,
+          "y": 760
+        },
+        {
+          "x": 1160,
+          "y": 880
+        },
+        {
+          "x": 1120,
+          "y": 920
+        },
+        {
+          "x": 1160,
+          "y": 920
+        },
+        {
+          "x": 1160,
+          "y": 1000
+        },
+        {
+          "x": 880,
+          "y": 1000
+        },
+        {
+          "x": 880,
+          "y": 960
+        },
+        {
+          "x": 840,
+          "y": 1000
+        },
+        {
+          "x": 680,
+          "y": 1000
+        },
+        {
+          "x": 640,
+          "y": 960
+        },
+        {
+          "x": 640,
+          "y": 1000
+        },
+        {
+          "x": 360,
+          "y": 1000
+        },
+        {
+          "x": 360,
+          "y": 920
+        },
+        {
+          "x": 400,
+          "y": 920
+        },
+        {
+          "x": 360,
+          "y": 880
+        },
+        {
+          "x": 360,
+          "y": 760
+        },
+        {
+          "x": 400,
+          "y": 720
+        },
+        {
+          "x": 360,
+          "y": 720
+        },
+        {
+          "x": 360,
+          "y": 680
+        },
+        {
+          "x": 400,
+          "y": 680
+        },
+        {
+          "x": 360,
+          "y": 640
+        },
+        {
+          "x": 360,
+          "y": 520
+        },
+        {
+          "x": 400,
+          "y": 480
+        },
+        {
+          "x": 360,
+          "y": 480
+        },
+        {
+          "x": 360,
+          "y": 280
+        },
+        {
+          "x": 400,
+          "y": 280
+        },
+        {
+          "x": 360,
+          "y": 240
+        },
+        {
+          "x": 360,
+          "y": 200
+        },
+        {
+          "x": 1160,
+          "y": 200
+        },
+        {
+          "x": 1160,
+          "y": 240
+        },
+        {
+          "x": 1120,
+          "y": 280
+        },
+        {
+          "x": 1160,
+          "y": 280
+        },
+        {
+          "x": 1160,
+          "y": 480
+        },
+        {
+          "x": 1120,
+          "y": 480
+        },
+        {
+          "x": 1160,
+          "y": 520
+        },
+        {
+          "x": 1160,
+          "y": 640
+        },
+        {
+          "x": 1120,
+          "y": 680
+        },
+        {
+          "x": 1160,
+          "y": 680
+        },
+        {
+          "x": 1170,
+          "y": 680
+        },
+        {
+          "x": 1170,
+          "y": 190
+        },
+        {
+          "x": 350,
+          "y": 190
+        },
+        {
+          "x": 350,
+          "y": 1010
+        },
+        {
+          "x": 1170,
+          "y": 1010
+        },
+        {
+          "x": 1170,
+          "y": 680
+        },
+        {
+          "x": 1160,
+          "y": 680
+        },
+        {
+          "x": 1160,
+          "y": 720
+        }
+      ],
+      "doors": [
+        {
+          "cx": 29,
+          "cy": 20,
+          "side": 3
+        },
+        {
+          "cx": 8,
+          "cy": 20,
+          "side": 1
+        },
+        {
+          "cx": 8,
+          "cy": 14,
+          "side": 1
+        },
+        {
+          "cx": 29,
+          "cy": 14,
+          "side": 3
+        },
+        {
+          "cx": 22,
+          "cy": 4,
+          "side": 2
+        },
+        {
+          "cx": 15,
+          "cy": 4,
+          "side": 2
+        }
+      ],
+      "walls": [],
+      "isBaseLayer": true,
+      "_spaceCount": 0,
+      "_spaceInvalid": 96
+    }
+  ],
+  "points": [
+    {
+      "id": "P4",
+      "type": "locker",
+      "x": 540,
+      "y": 740,
+      "label": "",
+      "family": null,
+      "doors": [
+        true,
+        false,
+        false,
+        false
+      ],
+      "ownerRoomId": "R7"
+    },
+    {
+      "id": "P9",
+      "type": "locker",
+      "x": 380,
+      "y": 940,
+      "label": "",
+      "family": null,
+      "doors": [
+        false,
+        false,
+        true,
+        false
+      ],
+      "ownerRoomId": "R6"
+    },
+    {
+      "id": "P11",
+      "type": "locker",
+      "x": 540,
+      "y": 980,
+      "label": "",
+      "family": null,
+      "doors": [
+        false,
+        false,
+        false,
+        true
+      ],
+      "ownerRoomId": "R6"
+    },
+    {
+      "id": "P13",
+      "type": "locker",
+      "x": 1140,
+      "y": 940,
+      "label": "",
+      "family": null,
+      "doors": [
+        false,
+        false,
+        true,
+        false
+      ],
+      "ownerRoomId": "R12"
+    },
+    {
+      "id": "P17",
+      "type": "locker",
+      "x": 580,
+      "y": 900,
+      "label": "",
+      "family": null,
+      "doors": [
+        false,
+        false,
+        true,
+        false
+      ],
+      "ownerRoomId": "R15"
+    },
+    {
+      "id": "P44",
+      "type": "locker",
+      "x": 980,
+      "y": 740,
+      "label": "",
+      "family": null,
+      "doors": [
+        true,
+        false,
+        false,
+        false
+      ],
+      "ownerRoomId": "R23"
+    },
+    {
+      "id": "P47",
+      "type": "terminal",
+      "x": 520,
+      "y": 500,
+      "label": "",
+      "family": null,
+      "ownerRoomId": "R154",
+      "hidden": false
+    },
+    {
+      "id": "P74",
+      "type": "locker",
+      "x": 1140,
+      "y": 300,
+      "label": "",
+      "family": null,
+      "doors": [
+        false,
+        false,
+        true,
+        false
+      ],
+      "ownerRoomId": "R43",
+      "hidden": false
+    },
+    {
+      "id": "P76",
+      "type": "locker",
+      "x": 940,
+      "y": 900,
+      "label": "",
+      "family": null,
+      "doors": [
+        false,
+        false,
+        true,
+        false
+      ],
+      "ownerRoomId": "R16"
+    },
+    {
+      "id": "P107",
+      "type": "locker",
+      "x": 980,
+      "y": 980,
+      "label": "",
+      "family": null,
+      "doors": [
+        false,
+        true,
+        false,
+        false
+      ],
+      "ownerRoomId": "R12"
+    },
+    {
+      "id": "P157",
+      "type": "locker",
+      "x": 380,
+      "y": 300,
+      "label": "",
+      "family": null,
+      "doors": [
+        false,
+        false,
+        true,
+        false
+      ],
+      "ownerRoomId": "R154"
+    },
+    {
+      "id": "P158",
+      "type": "locker",
+      "x": 380,
+      "y": 460,
+      "label": "",
+      "family": null,
+      "doors": [
+        true,
+        false,
+        false,
+        false
+      ],
+      "ownerRoomId": "R154"
+    },
+    {
+      "id": "P159",
+      "type": "locker",
+      "x": 1140,
+      "y": 460,
+      "label": "",
+      "family": null,
+      "doors": [
+        true,
+        false,
+        false,
+        false
+      ],
+      "ownerRoomId": "R43"
+    },
+    {
+      "id": "P162",
+      "type": "locker",
+      "x": 380,
+      "y": 700,
+      "label": "",
+      "family": null,
+      "doors": [
+        false,
+        true,
+        false,
+        false
+      ],
+      "ownerRoomId": "R7"
+    },
+    {
+      "id": "P163",
+      "type": "locker",
+      "x": 1140,
+      "y": 700,
+      "label": "",
+      "family": null,
+      "doors": [
+        false,
+        false,
+        false,
+        true
+      ],
+      "ownerRoomId": "R23"
+    }
+  ],
+  "boundary": {
+    "x": 40,
+    "y": 40,
+    "w": 1440,
+    "h": 1200
+  }
+}
