@@ -1724,10 +1724,13 @@ function renderPoints(){
       renderLegacyVentPoint(g,pt);
     }else if(pt.type==='data'){
       // A small wall-mounted device (emergency door button, data pad) —
-      // a plain (non-rotated) square, distinct from a terminal's rotated
-      // diamond, sized to read as "jutting out" of whatever wall it sits
-      // against rather than filling a whole grid cell like a locker/vent.
-      shape=el('rect',{x:pt.x-6,y:pt.y-6,width:12,height:12,fill:color,class:'bpoint-shape'});
+      // placed with one face flush against the nearest wall and rotated
+      // to match that wall's angle (see findNearestWallForDataPoint), so
+      // it reads as physically mounted on whatever wall it's near rather
+      // than floating in the room. The glyph text below is a separate,
+      // never-rotated element, so "DP" always reads right-side-up no
+      // matter which wall — or which way — the box itself is turned.
+      shape=el('rect',{x:pt.x-6,y:pt.y-6,width:12,height:12,fill:color,class:'bpoint-shape',transform:'rotate('+(pt.wallAngle||0)+' '+pt.x+' '+pt.y+')'});
     }else if(pt.type==='cache'){
       // A supply cache — a small rectangle, wider than tall.
       shape=el('rect',{x:pt.x-9,y:pt.y-6,width:18,height:12,fill:color,class:'bpoint-shape'});
@@ -2307,6 +2310,34 @@ function findNearestWallSegment(pt){
   });
   return best;
 }
+// Finds the nearest wall (a room's own boundary edge OR one of its interior
+// walls, any orientation — not grid-quantized like findNearestWallSegment,
+// since a wall-mounted device just needs to sit flush against a real wall
+// line, not occupy a whole grid-cell face) to pt, for wall-mounting a DATA
+// POINT. Returns the closest point ON that wall, the wall's direction angle
+// (for rotating the mounted box flush with it), and a unit normal pointing
+// toward pt's side of the wall (for offsetting the box off the wall face).
+function findNearestWallForDataPoint(pt){
+  var best=null,bestDist=GRID*1.5;
+  function consider(a,b){
+    var len=dist(a,b);if(len<0.5)return;
+    var ux=(b.x-a.x)/len,uy=(b.y-a.y)/len;
+    var d=distToSeg(pt,a,b);
+    if(d>=bestDist)return;
+    var t=Math.max(0,Math.min(len,(pt.x-a.x)*ux+(pt.y-a.y)*uy));
+    var proj={x:a.x+ux*t,y:a.y+uy*t};
+    var nx=-uy,ny=ux;
+    if((pt.x-proj.x)*nx+(pt.y-proj.y)*ny<0){nx=-nx;ny=-ny;}
+    best={proj:proj,normal:{x:nx,y:ny},angle:Math.atan2(uy,ux)*180/Math.PI};
+    bestDist=d;
+  }
+  board.rooms.forEach(function(room){
+    var pts=room.points,n=pts.length;
+    for(var i=0;i<n;i++)consider(pts[i],pts[(i+1)%n]);
+    (room.walls||[]).forEach(function(w){consider(w.p1,w.p2);});
+  });
+  return best;
+}
 function renderDoorHover(){
   var layer=document.getElementById('door-hover-layer');
   layer.innerHTML='';
@@ -2421,7 +2452,20 @@ function applyRoomTransform(room,fn){
   room.points=room.points.map(fn);
   (room.walls||[]).forEach(function(w){w.p1=fn(w.p1);w.p2=fn(w.p2);});
   reapplyRoomDoors(room,doorCapture,fn);
-  attached.forEach(function(p){var np=fn(p);p.x=np.x;p.y=np.y;});
+  attached.forEach(function(p){
+    var np=fn(p);
+    // A wall-mounted DATA POINT's box angle is a direction, not a position —
+    // carry it through rotate/mirror by transforming a probe point one unit
+    // along the current angle and reading the new angle off the resulting
+    // vector, rather than moving x/y alone and leaving the box facing its
+    // old (now wrong) way.
+    if(p.wallAngle!=null){
+      var rad=p.wallAngle*Math.PI/180;
+      var npProbe=fn({x:p.x+Math.cos(rad),y:p.y+Math.sin(rad)});
+      p.wallAngle=Math.atan2(npProbe.y-np.y,npProbe.x-np.x)*180/Math.PI;
+    }
+    p.x=np.x;p.y=np.y;
+  });
 }
 // axis is which COORDINATE gets negated, not which axis the flip is "named"
 // after in the UI — 'x' negates x (a left/right, Y-axis-reflection flip),
@@ -4002,9 +4046,12 @@ function initCanvas(){
       render();
     }else if(tool==='point'){
       pushUndo();
-      var placeAt=isCellPointType(pointType)?snapCellCenter(screenToBoard(e.clientX,e.clientY)):bp;
+      var wallHit=pointType==='data'?findNearestWallForDataPoint(bp):null;
+      var placeAt=wallHit?{x:wallHit.proj.x+wallHit.normal.x*6,y:wallHit.proj.y+wallHit.normal.y*6}
+        :isCellPointType(pointType)?snapCellCenter(screenToBoard(e.clientX,e.clientY)):bp;
       var pt={id:uid('P'),type:pointType,x:placeAt.x,y:placeAt.y,label:'',family:pointType==='terminal'?activeFamily:null};
       if(isCellPointType(pointType))pt.doors=[false,false,false,false];
+      if(pointType==='data')pt.wallAngle=wallHit?wallHit.angle:0;
       board.points.push(pt);
       multiSel=[];selected={kind:'point',id:pt.id};
       render();
