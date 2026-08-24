@@ -1707,32 +1707,28 @@ function renderRooms(){
   });
 }
 
-// cache's glyph is 'C' as a placeholder — the intent is a small isometric-
-// cube icon, swapped in (map + legend both) once that icon is drawn.
 var POINT_GLYPH={terminal:'T',vent:'V',locker:'L',other:'?',data:'DP',cache:'C',ammo:'AC'};
 var POINT_COLOR={terminal:'#4fc3f7',vent:VENT_GREY,locker:'#c9a24a',other:'#9ca3af',data:'#7fd9c4',cache:'#8fbf6f',ammo:'#8a7a4a'};
-// A single bullet, casing + tapered tip, drawn pointing "up" at its own
-// local origin and then rotated around (cx,cy) — angleDeg 0 stands the
-// bullet upright, 90 lays it on its side.
-function bulletIcon(cx,cy,angleDeg,color){
-  var len=7,w=2,capLen=1.8;
-  var g=el('g',{transform:'rotate('+angleDeg+' '+cx+' '+cy+')'});
-  var topY=cy-len/2;
-  g.appendChild(el('rect',{x:cx-w/2,y:topY+capLen,width:w,height:len-capLen,fill:color,stroke:'#1a1a1a','stroke-width':0.4}));
-  g.appendChild(el('polygon',{points:(cx-w/2)+','+(topY+capLen)+' '+(cx+w/2)+','+(topY+capLen)+' '+cx+','+topY,fill:'#d9c27a',stroke:'#1a1a1a','stroke-width':0.4}));
-  return g;
-}
-// An ammo crate: a small frontal-view box with a lid seam, plus a loose
-// cluster of bullets to its right — most standing upright, one tipped
-// over on its side as if set down on a table next to the crate.
-function renderAmmoIcon(g,pt,color){
-  var bx=pt.x-10,by=pt.y-6,bw=11,bh=12;
-  g.appendChild(el('rect',{x:bx,y:by,width:bw,height:bh,fill:color,stroke:'#1a1a1a','stroke-width':0.6,class:'bpoint-shape'}));
-  g.appendChild(el('line',{x1:bx,y1:by+4,x2:bx+bw,y2:by+4,stroke:'#1a1a1a','stroke-width':0.6}));
-  g.appendChild(el('rect',{x:bx+bw/2-2.5,y:by+4,width:5,height:3.2,fill:'none',stroke:'#1a1a1a','stroke-width':0.6}));
-  g.appendChild(bulletIcon(pt.x+3,pt.y-2,0,'#556070'));
-  g.appendChild(bulletIcon(pt.x+7,pt.y-1,-8,'#556070'));
-  g.appendChild(bulletIcon(pt.x+4.5,pt.y+5,90,'#556070'));
+// DATA PORT, SUPPLY CACHE, and AMMO CRATE are all the same shape: a wall-
+// mounted rectangle, same size regardless of which of the three it is,
+// flush-mounted to the ROOM'S OWN interior colored wall line — not the
+// thin black exterior/shared-boundary line a room-boundary edge draws on
+// (see drawPlainBand/CELL_WALL_MARGIN) — so it reads as bolted to the
+// real wall face, not floating on the neutral seam between two rooms.
+// The box rotates fully to match the wall's angle; the label text only
+// takes two orientations (never upside down): horizontal on a horizontal
+// wall, or rotated 90° on a vertical wall — reading top-to-bottom the way
+// vertical UI labels conventionally do (tilt your head right to read it).
+var WALL_MOUNT_LABEL={data:'DATA',cache:'CACHE',ammo:'AMMO'};
+var WALL_MOUNT_W=30,WALL_MOUNT_H=14;
+function renderWallMountLabel(g,pt,color,text){
+  var boxAngle=pt.wallAngle||0;
+  var norm=((Math.round(boxAngle)%180)+180)%180;
+  var textAngle=norm===90?90:0;
+  g.appendChild(el('rect',{x:pt.x-WALL_MOUNT_W/2,y:pt.y-WALL_MOUNT_H/2,width:WALL_MOUNT_W,height:WALL_MOUNT_H,fill:color,stroke:'#1a1a1a','stroke-width':0.6,class:'bpoint-shape',transform:'rotate('+boxAngle+' '+pt.x+' '+pt.y+')'}));
+  var glyph=el('text',{x:pt.x,y:pt.y+1,class:'bpoint-glyph bpoint-glyph-wide',transform:'rotate('+textAngle+' '+pt.x+' '+pt.y+')'});
+  glyph.textContent=text;
+  g.appendChild(glyph);
 }
 function renderPoints(){
   var layer=document.getElementById('points-layer');
@@ -1748,25 +1744,13 @@ function renderPoints(){
       renderLockerCell(g,pt);
     }else if(pt.type==='vent'){
       renderLegacyVentPoint(g,pt);
-    }else if(pt.type==='data'){
-      // A small wall-mounted device (emergency door button, data pad) —
-      // placed with one face flush against the nearest wall and rotated
-      // to match that wall's angle (see findNearestWallForDataPoint), so
-      // it reads as physically mounted on whatever wall it's near rather
-      // than floating in the room. The glyph text below is a separate,
-      // never-rotated element, so "DP" always reads right-side-up no
-      // matter which wall — or which way — the box itself is turned.
-      shape=el('rect',{x:pt.x-6,y:pt.y-6,width:12,height:12,fill:color,class:'bpoint-shape',transform:'rotate('+(pt.wallAngle||0)+' '+pt.x+' '+pt.y+')'});
-    }else if(pt.type==='cache'){
-      // A supply cache — a small rectangle, wider than tall.
-      shape=el('rect',{x:pt.x-9,y:pt.y-6,width:18,height:12,fill:color,class:'bpoint-shape'});
-    }else if(pt.type==='ammo'){
-      renderAmmoIcon(g,pt,color);
+    }else if(pt.type==='data'||pt.type==='cache'||pt.type==='ammo'){
+      renderWallMountLabel(g,pt,color,WALL_MOUNT_LABEL[pt.type]);
     }else{
       shape=el('circle',{cx:pt.x,cy:pt.y,r:7,fill:color,class:'bpoint-shape'});
     }
     if(shape)g.appendChild(shape);
-    if(!isCellPointType(pt.type)&&pt.type!=='ammo'){
+    if(!isCellPointType(pt.type)&&pt.type!=='ammo'&&pt.type!=='cache'&&pt.type!=='data'){
       var glyphText=POINT_GLYPH[pt.type]||'?';
       var glyph=el('text',{x:pt.x,y:pt.y+1,class:'bpoint-glyph'+(glyphText.length>1?' bpoint-glyph-wide':'')});
       glyph.textContent=glyphText;
@@ -2339,15 +2323,18 @@ function findNearestWallSegment(pt){
   });
   return best;
 }
-// Finds the nearest wall-mounting spot for a DATA POINT, the same way a
-// door does: room boundary edges and interior walls are walked in GRID-
-// length segments (not a continuous nearest-point projection, so the
-// result is independent of whatever SNAP setting happens to be active),
-// and the mounted box centers on whichever GRID segment is closest — the
-// same wall-cell a door on that same spot would occupy. Returns the
-// segment's midpoint, its direction angle (for rotating the box flush
-// with the wall), and a unit normal pointing into the room (for offsetting
-// the box off the wall face so it juts inward from a flush-mounted face).
+// Finds the nearest wall-mounting spot for a DATA PORT / SUPPLY CACHE /
+// AMMO CRATE, the same way a door does: room boundary edges and interior
+// walls are walked in GRID-length segments (not a continuous nearest-
+// point projection, so the result is independent of whatever SNAP setting
+// happens to be active), and the mounted box centers on whichever GRID
+// segment is closest — the same wall-cell a door on that same spot would
+// occupy. Returns the segment's midpoint (on the TRUE wall line — the
+// thin black exterior/shared-boundary line a room edge draws on, per
+// drawPlainBand — the caller adds CELL_WALL_MARGIN to reach the room's
+// own colored interior line instead), the wall's direction angle (for
+// rotating the box flush with it), and a unit normal pointing into the
+// room (for offsetting the box off the wall face).
 function findNearestWallForDataPoint(pt){
   var best=null,bestDist=GRID*1.5;
   function considerEdge(a,b,roomPts){
@@ -4088,12 +4075,17 @@ function initCanvas(){
       render();
     }else if(tool==='point'){
       pushUndo();
-      var wallHit=pointType==='data'?findNearestWallForDataPoint(rawBoard):null;
-      var placeAt=wallHit?{x:wallHit.mid.x+wallHit.normal.x*6,y:wallHit.mid.y+wallHit.normal.y*6}
+      var isWallMount=pointType==='data'||pointType==='cache'||pointType==='ammo';
+      var wallHit=isWallMount?findNearestWallForDataPoint(rawBoard):null;
+      // Offset past CELL_WALL_MARGIN first, so the box's near face lands on
+      // the room's own colored interior wall line, not the thin black
+      // exterior/shared-boundary line that sits exactly on wallHit.mid.
+      var mountOffset=CELL_WALL_MARGIN+WALL_MOUNT_H/2;
+      var placeAt=wallHit?{x:wallHit.mid.x+wallHit.normal.x*mountOffset,y:wallHit.mid.y+wallHit.normal.y*mountOffset}
         :isCellPointType(pointType)?snapCellCenter(screenToBoard(e.clientX,e.clientY)):bp;
       var pt={id:uid('P'),type:pointType,x:placeAt.x,y:placeAt.y,label:'',family:pointType==='terminal'?activeFamily:null};
       if(isCellPointType(pointType))pt.doors=[false,false,false,false];
-      if(pointType==='data')pt.wallAngle=wallHit?wallHit.angle:0;
+      if(isWallMount)pt.wallAngle=wallHit?wallHit.angle:0;
       board.points.push(pt);
       multiSel=[];selected={kind:'point',id:pt.id};
       render();
