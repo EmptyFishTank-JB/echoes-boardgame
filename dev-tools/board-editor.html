@@ -587,11 +587,12 @@ function familyBucketKey(room){
   if(room.isBaseLayer)return '__base__';
   return room.family||'__none__';
 }
-function isFamilyHidden(room){return !!hiddenFamilies[familyBucketKey(room)];}
+function isFamilyHidden(room){return !!hiddenFamilies.__allrooms__||!!hiddenFamilies[familyBucketKey(room)];}
 function isPointHidden(pt){
   if(pt.hidden||hiddenPointTypes[pt.type])return true;
   var owner=pt.ownerRoomId&&findRoom(pt.ownerRoomId);
-  return !!(owner&&isFamilyHidden(owner));
+  if(owner)return isFamilyHidden(owner);
+  return !!hiddenFamilies.__unassoc__;
 }
 function toggleFamilyVisibility(key){hiddenFamilies[key]=!hiddenFamilies[key];render();}
 function togglePointTypeVisibility(t){hiddenPointTypes[t]=!hiddenPointTypes[t];render();}
@@ -1714,7 +1715,11 @@ function layersGroups(){
 function renderLayersSection(){
   var html='';
   html+='<div class="layers-type-toggles">';
-  Object.keys(POINT_TYPE_LABEL).forEach(function(t){
+  var roomsOn=!hiddenFamilies.__allrooms__;
+  html+='<button class="ltt'+(roomsOn?'':' off')+'" onclick="toggleFamilyVisibility(\'__allrooms__\')" title="'+(roomsOn?'Hide':'Show')+' every room, regardless of family">'+(roomsOn?'&#9673;':'&#9678;')+' ROOMS</button>';
+  var ventOn=!hiddenFamilies.__vent__;
+  html+='<button class="ltt'+(ventOn?'':' off')+'" onclick="toggleFamilyVisibility(\'__vent__\')" title="'+(ventOn?'Hide':'Show')+' all vents">'+(ventOn?'&#9673;':'&#9678;')+' VENT</button>';
+  ['terminal','locker','other'].forEach(function(t){
     var on=!hiddenPointTypes[t];
     html+='<button class="ltt'+(on?'':' off')+'" onclick="togglePointTypeVisibility(\''+t+'\')" title="'+(on?'Hide':'Show')+' all '+POINT_TYPE_LABEL[t].toLowerCase()+' points">'+(on?'&#9673;':'&#9678;')+' '+POINT_TYPE_LABEL[t]+'</button>';
   });
@@ -1832,11 +1837,13 @@ function renderProps(){
     html+='<div class="pp-h">FAMILIES</div>';
     Object.keys(board.families).forEach(function(k){
       var f=board.families[k];
+      var famVisible=!hiddenFamilies[k];
       html+='<div class="fam-row">'+
         '<input type="color" value="'+f.color+'" onfocus="pushUndo()" onchange="setFamilyColor(\''+k+'\',this.value)">'+
         '<input type="text" value="'+esc(f.label)+'" onfocus="pushUndo()" oninput="setFamilyLabel(\''+k+'\',this.value)">'+
         '<label class="fam-void-toggle" title="Base layer / holder — the second board layer with notched cutouts that rooms sit in, rendered with a distinct infill instead of a room fill">'+
         '<input type="checkbox"'+(f.type==='void'?' checked':'')+' onchange="setFamilyVoid(\''+k+'\',this.checked)">V</label>'+
+        '<button class="layer-eye fam-eye'+(famVisible?' on':'')+'" onclick="toggleFamilyVisibility(\''+k+'\')" title="'+(famVisible?'Hide':'Show')+' every room in '+esc(f.label)+'">'+(famVisible?'&#9673;':'&#9678;')+'</button>'+
         '<button class="fam-del" title="Delete family" onclick="deleteFamily(\''+k+'\')">&#10005;</button>'+
         '</div>';
     });
@@ -2794,6 +2801,86 @@ function pasteClipboard(atPt){
 // embedding an id containing a double-quote into a double-quoted HTML
 // attribute silently truncates it, which is exactly what happened here
 // before this was rewritten to attach listeners directly).
+// ── SELECT ALL (context menu) ────────────────────────────────────────────────
+// "Select All" grows whatever is currently selected into every matching item
+// on the board. Rooms (with a real family) and terminal points both carry a
+// family association, so when either is present the menu asks ALL vs SAME
+// FAMILY and that choice governs both of them together. Everything else —
+// vents, the base layer, lockers, other points — has no family concept, so
+// it always expands to "every item of that exact kind" regardless of which
+// choice is picked.
+function familyLabelOf(key){
+  if(!key||key==='__none__')return 'No Family';
+  return (board.families[key]&&board.families[key].label)||key;
+}
+function buildFixedKindSelection(k){
+  if(k==='room:vent')return board.rooms.filter(function(r){return r.isVent;}).map(function(r){return{kind:'room',id:r.id};});
+  if(k==='room:base')return board.rooms.filter(function(r){return r.isBaseLayer;}).map(function(r){return{kind:'room',id:r.id};});
+  if(k.indexOf('point:')===0){
+    var t=k.slice(6);
+    return board.points.filter(function(p){return p.type===t;}).map(function(p){return{kind:'point',id:p.id};});
+  }
+  return [];
+}
+function planSelectAll(kind,id){
+  var items=(multiSel.length>1&&isInMultiSel(kind,id))?multiSel.slice():[{kind:kind,id:id}];
+  var hasRoom=false,hasTerminal=false,refFamily=null;
+  var fixedKinds={};
+  items.forEach(function(it){
+    if(it.kind==='room'){
+      var r=findRoom(it.id);if(!r)return;
+      if(r.isVent)fixedKinds['room:vent']=true;
+      else if(r.isBaseLayer)fixedKinds['room:base']=true;
+      else{hasRoom=true;if(refFamily==null)refFamily=r.family||'__none__';}
+    }else if(it.kind==='point'){
+      var p=findPoint(it.id);if(!p)return;
+      if(p.type==='terminal'){hasTerminal=true;if(refFamily==null)refFamily=p.family||'__none__';}
+      else fixedKinds['point:'+p.type]=true;
+    }
+  });
+  // Prefer the actually right-clicked room's own family as the reference,
+  // over whatever happened to be first in a multi-selection.
+  if(kind==='room'){var rr=findRoom(id);if(rr&&!rr.isVent&&!rr.isBaseLayer)refFamily=rr.family||'__none__';}
+  return {hasRoom:hasRoom,hasTerminal:hasTerminal,refFamily:refFamily,fixedList:Object.keys(fixedKinds)};
+}
+function applySelectAllPlan(plan,sameFamilyOnly){
+  var result=[];
+  plan.fixedList.forEach(function(k){result=result.concat(buildFixedKindSelection(k));});
+  if(plan.hasRoom){
+    board.rooms.forEach(function(r){
+      if(r.isVent||r.isBaseLayer)return;
+      if(sameFamilyOnly&&(r.family||'__none__')!==plan.refFamily)return;
+      result.push({kind:'room',id:r.id});
+    });
+  }
+  if(plan.hasTerminal){
+    board.points.forEach(function(p){
+      if(p.type!=='terminal')return;
+      if(sameFamilyOnly&&(p.family||'__none__')!==plan.refFamily)return;
+      result.push({kind:'point',id:p.id});
+    });
+  }
+  if(result.length>1){selected=null;multiSel=result;}
+  else if(result.length===1){selected=result[0];multiSel=[];}
+  else{selected=null;multiSel=[];}
+  render();
+}
+function selectAllFor(kind,id,pos){
+  var plan=planSelectAll(kind,id);
+  if(!plan.hasRoom){
+    // No room in the mix (e.g. a lone Terminal, Vent, Locker, or other
+    // Point) — just grow straight to every item of that same kind, no
+    // family choice to make.
+    applySelectAllPlan(plan,false);
+    return;
+  }
+  var famLabel=familyLabelOf(plan.refFamily);
+  showCtxMenu(pos.clientX,pos.clientY,[
+    {label:'All Rooms'+(plan.hasTerminal?' &amp; Terminals':''),action:function(){applySelectAllPlan(plan,false);}},
+    {label:'Same Family ('+esc(famLabel)+')',action:function(){applySelectAllPlan(plan,true);}}
+  ]);
+}
+
 function showCtxMenu(x,y,items){
   var m=document.getElementById('ctx-menu');
   m.innerHTML='';
@@ -2816,11 +2903,14 @@ function hideCtxMenu(){document.getElementById('ctx-menu').style.display='none';
 function onRoomContextMenu(e,roomId){
   e.preventDefault();e.stopPropagation();
   if(!(multiSel.length>1&&isInMultiSel('room',roomId))){multiSel=[];selected={kind:'room',id:roomId};render();}
+  var pos={clientX:e.clientX,clientY:e.clientY};
   if(multiSel.length>1){
     showCtxMenu(e.clientX,e.clientY,[
       {label:'&#128203; Copy Selected ('+multiSel.length+')',action:copySelection},
       {label:'&#8596; Mirror Horizontal (my)',action:function(){mirrorSelection('x');}},
       {label:'&#8597; Mirror Vertical (mx)',action:function(){mirrorSelection('y');}},
+      null,
+      {label:'&#9733; Select All',action:function(){selectAllFor('room',roomId,pos);}},
       null,
       {label:'&#10005; Delete Selected ('+multiSel.length+')',action:deleteMultiSel,danger:true}
     ]);
@@ -2833,6 +2923,7 @@ function onRoomContextMenu(e,roomId){
     {label:'&#8597; Mirror Vertical (mx)',action:function(){mirrorRoom(roomId,'y');}},
     {label:'&#10064; Duplicate Room',action:function(){duplicateRoom(roomId);}},
     {label:'&#128203; Copy Room',action:copySelection},
+    {label:'&#9733; Select All',action:function(){selectAllFor('room',roomId,pos);}},
     null,
     {label:'&#10005; Delete Room',action:function(){deleteRoom(roomId);},danger:true}
   ]);
@@ -2840,11 +2931,14 @@ function onRoomContextMenu(e,roomId){
 function onPointContextMenu(e,ptId){
   e.preventDefault();e.stopPropagation();
   if(!(multiSel.length>1&&isInMultiSel('point',ptId))){multiSel=[];selected={kind:'point',id:ptId};render();}
+  var pos={clientX:e.clientX,clientY:e.clientY};
   if(multiSel.length>1){
     showCtxMenu(e.clientX,e.clientY,[
       {label:'&#128203; Copy Selected ('+multiSel.length+')',action:copySelection},
       {label:'&#8596; Mirror Horizontal (my)',action:function(){mirrorSelection('x');}},
       {label:'&#8597; Mirror Vertical (mx)',action:function(){mirrorSelection('y');}},
+      null,
+      {label:'&#9733; Select All',action:function(){selectAllFor('point',ptId,pos);}},
       null,
       {label:'&#10005; Delete Selected ('+multiSel.length+')',action:deleteMultiSel,danger:true}
     ]);
@@ -2853,6 +2947,7 @@ function onPointContextMenu(e,ptId){
   showCtxMenu(e.clientX,e.clientY,[
     {label:'&#10064; Duplicate Point',action:function(){duplicatePoint(ptId);}},
     {label:'&#128203; Copy Point',action:copySelection},
+    {label:'&#9733; Select All',action:function(){selectAllFor('point',ptId,pos);}},
     null,
     {label:'&#10005; Delete Point',action:function(){deletePoint(ptId);},danger:true}
   ]);
