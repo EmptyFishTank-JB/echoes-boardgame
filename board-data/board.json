@@ -32,8 +32,13 @@
       "type": "fixed"
     },
     "research": {
-      "label": "Research / Laboratory",
+      "label": "Research",
       "color": "#4db896",
+      "type": "tile"
+    },
+    "laboratory": {
+      "label": "Laboratory",
+      "color": "#3f9e8a",
       "type": "tile"
     },
     "medical": {
@@ -42,8 +47,13 @@
       "type": "tile"
     },
     "engineering": {
-      "label": "Engineering / Maintenance",
+      "label": "Engineering",
       "color": "#bf7c0a",
+      "type": "tile"
+    },
+    "maintenance": {
+      "label": "Maintenance",
+      "color": "#a66a3c",
       "type": "tile"
     },
     "reactor": {
@@ -52,8 +62,13 @@
       "type": "tile"
     },
     "cargo": {
-      "label": "Cargo / Storage",
+      "label": "Cargo",
       "color": "#c9a24a",
+      "type": "tile"
+    },
+    "storage": {
+      "label": "Storage",
+      "color": "#b08c3e",
       "type": "tile"
     },
     "crew_quarters": {
@@ -62,8 +77,13 @@
       "type": "tile"
     },
     "hydroponics": {
-      "label": "Hydroponics / Life Support",
+      "label": "Hydroponics",
       "color": "#6fb06f",
+      "type": "tile"
+    },
+    "life_support": {
+      "label": "Life Support",
+      "color": "#5a9c6a",
       "type": "tile"
     },
     "security": {
