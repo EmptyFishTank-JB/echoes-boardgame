@@ -111,6 +111,7 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
 
 .bpoint{cursor:pointer;}
 .bpoint-glyph{font-family:"Share Tech Mono",monospace;font-size:10px;fill:#00080e;font-weight:bold;pointer-events:none;text-anchor:middle;dominant-baseline:central;}
+.bpoint-glyph-wide{font-size:7px;letter-spacing:-0.5px;}
 .bpoint-label{font-family:"Share Tech Mono",monospace;font-size:9px;fill:rgba(255,255,255,0.65);pointer-events:none;text-anchor:middle;}
 .bpoint.selected .bpoint-shape{stroke:#fff;stroke-width:2.5;}
 .draw-vtx{fill:#fff;stroke:#4fc3f7;stroke-width:1.5;}
@@ -311,6 +312,8 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
     <button class="tbtn" id="btn-locker" onclick="setPointTool('locker')">&#9633; LOCKER</button>
     <button class="tbtn" id="btn-vent" onclick="setTool('vent')" title="Draw a vent passageway — same click-to-place-vertices workflow as ROOM. Always GRID-aligned; each covered grid cell gets its own locker-style walls/doors.">&#9635; VENT</button>
     <button class="tbtn" id="btn-other" onclick="setPointTool('other')">&#9679; POINT</button>
+    <button class="tbtn" id="btn-data" onclick="setPointTool('data')" title="Wall-mounted interaction device — emergency door button, data pad, etc.">&#9634; DATA POINT</button>
+    <button class="tbtn" id="btn-cache" onclick="setPointTool('cache')" title="Supply cache">&#9645; SUPPLY CACHE</button>
   </div>
   <div class="toolbar-row" id="tab-modify" style="display:none">
     <button class="tbtn" id="btn-move" onclick="startMoveCommand()" title="Click a basepoint, click a destination — moves the current selection">&#10021; MOVE</button>
@@ -1017,7 +1020,7 @@ function hexToRgba(hex,a){
 // Only these buttons represent the exclusive "current tool" — SPACES/INFO/
 // ATTACH/SNAP are independent toggles and must keep their own 'on' state
 // across a tool switch, not get wiped by it.
-var TOOL_BTN_IDS=['btn-select','btn-room','btn-wall','btn-door','btn-terminal','btn-vent','btn-base','btn-locker','btn-other','btn-pan'];
+var TOOL_BTN_IDS=['btn-select','btn-room','btn-wall','btn-door','btn-terminal','btn-vent','btn-base','btn-locker','btn-other','btn-pan','btn-data','btn-cache'];
 function clearToolBtns(){TOOL_BTN_IDS.forEach(function(id){var b=document.getElementById(id);if(b)b.classList.remove('on');});}
 var CREATE_TAB_TOOLS=['room','wall','door','base','vent'];
 function setTool(t){
@@ -1041,7 +1044,7 @@ function togglePanTool(){
 function setPointTool(pt){
   tool='point';pointType=pt;
   clearToolBtns();
-  var idMap={terminal:'btn-terminal',locker:'btn-locker',other:'btn-other'};
+  var idMap={terminal:'btn-terminal',locker:'btn-locker',other:'btn-other',data:'btn-data',cache:'btn-cache'};
   document.getElementById(idMap[pt]).classList.add('on');
   document.getElementById('canvas-wrap').className='tool-point';
   setRibbonTab('create');
@@ -1699,8 +1702,8 @@ function renderRooms(){
   });
 }
 
-var POINT_GLYPH={terminal:'T',vent:'V',locker:'L',other:'?'};
-var POINT_COLOR={terminal:'#4fc3f7',vent:VENT_GREY,locker:'#c9a24a',other:'#9ca3af'};
+var POINT_GLYPH={terminal:'T',vent:'V',locker:'L',other:'?',data:'DP',cache:'SC'};
+var POINT_COLOR={terminal:'#4fc3f7',vent:VENT_GREY,locker:'#c9a24a',other:'#9ca3af',data:'#7fd9c4',cache:'#8fbf6f'};
 function renderPoints(){
   var layer=document.getElementById('points-layer');
   layer.innerHTML='';
@@ -1715,13 +1718,23 @@ function renderPoints(){
       renderLockerCell(g,pt);
     }else if(pt.type==='vent'){
       renderLegacyVentPoint(g,pt);
+    }else if(pt.type==='data'){
+      // A small wall-mounted device (emergency door button, data pad) —
+      // a plain (non-rotated) square, distinct from a terminal's rotated
+      // diamond, sized to read as "jutting out" of whatever wall it sits
+      // against rather than filling a whole grid cell like a locker/vent.
+      shape=el('rect',{x:pt.x-6,y:pt.y-6,width:12,height:12,fill:color,class:'bpoint-shape'});
+    }else if(pt.type==='cache'){
+      // A supply cache — a small rectangle, wider than tall.
+      shape=el('rect',{x:pt.x-9,y:pt.y-6,width:18,height:12,fill:color,class:'bpoint-shape'});
     }else{
       shape=el('circle',{cx:pt.x,cy:pt.y,r:7,fill:color,class:'bpoint-shape'});
     }
     if(shape)g.appendChild(shape);
     if(!isCellPointType(pt.type)){
-      var glyph=el('text',{x:pt.x,y:pt.y+1,class:'bpoint-glyph'});
-      glyph.textContent=POINT_GLYPH[pt.type]||'?';
+      var glyphText=POINT_GLYPH[pt.type]||'?';
+      var glyph=el('text',{x:pt.x,y:pt.y+1,class:'bpoint-glyph'+(glyphText.length>1?' bpoint-glyph-wide':'')});
+      glyph.textContent=glyphText;
       g.appendChild(glyph);
     }
     if(pt.label){
@@ -1910,7 +1923,7 @@ function pointInOrOnPolygon(p,pts){
 // alphabetical-by-family / base / vent / unassociated-points groups the
 // LAYERS panel displays. A point with no owner, or whose owner room isn't
 // found, falls into the trailing "Unassociated Points" bucket.
-var POINT_TYPE_LABEL={terminal:'TERMINAL',vent:'VENT',locker:'LOCKER',other:'POINT'};
+var POINT_TYPE_LABEL={terminal:'TERMINAL',vent:'VENT',locker:'LOCKER',other:'POINT',data:'DATA PT',cache:'CACHE'};
 function layersGroups(){
   var groups=[],byKey={};
   function group(key,label){
@@ -1947,7 +1960,7 @@ function renderLayersSection(){
   html+='<button class="ltt'+(roomsOn?'':' off')+'" onclick="toggleFamilyVisibility(\'__allrooms__\')" title="'+(roomsOn?'Hide':'Show')+' every room, regardless of family">'+(roomsOn?'&#9673;':'&#9678;')+' ROOMS</button>';
   var ventOn=!hiddenFamilies.__vent__;
   html+='<button class="ltt'+(ventOn?'':' off')+'" onclick="toggleFamilyVisibility(\'__vent__\')" title="'+(ventOn?'Hide':'Show')+' all vents">'+(ventOn?'&#9673;':'&#9678;')+' VENT</button>';
-  ['terminal','locker','other'].forEach(function(t){
+  ['terminal','locker','other','data','cache'].forEach(function(t){
     var on=!hiddenPointTypes[t];
     html+='<button class="ltt'+(on?'':' off')+'" onclick="togglePointTypeVisibility(\''+t+'\')" title="'+(on?'Hide':'Show')+' all '+POINT_TYPE_LABEL[t].toLowerCase()+' points">'+(on?'&#9673;':'&#9678;')+' '+POINT_TYPE_LABEL[t]+'</button>';
   });
@@ -2065,7 +2078,7 @@ function renderProps(){
     }else if(selPoint){
       html+='<div class="pp-h pp-h-sub">POINT</div>';
       html+='<div class="pp-row"><label>TYPE</label><select onchange="setPointType(\''+selPoint.id+'\',this.value)">'+
-        ['terminal','vent','locker','other'].map(function(t){return '<option value="'+t+'"'+(t===selPoint.type?' selected':'')+'>'+t.toUpperCase()+'</option>';}).join('')+
+        ['terminal','vent','locker','other','data','cache'].map(function(t){return '<option value="'+t+'"'+(t===selPoint.type?' selected':'')+'>'+t.toUpperCase()+'</option>';}).join('')+
         '</select></div>';
       if(selPoint.type==='terminal'){
         html+='<div class="pp-row"><label>FAMILY (which terminal)</label><select onchange="setPointFamily(\''+selPoint.id+'\',this.value)">'+
@@ -2775,6 +2788,8 @@ var HOTKEY_ACTIONS={
   base:{label:'Base layer tool (draw like a room, no walls/doors)',fn:function(){setTool('base');}},
   locker:{label:'Locker point tool',fn:function(){setPointTool('locker');}},
   point:{label:'Point tool (other)',fn:function(){setPointTool('other');}},
+  dataPoint:{label:'Data point tool — wall-mounted interaction device',fn:function(){setPointTool('data');}},
+  supplyCache:{label:'Supply cache tool',fn:function(){setPointTool('cache');}},
   snapWhole:{label:'Snap: Whole',fn:function(){setSnap(1);}},
   snapHalf:{label:'Snap: Half',fn:function(){setSnap(2);}},
   snapQuarter:{label:'Snap: Quarter',fn:function(){setSnap(4);}},
@@ -2815,6 +2830,7 @@ var HOTKEY_ACTIONS={
 };
 var DEFAULT_HOTKEYS={
   select:['s'],room:['r'],wall:['w'],door:['d'],terminal:['t'],vent:['v'],base:['b'],locker:['l'],point:['p'],
+  dataPoint:['d','p'],supplyCache:['c','a'],
   pan:['p','n'],
   snapWhole:['1'],snapHalf:['2'],snapQuarter:['4'],
   spaces:['g','r'],info:['i'],attach:['a','t'],linkDoors:['l','d'],boundary:['b','o'],
@@ -2841,7 +2857,7 @@ function rebuildHotkeyLookup(){
 // whatever was true when the page first loaded.
 var TOOL_BUTTON_HOTKEY_MAP={
   'btn-select':'select','btn-room':'room','btn-vent':'vent','btn-base':'base','btn-wall':'wall','btn-door':'door',
-  'btn-terminal':'terminal','btn-locker':'locker','btn-other':'point',
+  'btn-terminal':'terminal','btn-locker':'locker','btn-other':'point','btn-data':'dataPoint','btn-cache':'supplyCache',
   'btn-snap-1':'snapWhole','btn-snap-2':'snapHalf','btn-snap-4':'snapQuarter',
   'btn-spaces':'spaces','btn-info':'info','btn-attach':'attach','btn-linkdoors':'linkDoors','btn-boundary':'boundary',
   'btn-pan':'pan','btn-move':'move','btn-copy':'copyCommand','btn-rotate':'rotate','btn-pin':'pinToggle',
