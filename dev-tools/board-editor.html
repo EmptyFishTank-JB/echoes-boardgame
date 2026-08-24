@@ -21,6 +21,7 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
 .tver{font-size:10px;color:var(--amber);letter-spacing:0.06em;margin-left:8px;}
 .hbtn{background:transparent;border:1px solid rgba(79,195,247,0.16);color:var(--dim);font-family:"Share Tech Mono",monospace;font-size:12px;letter-spacing:0.06em;padding:4px 10px;cursor:pointer;transition:all 0.15s;white-space:nowrap;}
 .hbtn:hover{border-color:var(--blue);color:var(--blue);filter:brightness(1.25);box-shadow:0 0 8px rgba(79,195,247,0.50);}
+.hbtn.on{border-color:var(--blue);color:var(--blue);background:rgba(79,195,247,0.09);box-shadow:0 0 6px rgba(79,195,247,0.28);}
 #fstat{font-size:12px;padding:2px 9px;border:1px solid;letter-spacing:0.06em;}
 #fstat.none{border-color:rgba(79,195,247,0.10);color:var(--dim);}
 #fstat.ro{border-color:rgba(191,124,10,0.28);color:var(--amber);}
@@ -261,6 +262,7 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
     <button class="hbtn" onclick="saveToFile()">&#8679; SAVE</button>
     <button class="hbtn" onclick="saveAsFile()">&#8679; SAVE AS</button>
     <button class="hbtn" onclick="window.print()">&#9113; PRINT</button>
+    <button class="hbtn" id="btn-fullscreen" onclick="toggleFullscreen()" title="Toggle fullscreen — reclaims the space the browser's own address bar takes up">&#9974; FULLSCREEN</button>
   </div>
 </div>
 
@@ -301,7 +303,7 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
     <button class="tbtn" id="btn-redo" onclick="doRedo()" disabled>&#8618; REDO</button>
   </div>
   <div class="toolbar-row">
-    <button class="tbtn" id="btn-pan" onclick="setTool('pan')" title="Drag the canvas with one finger/click, instead of selecting/drawing">&#9995; PAN</button>
+    <button class="tbtn" id="btn-pan" onclick="togglePanTool()" title="Drag the canvas with one finger/click, instead of selecting/drawing — press again to turn off">&#9995; PAN</button>
     <div class="tsep"></div>
     <button class="tbtn" id="btn-move" onclick="startMoveCommand()" title="Click a basepoint, click a destination — moves the current selection">&#10021; MOVE</button>
     <button class="tbtn" id="btn-copy" onclick="startCopyCommand()" title="Click a basepoint, click a destination — drops a duplicate of the current selection there">&#128203; COPY</button>
@@ -360,7 +362,7 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
 <div id="toast"></div>
 <div id="ctx-menu"></div>
 <div id="hint">Press <b>KS</b> for the keyboard shortcuts menu &middot; Ctrl+S save &middot; Ctrl+Shift+S save as &middot; Ctrl+P print &middot; drag on empty canvas to box-select, drag a selected item to move the group &middot; right-click for options &middot; scroll to zoom, right/middle-drag to pan, double-click middle button to fit</div>
-<div id="hint-touch">One-finger drag to select/draw/move &middot; two-finger drag to pan the board &middot; touch and hold ~1s for the options menu &middot; use the <b>&#9654;</b> tab to open the properties panel</div>
+<div id="hint-touch">One-finger drag to select/draw/move &middot; two-finger drag to pan, pinch to zoom &middot; touch and hold ~1s for the options menu &middot; use the <b>&#9654;</b> tab to open the properties panel</div>
 
 <div id="hk-overlay">
   <div id="hk-modal">
@@ -918,7 +920,7 @@ function hexToRgba(hex,a){
 // Only these buttons represent the exclusive "current tool" — SPACES/INFO/
 // ATTACH/SNAP are independent toggles and must keep their own 'on' state
 // across a tool switch, not get wiped by it.
-var TOOL_BTN_IDS=['btn-select','btn-room','btn-wall','btn-door','btn-terminal','btn-vent','btn-base','btn-locker','btn-other'];
+var TOOL_BTN_IDS=['btn-select','btn-room','btn-wall','btn-door','btn-terminal','btn-vent','btn-base','btn-locker','btn-other','btn-pan'];
 function clearToolBtns(){TOOL_BTN_IDS.forEach(function(id){var b=document.getElementById(id);if(b)b.classList.remove('on');});}
 function setTool(t){
   tool=t;
@@ -929,6 +931,13 @@ function setTool(t){
   if(idMap[t])document.getElementById(idMap[t]).classList.add('on');
   document.getElementById('canvas-wrap').className=t!=='select'?'tool-'+(t==='vent'||t==='base'?'room':t):'';
   render();
+}
+// PAN is a toggle, not a one-way switch like the other tool buttons —
+// pressing it again while already active turns it back off (returning to
+// SELECT) instead of doing nothing, since there's no separate "off"
+// button for it the way SELECT itself serves for every other tool.
+function togglePanTool(){
+  setTool(tool==='pan'?'select':'pan');
 }
 function setPointTool(pt){
   tool='point';pointType=pt;
@@ -947,6 +956,33 @@ function rebuildFamilySelect(){
   sel.innerHTML=keys.map(function(k){return '<option value="'+k+'"'+(k===activeFamily?' selected':'')+'>'+esc(board.families[k].label)+'</option>';}).join('');
 }
 function esc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// ── FULLSCREEN ────────────────────────────────────────────────────────────────
+// Mainly for mobile — the browser's own address/search bar eats a chunk of
+// an already-small viewport; fullscreen reclaims it. iOS Safari doesn't
+// support the Fullscreen API for arbitrary elements (only <video>), so
+// this is a no-op with a toast there rather than a hard error.
+function toggleFullscreen(){
+  var el=document.documentElement;
+  var req=el.requestFullscreen||el.webkitRequestFullscreen||el.msRequestFullscreen;
+  if(!document.fullscreenElement&&!document.webkitFullscreenElement){
+    if(!req){toast('Fullscreen not supported on this browser');return;}
+    var p=req.call(el);
+    if(p&&p.catch)p.catch(function(){toast('Fullscreen request was blocked');});
+  }else{
+    var exit=document.exitFullscreen||document.webkitExitFullscreen||document.msExitFullscreen;
+    if(exit)exit.call(document);
+  }
+}
+function updateFullscreenButton(){
+  var b=document.getElementById('btn-fullscreen');
+  if(!b)return;
+  var isFull=!!(document.fullscreenElement||document.webkitFullscreenElement);
+  b.classList.toggle('on',isFull);
+  b.innerHTML=isFull?'&#9974; EXIT FULLSCREEN':'&#9974; FULLSCREEN';
+}
+document.addEventListener('fullscreenchange',updateFullscreenButton);
+document.addEventListener('webkitfullscreenchange',updateFullscreenButton);
 
 // ── PAN / ZOOM ────────────────────────────────────────────────────────────────
 function applyTransform(){
@@ -2579,7 +2615,7 @@ var HOTKEY_ACTIONS={
   room:{label:'Room tool',fn:function(){setTool('room');}},
   wall:{label:'Wall tool',fn:function(){setTool('wall');}},
   door:{label:'Door tool',fn:function(){setTool('door');}},
-  pan:{label:'Pan tool (drag the canvas with one finger/click)',fn:function(){setTool('pan');}},
+  pan:{label:'Pan tool (drag the canvas with one finger/click) — press again to turn off',fn:function(){togglePanTool();}},
   terminal:{label:'Terminal point tool',fn:function(){setPointTool('terminal');}},
   vent:{label:'Vent tool (draw like a room)',fn:function(){setTool('vent');}},
   base:{label:'Base layer tool (draw like a room, no walls/doors)',fn:function(){setTool('base');}},
@@ -3155,10 +3191,16 @@ function onCanvasContextMenu(e){
 // drag) fires exactly as it would from a real mouse. Two fingers pan the
 // canvas directly. A finger held ~1s without moving opens the same context
 // menu a right-click would (also via a synthetic 'contextmenu' event).
+// Two fingers also pinch to zoom, combined with the pan — both derived
+// fresh each move tick from the gesture's start snapshot (never
+// compounded tick-over-tick), so the board point under the two fingers'
+// midpoint stays anchored under them the whole gesture, same idea as
+// zoomBy's cursor-anchored wheel zoom.
 var touchState=null; // {startX,startY,moved,downTarget,longPressTimer}
-var touchPan=null;   // {x0,y0,pan0} — two-finger pan tracking
+var touchPan=null;   // {dist0,zoom0,world} — two-finger pan+pinch-zoom tracking
 var TOUCH_LONG_PRESS_MS=1000, TOUCH_MOVE_THRESHOLD=8;
 function touchMidpoint(touches){return {x:(touches[0].clientX+touches[1].clientX)/2,y:(touches[0].clientY+touches[1].clientY)/2};}
+function touchDistance(touches){return Math.hypot(touches[0].clientX-touches[1].clientX,touches[0].clientY-touches[1].clientY);}
 function synthMouse(type,x,y,target){
   var ev=new MouseEvent(type,{bubbles:true,cancelable:true,button:0,buttons:type==='mouseup'?0:1,clientX:x,clientY:y,view:window});
   (target||window).dispatchEvent(ev);
@@ -3180,7 +3222,7 @@ function initTouch(){
       e.preventDefault();
       if(touchState){endSingleTouch(touchState.startX,touchState.startY);}
       var mid=touchMidpoint(e.touches);
-      touchPan={x0:mid.x,y0:mid.y,pan0:{x:pan.x,y:pan.y}};
+      touchPan={dist0:touchDistance(e.touches),zoom0:zoom,world:screenToBoard(mid.x,mid.y)};
       isPanning=true;wrapEl.classList.add('panning');
       return;
     }
@@ -3205,8 +3247,11 @@ function initTouch(){
       if(e.touches.length<2)return;
       e.preventDefault();
       var mid=touchMidpoint(e.touches);
-      pan.x=touchPan.pan0.x+(mid.x-touchPan.x0);
-      pan.y=touchPan.pan0.y+(mid.y-touchPan.y0);
+      var scale=touchDistance(e.touches)/Math.max(touchPan.dist0,1);
+      zoom=Math.max(0.15,Math.min(4,touchPan.zoom0*scale));
+      var rect=wrapEl.getBoundingClientRect();
+      pan.x=mid.x-rect.left-touchPan.world.x*zoom;
+      pan.y=mid.y-rect.top-touchPan.world.y*zoom;
       applyTransform();
       return;
     }
@@ -3233,19 +3278,21 @@ function initTouch(){
   wrapEl.addEventListener('touchcancel',onTouchEnd);
 
 }
-// Belt-and-suspenders, at the document level (capture phase, so it runs
-// before ANY element's own 'contextmenu' listener anywhere in the page):
-// some browsers' own long-press gesture recognizer fires a genuine
-// (trusted) 'contextmenu' event on its own schedule (often ~500ms),
-// independent of touch-action/callout CSS and even a preventDefault()'d
-// touchstart, and not necessarily targeted at the touched element itself
-// — which would open the menu well before our 1s hold timer says it
-// should. Any TRUSTED contextmenu while a touch gesture is still in
-// progress is the browser jumping ahead, not a real right-click — swallow
-// it; our own timer fires its own (untrusted, and therefore let through
-// here) synthetic one once the hold is actually long enough.
+// At the document level, capture phase, so this runs before ANY element's
+// own 'contextmenu' listener anywhere in the page: a genuine right mouse
+// click always reports button===2 on its contextmenu event; a browser's
+// own touch-originated long-press contextmenu (which some browsers fire
+// on their own schedule/threshold, independent of our JS hold timer,
+// touch-action/callout CSS, or even a preventDefault()'d touchstart —
+// sometimes even on release rather than mid-hold) always reports
+// button===0, same as our own synthetic one built in initTouch(). This is
+// a fixed, well-defined signal — not a timing race — so it reliably lets
+// a real right-click through untouched while swallowing every trusted
+// touch-originated contextmenu, whenever it happens to fire. Our own
+// synthetic dispatch is untrusted (isTrusted===false), so it always
+// passes regardless of button.
 document.addEventListener('contextmenu',function(e){
-  if(e.isTrusted&&(touchState||touchPan)){e.preventDefault();e.stopImmediatePropagation();}
+  if(e.isTrusted&&e.button!==2){e.preventDefault();e.stopImmediatePropagation();}
 },true);
 
 document.addEventListener('mousedown',function(e){
