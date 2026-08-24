@@ -4294,6 +4294,7 @@ function loadBoard(raw,name,cls){
     // right now to resolve what each old seg index pointed at, and never
     // touched again afterward).
     r.doors=r.doors.map(function(d){
+      if(d.cx!=null)return d; // already the newest grid-cell format — the {edge,...} migration below doesn't apply
       if(d.pos!==undefined&&d.width!==undefined)return d;
       var p1=r.points[d.edge],p2=r.points[(d.edge+1)%r.points.length];
       if(!p1||!p2)return null;
@@ -4335,6 +4336,7 @@ function loadBoard(raw,name,cls){
       // index, or briefly an arc-length pos with no width) — every entry
       // needs migrating to {pos,width}.
       w.doors=w.doors.map(function(d){
+        if(d&&typeof d==='object'&&d.i!=null)return d; // already the newest grid-cell format
         if(d&&typeof d==='object'&&d.pos!==undefined&&d.width!==undefined)return d;
         var segs=wallSegments(w.p1,w.p2);
         if(!segs.length)return null;
