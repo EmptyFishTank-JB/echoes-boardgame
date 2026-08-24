@@ -24,6 +24,7 @@
     "move": ["m", "v"],
     "copyCommand": ["c", "p"],
     "rotate": ["r", "o"],
+    "pinToggle": ["p", "i"],
     "duplicate": ["u"],
     "zoomIn": ["="],
     "zoomOut": ["-"],
