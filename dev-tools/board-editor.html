@@ -1717,14 +1717,14 @@ var POINT_COLOR={terminal:'#4fc3f7',vent:VENT_GREY,locker:'#c9a24a',other:'#9ca3
 // real wall face, not floating on the neutral seam between two rooms.
 // The box rotates fully to match the wall's angle; the label text only
 // takes two orientations (never upside down): horizontal on a horizontal
-// wall, or rotated 90° on a vertical wall — reading top-to-bottom the way
-// vertical UI labels conventionally do (tilt your head right to read it).
+// wall, or rotated -90° on a vertical wall — the bottom of the text faces
+// right (tilt your head to the LEFT to read it).
 var WALL_MOUNT_LABEL={data:'DATA',cache:'CACHE',ammo:'AMMO'};
-var WALL_MOUNT_W=30,WALL_MOUNT_H=14;
+var WALL_MOUNT_W=30,WALL_MOUNT_H=8;
 function renderWallMountLabel(g,pt,color,text){
   var boxAngle=pt.wallAngle||0;
   var norm=((Math.round(boxAngle)%180)+180)%180;
-  var textAngle=norm===90?90:0;
+  var textAngle=norm===90?-90:0;
   g.appendChild(el('rect',{x:pt.x-WALL_MOUNT_W/2,y:pt.y-WALL_MOUNT_H/2,width:WALL_MOUNT_W,height:WALL_MOUNT_H,fill:color,stroke:'#1a1a1a','stroke-width':0.6,class:'bpoint-shape',transform:'rotate('+boxAngle+' '+pt.x+' '+pt.y+')'}));
   var glyph=el('text',{x:pt.x,y:pt.y+1,class:'bpoint-glyph bpoint-glyph-wide',transform:'rotate('+textAngle+' '+pt.x+' '+pt.y+')'});
   glyph.textContent=text;
@@ -2333,11 +2333,13 @@ function findNearestWallSegment(pt){
 // thin black exterior/shared-boundary line a room edge draws on, per
 // drawPlainBand — the caller adds CELL_WALL_MARGIN to reach the room's
 // own colored interior line instead), the wall's direction angle (for
-// rotating the box flush with it), and a unit normal pointing into the
-// room (for offsetting the box off the wall face).
+// rotating the box flush with it), and a unit normal pointing toward
+// whichever side of the wall the cursor is actually on — so a shared
+// edge between two rooms mounts into whichever one the cursor is in,
+// not a fixed "always this room's interior" side.
 function findNearestWallForDataPoint(pt){
   var best=null,bestDist=GRID*1.5;
-  function considerEdge(a,b,roomPts){
+  function considerEdge(a,b){
     var elen=dist(a,b);if(elen<0.5)return;
     var ux=(b.x-a.x)/elen,uy=(b.y-a.y)/elen;
     if(Math.abs(ux)>=1e-6&&Math.abs(uy)>=1e-6)return; // axis-aligned only, like doors
@@ -2349,20 +2351,16 @@ function findNearestWallForDataPoint(pt){
       var d=distToSeg(pt,s0,s1);
       if(d>=bestDist)continue;
       var mid={x:(s0.x+s1.x)/2,y:(s0.y+s1.y)/2};
-      var normal;
-      if(roomPts){normal=edgeInwardNormal(a,b,roomPts);}
-      else{
-        normal={x:-uy,y:ux};
-        if((pt.x-mid.x)*normal.x+(pt.y-mid.y)*normal.y<0){normal={x:-normal.x,y:-normal.y};}
-      }
+      var normal={x:-uy,y:ux};
+      if((pt.x-mid.x)*normal.x+(pt.y-mid.y)*normal.y<0){normal={x:-normal.x,y:-normal.y};}
       best={mid:mid,normal:normal,angle:Math.atan2(uy,ux)*180/Math.PI};
       bestDist=d;
     }
   }
   board.rooms.forEach(function(room){
     var pts=room.points,n=pts.length;
-    for(var i=0;i<n;i++)considerEdge(pts[i],pts[(i+1)%n],pts);
-    (room.walls||[]).forEach(function(w){considerEdge(w.p1,w.p2,null);});
+    for(var i=0;i<n;i++)considerEdge(pts[i],pts[(i+1)%n]);
+    (room.walls||[]).forEach(function(w){considerEdge(w.p1,w.p2);});
   });
   return best;
 }
