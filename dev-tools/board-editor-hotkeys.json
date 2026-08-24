@@ -12,6 +12,7 @@
     "point": ["p"],
     "dataPoint": ["d", "p"],
     "supplyCache": ["c", "a"],
+    "ammoCrate": ["a", "m"],
     "pan": ["p", "n"],
     "snapWhole": ["1"],
     "snapHalf": ["2"],

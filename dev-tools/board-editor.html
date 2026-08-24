@@ -314,6 +314,7 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
     <button class="tbtn" id="btn-other" onclick="setPointTool('other')">&#9679; POINT</button>
     <button class="tbtn" id="btn-data" onclick="setPointTool('data')" title="Wall-mounted interaction device — emergency door button, data pad, etc.">&#9634; DATA POINT</button>
     <button class="tbtn" id="btn-cache" onclick="setPointTool('cache')" title="Supply cache">&#9645; SUPPLY CACHE</button>
+    <button class="tbtn" id="btn-ammo" onclick="setPointTool('ammo')" title="Ammo crate">&#9635; AMMO CRATE</button>
   </div>
   <div class="toolbar-row" id="tab-modify" style="display:none">
     <button class="tbtn" id="btn-move" onclick="startMoveCommand()" title="Click a basepoint, click a destination — moves the current selection">&#10021; MOVE</button>
@@ -1024,7 +1025,7 @@ function hexToRgba(hex,a){
 // Only these buttons represent the exclusive "current tool" — SPACES/INFO/
 // ATTACH/SNAP are independent toggles and must keep their own 'on' state
 // across a tool switch, not get wiped by it.
-var TOOL_BTN_IDS=['btn-select','btn-room','btn-wall','btn-door','btn-terminal','btn-vent','btn-base','btn-locker','btn-other','btn-pan','btn-data','btn-cache'];
+var TOOL_BTN_IDS=['btn-select','btn-room','btn-wall','btn-door','btn-terminal','btn-vent','btn-base','btn-locker','btn-other','btn-pan','btn-data','btn-cache','btn-ammo'];
 function clearToolBtns(){TOOL_BTN_IDS.forEach(function(id){var b=document.getElementById(id);if(b)b.classList.remove('on');});}
 var CREATE_TAB_TOOLS=['room','wall','door','base','vent'];
 function setTool(t){
@@ -1048,7 +1049,7 @@ function togglePanTool(){
 function setPointTool(pt){
   tool='point';pointType=pt;
   clearToolBtns();
-  var idMap={terminal:'btn-terminal',locker:'btn-locker',other:'btn-other',data:'btn-data',cache:'btn-cache'};
+  var idMap={terminal:'btn-terminal',locker:'btn-locker',other:'btn-other',data:'btn-data',cache:'btn-cache',ammo:'btn-ammo'};
   document.getElementById(idMap[pt]).classList.add('on');
   document.getElementById('canvas-wrap').className='tool-point';
   setRibbonTab('create');
@@ -1706,8 +1707,33 @@ function renderRooms(){
   });
 }
 
-var POINT_GLYPH={terminal:'T',vent:'V',locker:'L',other:'?',data:'DP',cache:'SC'};
-var POINT_COLOR={terminal:'#4fc3f7',vent:VENT_GREY,locker:'#c9a24a',other:'#9ca3af',data:'#7fd9c4',cache:'#8fbf6f'};
+// cache's glyph is 'C' as a placeholder — the intent is a small isometric-
+// cube icon, swapped in (map + legend both) once that icon is drawn.
+var POINT_GLYPH={terminal:'T',vent:'V',locker:'L',other:'?',data:'DP',cache:'C',ammo:'AC'};
+var POINT_COLOR={terminal:'#4fc3f7',vent:VENT_GREY,locker:'#c9a24a',other:'#9ca3af',data:'#7fd9c4',cache:'#8fbf6f',ammo:'#8a7a4a'};
+// A single bullet, casing + tapered tip, drawn pointing "up" at its own
+// local origin and then rotated around (cx,cy) — angleDeg 0 stands the
+// bullet upright, 90 lays it on its side.
+function bulletIcon(cx,cy,angleDeg,color){
+  var len=7,w=2,capLen=1.8;
+  var g=el('g',{transform:'rotate('+angleDeg+' '+cx+' '+cy+')'});
+  var topY=cy-len/2;
+  g.appendChild(el('rect',{x:cx-w/2,y:topY+capLen,width:w,height:len-capLen,fill:color,stroke:'#1a1a1a','stroke-width':0.4}));
+  g.appendChild(el('polygon',{points:(cx-w/2)+','+(topY+capLen)+' '+(cx+w/2)+','+(topY+capLen)+' '+cx+','+topY,fill:'#d9c27a',stroke:'#1a1a1a','stroke-width':0.4}));
+  return g;
+}
+// An ammo crate: a small frontal-view box with a lid seam, plus a loose
+// cluster of bullets to its right — most standing upright, one tipped
+// over on its side as if set down on a table next to the crate.
+function renderAmmoIcon(g,pt,color){
+  var bx=pt.x-10,by=pt.y-6,bw=11,bh=12;
+  g.appendChild(el('rect',{x:bx,y:by,width:bw,height:bh,fill:color,stroke:'#1a1a1a','stroke-width':0.6,class:'bpoint-shape'}));
+  g.appendChild(el('line',{x1:bx,y1:by+4,x2:bx+bw,y2:by+4,stroke:'#1a1a1a','stroke-width':0.6}));
+  g.appendChild(el('rect',{x:bx+bw/2-2.5,y:by+4,width:5,height:3.2,fill:'none',stroke:'#1a1a1a','stroke-width':0.6}));
+  g.appendChild(bulletIcon(pt.x+3,pt.y-2,0,'#556070'));
+  g.appendChild(bulletIcon(pt.x+7,pt.y-1,-8,'#556070'));
+  g.appendChild(bulletIcon(pt.x+4.5,pt.y+5,90,'#556070'));
+}
 function renderPoints(){
   var layer=document.getElementById('points-layer');
   layer.innerHTML='';
@@ -1734,11 +1760,13 @@ function renderPoints(){
     }else if(pt.type==='cache'){
       // A supply cache — a small rectangle, wider than tall.
       shape=el('rect',{x:pt.x-9,y:pt.y-6,width:18,height:12,fill:color,class:'bpoint-shape'});
+    }else if(pt.type==='ammo'){
+      renderAmmoIcon(g,pt,color);
     }else{
       shape=el('circle',{cx:pt.x,cy:pt.y,r:7,fill:color,class:'bpoint-shape'});
     }
     if(shape)g.appendChild(shape);
-    if(!isCellPointType(pt.type)){
+    if(!isCellPointType(pt.type)&&pt.type!=='ammo'){
       var glyphText=POINT_GLYPH[pt.type]||'?';
       var glyph=el('text',{x:pt.x,y:pt.y+1,class:'bpoint-glyph'+(glyphText.length>1?' bpoint-glyph-wide':'')});
       glyph.textContent=glyphText;
@@ -1930,7 +1958,7 @@ function pointInOrOnPolygon(p,pts){
 // alphabetical-by-family / base / vent / unassociated-points groups the
 // LAYERS panel displays. A point with no owner, or whose owner room isn't
 // found, falls into the trailing "Unassociated Points" bucket.
-var POINT_TYPE_LABEL={terminal:'TERMINAL',vent:'VENT',locker:'LOCKER',other:'POINT',data:'DATA PT',cache:'CACHE'};
+var POINT_TYPE_LABEL={terminal:'TERMINAL',vent:'VENT',locker:'LOCKER',other:'POINT',data:'DATA PT',cache:'CACHE',ammo:'AMMO'};
 function layersGroups(){
   var groups=[],byKey={};
   function group(key,label){
@@ -1967,7 +1995,7 @@ function renderLayersSection(){
   html+='<button class="ltt'+(roomsOn?'':' off')+'" onclick="toggleFamilyVisibility(\'__allrooms__\')" title="'+(roomsOn?'Hide':'Show')+' every room, regardless of family">'+(roomsOn?'&#9673;':'&#9678;')+' ROOMS</button>';
   var ventOn=!hiddenFamilies.__vent__;
   html+='<button class="ltt'+(ventOn?'':' off')+'" onclick="toggleFamilyVisibility(\'__vent__\')" title="'+(ventOn?'Hide':'Show')+' all vents">'+(ventOn?'&#9673;':'&#9678;')+' VENT</button>';
-  ['terminal','locker','other','data','cache'].forEach(function(t){
+  ['terminal','locker','other','data','cache','ammo'].forEach(function(t){
     var on=!hiddenPointTypes[t];
     html+='<button class="ltt'+(on?'':' off')+'" onclick="togglePointTypeVisibility(\''+t+'\')" title="'+(on?'Hide':'Show')+' all '+POINT_TYPE_LABEL[t].toLowerCase()+' points">'+(on?'&#9673;':'&#9678;')+' '+POINT_TYPE_LABEL[t]+'</button>';
   });
@@ -2085,7 +2113,7 @@ function renderProps(){
     }else if(selPoint){
       html+='<div class="pp-h pp-h-sub">POINT</div>';
       html+='<div class="pp-row"><label>TYPE</label><select onchange="setPointType(\''+selPoint.id+'\',this.value)">'+
-        ['terminal','vent','locker','other','data','cache'].map(function(t){return '<option value="'+t+'"'+(t===selPoint.type?' selected':'')+'>'+t.toUpperCase()+'</option>';}).join('')+
+        ['terminal','vent','locker','other','data','cache','ammo'].map(function(t){return '<option value="'+t+'"'+(t===selPoint.type?' selected':'')+'>'+t.toUpperCase()+'</option>';}).join('')+
         '</select></div>';
       if(selPoint.type==='terminal'){
         html+='<div class="pp-row"><label>FAMILY (which terminal)</label><select onchange="setPointFamily(\''+selPoint.id+'\',this.value)">'+
@@ -2115,8 +2143,9 @@ function renderProps(){
     html+='<button class="fam-add" onclick="addFamily()">+ ADD FAMILY</button>';
 
     html+='<div class="pp-h">LEGEND — POINTS</div>';
+    var LEGEND_LABEL={data:'DATA PORT',ammo:'AMMO CRATE'};
     Object.keys(POINT_GLYPH).forEach(function(t){
-      html+='<div class="legend-row"><span class="legend-glyph" style="background:'+POINT_COLOR[t]+'">'+POINT_GLYPH[t]+'</span>'+t.toUpperCase()+'</div>';
+      html+='<div class="legend-row"><span class="legend-glyph" style="background:'+POINT_COLOR[t]+'">'+POINT_GLYPH[t]+'</span>'+(LEGEND_LABEL[t]||t.toUpperCase())+'</div>';
     });
   }
   body.innerHTML=html;
@@ -2310,31 +2339,43 @@ function findNearestWallSegment(pt){
   });
   return best;
 }
-// Finds the nearest wall (a room's own boundary edge OR one of its interior
-// walls, any orientation — not grid-quantized like findNearestWallSegment,
-// since a wall-mounted device just needs to sit flush against a real wall
-// line, not occupy a whole grid-cell face) to pt, for wall-mounting a DATA
-// POINT. Returns the closest point ON that wall, the wall's direction angle
-// (for rotating the mounted box flush with it), and a unit normal pointing
-// toward pt's side of the wall (for offsetting the box off the wall face).
+// Finds the nearest wall-mounting spot for a DATA POINT, the same way a
+// door does: room boundary edges and interior walls are walked in GRID-
+// length segments (not a continuous nearest-point projection, so the
+// result is independent of whatever SNAP setting happens to be active),
+// and the mounted box centers on whichever GRID segment is closest — the
+// same wall-cell a door on that same spot would occupy. Returns the
+// segment's midpoint, its direction angle (for rotating the box flush
+// with the wall), and a unit normal pointing into the room (for offsetting
+// the box off the wall face so it juts inward from a flush-mounted face).
 function findNearestWallForDataPoint(pt){
   var best=null,bestDist=GRID*1.5;
-  function consider(a,b){
-    var len=dist(a,b);if(len<0.5)return;
-    var ux=(b.x-a.x)/len,uy=(b.y-a.y)/len;
-    var d=distToSeg(pt,a,b);
-    if(d>=bestDist)return;
-    var t=Math.max(0,Math.min(len,(pt.x-a.x)*ux+(pt.y-a.y)*uy));
-    var proj={x:a.x+ux*t,y:a.y+uy*t};
-    var nx=-uy,ny=ux;
-    if((pt.x-proj.x)*nx+(pt.y-proj.y)*ny<0){nx=-nx;ny=-ny;}
-    best={proj:proj,normal:{x:nx,y:ny},angle:Math.atan2(uy,ux)*180/Math.PI};
-    bestDist=d;
+  function considerEdge(a,b,roomPts){
+    var elen=dist(a,b);if(elen<0.5)return;
+    var ux=(b.x-a.x)/elen,uy=(b.y-a.y)/elen;
+    if(Math.abs(ux)>=1e-6&&Math.abs(uy)>=1e-6)return; // axis-aligned only, like doors
+    var ek=Math.round(elen/GRID);
+    if(Math.abs(elen-ek*GRID)>=0.5||ek<1)return;
+    for(var i=0;i<ek;i++){
+      var s0={x:a.x+ux*i*GRID,y:a.y+uy*i*GRID};
+      var s1={x:a.x+ux*(i+1)*GRID,y:a.y+uy*(i+1)*GRID};
+      var d=distToSeg(pt,s0,s1);
+      if(d>=bestDist)continue;
+      var mid={x:(s0.x+s1.x)/2,y:(s0.y+s1.y)/2};
+      var normal;
+      if(roomPts){normal=edgeInwardNormal(a,b,roomPts);}
+      else{
+        normal={x:-uy,y:ux};
+        if((pt.x-mid.x)*normal.x+(pt.y-mid.y)*normal.y<0){normal={x:-normal.x,y:-normal.y};}
+      }
+      best={mid:mid,normal:normal,angle:Math.atan2(uy,ux)*180/Math.PI};
+      bestDist=d;
+    }
   }
   board.rooms.forEach(function(room){
     var pts=room.points,n=pts.length;
-    for(var i=0;i<n;i++)consider(pts[i],pts[(i+1)%n]);
-    (room.walls||[]).forEach(function(w){consider(w.p1,w.p2);});
+    for(var i=0;i<n;i++)considerEdge(pts[i],pts[(i+1)%n],pts);
+    (room.walls||[]).forEach(function(w){considerEdge(w.p1,w.p2,null);});
   });
   return best;
 }
@@ -2838,6 +2879,7 @@ var HOTKEY_ACTIONS={
   point:{label:'Point tool (other)',fn:function(){setPointTool('other');}},
   dataPoint:{label:'Data point tool — wall-mounted interaction device',fn:function(){setPointTool('data');}},
   supplyCache:{label:'Supply cache tool',fn:function(){setPointTool('cache');}},
+  ammoCrate:{label:'Ammo crate tool',fn:function(){setPointTool('ammo');}},
   snapWhole:{label:'Snap: Whole',fn:function(){setSnap(1);}},
   snapHalf:{label:'Snap: Half',fn:function(){setSnap(2);}},
   snapQuarter:{label:'Snap: Quarter',fn:function(){setSnap(4);}},
@@ -2878,7 +2920,7 @@ var HOTKEY_ACTIONS={
 };
 var DEFAULT_HOTKEYS={
   select:['s'],room:['r'],wall:['w'],door:['d'],terminal:['t'],vent:['v'],base:['b'],locker:['l'],point:['p'],
-  dataPoint:['d','p'],supplyCache:['c','a'],
+  dataPoint:['d','p'],supplyCache:['c','a'],ammoCrate:['a','m'],
   pan:['p','n'],
   snapWhole:['1'],snapHalf:['2'],snapQuarter:['4'],
   spaces:['g','r'],info:['i'],attach:['a','t'],linkDoors:['l','d'],boundary:['b','o'],
@@ -2905,7 +2947,7 @@ function rebuildHotkeyLookup(){
 // whatever was true when the page first loaded.
 var TOOL_BUTTON_HOTKEY_MAP={
   'btn-select':'select','btn-room':'room','btn-vent':'vent','btn-base':'base','btn-wall':'wall','btn-door':'door',
-  'btn-terminal':'terminal','btn-locker':'locker','btn-other':'point','btn-data':'dataPoint','btn-cache':'supplyCache',
+  'btn-terminal':'terminal','btn-locker':'locker','btn-other':'point','btn-data':'dataPoint','btn-cache':'supplyCache','btn-ammo':'ammoCrate',
   'btn-snap-1':'snapWhole','btn-snap-2':'snapHalf','btn-snap-4':'snapQuarter',
   'btn-spaces':'spaces','btn-info':'info','btn-attach':'attach','btn-linkdoors':'linkDoors','btn-boundary':'boundary',
   'btn-pan':'pan','btn-move':'move','btn-copy':'copyCommand','btn-rotate':'rotate','btn-pin':'pinToggle',
@@ -4046,8 +4088,8 @@ function initCanvas(){
       render();
     }else if(tool==='point'){
       pushUndo();
-      var wallHit=pointType==='data'?findNearestWallForDataPoint(bp):null;
-      var placeAt=wallHit?{x:wallHit.proj.x+wallHit.normal.x*6,y:wallHit.proj.y+wallHit.normal.y*6}
+      var wallHit=pointType==='data'?findNearestWallForDataPoint(rawBoard):null;
+      var placeAt=wallHit?{x:wallHit.mid.x+wallHit.normal.x*6,y:wallHit.mid.y+wallHit.normal.y*6}
         :isCellPointType(pointType)?snapCellCenter(screenToBoard(e.clientX,e.clientY)):bp;
       var pt={id:uid('P'),type:pointType,x:placeAt.x,y:placeAt.y,label:'',family:pointType==='terminal'?activeFamily:null};
       if(isCellPointType(pointType))pt.doors=[false,false,false,false];
