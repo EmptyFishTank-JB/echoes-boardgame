@@ -121,6 +121,9 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
 .sel-preview-room{fill:rgba(79,195,247,0.12);stroke:#4fc3f7;stroke-width:2;stroke-dasharray:5,4;}
 .sel-preview-wall{stroke:#4fc3f7;stroke-width:2;stroke-dasharray:5,4;}
 .sel-preview-point{fill:none;stroke:#4fc3f7;stroke-width:2;stroke-dasharray:4,3;}
+.align-edge-hint{stroke:#ffcc00;stroke-width:4;stroke-linecap:round;opacity:0.95;filter:drop-shadow(0 0 5px #ffcc00);pointer-events:none;}
+.align-edge-ref{stroke:#6fe0ff;filter:drop-shadow(0 0 5px #6fe0ff);}
+.align-room-hint{fill:rgba(255,204,0,0.10);stroke:#ffcc00;stroke-width:1.5;stroke-dasharray:4,3;pointer-events:none;}
 
 /* PROPS PANEL */
 #props-panel{width:270px;flex-shrink:0;border-left:1px solid var(--bdr);background:rgba(0,4,10,0.98);overflow-y:auto;padding:14px;}
@@ -2486,7 +2489,7 @@ function duplicateSelection(){
 function startMoveCommand(){
   if(!selected&&!multiSel.length){toast('Select something to move first');return;}
   if(pinnedBlocksEdit())return;
-  rotateOp=null;copyOp=null;
+  rotateOp=null;copyOp=null;alignOp=null;scaleOp=null;chamferOp=null;
   moveOp={stage:'basepoint'};
   setRibbonTab('modify');
   toast('MOVE: click a basepoint');
@@ -2508,7 +2511,7 @@ function startRotateCommand(){
     else if(m.kind==='point'){var p=findPoint(m.id);if(p)allPts.push(p);}
   });
   if(!allPts.length){toast('Nothing rotatable selected');return;}
-  moveOp=null;copyOp=null;
+  moveOp=null;copyOp=null;alignOp=null;scaleOp=null;chamferOp=null;
   rotateOp={stage:'start',center:centroid(allPts)};
   setRibbonTab('modify');
   toast('ROTATE: click a start point');
@@ -2663,7 +2666,7 @@ function renderMoveHint(){
 // the destination while the original stays exactly where it was.
 function startCopyCommand(){
   if(!selected&&!multiSel.length){toast('Select something to copy first');return;}
-  moveOp=null;rotateOp=null;
+  moveOp=null;rotateOp=null;alignOp=null;scaleOp=null;chamferOp=null;
   copyOp={stage:'basepoint'};
   setRibbonTab('modify');
   toast('COPY: click a basepoint');
@@ -3232,13 +3235,16 @@ function rotateSelection90(dir){
   rotateRoom90(ref.id,dir);
 }
 
-// ── ALIGN (click a reference edge, then the edge to move) ───────────────────
+// ── ALIGN (click a reference edge, then the room to move) ───────────────────
 // Only axis-aligned (horizontal/vertical) edges are supported — matches
 // every other grid-based tool in the app (walls, doors) and covers the
-// vast majority of real edges here. The target room slides along the
-// single axis perpendicular to the picked edges so its edge's line
-// coincides with the reference edge's line — same idea as applyRoomTransform's
-// other callers (points, walls, doors, attached points all move together).
+// vast majority of real edges here. Picking the reference edge (stage 1)
+// is still nearest-edge-across-all-rooms, same as before; picking WHICH
+// room moves (stage 2) is now whichever room the cursor is physically
+// inside of — not nearest-edge globally — so there's no ambiguity about
+// which of two nearby rooms is about to slide. Both the reference edge
+// and the hovered room's matching-orientation edge light up live while
+// the command is active.
 function findNearestRoomEdge(pt){
   var best=null,bestDist=20;
   board.rooms.forEach(function(room){
@@ -3254,6 +3260,34 @@ function findNearestRoomEdge(pt){
   });
   return best;
 }
+// The edge, within ONE given room, that best matches axis (if given) and
+// is closest to pt — used for the target room once hover has already
+// picked WHICH room, so this only ever has to disambiguate among that
+// one room's own edges.
+function findNearestEdgeInRoom(room,pt,axis){
+  var pts=room.points,n=pts.length;
+  var best=null,bestDist=Infinity;
+  for(var i=0;i<n;i++){
+    var a=pts[i],b=pts[(i+1)%n];
+    var len=dist(a,b);if(len<0.5)continue;
+    var ux=(b.x-a.x)/len,uy=(b.y-a.y)/len;
+    var edgeAxis=Math.abs(ux)<1e-6?'x':(Math.abs(uy)<1e-6?'y':null);
+    if(!edgeAxis)continue;
+    if(axis&&edgeAxis!==axis)continue;
+    var d=distToSeg(pt,a,b);
+    if(d<bestDist){bestDist=d;best={a:a,b:b,axis:edgeAxis};}
+  }
+  return best;
+}
+// Whichever room the point is actually inside — preferring a non-base-
+// layer room on top of it, since the base layer typically sits under
+// everything else and picking it instead would be surprising.
+function roomUnderCursor(pt){
+  var candidates=board.rooms.filter(function(r){return !r.hidden&&!isFamilyHidden(r)&&pointInPolygon(pt,r.points);});
+  if(!candidates.length)return null;
+  var nonBase=candidates.filter(function(r){return !r.isBaseLayer;});
+  return nonBase.length?nonBase[nonBase.length-1]:candidates[candidates.length-1];
+}
 function startAlignCommand(){
   moveOp=null;rotateOp=null;copyOp=null;scaleOp=null;chamferOp=null;
   alignOp={stage:'reference'};
@@ -3262,25 +3296,52 @@ function startAlignCommand(){
 }
 function handleAlignClick(bp){
   if(!alignOp)return;
-  var edge=findNearestRoomEdge(bp);
-  if(!edge){toast('Click closer to a room edge');return;}
   if(alignOp.stage==='reference'){
+    var edge=findNearestRoomEdge(bp);
+    if(!edge){toast('Click closer to a room edge');return;}
     alignOp.axis=edge.axis;
     alignOp.refCoord=edge.axis==='x'?edge.a.x:edge.a.y;
+    alignOp.refEdge={a:edge.a,b:edge.b};
     alignOp.stage='target';
-    toast('ALIGN: click the edge to move');
+    renderAlignHint();
+    toast('ALIGN: click inside the room to move');
   }else{
-    if(edge.axis!==alignOp.axis){toast('Pick an edge with the same orientation (both vertical or both horizontal)');alignOp=null;return;}
-    var r=findRoom(edge.roomId);
-    if(isLockedRoom(r)){toast('Pinned — unpin before editing');alignOp=null;return;}
-    var targetCoord=edge.axis==='x'?edge.a.x:edge.a.y;
+    var room=roomUnderCursor(bp);
+    if(!room){toast('Click inside the room you want to move');return;}
+    if(isLockedRoom(room)){toast('Pinned — unpin before editing');alignOp=null;renderAlignHint();return;}
+    var targetEdge=findNearestEdgeInRoom(room,bp,alignOp.axis);
+    if(!targetEdge){toast('That room has no edge matching the reference orientation');alignOp=null;renderAlignHint();return;}
+    var targetCoord=alignOp.axis==='x'?targetEdge.a.x:targetEdge.a.y;
     var d=alignOp.refCoord-targetCoord;
     var delta=alignOp.axis==='x'?{x:d,y:0}:{x:0,y:d};
     alignOp=null;
+    renderAlignHint();
     if(Math.abs(d)<0.5)return;
     pushUndo();
-    applyRoomTransform(r,function(p){return {x:p.x+delta.x,y:p.y+delta.y};});
+    applyRoomTransform(room,function(p){return {x:p.x+delta.x,y:p.y+delta.y};});
     render();
+  }
+}
+// Live highlight while ALIGN is active: the reference-edge candidate (or,
+// once picked, the locked-in reference edge) plus whichever room is
+// currently under the cursor — its matching edge and a light outline on
+// the whole room, so it's unambiguous which room a click will move.
+function renderAlignHint(){
+  var layer=document.getElementById('draw-preview-layer');
+  if(!alignOp){layer.innerHTML='';return;}
+  layer.innerHTML='';
+  if(alignOp.stage==='reference'){
+    var edge=findNearestRoomEdge(mouseBoard);
+    if(edge)layer.appendChild(el('line',{x1:edge.a.x,y1:edge.a.y,x2:edge.b.x,y2:edge.b.y,class:'align-edge-hint'}));
+  }else{
+    var r=alignOp.refEdge;
+    layer.appendChild(el('line',{x1:r.a.x,y1:r.a.y,x2:r.b.x,y2:r.b.y,class:'align-edge-hint align-edge-ref'}));
+    var room=roomUnderCursor(mouseBoard);
+    if(room){
+      layer.appendChild(el('polygon',{points:polyPoints(room.points),class:'align-room-hint'}));
+      var targetEdge=findNearestEdgeInRoom(room,mouseBoard,alignOp.axis);
+      if(targetEdge)layer.appendChild(el('line',{x1:targetEdge.a.x,y1:targetEdge.a.y,x2:targetEdge.b.x,y2:targetEdge.b.y,class:'align-edge-hint align-edge-target'}));
+    }
   }
 }
 
@@ -4067,6 +4128,7 @@ function initCanvas(){
     if(rotateOp&&rotateOp.stage==='end')renderRotateHint();
     if(copyOp&&copyOp.stage==='destination')renderCopyHint();
     if(scaleOp&&scaleOp.stage==='new')renderScaleHint();
+    if(alignOp)renderAlignHint();
   });
 
   window.addEventListener('mouseup',function(e){
@@ -4101,7 +4163,7 @@ function initCanvas(){
       if(moveOp){moveOp=null;renderMoveHint();toast('Move cancelled');}
       else if(rotateOp){rotateOp=null;renderRotateHint();toast('Rotate cancelled');}
       else if(copyOp){copyOp=null;renderCopyHint();toast('Copy cancelled');}
-      else if(alignOp){alignOp=null;toast('Align cancelled');}
+      else if(alignOp){alignOp=null;renderAlignHint();toast('Align cancelled');}
       else if(scaleOp){scaleOp=null;renderScaleHint();toast('Scale cancelled');}
       else if(chamferOp){chamferOp=null;toast('Chamfer cancelled');}
       else if(drawingRoom){drawingRoom=null;render();}
