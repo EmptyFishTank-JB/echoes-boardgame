@@ -96,13 +96,6 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
 
 #sel-box{position:absolute;pointer-events:none;z-index:50;display:none;}
 
-#ctx-menu{position:fixed;background:rgba(2,10,20,0.98);border:1px solid rgba(79,195,247,0.24);z-index:1000;min-width:190px;display:none;box-shadow:0 8px 28px rgba(0,0,0,0.7);font-family:"Share Tech Mono",monospace;}
-.ctx-item{padding:8px 16px;font-size:13px;color:var(--dim);cursor:pointer;letter-spacing:0.05em;transition:background 0.1s;}
-.ctx-item:hover{background:rgba(79,195,247,0.08);color:var(--blue);}
-.ctx-item.r{color:rgba(224,80,80,0.72);}
-.ctx-item.r:hover{background:rgba(224,80,80,0.08);color:#e05050;}
-.ctx-item.disabled{color:rgba(79,195,247,0.20);cursor:default;pointer-events:none;}
-.ctx-sep{height:1px;background:rgba(79,195,247,0.10);margin:3px 0;}
 .bpoint{cursor:pointer;}
 .bpoint-glyph{font-family:"Share Tech Mono",monospace;font-size:10px;fill:#00080e;font-weight:bold;pointer-events:none;text-anchor:middle;dominant-baseline:central;}
 .bpoint-label{font-family:"Share Tech Mono",monospace;font-size:9px;fill:rgba(255,255,255,0.65);pointer-events:none;text-anchor:middle;}
@@ -147,7 +140,8 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
 .layers-list{max-height:260px;overflow-y:auto;margin-bottom:8px;}
 .layer-group-hdr{display:flex;align-items:center;gap:6px;padding:5px 0 2px;font-size:10px;letter-spacing:0.05em;color:rgba(255,255,255,0.6);text-transform:uppercase;}
 .layer-group-hdr:first-child{padding-top:0;}
-.layer-group-label{flex:1;}
+.layer-group-label{flex:1;cursor:pointer;}
+.layer-group-label:hover{color:var(--blue);}
 .layer-row{display:flex;align-items:center;gap:6px;padding:2px 0;font-size:11px;}
 .layer-row.active .layer-label{color:var(--blue);}
 .layer-eye{background:transparent;border:none;cursor:pointer;font-size:13px;color:rgba(255,255,255,0.25);flex-shrink:0;padding:0;line-height:1;}
@@ -198,7 +192,6 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
      precisely, a fingertip can't. */
   .tbtn{padding:8px 11px;}
   .hbtn{padding:7px 12px;}
-  .ctx-item{padding:11px 16px;}
   .layer-eye,.fam-eye{font-size:16px;padding:2px;}
   #panel-toggle{width:28px;}
   /* Keep the ribbon to its fixed two rows instead of wrapping into a wall
@@ -226,7 +219,7 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
 
 @media print{
   html,body{background:#fff!important;overflow:visible!important;height:auto!important;}
-  #hdr,#toolbar,#props-panel,#panel-toggle,#toast,#hint,#hint-touch,#sel-box,#ctx-menu{display:none!important;}
+  #hdr,#toolbar,#props-panel,#panel-toggle,#toast,#hint,#hint-touch,#sel-box{display:none!important;}
   #app,#body-main{display:block!important;height:auto!important;}
   #canvas-wrap{overflow:visible!important;position:static!important;background:#fff!important;}
   #canvas-inner{position:static!important;transform:none!important;}
@@ -298,6 +291,7 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
     <button class="tbtn on" id="btn-attach" onclick="toggleAttachPoints()" title="Points inside a room move/copy/mirror/duplicate/rotate with it">&#128279; ATTACH</button>
     <button class="tbtn on" id="btn-linkdoors" onclick="toggleLinkDoors()" title="A door on a wall shared with another room also opens that room's side">&#128682; LINK DOORS</button>
     <button class="tbtn" id="btn-boundary" onclick="addOrSelectBoundary()">&#9645; BOUNDARY</button>
+    <button class="tbtn" onclick="fitBoundaryToRooms()" title="Resize the boundary to fit everything currently on the board">&#8862; FIT BOUND</button>
     <div class="tsep"></div>
     <button class="tbtn" id="btn-undo" onclick="doUndo()" disabled>&#8617; UNDO</button>
     <button class="tbtn" id="btn-redo" onclick="doRedo()" disabled>&#8618; REDO</button>
@@ -308,6 +302,14 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
     <button class="tbtn" id="btn-move" onclick="startMoveCommand()" title="Click a basepoint, click a destination — moves the current selection">&#10021; MOVE</button>
     <button class="tbtn" id="btn-copy" onclick="startCopyCommand()" title="Click a basepoint, click a destination — drops a duplicate of the current selection there">&#128203; COPY</button>
     <button class="tbtn" id="btn-rotate" onclick="startRotateCommand()" title="Click a start point, click an end point — rotates the current selection around its center">&#8635; ROTATE</button>
+    <div class="tsep"></div>
+    <button class="tbtn" onclick="mirrorSelection('y')" title="Mirror across the X axis (vertical flip)">&#8597; MIRROR X</button>
+    <button class="tbtn" onclick="mirrorSelection('x')" title="Mirror across the Y axis (horizontal flip)">&#8596; MIRROR Y</button>
+    <button class="tbtn" onclick="rotateSelection90(-1)" title="Rotate the selected room 90° counter-clockwise">&#8634; ROT CCW</button>
+    <button class="tbtn" onclick="rotateSelection90(1)" title="Rotate the selected room 90° clockwise">&#8635; ROT CW</button>
+    <div class="tsep"></div>
+    <button class="tbtn" onclick="duplicateSelection()" title="Duplicate the current selection one grid cell over">&#10064; DUPLICATE</button>
+    <button class="tbtn" onclick="selectAllRibbon()" title="Grow the current selection to every matching item on the board">&#9733; SELECT ALL</button>
   </div>
 </div>
 
@@ -360,9 +362,8 @@ html,body{height:100%;background:var(--outer-bg);color:var(--blue);font-family:"
 
 <input type="file" id="fi" accept=".json" style="display:none" onchange="onFileIn(event)">
 <div id="toast"></div>
-<div id="ctx-menu"></div>
-<div id="hint">Press <b>KS</b> for the keyboard shortcuts menu &middot; Ctrl+S save &middot; Ctrl+Shift+S save as &middot; Ctrl+P print &middot; drag on empty canvas to box-select, drag a selected item to move the group &middot; right-click for options &middot; scroll to zoom, right/middle-drag to pan, double-click middle button to fit</div>
-<div id="hint-touch">One-finger drag to select/draw/move &middot; two-finger drag to pan, pinch to zoom &middot; touch and hold ~1s for the options menu &middot; use the <b>&#9654;</b> tab to open the properties panel</div>
+<div id="hint">Press <b>KS</b> for the keyboard shortcuts menu &middot; Ctrl+S save &middot; Ctrl+Shift+S save as &middot; Ctrl+P print &middot; drag on empty canvas to box-select, drag a selected item to move the group &middot; MOVE/COPY/ROTATE/mirror/duplicate/select-all are on the ribbon &middot; scroll to zoom, right/middle-drag to pan, double-click middle button to fit</div>
+<div id="hint-touch">One-finger drag to select/draw/move &middot; two-finger drag to pan, pinch to zoom &middot; MOVE/COPY/ROTATE/mirror/duplicate/select-all are on the ribbon &middot; use the <b>&#9654;</b> tab to open the properties panel</div>
 
 <div id="hk-overlay">
   <div id="hk-modal">
@@ -1106,7 +1107,6 @@ function renderBoundary(){
 
   var rect=el('rect',{x:b.x,y:b.y,width:b.w,height:b.h,class:'boundary-rect'+(isSel?' selected':''),'pointer-events':'stroke'});
   rect.addEventListener('mousedown',function(e){onBoundaryMouseDown(e);});
-  rect.addEventListener('contextmenu',function(e){onBoundaryContextMenu(e);});
   layer.appendChild(rect);
 
   var label=el('text',{x:b.x,y:b.y-10,class:'boundary-label'});
@@ -1122,7 +1122,6 @@ function renderBoundary(){
   icon.textContent='✛';
   grip.appendChild(icon);
   grip.addEventListener('mousedown',function(e){onBoundaryMouseDown(e);});
-  grip.addEventListener('contextmenu',function(e){onBoundaryContextMenu(e);});
   layer.appendChild(grip);
 
   if(isSel){
@@ -1520,7 +1519,6 @@ function renderRooms(){
       'data-room-id':room.id
     });
     poly.addEventListener('mousedown',function(e){onRoomMouseDown(e,room.id);});
-    poly.addEventListener('contextmenu',function(e){onRoomContextMenu(e,room.id);});
     g.appendChild(poly);
 
     var spaces=computeRoomSpaces(room);
@@ -1557,7 +1555,6 @@ function renderRooms(){
         var wg=el('g',{'data-wall-id':w.id,'data-room-id':room.id,class:'iwall'+(isWallSel?' selected':'')});
         renderInteriorWall(wg,room,w,fam.color);
         wg.addEventListener('mousedown',function(e){onWallMouseDown(e,room.id,w.id);});
-        wg.addEventListener('contextmenu',function(e){onWallContextMenu(e,room.id,w.id);});
         g.appendChild(wg);
       });
     }
@@ -1607,7 +1604,6 @@ function renderPoints(){
       g.appendChild(lbl);
     }
     g.addEventListener('mousedown',function(e){onPointMouseDown(e,pt.id);});
-    g.addEventListener('contextmenu',function(e){onPointContextMenu(e,pt.id);});
     layer.appendChild(g);
   });
 }
@@ -1832,7 +1828,7 @@ function renderLayersSection(){
     var famVisible=!hiddenFamilies[g.key];
     html+='<div class="layer-group-hdr">'+
       '<button class="layer-eye layer-eye-group'+(famVisible?' on':'')+'" onclick="toggleFamilyVisibility(\''+g.key+'\')" title="'+(famVisible?'Hide':'Show')+' all in '+esc(g.label)+'">'+(famVisible?'&#9673;':'&#9678;')+'</button>'+
-      '<span class="layer-group-label">'+esc(g.label)+'</span></div>';
+      '<span class="layer-group-label" onclick="selectLayerGroup(\''+g.key+'\')" title="Select everything in '+esc(g.label)+'">'+esc(g.label)+'</span></div>';
     g.rooms.forEach(function(r){
       var visible=!r.hidden;
       var kindTag=r.isVent?'VENT':(r.isBaseLayer?'BASE':'ROOM');
@@ -1860,6 +1856,20 @@ function renderLayersSection(){
   if(!groups.length)html+='<div class="pp-empty">Nothing on the board yet.</div>';
   html+='</div>';
   return html;
+}
+// Clicking a LAYERS group's label selects every room and point in that
+// family/vent/base/unassociated bucket at once — the ribbon's SELECT ALL
+// button (or the old context-menu one) can't offer a scoped "just this
+// family" choice without a popup, so this is that scope's replacement:
+// pick the group directly instead of picking from a menu.
+function selectLayerGroup(key){
+  var g=layersGroups().filter(function(gr){return gr.key===key;})[0];
+  if(!g){return;}
+  var items=g.rooms.map(function(r){return {kind:'room',id:r.id};}).concat(g.points.map(function(p){return {kind:'point',id:p.id};}));
+  if(!items.length){toast('Nothing in '+g.label+' yet');return;}
+  if(items.length>1){selected=null;multiSel=items;}
+  else{selected=items[0];multiSel=[];}
+  render();
 }
 
 function renderProps(){
@@ -2995,18 +3005,12 @@ function pasteClipboard(atPt){
 // embedding an id containing a double-quote into a double-quoted HTML
 // attribute silently truncates it, which is exactly what happened here
 // before this was rewritten to attach listeners directly).
-// ── SELECT ALL (context menu) ────────────────────────────────────────────────
+// ── SELECT ALL ────────────────────────────────────────────────────────────────
 // "Select All" grows whatever is currently selected into every matching item
 // on the board. Rooms (with a real family) and terminal points both carry a
-// family association, so when either is present the menu asks ALL vs SAME
-// FAMILY and that choice governs both of them together. Everything else —
-// vents, the base layer, lockers, other points — has no family concept, so
-// it always expands to "every item of that exact kind" regardless of which
-// choice is picked.
-function familyLabelOf(key){
-  if(!key||key==='__none__')return 'No Family';
-  return (board.families[key]&&board.families[key].label)||key;
-}
+// family association; everything else — vents, the base layer, lockers,
+// other points — has no family concept, so it always expands to "every
+// item of that exact kind".
 function buildFixedKindSelection(k){
   if(k==='room:vent')return board.rooms.filter(function(r){return r.isVent;}).map(function(r){return{kind:'room',id:r.id};});
   if(k==='room:base')return board.rooms.filter(function(r){return r.isBaseLayer;}).map(function(r){return{kind:'room',id:r.id};});
@@ -3059,127 +3063,24 @@ function applySelectAllPlan(plan,sameFamilyOnly){
   else{selected=null;multiSel=[];}
   render();
 }
-function selectAllFor(kind,id,pos){
-  var plan=planSelectAll(kind,id);
-  if(!plan.hasRoom){
-    // No room in the mix (e.g. a lone Terminal, Vent, Locker, or other
-    // Point) — just grow straight to every item of that same kind, no
-    // family choice to make.
-    applySelectAllPlan(plan,false);
-    return;
-  }
-  var famLabel=familyLabelOf(plan.refFamily);
-  showCtxMenu(pos.clientX,pos.clientY,[
-    {label:'All Rooms'+(plan.hasTerminal?' &amp; Terminals':''),action:function(){applySelectAllPlan(plan,false);}},
-    {label:'Same Family ('+esc(famLabel)+')',action:function(){applySelectAllPlan(plan,true);}}
-  ]);
+// Ribbon-button version of SELECT ALL — no popup to pick ALL vs SAME
+// FAMILY (the ribbon has no click position to anchor one), so this always
+// grows to the full board-wide scope. To select just one family's worth,
+// click that family's group label in the LAYERS list instead (see
+// selectLayerGroup) — it selects every room/point in that group directly.
+function selectAllRibbon(){
+  var ref=multiSel.length?multiSel[0]:selected;
+  if(!ref){toast('Select something first');return;}
+  var plan=planSelectAll(ref.kind,ref.id);
+  applySelectAllPlan(plan,false);
 }
-
-function showCtxMenu(x,y,items){
-  var m=document.getElementById('ctx-menu');
-  m.innerHTML='';
-  items.forEach(function(it){
-    if(it===null){var sep=document.createElement('div');sep.className='ctx-sep';m.appendChild(sep);return;}
-    var d=document.createElement('div');
-    d.className='ctx-item'+(it.danger?' r':'')+(it.disabled?' disabled':'');
-    d.innerHTML=it.label;
-    if(!it.disabled)d.addEventListener('click',function(){hideCtxMenu();it.action();});
-    m.appendChild(d);
-  });
-  m.style.display='block';
-  var vw=window.innerWidth,vh=window.innerHeight;
-  var mw=m.offsetWidth||190,mh=m.offsetHeight||200;
-  m.style.left=Math.min(x,vw-mw-8)+'px';
-  m.style.top=Math.min(y,vh-mh-8)+'px';
-}
-function hideCtxMenu(){document.getElementById('ctx-menu').style.display='none';}
-
-function onRoomContextMenu(e,roomId){
-  e.preventDefault();e.stopPropagation();
-  if(!(multiSel.length>1&&isInMultiSel('room',roomId))){multiSel=[];selected={kind:'room',id:roomId};render();}
-  var pos={clientX:e.clientX,clientY:e.clientY};
-  if(multiSel.length>1){
-    showCtxMenu(e.clientX,e.clientY,[
-      {label:'&#128203; Copy Selected ('+multiSel.length+')',action:copySelection},
-      {label:'&#8596; Mirror Horizontal (my)',action:function(){mirrorSelection('x');}},
-      {label:'&#8597; Mirror Vertical (mx)',action:function(){mirrorSelection('y');}},
-      null,
-      {label:'&#9733; Select All',action:function(){selectAllFor('room',roomId,pos);}},
-      null,
-      {label:'&#10005; Delete Selected ('+multiSel.length+')',action:deleteMultiSel,danger:true}
-    ]);
-    return;
-  }
-  showCtxMenu(e.clientX,e.clientY,[
-    {label:'&#8635; Rotate 90&deg; CCW',action:function(){rotateRoom90(roomId,-1);}},
-    {label:'&#8634; Rotate 90&deg; CW',action:function(){rotateRoom90(roomId,1);}},
-    {label:'&#8596; Mirror Horizontal (my)',action:function(){mirrorRoom(roomId,'x');}},
-    {label:'&#8597; Mirror Vertical (mx)',action:function(){mirrorRoom(roomId,'y');}},
-    {label:'&#10064; Duplicate Room',action:function(){duplicateRoom(roomId);}},
-    {label:'&#128203; Copy Room',action:copySelection},
-    {label:'&#9733; Select All',action:function(){selectAllFor('room',roomId,pos);}},
-    null,
-    {label:'&#10005; Delete Room',action:function(){deleteRoom(roomId);},danger:true}
-  ]);
-}
-function onPointContextMenu(e,ptId){
-  e.preventDefault();e.stopPropagation();
-  if(!(multiSel.length>1&&isInMultiSel('point',ptId))){multiSel=[];selected={kind:'point',id:ptId};render();}
-  var pos={clientX:e.clientX,clientY:e.clientY};
-  if(multiSel.length>1){
-    showCtxMenu(e.clientX,e.clientY,[
-      {label:'&#128203; Copy Selected ('+multiSel.length+')',action:copySelection},
-      {label:'&#8596; Mirror Horizontal (my)',action:function(){mirrorSelection('x');}},
-      {label:'&#8597; Mirror Vertical (mx)',action:function(){mirrorSelection('y');}},
-      null,
-      {label:'&#9733; Select All',action:function(){selectAllFor('point',ptId,pos);}},
-      null,
-      {label:'&#10005; Delete Selected ('+multiSel.length+')',action:deleteMultiSel,danger:true}
-    ]);
-    return;
-  }
-  showCtxMenu(e.clientX,e.clientY,[
-    {label:'&#10064; Duplicate Point',action:function(){duplicatePoint(ptId);}},
-    {label:'&#128203; Copy Point',action:copySelection},
-    {label:'&#9733; Select All',action:function(){selectAllFor('point',ptId,pos);}},
-    null,
-    {label:'&#10005; Delete Point',action:function(){deletePoint(ptId);},danger:true}
-  ]);
-}
-function onWallContextMenu(e,roomId,wallId){
-  e.preventDefault();e.stopPropagation();
-  multiSel=[];selected={kind:'wall',roomId:roomId,id:wallId};render();
-  showCtxMenu(e.clientX,e.clientY,[
-    {label:'&#10005; Delete Wall',action:function(){deleteWall(roomId,wallId);},danger:true}
-  ]);
-}
-function onBoundaryContextMenu(e){
-  e.preventDefault();e.stopPropagation();
-  multiSel=[];selected={kind:'boundary'};render();
-  showCtxMenu(e.clientX,e.clientY,[
-    {label:'&#8862; Fit Boundary To Contents',action:fitBoundaryToRooms},
-    null,
-    {label:'&#10005; Remove Boundary',action:removeBoundary,danger:true}
-  ]);
-}
-function onCanvasContextMenu(e){
-  e.preventDefault();
-  var bp=snapPt(screenToBoard(e.clientX,e.clientY));
-  var items=[];
-  if(multiSel.length>0){
-    items.push({label:'&#10005; Delete Selected ('+multiSel.length+')',action:deleteMultiSel,danger:true});
-    items.push(null);
-  }
-  if(clipboard){
-    items.push({label:'&#128203; Paste Here',action:function(){pasteClipboard(bp);}});
-  }
-  if(board.boundary){
-    items.push({label:'&#9645; Move Boundary Here',action:function(){pushUndo();board.boundary.x=bp.x-board.boundary.w/2;board.boundary.y=bp.y-board.boundary.h/2;render();}});
-  }else{
-    items.push({label:'&#9645; Add Boundary Here',action:function(){addOrSelectBoundary();board.boundary.x=bp.x-board.boundary.w/2;board.boundary.y=bp.y-board.boundary.h/2;render();}});
-  }
-  items.push({label:'&#9678; Fit View',action:resetView});
-  showCtxMenu(e.clientX,e.clientY,items);
+// ROTATE 90° CW/CCW (dir=1/-1) — a single room only, same scope the old
+// context-menu action had; MOVE/COPY/ROTATE in the toolbar already cover
+// multi-selection and non-90° angles.
+function rotateSelection90(dir){
+  var ref=multiSel.length===1?multiSel[0]:selected;
+  if(!ref||ref.kind!=='room'){toast('Select a single room to rotate 90°');return;}
+  rotateRoom90(ref.id,dir);
 }
 
 // ── TOUCH SUPPORT (mobile) ───────────────────────────────────────────────────
@@ -3188,17 +3089,16 @@ function onCanvasContextMenu(e){
 // mousemove/mouseup sequence a mouse click-drag would produce — dispatched
 // on the actual touched element, so every existing listener (room/point/
 // wall selection, vertex grips, marquee select, drawing tools, whole-item
-// drag) fires exactly as it would from a real mouse. Two fingers pan the
-// canvas directly. A finger held ~1s without moving opens the same context
-// menu a right-click would (also via a synthetic 'contextmenu' event).
-// Two fingers also pinch to zoom, combined with the pan — both derived
-// fresh each move tick from the gesture's start snapshot (never
-// compounded tick-over-tick), so the board point under the two fingers'
-// midpoint stays anchored under them the whole gesture, same idea as
-// zoomBy's cursor-anchored wheel zoom.
-var touchState=null; // {startX,startY,moved,downTarget,longPressTimer}
+// drag) fires exactly as it would from a real mouse. Two fingers pan AND
+// pinch to zoom together — both derived fresh each move tick from the
+// gesture's start snapshot (never compounded tick-over-tick), so the board
+// point under the two fingers' midpoint stays anchored under them the
+// whole gesture, same idea as zoomBy's cursor-anchored wheel zoom.
+// (There used to be a long-press-to-open-context-menu gesture here too;
+// it's gone — see the note by the disabled 'contextmenu' listener below.)
+var touchState=null; // {startX,startY,moved,downTarget}
 var touchPan=null;   // {dist0,zoom0,world} — two-finger pan+pinch-zoom tracking
-var TOUCH_LONG_PRESS_MS=1000, TOUCH_MOVE_THRESHOLD=8;
+var TOUCH_MOVE_THRESHOLD=8;
 function touchMidpoint(touches){return {x:(touches[0].clientX+touches[1].clientX)/2,y:(touches[0].clientY+touches[1].clientY)/2};}
 function touchDistance(touches){return Math.hypot(touches[0].clientX-touches[1].clientX,touches[0].clientY-touches[1].clientY);}
 function synthMouse(type,x,y,target){
@@ -3206,12 +3106,8 @@ function synthMouse(type,x,y,target){
   (target||window).dispatchEvent(ev);
   return ev;
 }
-function clearLongPress(){
-  if(touchState&&touchState.longPressTimer){clearTimeout(touchState.longPressTimer);touchState.longPressTimer=null;}
-}
 function endSingleTouch(x,y){
   if(!touchState)return;
-  clearLongPress();
   synthMouse('mouseup',x,y);
   touchState=null;
 }
@@ -3231,14 +3127,6 @@ function initTouch(){
     var t=e.touches[0];
     var target=document.elementFromPoint(t.clientX,t.clientY)||wrapEl;
     touchState={startX:t.clientX,startY:t.clientY,moved:false,downTarget:target};
-    touchState.longPressTimer=setTimeout(function(){
-      if(!touchState||touchState.moved)return;
-      var sx=touchState.startX,sy=touchState.startY,dt=touchState.downTarget;
-      clearLongPress();
-      synthMouse('mouseup',sx,sy);
-      touchState=null;
-      dt.dispatchEvent(new MouseEvent('contextmenu',{bubbles:true,cancelable:true,clientX:sx,clientY:sy,view:window}));
-    },TOUCH_LONG_PRESS_MS);
     synthMouse('mousedown',t.clientX,t.clientY,target);
   },{passive:false});
 
@@ -3258,7 +3146,7 @@ function initTouch(){
     if(touchState&&e.touches.length===1){
       var t=e.touches[0];
       if(!touchState.moved&&Math.hypot(t.clientX-touchState.startX,t.clientY-touchState.startY)>TOUCH_MOVE_THRESHOLD){
-        touchState.moved=true;clearLongPress();
+        touchState.moved=true;
       }
       if(touchState.moved){e.preventDefault();synthMouse('mousemove',t.clientX,t.clientY);}
     }
@@ -3278,27 +3166,16 @@ function initTouch(){
   wrapEl.addEventListener('touchcancel',onTouchEnd);
 
 }
-// At the document level, capture phase, so this runs before ANY element's
-// own 'contextmenu' listener anywhere in the page: a genuine right mouse
-// click always reports button===2 on its contextmenu event; a browser's
-// own touch-originated long-press contextmenu (which some browsers fire
-// on their own schedule/threshold, independent of our JS hold timer,
-// touch-action/callout CSS, or even a preventDefault()'d touchstart —
-// sometimes even on release rather than mid-hold) always reports
-// button===0, same as our own synthetic one built in initTouch(). This is
-// a fixed, well-defined signal — not a timing race — so it reliably lets
-// a real right-click through untouched while swallowing every trusted
-// touch-originated contextmenu, whenever it happens to fire. Our own
-// synthetic dispatch is untrusted (isTrusted===false), so it always
-// passes regardless of button.
-document.addEventListener('contextmenu',function(e){
-  if(e.isTrusted&&e.button!==2){e.preventDefault();e.stopImmediatePropagation();}
-},true);
-
-document.addEventListener('mousedown',function(e){
-  var m=document.getElementById('ctx-menu');
-  if(m.style.display==='block'&&!m.contains(e.target))hideCtxMenu();
-});
+// Right-click/long-press context menus turned out unreliable on touch —
+// browsers fire their own native long-press contextmenu on their own
+// schedule (sometimes even after release), no matter what our JS timer or
+// touch-action/callout CSS says. Rather than keep chasing that, every
+// action a context menu used to offer now lives directly on the ribbon or
+// the properties panel instead (see the third toolbar row, and each
+// selected item's panel), and the context menu itself is fully disabled —
+// at the document level, capture phase, so this runs before anything else
+// could react to one.
+document.addEventListener('contextmenu',function(e){e.preventDefault();},true);
 
 // ── MOUSE HANDLERS ────────────────────────────────────────────────────────────
 var wrap;
@@ -3412,12 +3289,6 @@ function finishSelBox(e){
 
 function initCanvas(){
   wrap=document.getElementById('canvas-wrap');
-
-  wrap.addEventListener('contextmenu',function(e){
-    e.preventDefault();
-    if(rightDown&&rightDown.moved)return; // was a pan-drag, not a click
-    onCanvasContextMenu(e);
-  });
 
   wrap.addEventListener('mousedown',function(e){
     var rawBoard=screenToBoard(e.clientX,e.clientY);
@@ -3663,7 +3534,6 @@ function initCanvas(){
       else if(drawingWall){drawingWall=null;render();}
       else if(multiSel.length){multiSel=[];render();}
       else if(selected){selected=null;render();}
-      hideCtxMenu();
       // Double-press Esc is also the "select tool" hotkey.
       var now=Date.now();
       if(now-lastEscAt<450)fireHotkeyAction('select');
