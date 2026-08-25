@@ -168,24 +168,26 @@
   #end-turn-btn:hover{background:#f28742;}
 
   #viewport{
-    flex:1;position:relative;overflow:auto;
-    background:
-      linear-gradient(rgba(74,144,217,0.05) 1px,transparent 1px) 0 0/40px 40px,
-      linear-gradient(90deg,rgba(74,144,217,0.05) 1px,transparent 1px) 0 0/40px 40px,
-      #0c1016;
+    flex:1;position:relative;overflow:hidden;
+    background:#0c1016;
+    display:flex;align-items:center;justify-content:center;
   }
-  #map-svg{display:block;}
-  .room-rect{stroke-width:2;fill-opacity:0.16;rx:2;}
-  .room-label{font-family:var(--mono);font-size:10px;fill:var(--text-dim);letter-spacing:0.05em;}
-  .fog-rect{fill:#05070a;stroke:#232830;stroke-width:1.5;stroke-dasharray:5,4;}
-  .fog-label{font-family:var(--mono);font-size:9px;fill:#3a4048;letter-spacing:0.1em;}
+  #map-svg{display:block;max-width:100%;max-height:100%;}
+  #map-status{
+    position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+    font-size:11px;color:var(--text-dim);letter-spacing:0.08em;
+  }
+  .grid-line{stroke:rgba(74,144,217,0.06);stroke-width:1;}
+  .room-poly{stroke-width:1.5;fill-opacity:0.18;cursor:default;}
+  .room-poly.vent-room{fill-opacity:0.08;stroke-dasharray:4,3;}
+  .room-label{font-family:var(--mono);letter-spacing:0.04em;text-anchor:middle;pointer-events:none;}
+  .door-mark{stroke:#d9a441;stroke-linecap:round;}
   .token{cursor:pointer;}
   .token-ring{fill:none;stroke-width:2;}
-  .token-glyph{font-family:var(--head);font-weight:900;font-size:11px;fill:#04070a;text-anchor:middle;dominant-baseline:central;}
+  .token.selected .token-ring{stroke:#fff;stroke-width:2.5;}
+  .token-glyph{font-family:var(--head);font-weight:900;fill:#04070a;text-anchor:middle;dominant-baseline:central;pointer-events:none;}
   .creature-token{fill:var(--danger);filter:drop-shadow(0 0 6px rgba(192,57,43,0.7));}
-  .creature-token-x{stroke:#7a1f18;stroke-width:1.5;}
-  .vent-line{stroke:#2f3540;stroke-width:6;stroke-dasharray:2,4;fill:none;}
-  .door-mark{stroke:#d9a441;stroke-width:3;stroke-linecap:round;}
+  .creature-token-x{stroke:#7a1f18;stroke-linecap:round;}
 
   #legend{
     position:absolute;bottom:10px;left:10px;background:rgba(10,12,15,0.88);
@@ -449,81 +451,24 @@
           <span class="pg-label">ABILITY</span>
           <div class="pip" onclick="togglePip(this)"></div>
         </div>
+        <span id="map-hint" class="mono" style="font-size:10px;color:var(--text-dim);">Click a chip to select it, then click a grid space to move it there.</span>
         <div class="toolbar-spacer"></div>
         <button id="end-turn-btn" onclick="endTurn()">END TURN →</button>
       </div>
 
       <div id="viewport">
-        <svg id="map-svg" width="920" height="640" viewBox="0 0 920 640">
-          <!-- vent network -->
-          <path class="vent-line" d="M 460 40 L 460 600"></path>
-          <path class="vent-line" d="M 120 320 L 800 320"></path>
-
-          <!-- discovered rooms -->
-          <rect class="room-rect" x="360" y="120" width="200" height="160" style="stroke:#E8732A;fill:#E8732A;"></rect>
-          <text class="room-label" x="372" y="140">OPERATIONS CENTER</text>
-
-          <rect class="room-rect" x="160" y="120" width="140" height="120" style="stroke:#bf7c0a;fill:#bf7c0a;"></rect>
-          <text class="room-label" x="172" y="140">ENGINEERING</text>
-
-          <rect class="room-rect" x="600" y="120" width="140" height="120" style="stroke:#4db896;fill:#4db896;"></rect>
-          <text class="room-label" x="612" y="140">RESEARCH</text>
-
-          <rect class="room-rect" x="160" y="400" width="140" height="120" style="stroke:#c9a24a;fill:#c9a24a;"></rect>
-          <text class="room-label" x="172" y="420">CARGO</text>
-
-          <rect class="room-rect" x="600" y="400" width="140" height="120" style="stroke:#e05050;fill:#e05050;"></rect>
-          <text class="room-label" x="612" y="420">MEDICAL</text>
-
-          <rect class="room-rect" x="360" y="440" width="200" height="120" style="stroke:#4fc3f7;fill:#4fc3f7;"></rect>
-          <text class="room-label" x="372" y="460">THE DOCK</text>
-
-          <!-- undiscovered / fog of war -->
-          <rect class="fog-rect" x="20" y="260" width="120" height="100"></rect>
-          <text class="fog-label" x="40" y="315">FOG</text>
-          <rect class="fog-rect" x="780" y="260" width="120" height="100"></rect>
-          <text class="fog-label" x="800" y="315">FOG</text>
-          <rect class="fog-rect" x="360" y="20" width="200" height="80"></rect>
-          <text class="fog-label" x="420" y="65">FOG</text>
-
-          <!-- doors -->
-          <line class="door-mark" x1="300" y1="180" x2="360" y2="180"></line>
-          <line class="door-mark" x1="560" y1="180" x2="600" y2="180"></line>
-          <line class="door-mark" x1="460" y1="280" x2="460" y2="320"></line>
-          <line class="door-mark" x1="300" y1="460" x2="360" y2="460"></line>
-          <line class="door-mark" x1="560" y1="460" x2="600" y2="460"></line>
-
-          <!-- crew tokens -->
-          <g class="token" transform="translate(430,200)">
-            <circle r="11" fill="#E8732A"></circle>
-            <circle class="token-ring" r="14" stroke="#E8732A"></circle>
-            <text class="token-glyph" y="0.5">V</text>
-          </g>
-          <g class="token" transform="translate(230,180)">
-            <circle r="11" fill="#bf7c0a"></circle>
-            <circle class="token-ring" r="14" stroke="#bf7c0a"></circle>
-            <text class="token-glyph" y="0.5">I</text>
-          </g>
-          <g class="token" transform="translate(660,460)">
-            <circle r="11" fill="#4db896"></circle>
-            <circle class="token-ring" r="14" stroke="#4db896"></circle>
-            <text class="token-glyph" y="0.5">N</text>
-          </g>
-
-          <!-- creature -->
-          <g class="token" transform="translate(230,220)">
-            <circle class="creature-token" r="13"></circle>
-            <line class="creature-token-x" x1="-6" y1="-6" x2="6" y2="6"></line>
-            <line class="creature-token-x" x1="-6" y1="6" x2="6" y2="-6"></line>
-          </g>
+        <svg id="map-svg" width="920" height="640" viewBox="0 0 920 640" preserveAspectRatio="xMidYMid meet">
+          <g id="grid-layer"></g>
+          <g id="room-layer"></g>
+          <g id="door-layer"></g>
+          <g id="token-layer"></g>
         </svg>
+        <div id="map-status" class="mono">LOADING BOARD…</div>
 
         <div id="legend">
-          <div class="li"><span class="sw" style="background:#E8732A;"></span>Ops Center</div>
-          <div class="li"><span class="sw" style="background:#4fc3f7;"></span>The Dock</div>
-          <div class="li"><span class="sw" style="background:#05070a;border:1px dashed #3a4048;"></span>Fog of War</div>
-          <div class="li"><span class="sw" style="background:var(--danger);"></span>Creature</div>
+          <div class="li"><span class="sw" style="background:#9ca3af;"></span>Loaded from board-data/board.json</div>
           <div class="li"><span class="sw" style="background:#d9a441;"></span>Door</div>
+          <div class="li"><span class="sw" style="background:#454b56;"></span>Vent</div>
         </div>
       </div>
     </div>
@@ -766,6 +711,172 @@
     el.innerHTML = '<span class="lt">T'+String(turnNum).padStart(2,'0')+'</span>'+text;
     log.insertBefore(el, log.firstChild);
   }
+
+  // ── LIVE BOARD — pulled from board-data/board.json ───
+  // Same GRID and door-cell convention as dev-tools/board-editor.html:
+  // a room door is {cx,cy,side} (an absolute grid-cell + which of its 4
+  // sides), an interior wall door is {i:N} (the Nth GRID-length segment
+  // walking from the wall's own p1 toward p2). This is a read-only,
+  // simplified renderer — no wall insets/margins, just polygons + door
+  // ticks — enough to get a feel for the layout, not to edit it.
+  var SVG_NS = 'http://www.w3.org/2000/svg';
+  var GRID = 40;
+  var SIDE_NORMAL = [{x:0,y:1},{x:-1,y:0},{x:0,y:-1},{x:1,y:0}];
+  var boardData = null;
+  var tokens = [
+    {id:'V', name:'Voss',  color:'#E8732A', x:0, y:0},
+    {id:'I', name:'Iker',  color:'#bf7c0a', x:0, y:0},
+    {id:'N', name:'Nadia', color:'#4db896', x:0, y:0}
+  ];
+  var selectedTokenId = null;
+
+  function svgEl(tag, attrs){
+    var e = document.createElementNS(SVG_NS, tag);
+    for(var k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  }
+  function doorSegFromCell(cx, cy, side){
+    var n = SIDE_NORMAL[side];
+    var ccx = cx*GRID + GRID/2, ccy = cy*GRID + GRID/2;
+    var wx = ccx - n.x*(GRID/2), wy = ccy - n.y*(GRID/2);
+    var px = -n.y, py = n.x;
+    return {
+      p1: {x: wx - px*(GRID/2), y: wy - py*(GRID/2)},
+      p2: {x: wx + px*(GRID/2), y: wy + py*(GRID/2)}
+    };
+  }
+
+  function loadBoard(){
+    fetch('board-data/board.json?v='+Date.now())
+      .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+      .then(function(data){
+        boardData = data;
+        renderBoard();
+        placeStartingTokens();
+        logLine('Board loaded from board-data/board.json ('+data.rooms.length+' rooms).', 'good');
+      })
+      .catch(function(e){
+        document.getElementById('map-status').textContent = 'FAILED TO LOAD BOARD — '+e.message;
+        logLine('Board load failed: '+e.message, 'danger');
+      });
+  }
+
+  function renderBoard(){
+    var b = boardData.boundary || {x:0,y:0,w:1680,h:1200};
+    var pad = GRID;
+    var svg = document.getElementById('map-svg');
+    svg.setAttribute('viewBox', (b.x-pad)+' '+(b.y-pad)+' '+(b.w+pad*2)+' '+(b.h+pad*2));
+    document.getElementById('map-status').style.display = 'none';
+
+    var gridLayer = document.getElementById('grid-layer');
+    var roomLayer = document.getElementById('room-layer');
+    var doorLayer = document.getElementById('door-layer');
+    gridLayer.innerHTML=''; roomLayer.innerHTML=''; doorLayer.innerHTML='';
+
+    for(var gx=b.x; gx<=b.x+b.w+0.5; gx+=GRID){
+      gridLayer.appendChild(svgEl('line',{x1:gx,y1:b.y,x2:gx,y2:b.y+b.h,class:'grid-line'}));
+    }
+    for(var gy=b.y; gy<=b.y+b.h+0.5; gy+=GRID){
+      gridLayer.appendChild(svgEl('line',{x1:b.x,y1:gy,x2:b.x+b.w,y2:gy,class:'grid-line'}));
+    }
+    roomLayer.appendChild(svgEl('rect',{x:b.x,y:b.y,width:b.w,height:b.h,fill:'none',stroke:'#3a4048','stroke-width':2}));
+
+    (boardData.rooms||[]).forEach(function(room){
+      var pts = room.points||[];
+      if(pts.length<3) return;
+      var fam = (boardData.families && boardData.families[room.family]) || {color:'#556070',label:room.family};
+      var color = room.isVent ? '#454b56' : fam.color;
+      var ptsStr = pts.map(function(p){return p.x+','+p.y;}).join(' ');
+      roomLayer.appendChild(svgEl('polygon',{
+        points: ptsStr,
+        class: 'room-poly'+(room.isVent?' vent-room':''),
+        style: 'stroke:'+color+';fill:'+color+';'
+      }));
+
+      var xs=pts.map(function(p){return p.x;}), ys=pts.map(function(p){return p.y;});
+      var minX=Math.min.apply(null,xs), maxX=Math.max.apply(null,xs);
+      var minY=Math.min.apply(null,ys), maxY=Math.max.apply(null,ys);
+      var w=maxX-minX, h=maxY-minY;
+      if(w>=GRID*2 && h>=GRID*1.5){
+        var label = room.isVent ? 'VENT' : (fam.label||room.family||'').toUpperCase();
+        var fontSize = Math.max(7, Math.min(13, Math.min(w,h)/9));
+        var t = svgEl('text',{x:(minX+maxX)/2, y:(minY+maxY)/2, class:'room-label', style:'font-size:'+fontSize+'px;fill:'+color+';'});
+        t.textContent = label;
+        roomLayer.appendChild(t);
+      }
+
+      (room.doors||[]).forEach(function(d){
+        if(d==null || d.cx==null) return;
+        var seg = doorSegFromCell(d.cx, d.cy, d.side);
+        doorLayer.appendChild(svgEl('line',{x1:seg.p1.x,y1:seg.p1.y,x2:seg.p2.x,y2:seg.p2.y,class:'door-mark','stroke-width':GRID*0.12}));
+      });
+      (room.walls||[]).forEach(function(w){
+        var len = Math.hypot(w.p2.x-w.p1.x, w.p2.y-w.p1.y);
+        if(len<0.5) return;
+        var ux=(w.p2.x-w.p1.x)/len, uy=(w.p2.y-w.p1.y)/len;
+        (w.doors||[]).forEach(function(d){
+          if(d==null || d.i==null) return;
+          var s0={x:w.p1.x+ux*d.i*GRID, y:w.p1.y+uy*d.i*GRID};
+          var s1={x:w.p1.x+ux*(d.i+1)*GRID, y:w.p1.y+uy*(d.i+1)*GRID};
+          doorLayer.appendChild(svgEl('line',{x1:s0.x,y1:s0.y,x2:s1.x,y2:s1.y,class:'door-mark','stroke-width':GRID*0.12}));
+        });
+      });
+    });
+  }
+
+  function placeStartingTokens(){
+    var opsRoom = (boardData.rooms||[]).filter(function(r){return r.family==='ops_center';})[0]
+      || (boardData.rooms||[])[0];
+    var base = {x:GRID*20, y:GRID*15};
+    if(opsRoom){
+      var xs=opsRoom.points.map(function(p){return p.x;}), ys=opsRoom.points.map(function(p){return p.y;});
+      base = {x:(Math.min.apply(null,xs)+Math.max.apply(null,xs))/2, y:(Math.min.apply(null,ys)+Math.max.apply(null,ys))/2};
+    }
+    tokens[0].x = base.x - GRID; tokens[0].y = base.y;
+    tokens[1].x = base.x;        tokens[1].y = base.y;
+    tokens[2].x = base.x + GRID; tokens[2].y = base.y;
+    renderTokens();
+  }
+
+  function renderTokens(){
+    var layer = document.getElementById('token-layer');
+    layer.innerHTML='';
+    tokens.forEach(function(tok){
+      var g = svgEl('g',{class:'token'+(selectedTokenId===tok.id?' selected':''), transform:'translate('+tok.x+','+tok.y+')'});
+      g.appendChild(svgEl('circle',{r:GRID*0.32, fill:tok.color}));
+      g.appendChild(svgEl('circle',{class:'token-ring', r:GRID*0.42, stroke:tok.color}));
+      var glyph = svgEl('text',{class:'token-glyph', y:GRID*0.02, style:'font-size:'+(GRID*0.28)+'px;'});
+      glyph.textContent = tok.id;
+      g.appendChild(glyph);
+      g.addEventListener('click', (function(id){return function(e){ e.stopPropagation(); selectToken(id); };})(tok.id));
+      layer.appendChild(g);
+    });
+  }
+
+  function selectToken(id){
+    selectedTokenId = (selectedTokenId===id) ? null : id;
+    renderTokens();
+    var t = tokens.filter(function(t){return t.id===id;})[0];
+    document.getElementById('map-hint').textContent = selectedTokenId
+      ? (t.name+' selected — click a grid space to move.')
+      : 'Click a chip to select it, then click a grid space to move it there.';
+  }
+
+  document.getElementById('map-svg').addEventListener('click', function(e){
+    if(!selectedTokenId || !boardData) return;
+    var svg = document.getElementById('map-svg');
+    var pt = svg.createSVGPoint();
+    pt.x = e.clientX; pt.y = e.clientY;
+    var loc = pt.matrixTransform(svg.getScreenCTM().inverse());
+    var gx = Math.floor(loc.x/GRID)*GRID + GRID/2;
+    var gy = Math.floor(loc.y/GRID)*GRID + GRID/2;
+    var tok = tokens.filter(function(t){return t.id===selectedTokenId;})[0];
+    tok.x = gx; tok.y = gy;
+    renderTokens();
+    logLine(tok.name+' moved to grid cell ('+Math.floor(gx/GRID)+', '+Math.floor(gy/GRID)+').');
+  });
+
+  loadBoard();
 </script>
 </body>
 </html>
