@@ -171,13 +171,14 @@
     flex:1;position:relative;overflow:hidden;
     background:#0c1016;
     display:flex;align-items:center;justify-content:center;
+    cursor:grab;
   }
   #map-svg{display:block;max-width:100%;max-height:100%;}
   #map-status{
     position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
     font-size:11px;color:var(--text-dim);letter-spacing:0.08em;
   }
-  .grid-line{stroke:rgba(74,144,217,0.06);stroke-width:1;}
+  .grid-line{stroke:rgba(74,144,217,0.16);stroke-width:1;}
   .room-poly{stroke-width:1.5;fill-opacity:0.18;cursor:default;}
   .room-poly.vent-room{fill-opacity:0.08;stroke-dasharray:4,3;}
   .room-label{font-family:var(--mono);letter-spacing:0.04em;text-anchor:middle;pointer-events:none;}
@@ -479,6 +480,7 @@
           <div class="li"><span class="sw" style="background:#9ca3af;"></span>Loaded from board-data/board.json</div>
           <div class="li"><span class="sw" style="background:#d9a441;"></span>Door</div>
           <div class="li"><span class="sw" style="background:#454b56;"></span>Vent</div>
+          <div class="li">Scroll to zoom &middot; drag to pan</div>
         </div>
       </div>
     </div>
@@ -3904,11 +3906,81 @@
       .catch(function(e){ logLine('GitHub fetch failed: '+e.message, 'danger'); });
   }
 
+  // ── Zoom (mouse wheel) / pan (click-drag) ────────────
+  // viewBox is the live source of truth for what the SVG shows; wheel
+  // zooms around the cursor, drag pans, and a plain click (no drag) falls
+  // through to the existing move-selected-token-to-this-cell behavior.
+  var viewBox = {x:0, y:0, w:1000, h:700};
+  var viewBoxMinW = GRID*4, viewBoxMaxW = null; // maxW set once boundary is known
+  function applyViewBox(){
+    document.getElementById('map-svg').setAttribute('viewBox', viewBox.x+' '+viewBox.y+' '+viewBox.w+' '+viewBox.h);
+  }
+  function svgPointFromEvent(e){
+    var svg = document.getElementById('map-svg');
+    var pt = svg.createSVGPoint();
+    pt.x = e.clientX; pt.y = e.clientY;
+    return pt.matrixTransform(svg.getScreenCTM().inverse());
+  }
+  function moveSelectedTokenTo(loc){
+    if(!selectedTokenId || !boardData) return;
+    var gx = Math.floor(loc.x/GRID)*GRID + GRID/2;
+    var gy = Math.floor(loc.y/GRID)*GRID + GRID/2;
+    var tok = tokens.filter(function(t){return t.id===selectedTokenId;})[0];
+    tok.x = gx; tok.y = gy;
+    renderTokens();
+    logLine(tok.name+' moved to grid cell ('+Math.floor(gx/GRID)+', '+Math.floor(gy/GRID)+').');
+  }
+  (function(){
+    var viewportEl = document.getElementById('viewport');
+    viewportEl.addEventListener('wheel', function(e){
+      if(!boardData) return;
+      e.preventDefault();
+      var svg = document.getElementById('map-svg');
+      var rect = svg.getBoundingClientRect();
+      var fx = (e.clientX-rect.left)/rect.width, fy = (e.clientY-rect.top)/rect.height;
+      var worldX = viewBox.x + fx*viewBox.w, worldY = viewBox.y + fy*viewBox.h;
+      var factor = e.deltaY>0 ? 1.15 : 1/1.15;
+      var newW = Math.max(viewBoxMinW, Math.min(viewBoxMaxW, viewBox.w*factor));
+      var newH = viewBox.h * (newW/viewBox.w);
+      viewBox.x = worldX - fx*newW;
+      viewBox.y = worldY - fy*newH;
+      viewBox.w = newW; viewBox.h = newH;
+      applyViewBox();
+    }, {passive:false});
+
+    var panState = null;
+    viewportEl.addEventListener('mousedown', function(e){
+      if(e.button!==0) return;
+      if(e.target.closest && e.target.closest('.token')) return; // let token clicks select, not pan
+      panState = {startX:e.clientX, startY:e.clientY, vb0:{x:viewBox.x,y:viewBox.y}, moved:false};
+    });
+    window.addEventListener('mousemove', function(e){
+      if(!panState) return;
+      var dx = e.clientX-panState.startX, dy = e.clientY-panState.startY;
+      if(Math.abs(dx)>3 || Math.abs(dy)>3) panState.moved = true;
+      if(panState.moved){
+        var svg = document.getElementById('map-svg');
+        var rect = svg.getBoundingClientRect();
+        viewBox.x = panState.vb0.x - dx*(viewBox.w/rect.width);
+        viewBox.y = panState.vb0.y - dy*(viewBox.h/rect.height);
+        applyViewBox();
+        viewportEl.style.cursor = 'grabbing';
+      }
+    });
+    window.addEventListener('mouseup', function(e){
+      if(!panState) return;
+      if(!panState.moved) moveSelectedTokenTo(svgPointFromEvent(e));
+      panState = null;
+      viewportEl.style.cursor = '';
+    });
+  })();
+
   function renderBoard(){
     var b = boardData.boundary || {x:0,y:0,w:1680,h:1200};
     var pad = GRID;
-    var svg = document.getElementById('map-svg');
-    svg.setAttribute('viewBox', (b.x-pad)+' '+(b.y-pad)+' '+(b.w+pad*2)+' '+(b.h+pad*2));
+    viewBox = {x:b.x-pad, y:b.y-pad, w:b.w+pad*2, h:b.h+pad*2};
+    viewBoxMaxW = viewBox.w*1.4;
+    applyViewBox();
     document.getElementById('map-status').style.display = 'none';
 
     var gridLayer = document.getElementById('grid-layer');
@@ -4004,20 +4076,6 @@
       ? (t.name+' selected — click a grid space to move.')
       : 'Click a chip to select it, then click a grid space to move it there.';
   }
-
-  document.getElementById('map-svg').addEventListener('click', function(e){
-    if(!selectedTokenId || !boardData) return;
-    var svg = document.getElementById('map-svg');
-    var pt = svg.createSVGPoint();
-    pt.x = e.clientX; pt.y = e.clientY;
-    var loc = pt.matrixTransform(svg.getScreenCTM().inverse());
-    var gx = Math.floor(loc.x/GRID)*GRID + GRID/2;
-    var gy = Math.floor(loc.y/GRID)*GRID + GRID/2;
-    var tok = tokens.filter(function(t){return t.id===selectedTokenId;})[0];
-    tok.x = gx; tok.y = gy;
-    renderTokens();
-    logLine(tok.name+' moved to grid cell ('+Math.floor(gx/GRID)+', '+Math.floor(gy/GRID)+').');
-  });
 
   loadBoard();
 </script>
