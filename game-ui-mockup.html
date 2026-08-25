@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ECHOES — Game UI Mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@300;400;600;700;900&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0c0f; --surface:#111318; --surface2:#1a1d24; --surface3:#20242c;
+    --border:#2a2d35; --border-bright:#3a3f4a;
+    --accent:#E8732A; --accent2:#4A90D9;
+    --text:#c8cdd8; --text-dim:#6b7080; --text-bright:#eef0f5;
+    --danger:#c0392b; --success:#1e7a3e; --warn:#d9a441;
+    --mono:'Share Tech Mono',monospace; --head:'Barlow Condensed',sans-serif; --body:'Barlow',sans-serif;
+    --hp:#3fae5a; --noise-low:#2c7a4a; --noise-mid:#c9962f; --noise-high:#b8402f;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:var(--body);}
+  body{
+    background:
+      radial-gradient(ellipse at top, rgba(74,144,217,0.06), transparent 60%),
+      var(--bg);
+    min-height:100vh;
+    display:flex; flex-direction:column;
+    font-size:14px;
+  }
+  ::selection{background:var(--accent2);color:#04070a;}
+  h1,h2,h3,h4{font-family:var(--head);font-weight:700;letter-spacing:0.03em;margin:0;}
+  .mono{font-family:var(--mono);}
+  button{font-family:var(--body);cursor:pointer;}
+
+  /* ── TOP BAR ─────────────────────────────────────────── */
+  #topbar{
+    display:flex;align-items:center;gap:18px;
+    padding:8px 18px;background:var(--surface);
+    border-bottom:1px solid var(--border);
+    flex-wrap:wrap;
+  }
+  #brand{display:flex;align-items:baseline;gap:8px;flex-shrink:0;}
+  #brand .logo{font-family:var(--head);font-weight:900;font-size:20px;letter-spacing:0.08em;color:var(--text-bright);}
+  #brand .logo span{color:var(--accent);}
+  #brand .sub{font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:0.1em;}
+
+  .turn-chip{
+    display:flex;align-items:center;gap:6px;
+    background:var(--surface2);border:1px solid var(--border);
+    border-radius:3px;padding:5px 10px;font-family:var(--mono);font-size:11px;color:var(--text-dim);
+    flex-shrink:0;
+  }
+  .turn-chip b{color:var(--text-bright);font-size:13px;}
+
+  /* Noise tracker — the horizontal centerpiece of the top bar */
+  #noise-wrap{flex:1 1 360px;min-width:280px;display:flex;flex-direction:column;gap:3px;}
+  #noise-label-row{display:flex;justify-content:space-between;align-items:center;}
+  #noise-label-row .lbl{font-family:var(--head);font-size:12px;letter-spacing:0.12em;color:var(--text-dim);}
+  #noise-label-row .val{font-family:var(--mono);font-size:15px;font-weight:bold;color:var(--text-bright);}
+  #noise-label-row .val .max{color:var(--text-dim);font-size:11px;}
+  #noise-track{
+    position:relative;height:20px;border-radius:3px;overflow:hidden;
+    background:var(--surface3);border:1px solid var(--border-bright);
+    display:flex;
+  }
+  #noise-track .seg{flex:1;position:relative;border-right:1px solid rgba(0,0,0,0.45);}
+  #noise-track .seg:last-child{border-right:none;}
+  #noise-track .seg.tier-safe{background:linear-gradient(180deg,rgba(63,174,90,0.18),rgba(63,174,90,0.05));}
+  #noise-track .seg.tier-1{background:linear-gradient(180deg,rgba(217,164,65,0.16),rgba(217,164,65,0.04));}
+  #noise-track .seg.tier-2{background:linear-gradient(180deg,rgba(217,130,50,0.20),rgba(217,130,50,0.05));}
+  #noise-track .seg.tier-3{background:linear-gradient(180deg,rgba(184,64,47,0.28),rgba(184,64,47,0.08));}
+  #noise-fill{
+    position:absolute;top:0;left:0;bottom:0;
+    background:linear-gradient(90deg,var(--noise-low),var(--noise-mid) 55%,var(--noise-high));
+    width:33%;transition:width 0.35s ease;
+    box-shadow:0 0 10px rgba(232,115,42,0.4);
+  }
+  #noise-marker{
+    position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--text-bright);
+    left:33%;transition:left 0.35s ease;box-shadow:0 0 4px #fff;
+  }
+  #noise-ticks{display:flex;font-family:var(--mono);font-size:8px;color:var(--text-dim);}
+  #noise-ticks span{flex:1;text-align:center;border-right:1px solid transparent;}
+  #noise-controls{display:flex;gap:4px;flex-shrink:0;}
+  .mini-btn{
+    background:var(--surface2);border:1px solid var(--border-bright);color:var(--text);
+    width:24px;height:24px;border-radius:3px;font-family:var(--mono);font-size:13px;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .mini-btn:hover{border-color:var(--accent2);color:var(--text-bright);}
+
+  /* Creature status badge */
+  #creature-badge{
+    display:flex;align-items:center;gap:8px;flex-shrink:0;
+    background:var(--surface2);border:1px solid var(--border);border-radius:3px;padding:5px 12px;
+  }
+  #creature-badge .dot{width:9px;height:9px;border-radius:50%;background:var(--text-dim);}
+  #creature-badge.active .dot{background:var(--danger);box-shadow:0 0 8px var(--danger);animation:pulse 1.6s infinite;}
+  #creature-badge.dormant .dot{background:var(--text-dim);}
+  #creature-badge.signal-lost .dot{background:var(--warn);box-shadow:0 0 6px var(--warn);}
+  #creature-badge.vented .dot{background:var(--accent2);box-shadow:0 0 6px var(--accent2);}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.35;}}
+  #creature-badge .cs-label{font-family:var(--mono);font-size:9px;color:var(--text-dim);letter-spacing:0.08em;}
+  #creature-badge .cs-state{font-family:var(--head);font-size:13px;font-weight:700;color:var(--text-bright);letter-spacing:0.04em;}
+
+  /* ── MAIN LAYOUT ─────────────────────────────────────── */
+  #main{flex:1;display:grid;grid-template-columns:230px 1fr 270px;gap:1px;background:var(--border);overflow:hidden;min-height:0;}
+  .pane{background:var(--bg);display:flex;flex-direction:column;min-height:0;overflow:hidden;}
+  .pane-head{
+    padding:8px 12px;border-bottom:1px solid var(--border);background:var(--surface);
+    display:flex;align-items:center;justify-content:space-between;flex-shrink:0;
+  }
+  .pane-head h2{font-size:13px;letter-spacing:0.1em;color:var(--text-bright);}
+  .pane-head .count{font-family:var(--mono);font-size:10px;color:var(--text-dim);}
+  .pane-body{flex:1;overflow-y:auto;padding:10px;}
+  .pane-body::-webkit-scrollbar{width:8px;}
+  .pane-body::-webkit-scrollbar-thumb{background:var(--border-bright);border-radius:4px;}
+
+  /* LEFT — party roster + creature intel */
+  .crew-card{
+    display:flex;align-items:center;gap:8px;padding:7px 8px;margin-bottom:6px;
+    background:var(--surface);border:1px solid var(--border);border-radius:4px;cursor:pointer;
+    transition:border-color 0.15s,background 0.15s;
+  }
+  .crew-card:hover{border-color:var(--border-bright);}
+  .crew-card.active{border-color:var(--accent2);background:var(--surface2);}
+  .crew-card .avatar{
+    width:34px;height:34px;border-radius:4px;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--head);font-weight:900;font-size:15px;color:#04070a;
+  }
+  .crew-card .ci{flex:1;min-width:0;}
+  .crew-card .cname{font-family:var(--head);font-size:13px;font-weight:700;color:var(--text-bright);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .crew-card .crole{font-size:10px;color:var(--text-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .crew-card .chp{display:flex;align-items:center;gap:3px;margin-top:2px;}
+  .chp-bar{flex:1;height:4px;background:var(--surface3);border-radius:2px;overflow:hidden;}
+  .chp-bar i{display:block;height:100%;background:var(--hp);}
+  .chp-txt{font-family:var(--mono);font-size:9px;color:var(--text-dim);}
+  .crew-card.down{opacity:0.4;}
+  .crew-card.down .chp-bar i{background:var(--danger);}
+
+  .intel-box{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:10px;margin-top:4px;}
+  .intel-row{display:flex;justify-content:space-between;font-size:11px;padding:4px 0;border-bottom:1px dashed var(--border);}
+  .intel-row:last-child{border-bottom:none;}
+  .intel-row .k{color:var(--text-dim);}
+  .intel-row .v{font-family:var(--mono);color:var(--text-bright);}
+  .section-label{font-family:var(--head);font-size:11px;letter-spacing:0.12em;color:var(--text-dim);margin:14px 0 6px;text-transform:uppercase;}
+  .section-label:first-child{margin-top:0;}
+
+  /* CENTER — board viewport */
+  #board-pane{position:relative;}
+  #board-toolbar{
+    display:flex;align-items:center;gap:10px;padding:6px 12px;background:var(--surface);
+    border-bottom:1px solid var(--border);flex-wrap:wrap;flex-shrink:0;
+  }
+  .pip-group{display:flex;align-items:center;gap:6px;}
+  .pip-group .pg-label{font-family:var(--mono);font-size:9px;color:var(--text-dim);letter-spacing:0.08em;margin-right:2px;}
+  .pip{
+    width:16px;height:16px;border-radius:50%;border:1.5px solid var(--border-bright);
+    background:var(--surface3);cursor:pointer;transition:all 0.12s;
+  }
+  .pip.filled{background:var(--accent2);border-color:var(--accent2);box-shadow:0 0 5px rgba(74,144,217,0.6);}
+  .pip.filled.action{background:var(--accent);border-color:var(--accent);box-shadow:0 0 5px rgba(232,115,42,0.6);}
+  .toolbar-spacer{flex:1;}
+  #end-turn-btn{
+    background:var(--accent);border:none;color:#1a0d02;font-family:var(--head);font-weight:700;
+    font-size:12px;letter-spacing:0.06em;padding:6px 16px;border-radius:3px;
+  }
+  #end-turn-btn:hover{background:#f28742;}
+
+  #viewport{
+    flex:1;position:relative;overflow:auto;
+    background:
+      linear-gradient(rgba(74,144,217,0.05) 1px,transparent 1px) 0 0/40px 40px,
+      linear-gradient(90deg,rgba(74,144,217,0.05) 1px,transparent 1px) 0 0/40px 40px,
+      #0c1016;
+  }
+  #map-svg{display:block;}
+  .room-rect{stroke-width:2;fill-opacity:0.16;rx:2;}
+  .room-label{font-family:var(--mono);font-size:10px;fill:var(--text-dim);letter-spacing:0.05em;}
+  .fog-rect{fill:#05070a;stroke:#232830;stroke-width:1.5;stroke-dasharray:5,4;}
+  .fog-label{font-family:var(--mono);font-size:9px;fill:#3a4048;letter-spacing:0.1em;}
+  .token{cursor:pointer;}
+  .token-ring{fill:none;stroke-width:2;}
+  .token-glyph{font-family:var(--head);font-weight:900;font-size:11px;fill:#04070a;text-anchor:middle;dominant-baseline:central;}
+  .creature-token{fill:var(--danger);filter:drop-shadow(0 0 6px rgba(192,57,43,0.7));}
+  .creature-token-x{stroke:#7a1f18;stroke-width:1.5;}
+  .vent-line{stroke:#2f3540;stroke-width:6;stroke-dasharray:2,4;fill:none;}
+  .door-mark{stroke:#d9a441;stroke-width:3;stroke-linecap:round;}
+
+  #legend{
+    position:absolute;bottom:10px;left:10px;background:rgba(10,12,15,0.88);
+    border:1px solid var(--border);border-radius:4px;padding:8px 10px;
+    font-family:var(--mono);font-size:9px;color:var(--text-dim);display:flex;gap:14px;
+  }
+  #legend .li{display:flex;align-items:center;gap:5px;}
+  #legend .sw{width:9px;height:9px;border-radius:2px;flex-shrink:0;}
+
+  /* RIGHT — task board / echo deck / log */
+  .task-card{
+    background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--accent2);
+    border-radius:3px;padding:8px 9px;margin-bottom:7px;
+  }
+  .task-card.blueprint{border-left-color:var(--warn);}
+  .task-card.stacked{border-left-color:var(--accent);}
+  .task-card .tt{font-family:var(--head);font-size:12px;font-weight:700;color:var(--text-bright);}
+  .task-card .td{font-size:10px;color:var(--text-dim);margin-top:3px;line-height:1.4;}
+  .task-card .tp{display:flex;gap:4px;margin-top:6px;flex-wrap:wrap;}
+  .tag{font-family:var(--mono);font-size:8px;padding:2px 5px;border-radius:2px;background:var(--surface3);color:var(--text-dim);letter-spacing:0.04em;}
+  .tag.res{color:var(--text-bright);}
+
+  #deck-box{
+    display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--border);
+    border-radius:4px;padding:10px;margin-bottom:10px;
+  }
+  #deck-face{
+    width:40px;height:56px;border-radius:3px;background:linear-gradient(135deg,var(--surface3),var(--surface2));
+    border:1px solid var(--border-bright);display:flex;align-items:center;justify-content:center;
+    font-family:var(--head);font-weight:900;color:var(--accent);font-size:16px;flex-shrink:0;
+  }
+  #deck-info{flex:1;font-size:10px;color:var(--text-dim);line-height:1.5;}
+  #deck-info b{color:var(--text-bright);display:block;font-family:var(--head);font-size:12px;}
+  #draw-btn{
+    background:var(--surface2);border:1px solid var(--accent2);color:var(--accent2);
+    font-family:var(--mono);font-size:10px;padding:5px 9px;border-radius:3px;letter-spacing:0.05em;
+  }
+  #draw-btn:hover{background:rgba(74,144,217,0.14);}
+
+  .log-line{font-family:var(--mono);font-size:10px;color:var(--text-dim);padding:3px 0;border-bottom:1px dotted var(--border);line-height:1.4;}
+  .log-line .lt{color:#454b56;margin-right:5px;}
+  .log-line.noise{color:var(--warn);}
+  .log-line.danger{color:#d9776a;}
+  .log-line.good{color:#5fbf7f;}
+
+  /* ── PLAYER HUD (bottom) ─────────────────────────────── */
+  #hud{
+    background:var(--surface);border-top:1px solid var(--border);
+    display:grid;grid-template-columns:220px 190px 1fr 216px;gap:1px;background:var(--border);
+    flex-shrink:0;height:196px;
+  }
+  .hud-cell{background:var(--surface);padding:10px 14px;display:flex;flex-direction:column;gap:6px;min-width:0;overflow:hidden;}
+
+  /* Character summary cell */
+  #hud-char{flex-direction:row;align-items:center;gap:12px;}
+  #hud-avatar{
+    width:56px;height:56px;border-radius:6px;flex-shrink:0;
+    background:linear-gradient(160deg,var(--accent2),#2f5f8f);
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--head);font-weight:900;font-size:24px;color:#04070a;
+    border:2px solid var(--border-bright);
+  }
+  #hud-char-info{min-width:0;flex:1;}
+  #hud-char-name{font-family:var(--head);font-size:17px;font-weight:700;color:var(--text-bright);}
+  #hud-char-role{font-family:var(--mono);font-size:10px;color:var(--accent2);letter-spacing:0.05em;margin-bottom:5px;}
+  .stat-line{display:flex;align-items:center;gap:6px;margin-bottom:3px;}
+  .stat-line .sl-label{font-family:var(--mono);font-size:9px;color:var(--text-dim);width:34px;flex-shrink:0;}
+  .hp-track{flex:1;display:flex;gap:1.5px;height:9px;}
+  .hp-cube{flex:1;background:var(--surface3);border:1px solid var(--border-bright);border-radius:1px;}
+  .hp-cube.on{background:var(--hp);border-color:#5fd57f;}
+  .hp-num{font-family:var(--mono);font-size:9px;color:var(--text-bright);width:34px;text-align:right;flex-shrink:0;}
+  .spd-val{font-family:var(--mono);font-size:13px;color:var(--text-bright);font-weight:bold;}
+
+  /* Equipment grid */
+  #hud-equip .grid-label{display:flex;justify-content:space-between;align-items:baseline;}
+  #equip-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-top:2px;}
+  .slot{
+    aspect-ratio:1;border-radius:3px;background:var(--surface2);border:1px solid var(--border);
+    display:flex;align-items:center;justify-content:center;position:relative;
+    font-family:var(--mono);font-size:9px;color:var(--text-dim);text-align:center;line-height:1.15;
+  }
+  .slot.filled{background:var(--surface3);border-color:var(--border-bright);color:var(--text-bright);}
+  .slot.weapon{border-color:rgba(232,115,42,0.5);}
+  .slot.armor{border-color:rgba(74,144,217,0.5);}
+  .slot .badge{position:absolute;top:1px;right:2px;font-size:7px;color:var(--text-dim);}
+
+  /* Backpack grid */
+  #hud-backpack .grid-label{display:flex;justify-content:space-between;align-items:baseline;}
+  #backpack-grid{display:grid;grid-template-columns:repeat(11,1fr);grid-auto-rows:34px;gap:3px;margin-top:2px;overflow:hidden;}
+  .bslot{
+    height:34px;border-radius:2px;background:var(--surface2);border:1px solid var(--border);
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--mono);font-size:8px;color:var(--text-dim);
+  }
+  .bslot.filled{color:#04070a;font-weight:bold;}
+  .bslot.reserved{border-style:dashed;border-color:var(--border-bright);}
+  .encumber-bar{height:5px;border-radius:3px;background:var(--surface3);overflow:hidden;margin-top:2px;}
+  .encumber-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--success),var(--warn),var(--danger));width:54%;}
+  .encumber-txt{font-family:var(--mono);font-size:8px;color:var(--text-dim);margin-top:2px;}
+
+  /* Resources row */
+  #res-row{display:flex;gap:6px;margin-top:4px;}
+  .res-pill{
+    flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:3px;
+    padding:4px 2px;text-align:center;
+  }
+  .res-pill .rn{font-family:var(--mono);font-size:14px;font-weight:bold;color:var(--text-bright);}
+  .res-pill .rl{font-family:var(--mono);font-size:7px;color:var(--text-dim);letter-spacing:0.06em;}
+
+  /* Dice tray */
+  #hud-dice{gap:8px;}
+  #dice-row{display:flex;gap:4px;justify-content:space-between;}
+  .die{
+    width:31px;height:31px;border-radius:5px;flex-shrink:0;cursor:pointer;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    border:1.5px solid var(--border-bright);transition:transform 0.12s;
+    font-family:var(--head);font-weight:900;
+  }
+  .die:hover{transform:translateY(-2px);}
+  .die .dg{font-size:11px;line-height:1;}
+  .die .dl{font-family:var(--mono);font-size:5px;letter-spacing:0.02em;margin-top:1px;}
+  .die.kept{outline:2px solid var(--text-bright);outline-offset:1px;}
+  #dice-actions{display:flex;gap:6px;align-items:center;}
+  #roll-btn{
+    background:var(--accent2);border:none;color:#04141f;font-family:var(--head);font-weight:700;
+    font-size:11px;padding:6px 12px;border-radius:3px;flex:1;
+  }
+  #roll-btn:hover{background:#63a3e6;}
+  #rolls-left{font-family:var(--mono);font-size:10px;color:var(--text-dim);}
+
+  .foot-hint{font-family:var(--mono);font-size:9px;color:#3a4048;padding:4px 14px;border-top:1px solid var(--border);}
+
+  @media (max-width:1150px){
+    #main{grid-template-columns:1fr;}
+    #hud{grid-template-columns:1fr 1fr;}
+  }
+</style>
+</head>
+<body>
+
+  <!-- TOP BAR -->
+  <div id="topbar">
+    <div id="brand">
+      <div class="logo">ECHO<span>ES</span></div>
+      <div class="sub">DERELICT PROTOCOL</div>
+    </div>
+
+    <div class="turn-chip">TURN <b id="turn-num">04</b></div>
+    <div class="turn-chip">PHASE <b id="phase-label">PLAYER</b></div>
+
+    <div id="noise-wrap">
+      <div id="noise-label-row">
+        <span class="lbl">// NOISE TRACKER</span>
+        <span class="val"><span id="noise-num">4</span><span class="max"> / 12</span></span>
+      </div>
+      <div id="noise-track">
+        <div id="noise-fill"></div>
+        <div id="noise-marker"></div>
+        <div class="seg tier-safe" title="Pass — half-speed drift toward last noise"></div>
+        <div class="seg tier-safe"></div>
+        <div class="seg tier-safe"></div>
+        <div class="seg tier-1" title="Fail 1–4 — Direct Pursuit"></div>
+        <div class="seg tier-1"></div>
+        <div class="seg tier-1"></div>
+        <div class="seg tier-1"></div>
+        <div class="seg tier-2" title="Fail 5–8 — Vent Shortcut"></div>
+        <div class="seg tier-2"></div>
+        <div class="seg tier-2"></div>
+        <div class="seg tier-2"></div>
+        <div class="seg tier-3" title="Fail 9–12 — Immediate Vent"></div>
+      </div>
+      <div id="noise-ticks">
+        <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span>12</span>
+      </div>
+    </div>
+    <div id="noise-controls">
+      <button class="mini-btn" onclick="adjustNoise(-1)">−</button>
+      <button class="mini-btn" onclick="adjustNoise(1)">+</button>
+    </div>
+
+    <div id="creature-badge" class="active">
+      <div class="dot"></div>
+      <div>
+        <div class="cs-label">CREATURE</div>
+        <div class="cs-state" id="creature-state">ACTIVE</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div id="main">
+
+    <!-- LEFT: crew + creature intel -->
+    <div class="pane" id="crew-pane">
+      <div class="pane-head"><h2>CREW</h2><span class="count">3/4 alive</span></div>
+      <div class="pane-body">
+        <div class="crew-card active" onclick="selectCrew(this,'Voss','Combat Specialist','#E8732A',10,12)">
+          <div class="avatar" style="background:#E8732A;">V</div>
+          <div class="ci">
+            <div class="cname">Voss</div>
+            <div class="crole">Combat Specialist</div>
+            <div class="chp"><div class="chp-bar"><i style="width:83%;"></i></div><div class="chp-txt">10/12</div></div>
+          </div>
+        </div>
+        <div class="crew-card" onclick="selectCrew(this,'Iker','Engineer','#bf7c0a',7,12)">
+          <div class="avatar" style="background:#bf7c0a;">I</div>
+          <div class="ci">
+            <div class="cname">Iker</div>
+            <div class="crole">Engineer / Technician</div>
+            <div class="chp"><div class="chp-bar"><i style="width:58%;"></i></div><div class="chp-txt">7/12</div></div>
+          </div>
+        </div>
+        <div class="crew-card" onclick="selectCrew(this,'Nadia','Scout','#4db896',12,12)">
+          <div class="avatar" style="background:#4db896;">N</div>
+          <div class="ci">
+            <div class="cname">Nadia</div>
+            <div class="crole">Scout / Infiltrator</div>
+            <div class="chp"><div class="chp-bar"><i style="width:100%;"></i></div><div class="chp-txt">12/12</div></div>
+          </div>
+        </div>
+        <div class="crew-card down">
+          <div class="avatar" style="background:#556070;">R</div>
+          <div class="ci">
+            <div class="cname">Reyes</div>
+            <div class="crole">Medic / Support</div>
+            <div class="chp"><div class="chp-bar"><i style="width:0%;"></i></div><div class="chp-txt">0/12 — DOWN</div></div>
+          </div>
+        </div>
+
+        <div class="section-label">Creature Intel</div>
+        <div class="intel-box">
+          <div class="intel-row"><span class="k">Last Known</span><span class="v">Engineering</span></div>
+          <div class="intel-row"><span class="k">Speed</span><span class="v">~8 / phase</span></div>
+          <div class="intel-row"><span class="k">Last Check</span><span class="v">Fail · 5–8</span></div>
+          <div class="intel-row"><span class="k">Behavior</span><span class="v">Vent Shortcut</span></div>
+        </div>
+
+        <div class="section-label">Objectives</div>
+        <div class="intel-box">
+          <div class="intel-row"><span class="k">Fuel Grid</span><span class="v">6 / 20</span></div>
+          <div class="intel-row"><span class="k">Data Fragments</span><span class="v">3 found</span></div>
+          <div class="intel-row"><span class="k">Rooms Found</span><span class="v">11 / ~18</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CENTER: board viewport -->
+    <div class="pane" id="board-pane">
+      <div id="board-toolbar">
+        <div class="pip-group">
+          <span class="pg-label">MOVE</span>
+          <div class="pip filled" onclick="togglePip(this)"></div>
+          <div class="pip" onclick="togglePip(this)"></div>
+        </div>
+        <div class="pip-group">
+          <span class="pg-label">ACTION</span>
+          <div class="pip filled action" onclick="togglePip(this)"></div>
+          <div class="pip action" onclick="togglePip(this)"></div>
+        </div>
+        <div class="pip-group">
+          <span class="pg-label">ABILITY</span>
+          <div class="pip" onclick="togglePip(this)"></div>
+        </div>
+        <div class="toolbar-spacer"></div>
+        <button id="end-turn-btn" onclick="endTurn()">END TURN →</button>
+      </div>
+
+      <div id="viewport">
+        <svg id="map-svg" width="920" height="640" viewBox="0 0 920 640">
+          <!-- vent network -->
+          <path class="vent-line" d="M 460 40 L 460 600"></path>
+          <path class="vent-line" d="M 120 320 L 800 320"></path>
+
+          <!-- discovered rooms -->
+          <rect class="room-rect" x="360" y="120" width="200" height="160" style="stroke:#E8732A;fill:#E8732A;"></rect>
+          <text class="room-label" x="372" y="140">OPERATIONS CENTER</text>
+
+          <rect class="room-rect" x="160" y="120" width="140" height="120" style="stroke:#bf7c0a;fill:#bf7c0a;"></rect>
+          <text class="room-label" x="172" y="140">ENGINEERING</text>
+
+          <rect class="room-rect" x="600" y="120" width="140" height="120" style="stroke:#4db896;fill:#4db896;"></rect>
+          <text class="room-label" x="612" y="140">RESEARCH</text>
+
+          <rect class="room-rect" x="160" y="400" width="140" height="120" style="stroke:#c9a24a;fill:#c9a24a;"></rect>
+          <text class="room-label" x="172" y="420">CARGO</text>
+
+          <rect class="room-rect" x="600" y="400" width="140" height="120" style="stroke:#e05050;fill:#e05050;"></rect>
+          <text class="room-label" x="612" y="420">MEDICAL</text>
+
+          <rect class="room-rect" x="360" y="440" width="200" height="120" style="stroke:#4fc3f7;fill:#4fc3f7;"></rect>
+          <text class="room-label" x="372" y="460">THE DOCK</text>
+
+          <!-- undiscovered / fog of war -->
+          <rect class="fog-rect" x="20" y="260" width="120" height="100"></rect>
+          <text class="fog-label" x="40" y="315">FOG</text>
+          <rect class="fog-rect" x="780" y="260" width="120" height="100"></rect>
+          <text class="fog-label" x="800" y="315">FOG</text>
+          <rect class="fog-rect" x="360" y="20" width="200" height="80"></rect>
+          <text class="fog-label" x="420" y="65">FOG</text>
+
+          <!-- doors -->
+          <line class="door-mark" x1="300" y1="180" x2="360" y2="180"></line>
+          <line class="door-mark" x1="560" y1="180" x2="600" y2="180"></line>
+          <line class="door-mark" x1="460" y1="280" x2="460" y2="320"></line>
+          <line class="door-mark" x1="300" y1="460" x2="360" y2="460"></line>
+          <line class="door-mark" x1="560" y1="460" x2="600" y2="460"></line>
+
+          <!-- crew tokens -->
+          <g class="token" transform="translate(430,200)">
+            <circle r="11" fill="#E8732A"></circle>
+            <circle class="token-ring" r="14" stroke="#E8732A"></circle>
+            <text class="token-glyph" y="0.5">V</text>
+          </g>
+          <g class="token" transform="translate(230,180)">
+            <circle r="11" fill="#bf7c0a"></circle>
+            <circle class="token-ring" r="14" stroke="#bf7c0a"></circle>
+            <text class="token-glyph" y="0.5">I</text>
+          </g>
+          <g class="token" transform="translate(660,460)">
+            <circle r="11" fill="#4db896"></circle>
+            <circle class="token-ring" r="14" stroke="#4db896"></circle>
+            <text class="token-glyph" y="0.5">N</text>
+          </g>
+
+          <!-- creature -->
+          <g class="token" transform="translate(230,220)">
+            <circle class="creature-token" r="13"></circle>
+            <line class="creature-token-x" x1="-6" y1="-6" x2="6" y2="6"></line>
+            <line class="creature-token-x" x1="-6" y1="6" x2="6" y2="-6"></line>
+          </g>
+        </svg>
+
+        <div id="legend">
+          <div class="li"><span class="sw" style="background:#E8732A;"></span>Ops Center</div>
+          <div class="li"><span class="sw" style="background:#4fc3f7;"></span>The Dock</div>
+          <div class="li"><span class="sw" style="background:#05070a;border:1px dashed #3a4048;"></span>Fog of War</div>
+          <div class="li"><span class="sw" style="background:var(--danger);"></span>Creature</div>
+          <div class="li"><span class="sw" style="background:#d9a441;"></span>Door</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: echo deck + task board + log -->
+    <div class="pane" id="right-pane">
+      <div class="pane-head"><h2>ECHO DECK</h2><span class="count">84 left</span></div>
+      <div class="pane-body">
+        <div id="deck-box">
+          <div id="deck-face">?</div>
+          <div id="deck-info">
+            <b>Draw a card</b>
+            Room discovery, terminal interaction, or event.
+          </div>
+        </div>
+        <button id="draw-btn" style="width:100%;margin-bottom:14px;" onclick="drawCard()">&#9654; DRAW ECHO CARD</button>
+
+        <div class="section-label">Task Board</div>
+        <div class="task-card blueprint">
+          <div class="tt">Blueprint — Shotgun</div>
+          <div class="td">Stacked task chain. 1 of 3 cards completed.</div>
+          <div class="tp"><span class="tag res">3 Components</span><span class="tag res">2 Data</span></div>
+        </div>
+        <div class="task-card stacked">
+          <div class="tt">CONTACT — Pending</div>
+          <div class="td">Threat Tokens accumulating. Names a room family on discovery.</div>
+          <div class="tp"><span class="tag">2 Threat Tokens</span></div>
+        </div>
+        <div class="task-card">
+          <div class="tt">Recover Data Fragment</div>
+          <div class="td">Navigate to Research terminal, adjacent required.</div>
+          <div class="tp"><span class="tag res">Data ×1</span></div>
+        </div>
+
+        <div class="section-label">Activity Log</div>
+        <div id="log">
+          <div class="log-line"><span class="lt">T04</span>Nadia moved to The Dock. <span style="color:var(--text-dim)">+1 noise</span></div>
+          <div class="log-line noise"><span class="lt">T04</span>Noise check — FAIL 5–8. Vent Shortcut.</div>
+          <div class="log-line"><span class="lt">T03</span>Iker searched Cargo locker. <span style="color:var(--text-dim)">+2 noise</span></div>
+          <div class="log-line good"><span class="lt">T03</span>Voss defeated encounter — pushback 3.</div>
+          <div class="log-line danger"><span class="lt">T02</span>Reyes eliminated. Inventory dropped.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PLAYER HUD -->
+  <div id="hud">
+    <div class="hud-cell" id="hud-char">
+      <div id="hud-avatar">V</div>
+      <div id="hud-char-info">
+        <div id="hud-char-name">Voss</div>
+        <div id="hud-char-role">Combat Specialist</div>
+        <div class="stat-line">
+          <span class="sl-label">HP</span>
+          <div class="hp-track" id="hp-track"></div>
+          <span class="hp-num" id="hp-num">10/12</span>
+        </div>
+        <div class="stat-line">
+          <span class="sl-label">SPD</span>
+          <span class="spd-val">6</span>
+          <span style="font-family:var(--mono);font-size:9px;color:var(--text-dim);margin-left:8px;">Hardened · Force</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="hud-cell" id="hud-equip">
+      <div class="grid-label"><span class="section-label" style="margin:0;">Equipment</span><span class="count" style="font-family:var(--mono);font-size:9px;color:var(--text-dim);">2/8</span></div>
+      <div id="equip-grid">
+        <div class="slot filled weapon">RIFLE<span class="badge">1×2</span></div>
+        <div class="slot filled armor">BRACER<span class="badge">1×2</span></div>
+        <div class="slot"></div>
+        <div class="slot"></div>
+        <div class="slot"></div>
+        <div class="slot"></div>
+        <div class="slot"></div>
+        <div class="slot"></div>
+      </div>
+    </div>
+
+    <div class="hud-cell" id="hud-backpack">
+      <div class="grid-label"><span class="section-label" style="margin:0;">Backpack</span><span class="count" style="font-family:var(--mono);font-size:9px;color:var(--text-dim);">12/22</span></div>
+      <div id="backpack-grid"></div>
+      <div class="encumber-bar"><i></i></div>
+      <div class="encumber-txt">ENCUMBERED AT 80% — currently 54%</div>
+      <div id="res-row">
+        <div class="res-pill"><div class="rn" style="color:#9ca3af;">4</div><div class="rl">SCRAP</div></div>
+        <div class="res-pill"><div class="rn" style="color:#c9a24a;">2</div><div class="rl">SALVAGE</div></div>
+        <div class="res-pill"><div class="rn" style="color:#bf7c0a;">3</div><div class="rl">COMPONENTS</div></div>
+        <div class="res-pill"><div class="rn" style="color:#4A90D9;">1</div><div class="rl">DATA</div></div>
+        <div class="res-pill"><div class="rn" style="color:var(--accent);">6</div><div class="rl">AMMO</div></div>
+      </div>
+    </div>
+
+    <div class="hud-cell" id="hud-dice">
+      <div class="grid-label"><span class="section-label" style="margin:0;">D12 System Dice</span></div>
+      <div id="dice-row"></div>
+      <div id="dice-actions">
+        <button id="roll-btn" onclick="rollDice()">&#9857; ROLL</button>
+        <span id="rolls-left">Roll 1 / 3</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="foot-hint">MOCKUP — ECHOES digital UI concept · click crew cards, dice, pips, or DRAW ECHO CARD for a feel of interaction · not connected to real game state</div>
+
+<script>
+  // ── Noise tracker ────────────────────────────────────
+  var noise = 4;
+  function renderNoise(){
+    var pct = (noise/12)*100;
+    document.getElementById('noise-fill').style.width = pct+'%';
+    document.getElementById('noise-marker').style.left = pct+'%';
+    document.getElementById('noise-num').textContent = noise;
+  }
+  function adjustNoise(d){
+    noise = Math.max(1, Math.min(12, noise+d));
+    renderNoise();
+    logLine('Noise adjusted to '+noise+'.', 'noise');
+  }
+  renderNoise();
+
+  // ── Crew selection ───────────────────────────────────
+  function selectCrew(el,name,role,color,hp,maxHp){
+    document.querySelectorAll('.crew-card').forEach(function(c){c.classList.remove('active');});
+    el.classList.add('active');
+    document.getElementById('hud-char-name').textContent = name;
+    document.getElementById('hud-char-role').textContent = role;
+    var av = document.getElementById('hud-avatar');
+    av.textContent = name[0];
+    av.style.background = 'linear-gradient(160deg,'+color+',#20242c)';
+    renderHP(hp,maxHp);
+  }
+  function renderHP(hp,maxHp){
+    var track = document.getElementById('hp-track');
+    track.innerHTML='';
+    for(var i=0;i<maxHp;i++){
+      var c = document.createElement('div');
+      c.className = 'hp-cube'+(i<hp?' on':'');
+      track.appendChild(c);
+    }
+    document.getElementById('hp-num').textContent = hp+'/'+maxHp;
+  }
+  renderHP(10,12);
+
+  // ── Backpack grid (22 slots, a few filled + reserved) ─
+  var backpackItems = ['SCR','SCR','SLV','SLV','CMP','CMP','CMP','DAT','AMMO','AMMO','AMMO','MED'];
+  var itemColor = {SCR:'#9ca3af',SLV:'#c9a24a',CMP:'#bf7c0a',DAT:'#4A90D9',AMMO:'#E8732A',MED:'#e05050'};
+  (function(){
+    var grid = document.getElementById('backpack-grid');
+    for(var i=0;i<22;i++){
+      var s = document.createElement('div');
+      if(i<backpackItems.length){
+        var it = backpackItems[i];
+        s.className='bslot filled';
+        s.style.background = itemColor[it];
+        s.textContent = it;
+      } else if(i>=18){
+        s.className='bslot reserved';
+        s.textContent='FUEL';
+      } else {
+        s.className='bslot';
+      }
+      grid.appendChild(s);
+    }
+  })();
+
+  // ── D12 dice tray ─────────────────────────────────────
+  var DICE_FACES = [
+    {g:'TECH',   c:'#4A90D9', bg:'rgba(74,144,217,0.16)'},
+    {g:'TOOLS',  c:'#d9a441', bg:'rgba(217,164,65,0.16)'},
+    {g:'DNA',    c:'#4db896', bg:'rgba(77,184,150,0.16)'},
+    {g:'HAZ',    c:'#e05050', bg:'rgba(224,80,80,0.16)'},
+    {g:'BIO',    c:'#8fbf6f', bg:'rgba(143,191,111,0.16)'},
+    {g:'WILD',   c:'#c47fc4', bg:'rgba(196,127,196,0.16)'},
+    {g:'NOISE',  c:'#8892a6', bg:'rgba(136,146,166,0.16)'},
+    {g:'SPIKE',  c:'#c0392b', bg:'rgba(192,57,43,0.20)'},
+    {g:'VOID',   c:'#454b56', bg:'rgba(69,75,86,0.30)'}
+  ];
+  var diceState = [0,1,3,5,6].map(function(i){return DICE_FACES[i];});
+  var rollsUsed = 0;
+  function renderDice(){
+    var row = document.getElementById('dice-row');
+    row.innerHTML='';
+    diceState.forEach(function(f,idx){
+      var d = document.createElement('div');
+      d.className='die';
+      d.style.background = f.bg;
+      d.style.color = f.c;
+      d.innerHTML = '<div class="dg">'+faceGlyph(f.g)+'</div><div class="dl">'+f.g+'</div>';
+      d.onclick = function(){ d.classList.toggle('kept'); };
+      row.appendChild(d);
+    });
+  }
+  function faceGlyph(g){
+    return {TECH:'&#9737;',TOOLS:'&#9874;',DNA:'&#8767;',HAZ:'&#9888;',BIO:'&#9763;',WILD:'&#10022;',NOISE:'&#128266;',SPIKE:'&#128266;',VOID:'&#10007;'}[g]||'?';
+  }
+  function rollDice(){
+    if(rollsUsed>=3){ logLine('No rolls remaining — resolve or end check.', 'danger'); return; }
+    var dice = document.querySelectorAll('.die');
+    diceState = diceState.map(function(f,idx){
+      if(dice[idx] && dice[idx].classList.contains('kept')) return f;
+      return DICE_FACES[Math.floor(Math.random()*DICE_FACES.length)];
+    });
+    rollsUsed++;
+    renderDice();
+    document.getElementById('rolls-left').textContent = 'Roll '+Math.min(rollsUsed+1,3)+' / 3';
+    logLine('Rolled dice ('+rollsUsed+'/3).', rollsUsed>=3?'noise':'');
+  }
+  renderDice();
+
+  // ── Move/Action pips ─────────────────────────────────
+  function togglePip(el){ el.classList.toggle('filled'); }
+
+  // ── End turn / draw card / log ───────────────────────
+  var turnNum = 4;
+  function endTurn(){
+    turnNum++;
+    document.getElementById('turn-num').textContent = String(turnNum).padStart(2,'0');
+    noise = 1; renderNoise();
+    rollsUsed = 0;
+    document.getElementById('rolls-left').textContent = 'Roll 1 / 3';
+    logLine('Turn '+turnNum+' begins. Noise reset.', 'good');
+  }
+  var deckCards = [
+    {t:'Room Discovery',d:'Enter unexplored room. Reveal Cargo family tile.'},
+    {t:'Echo Event — Pressure Leak',d:'Interrupt! Risk Selection mini-game triggered.'},
+    {t:'Blueprint — Medpack',d:'Stacked task chain begun. 0/2 completed.'},
+    {t:'Hazard — Coolant Spill',d:'D12 roll required: 2 Hazard faces to avoid damage.'}
+  ];
+  function drawCard(){
+    var c = deckCards[Math.floor(Math.random()*deckCards.length)];
+    document.getElementById('deck-info').innerHTML = '<b>'+c.t+'</b>'+c.d;
+    logLine('Drew Echo Card — '+c.t+'.', 'good');
+  }
+  function logLine(text, cls){
+    var log = document.getElementById('log');
+    var el = document.createElement('div');
+    el.className = 'log-line'+(cls?' '+cls:'');
+    el.innerHTML = '<span class="lt">T'+String(turnNum).padStart(2,'0')+'</span>'+text;
+    log.insertBefore(el, log.firstChild);
+  }
+</script>
+</body>
+</html>
