@@ -947,22 +947,28 @@
   /* Film grain: a constant, cheap fixed overlay — tiled SVG turbulence
      noise, blended with screen mode (overlay mode barely shows up against
      a near-black background — screen brightens against dark reliably) at
-     a tunable opacity, subtly jittering position so it reads as "moving"
-     grain rather than a static texture. */
+     a tunable opacity. Sized well past the viewport on every side and
+     pinned there with top/left/right/bottom instead of width/height, so
+     its own box edges are never inside the visible area — the "moving
+     grain" look comes from animating background-position (shifting the
+     tiled pattern within that oversized box) instead of translating the
+     box itself, which is what let the real edges show before. */
   #fx-grain {
-    position: fixed; inset: 0; z-index: 9998; pointer-events: none;
-    opacity: 0.12; mix-blend-mode: screen;
+    position: fixed; top: -25%; left: -25%; right: -25%; bottom: -25%;
+    z-index: 9998; pointer-events: none;
+    opacity: 0.10; mix-blend-mode: screen;
     background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
     background-size: 220px 220px;
+    background-repeat: repeat;
     animation: fxGrainShift 0.5s steps(4) infinite;
   }
   #fx-grain.fx-off { display: none; }
   @keyframes fxGrainShift {
-    0%   { transform: translate(0, 0); }
-    25%  { transform: translate(-2%, 1%); }
-    50%  { transform: translate(1%, -1%); }
-    75%  { transform: translate(-1%, 2%); }
-    100% { transform: translate(0, 0); }
+    0%   { background-position: 0 0; }
+    25%  { background-position: -30px 15px; }
+    50%  { background-position: 15px -15px; }
+    75%  { background-position: -15px 30px; }
+    100% { background-position: 0 0; }
   }
 
   /* Chromatic aberration glitch: an RGB-split SVG filter (see #fx-glitch-filter
@@ -1029,7 +1035,7 @@
 <div id="fx-controls">
   <div class="fx-row"><button id="fxGlitchBtn">&#9889; Trigger Glitch</button></div>
   <label class="fx-row"><input type="checkbox" id="fxGrainToggle" checked> Grain</label>
-  <div class="fx-row">Grain opacity <input type="number" id="fxGrainOpacity" value="12" min="0" max="100" step="1">%</div>
+  <div class="fx-row">Grain opacity <input type="number" id="fxGrainOpacity" value="10" min="0" max="100" step="1">%</div>
   <label class="fx-row"><input type="checkbox" id="fxAutoGlitchToggle" checked> Auto-glitch</label>
   <div class="fx-row">Every <input type="number" id="fxGlitchMin" value="6" min="1" max="60">&ndash;<input type="number" id="fxGlitchMax" value="16" min="1" max="60">s</div>
 </div>
