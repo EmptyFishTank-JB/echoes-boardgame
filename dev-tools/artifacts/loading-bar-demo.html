@@ -10,6 +10,7 @@
     --bg:#000000;
     --white:#ffffff;
     --accent:#E8732A;
+    --bad:#ff4d5e;
     --dim:rgba(255,255,255,0.35);
   }
   *{margin:0;padding:0;box-sizing:border-box;}
@@ -31,21 +32,27 @@
       transparent 1px, transparent 4px);
   }
 
+  #stage{
+    z-index:1;
+    display:flex;flex-direction:column;align-items:center;gap:26px;
+  }
+
   #bar-outline{
     position:relative;
     width:min(560px, 78vw);
     height:56px;
     border:4px solid var(--white);
-    z-index:1;
+    transition:border-color 0.2s;
   }
+  #bar-outline.errored{ border-color:var(--bad); }
   #bar-fill{
     position:absolute;top:0;left:0;bottom:0;
     width:0%;
     background:var(--white);
   }
+  #bar-fill.stutter{ background:repeating-linear-gradient(135deg, var(--white) 0 10px, #cfcfcf 10px 20px); }
 
   #loading-label{
-    z-index:1;
     color:var(--accent);
     font-size:15px;
     letter-spacing:0.45em;
@@ -53,18 +60,57 @@
     text-indent:0.45em; /* nudge for the letter-spacing so it optically centers */
   }
   #loading-label .dots{display:inline-block;width:1.4em;text-align:left;}
+  #loading-label.error-text{ color:var(--bad); letter-spacing:0.12em; text-indent:0; font-size:13px; }
 
   #pctLine{
-    z-index:1;
     color:var(--dim);
     font-size:11px;
     letter-spacing:0.2em;
     margin-top:-14px;
   }
 
+  #retryBtn{
+    font-family:'Share Tech Mono',monospace;
+    font-size:12px;letter-spacing:0.14em;text-transform:uppercase;
+    color:var(--bad);background:transparent;
+    border:1px solid var(--bad);border-radius:2px;
+    padding:9px 22px;cursor:pointer;
+    display:none;
+  }
+  #retryBtn:hover{ background:rgba(255,77,94,0.12); }
+  #retryBtn.show{ display:inline-block; }
+
+  /* ── VALUE BOX PANEL ── */
+  #panel{
+    z-index:1;
+    display:flex;gap:14px;flex-wrap:wrap;justify-content:center;
+    max-width:640px;
+  }
+  .value-box{
+    display:flex;flex-direction:column;gap:6px;
+    border:1px solid rgba(232,115,42,0.4);border-radius:2px;
+    padding:10px 14px;
+    min-width:150px;
+  }
+  .value-box label{
+    font-size:10px;letter-spacing:0.1em;text-transform:uppercase;
+    color:var(--dim);
+  }
+  .value-box .row{ display:flex; align-items:center; gap:8px; }
+  .value-box input[type="number"]{
+    width:64px;
+    font-family:'Share Tech Mono',monospace;
+    font-size:15px;color:var(--white);
+    background:transparent;border:none;border-bottom:1px solid var(--accent);
+    padding:2px 0;
+  }
+  .value-box input[type="number"]:focus{ outline:none; border-bottom-color:var(--white); }
+  .value-box .unit{ font-size:10px; color:var(--dim); }
+  .value-box .hint{ font-size:9px; color:rgba(255,255,255,0.22); line-height:1.4; }
+
   #controls{
     z-index:1;
-    display:flex;gap:10px;margin-top:22px;
+    display:flex;gap:10px;align-items:center;
   }
   #controls button{
     font-family:'Share Tech Mono',monospace;
@@ -74,10 +120,8 @@
     padding:8px 14px;cursor:pointer;
   }
   #controls button:hover{background:rgba(232,115,42,0.12);}
-  #controls label{
-    display:flex;align-items:center;gap:6px;
-    font-family:'Share Tech Mono',monospace;
-    font-size:11px;color:var(--dim);
+  #lastRunNote{
+    font-size:10px;color:var(--dim);letter-spacing:0.05em;
   }
 
   footer{
@@ -85,57 +129,74 @@
     font-family:'Share Tech Mono',monospace;
     font-size:9px;letter-spacing:0.14em;text-transform:uppercase;
     color:rgba(255,255,255,0.2);
+    text-align:center;
   }
 </style>
 </head>
 <body>
 
-<div id="bar-outline"><div id="bar-fill"></div></div>
-<div id="loading-label">LOADING<span class="dots" id="dots"></span></div>
-<div id="pctLine">0%</div>
+<div id="stage">
+  <div id="bar-outline"><div id="bar-fill"></div></div>
+  <div id="loading-label">LOADING<span class="dots" id="dots"></span></div>
+  <div id="pctLine">0%</div>
+  <button id="retryBtn">&#8635; Retry</button>
+</div>
+
+<div id="panel">
+  <div class="value-box">
+    <label>Load Time</label>
+    <div class="row"><input type="number" id="loadTime" value="2.5" min="0.3" max="15" step="0.1"><span class="unit">seconds</span></div>
+    <div class="hint">Target time to reach 100%, not counting stutter pauses.</div>
+  </div>
+  <div class="value-box">
+    <label>Stutter Count</label>
+    <div class="row"><input type="number" id="stutterCount" value="3" min="0" max="20" step="1"><span class="unit">stalls</span></div>
+    <div class="hint">How often it hitches mid-fill. 0 = perfectly smooth.</div>
+  </div>
+  <div class="value-box">
+    <label>Stutter Length</label>
+    <div class="row"><input type="number" id="stutterLen" value="150" min="20" max="1000" step="10"><span class="unit">ms each</span></div>
+    <div class="hint">How long each hitch freezes the bar.</div>
+  </div>
+  <div class="value-box">
+    <label>Fail Chance</label>
+    <div class="row"><input type="number" id="failChance" value="0" min="0" max="100" step="5"><span class="unit">%</span></div>
+    <div class="hint">Odds this run ends in "Error downloading content" instead of finishing.</div>
+  </div>
+</div>
 
 <div id="controls">
   <button id="replayBtn">&#9654; Replay</button>
-  <label>Speed
-    <select id="speedSel">
-      <option value="1200">Fast (1.2s)</option>
-      <option value="2500" selected>Reference (2.5s)</option>
-      <option value="4500">Slow (4.5s)</option>
-    </select>
-  </label>
+  <span id="lastRunNote"></span>
 </div>
 
-<footer>ECHOES // artifact — loading bar reference, not wired into any real page yet</footer>
+<footer>ECHOES // artifact — loading bar reference, not wired into any real page yet<br>Values above are for tuning feel only — not persisted, not read by any real loader.</footer>
 
 <script>
 (function(){
+  var barOutline = document.getElementById('bar-outline');
   var fill = document.getElementById('bar-fill');
   var pctLine = document.getElementById('pctLine');
+  var label = document.getElementById('loading-label');
   var dots = document.getElementById('dots');
+  var retryBtn = document.getElementById('retryBtn');
   var replayBtn = document.getElementById('replayBtn');
-  var speedSel = document.getElementById('speedSel');
+  var lastRunNote = document.getElementById('lastRunNote');
+
+  var loadTimeInput = document.getElementById('loadTime');
+  var stutterCountInput = document.getElementById('stutterCount');
+  var stutterLenInput = document.getElementById('stutterLen');
+  var failChanceInput = document.getElementById('failChance');
 
   var raf = null;
   var dotsTimer = null;
 
-  function runFill(durationMs){
-    if (raf) cancelAnimationFrame(raf);
-    var start = null;
-    function tick(ts){
-      if (start === null) start = ts;
-      var elapsed = ts - start;
-      var pct = Math.min(100, (elapsed / durationMs) * 100);
-      fill.style.width = pct + '%';
-      pctLine.textContent = Math.floor(pct) + '%';
-      if (pct < 100){
-        raf = requestAnimationFrame(tick);
-      } else {
-        raf = null;
-      }
-    }
-    fill.style.width = '0%';
-    pctLine.textContent = '0%';
-    raf = requestAnimationFrame(tick);
+  function clampInputs(){
+    var lt = Math.max(0.3, Math.min(15, parseFloat(loadTimeInput.value) || 2.5));
+    var sc = Math.max(0, Math.min(20, Math.round(parseFloat(stutterCountInput.value) || 0)));
+    var sl = Math.max(20, Math.min(1000, parseFloat(stutterLenInput.value) || 150));
+    var fc = Math.max(0, Math.min(100, parseFloat(failChanceInput.value) || 0));
+    return { loadTimeMs: lt * 1000, stutterCount: sc, stutterLenMs: sl, failChance: fc };
   }
 
   function runDots(){
@@ -147,14 +208,102 @@
     }, 400);
   }
 
+  function showLoadingUI(){
+    barOutline.classList.remove('errored');
+    fill.classList.remove('stutter');
+    label.classList.remove('error-text');
+    label.innerHTML = 'LOADING<span class="dots" id="dots"></span>';
+    dots = document.getElementById('dots');
+    pctLine.style.display = '';
+    retryBtn.classList.remove('show');
+  }
+
+  function showErrorUI(){
+    if (dotsTimer) clearInterval(dotsTimer);
+    barOutline.classList.add('errored');
+    label.classList.add('error-text');
+    label.textContent = 'ERROR DOWNLOADING CONTENT';
+    pctLine.style.display = 'none';
+    retryBtn.classList.add('show');
+  }
+
   function play(){
-    var duration = parseInt(speedSel.value, 10);
-    runFill(duration);
+    var cfg = clampInputs();
+    if (raf) cancelAnimationFrame(raf);
+    showLoadingUI();
     runDots();
+    fill.style.width = '0%';
+    pctLine.textContent = '0%';
+
+    // Decide up front whether this run fails, and if so, at roughly what
+    // point in the fill it gives up — mirrors a real stalled download
+    // rather than always dying at a suspiciously round number.
+    var willFail = Math.random() * 100 < cfg.failChance;
+    var failAtPct = willFail ? (35 + Math.random() * 45) : null; // 35–80%
+
+    // Pre-pick stutter trigger points along the fill (5–95%, spaced out a
+    // little so they don't cluster), each fired once as progress crosses it.
+    var stutterPoints = [];
+    for (var i = 0; i < cfg.stutterCount; i++){
+      stutterPoints.push(5 + Math.random() * 90);
+    }
+    stutterPoints.sort(function(a, b){ return a - b; });
+    var nextStutterIdx = 0;
+    var pausedUntil = 0;
+    var productiveElapsed = 0;
+    var lastTs = null;
+
+    function tick(ts){
+      if (lastTs === null) lastTs = ts;
+      var dt = ts - lastTs;
+      lastTs = ts;
+
+      if (ts < pausedUntil){
+        raf = requestAnimationFrame(tick);
+        return;
+      }
+      fill.classList.remove('stutter');
+
+      productiveElapsed += dt;
+      var pct = Math.min(100, (productiveElapsed / cfg.loadTimeMs) * 100);
+
+      if (willFail && pct >= failAtPct){
+        fill.style.width = failAtPct.toFixed(1) + '%';
+        showErrorUI();
+        raf = null;
+        return;
+      }
+
+      // Trigger the next stutter once progress reaches it.
+      if (nextStutterIdx < stutterPoints.length && pct >= stutterPoints[nextStutterIdx]){
+        nextStutterIdx++;
+        pausedUntil = ts + cfg.stutterLenMs;
+        fill.classList.add('stutter');
+      }
+
+      fill.style.width = pct + '%';
+      pctLine.textContent = Math.floor(pct) + '%';
+
+      if (pct < 100){
+        raf = requestAnimationFrame(tick);
+      } else {
+        raf = null;
+        if (dotsTimer) clearInterval(dotsTimer);
+        label.innerHTML = 'READY';
+      }
+    }
+    raf = requestAnimationFrame(tick);
+
+    lastRunNote.textContent = willFail
+      ? 'this run: scripted to fail near ' + Math.round(failAtPct) + '%'
+      : (cfg.stutterCount ? 'this run: ' + cfg.stutterCount + ' stutter(s) queued' : 'this run: smooth');
   }
 
   replayBtn.addEventListener('click', play);
-  speedSel.addEventListener('change', play);
+  retryBtn.addEventListener('click', play);
+  [loadTimeInput, stutterCountInput, stutterLenInput, failChanceInput].forEach(function(el){
+    el.addEventListener('change', play);
+  });
 
   play();
 })();
