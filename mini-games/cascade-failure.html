@@ -132,6 +132,9 @@
     padding: 14px 0; margin: 20px 0;
   }
   .rules-mini strong { color: var(--text); }
+  .rules-mini .num-violet { color: var(--violet); font-weight: 700; }
+  .rules-mini .num-green { color: var(--good); font-weight: 700; }
+  .rules-mini .num-blue { color: var(--accent); font-weight: 700; }
 
   .btn {
     display: block; width: 100%;
@@ -356,10 +359,10 @@
 
   <div class="rules-mini">
     <div><strong>Wager:</strong> Stake one resource before rolling. No resource = automatic failure.</div>
-    <div><strong>Win:</strong> Bank 18&ndash;20 &mdash; wager doubled. Bank exactly 21 &mdash; wager tripled.</div>
-    <div><strong>Partial Win:</strong> Bank 14&ndash;17 &mdash; wager returned, no bonus.</div>
-    <div><strong>Bust:</strong> Total exceeds 21 &mdash; wager lost, +3 Noise.</div>
+    <div><strong>Partial Win:</strong> Bank <span class="num-blue">14&ndash;17</span> &mdash; wager returned, no bonus.</div>
+    <div><strong>Win:</strong> Bank <span class="num-violet">18&ndash;20</span> &mdash; wager doubled. Bank exactly <span class="num-green">21</span> &mdash; wager tripled.</div>
     <div><strong>Short:</strong> Run out of rolls under 14 &mdash; wager lost, +3 Noise.</div>
+    <div><strong>Bust:</strong> Total exceeds 21 &mdash; wager lost, +3 Noise.</div>
     <div><strong>Every Run:</strong> +1 Noise per &ldquo;1&rdquo; rolled, whether you win or lose.</div>
   </div>
 
@@ -825,7 +828,7 @@
 
     mathLine.innerHTML = 'Roll ' + rollsUsed + '/' + MAX_ROLLS + ': Red <span class="val">' + red +
       '</span> + Blue <span class="val">' + blue + '</span> &rarr; total <span class="val">' + total + '</span>' +
-      (onesThisRoll ? ' <span class="val-one">(' + onesThisRoll + ' one' + (onesThisRoll > 1 ? 's' : '') + ')</span>' : '');
+      (onesCount ? ' <span class="val-one">(' + onesCount + ' one' + (onesCount > 1 ? 's' : '') + ')</span>' : '');
 
     log('<span class="tag">Roll ' + rollsUsed + '/' + MAX_ROLLS + '</span> — Red ' + red + ', Blue ' + blue +
       ' — running total ' + total + (onesThisRoll ? ', +' + onesThisRoll + ' to Ones' : ''));
