@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script src="assets/site-settings.js"></script>
 <meta charset="UTF-8">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+CiAgPHN0eWxlPgogICAgQGtleWZyYW1lcyBmewogICAgICAwJXtvcGFjaXR5OjF9CiAgICAgIDQwJXtvcGFjaXR5OjF9CiAgICAgIDUwJXtvcGFjaXR5OjAuNH0KICAgICAgNjAle29wYWNpdHk6MX0KICAgICAgMTAwJXtvcGFjaXR5OjF9CiAgICB9CiAgPC9zdHlsZT4KICAgICAgPGcgc3R5bGU9ImFuaW1hdGlvbjpmIDVzIDAuMDAwcyBpbmZpbml0ZSI+CiAgICAgICAgPHJlY3QgeD0iMC4wIiB5PSIxMC4wIgogICAgICAgICAgICAgIHdpZHRoPSI4LjAiIGhlaWdodD0iMTIuMCIKICAgICAgICAgICAgICByeD0iMi4wIgogICAgICAgICAgICAgIGZpbGw9IiNlODczMmEiIG9wYWNpdHk9IjAuNiIvPgogICAgICAgIDxyZWN0IHg9IjEuMCIgeT0iMTEuMCIKICAgICAgICAgICAgICB3aWR0aD0iNiIgaGVpZ2h0PSIxMC4wIgogICAgICAgICAgICAgIHJ4PSIxIiBmaWxsPSIjZTg3MzJhIi8+CiAgICAgIDwvZz4KICAgICAgPGcgc3R5bGU9ImFuaW1hdGlvbjpmIDVzIDEuMDAwcyBpbmZpbml0ZSI+CiAgICAgICAgPHJlY3QgeD0iMTIuMCIgeT0iNC4wIgogICAgICAgICAgICAgIHdpZHRoPSI4LjAiIGhlaWdodD0iMjQuMCIKICAgICAgICAgICAgICByeD0iMi4wIgogICAgICAgICAgICAgIGZpbGw9IiNlODczMmEiIG9wYWNpdHk9IjAuNiIvPgogICAgICAgIDxyZWN0IHg9IjEzLjAiIHk9IjUuMCIKICAgICAgICAgICAgICB3aWR0aD0iNiIgaGVpZ2h0PSIyMi4wIgogICAgICAgICAgICAgIHJ4PSIxIiBmaWxsPSIjZTg3MzJhIi8+CiAgICAgIDwvZz4KICAgICAgPGcgc3R5bGU9ImFuaW1hdGlvbjpmIDVzIDIuMDAwcyBpbmZpbml0ZSI+CiAgICAgICAgPHJlY3QgeD0iMjQuMCIgeT0iMTAuMCIKICAgICAgICAgICAgICB3aWR0aD0iOC4wIiBoZWlnaHQ9IjEyLjAiCiAgICAgICAgICAgICAgcng9IjIuMCIKICAgICAgICAgICAgICBmaWxsPSIjZTg3MzJhIiBvcGFjaXR5PSIwLjYiLz4KICAgICAgICA8cmVjdCB4PSIyNS4wIiB5PSIxMS4wIgogICAgICAgICAgICAgIHdpZHRoPSI2IiBoZWlnaHQ9IjEwLjAiCiAgICAgICAgICAgICAgcng9IjEiIGZpbGw9IiNlODczMmEiLz4KICAgICAgPC9nPgo8L3N2Zz4=">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,6 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
   :root {
+    --bg:         #0a0c0f;
     --text:       #eef0f5;
     --text-dim:   rgba(238,240,245,0.45);
     --accent:     #4fc3f7;
@@ -25,7 +27,7 @@
 
   html, body {
     width: 100%; height: 100%;
-    background: #0a0c0f;
+    background: var(--bg);
     overflow: hidden;
     font-family: 'Barlow Condensed', sans-serif;
     color: var(--text);
@@ -425,7 +427,10 @@
 <!-- ══ FOOTER ════════════════════════════════════════════════════ -->
 <footer>
   <span>ECHOES · &copy; 2026 EmptyFishTank-JB · In Development <span class="footer-meta">&middot; Updated <span id="updatedInfo">&mdash;</span> &middot; Commit <span id="commitInfo">&mdash;</span> &middot; STARDATE <span id="stardate">&mdash;</span></span></span>
-  <span class="accent right">// All content subject to change</span>
+  <span class="right" style="display:flex; align-items:center; gap:10px;">
+    <span class="accent">// All content subject to change</span>
+    <span id="echo-settings-slot"></span>
+  </span>
 </footer>
 
 <!-- ══ GLITCH ENGINE ══════════════════════════════════════════════ -->

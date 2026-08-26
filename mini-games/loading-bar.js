@@ -27,14 +27,14 @@
     stripe: false,
     failChance: 0,
     failColorize: true,
-    snapMs: 140
+    fadeMinS: 1, fadeMaxS: 1.5
   };
 
   var CSS = ''
     + '#echo-lb-overlay{position:fixed;inset:0;z-index:99999;background:#000;'
     + 'display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;'
-    + 'font-family:"Share Tech Mono",monospace;transition:opacity ' + CFG.snapMs + 'ms ease,transform ' + CFG.snapMs + 'ms ease;}'
-    + '#echo-lb-overlay.echo-lb-hide{opacity:0;transform:scale(0.97);pointer-events:none;}'
+    + 'font-family:"Share Tech Mono",monospace;opacity:1;}'
+    + '#echo-lb-overlay.echo-lb-hide{opacity:0;pointer-events:none;}'
     + '#echo-lb-bar{position:relative;width:min(420px,70vw);height:44px;border:4px solid #fff;}'
     + '#echo-lb-bar.errored{border-color:#ff4d5e;}'
     + '#echo-lb-fill{position:absolute;top:0;left:0;bottom:0;width:0%;background:#fff;}'
@@ -79,11 +79,15 @@
 
   function finish(){
     clearInterval(dotsTimer);
+    var fadeMs = rand(CFG.fadeMinS, CFG.fadeMaxS) * 1000;
+    overlay.style.transition = 'opacity ' + fadeMs + 'ms ease';
+    // force reflow so the transition applies before the class change
+    void overlay.offsetWidth;
     overlay.classList.add('echo-lb-hide');
     setTimeout(function(){
       if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
       document.documentElement.style.overflow = prevOverflow;
-    }, CFG.snapMs);
+    }, fadeMs);
   }
 
   function run(){
