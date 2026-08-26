@@ -297,6 +297,7 @@
     font-size: clamp(24px, 5vw, 36px); margin-bottom: 10px;
   }
   .result-banner.win .big { color: var(--good); }
+  .result-banner.win-blue .big { color: var(--accent); }
   .result-banner.partial .big { color: var(--violet); }
   .result-banner.fail .big { color: var(--bad); }
   .result-detail {
@@ -865,7 +866,7 @@
         resultDetail.innerHTML = 'Banked at exactly <strong>21</strong>. <strong>' + wager + '</strong> returned, tripled.' + onesNoise;
       } else if (fullWin){
         SFX.win();
-        resultBanner.className = 'result-banner win';
+        resultBanner.className = 'result-banner win-blue';
         resultBig.textContent = 'CASCADE CONTAINED';
         resultDetail.innerHTML = 'Banked at <strong>' + total + '</strong>. <strong>' + wager + '</strong> returned, doubled.' + onesNoise;
       } else if (partialWin){
