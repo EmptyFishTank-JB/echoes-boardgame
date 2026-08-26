@@ -31,9 +31,18 @@
   };
   var BG_ORDER = ['flat', 'gradient', 'black'];
 
+  // High contrast forces a pure-black background and swaps in a
+  // dramatically brightened text palette (overriding whatever --text
+  // vars the page itself defines), rather than a blanket CSS filter.
   var CONTRAST = {
-    normal: { label: 'Normal', filter: 'none' },
-    high: { label: 'High', filter: 'contrast(1.2) brightness(1.08)' }
+    normal: { label: 'Normal' },
+    high: {
+      label: 'High',
+      bg: '#000000',
+      text: '#ffffff',
+      textDim: '#d6dbe6',
+      textBright: '#ffffff'
+    }
   };
   var CONTRAST_ORDER = ['normal', 'high'];
 
@@ -65,15 +74,79 @@
     try { localStorage.setItem(STORE_KEY, JSON.stringify(settings)); } catch (e) {}
   }
 
+  // Forcibly brightens the footer text on every page, including spans
+  // that hardcode a low-opacity color instead of using --text-dim.
+  var HC_STYLE_ID = 'echo-hc-footer-override';
+  function ensureHcStyle(){
+    if (document.getElementById(HC_STYLE_ID)) return;
+    var el = document.createElement('style');
+    el.id = HC_STYLE_ID;
+    el.textContent = 'html.echo-hc footer, html.echo-hc footer *{color:#f5f7fb !important;opacity:1 !important;}';
+    (document.head || document.documentElement).appendChild(el);
+  }
+
   function apply(settings){
     var html = document.documentElement;
-    html.style.setProperty('--bg', BACKGROUNDS[settings.bg].value);
-    html.style.filter = CONTRAST[settings.contrast].filter;
+    var hc = settings.contrast === 'high';
+
+    ensureHcStyle();
+    html.classList.toggle('echo-hc', hc);
+
+    if (hc){
+      html.style.setProperty('--bg', CONTRAST.high.bg);
+      html.style.setProperty('--text', CONTRAST.high.text);
+      html.style.setProperty('--text-dim', CONTRAST.high.textDim);
+      html.style.setProperty('--text-bright', CONTRAST.high.textBright);
+    } else {
+      html.style.setProperty('--bg', BACKGROUNDS[settings.bg].value);
+      html.style.removeProperty('--text');
+      html.style.removeProperty('--text-dim');
+      html.style.removeProperty('--text-bright');
+    }
+
     html.style.zoom = TEXT_SIZES[settings.textSize].zoom;
+    fixNavPadding();
+  }
+
+  // The sidebar bookmarks nav is `position:fixed; height:100vh` with its
+  // own top/bottom padding, but the footer sits on top of it as a fixed
+  // bar — so the nav's last items get covered unless its bottom padding
+  // also clears the footer's actual (possibly zoomed/wrapped) height.
+  function fixNavPadding(){
+    var nav = document.getElementById('siteNav');
+    var footer = document.querySelector('footer');
+    if (!nav || !footer) return;
+    var zoomFactor = parseFloat(document.documentElement.style.zoom) || 1;
+    var topPadLocal = parseFloat(getComputedStyle(nav).paddingTop) || 0;
+
+    // Start from a reasonable estimate (footer height + the same
+    // padding already given at the top)...
+    var footerRenderedH = footer.getBoundingClientRect().height;
+    nav.style.paddingBottom = ((footerRenderedH + topPadLocal * zoomFactor) / zoomFactor) + 'px';
+
+    // ...then measure the real, still-visible gap once scrolled all
+    // the way down and close it directly. `zoom` scales an element's
+    // own rendered box without changing how vh/scrollHeight resolve,
+    // so estimating the right padding analytically is unreliable —
+    // measuring the actual leftover overlap and correcting for it
+    // works regardless of the underlying zoom math.
+    var lastChild = nav.lastElementChild;
+    if (!lastChild) return;
+    var prevScrollTop = nav.scrollTop;
+    nav.scrollTop = nav.scrollHeight;
+    var gap = lastChild.getBoundingClientRect().bottom - footer.getBoundingClientRect().top;
+    if (gap > 0){
+      var current = parseFloat(nav.style.paddingBottom) || 0;
+      nav.style.paddingBottom = (current + gap / zoomFactor + 4) + 'px';
+    }
+    nav.scrollTop = prevScrollTop;
   }
 
   var settings = load();
   apply(settings);
+
+  window.addEventListener('resize', fixNavPadding);
+  window.addEventListener('load', fixNavPadding);
 
   function buildPanel(){
     var slot = document.getElementById('echo-settings-slot');
@@ -102,7 +175,11 @@
       + '#echo-settings-panel .es-btn.es-a-small{font-size:11px;}'
       + '#echo-settings-panel .es-btn.es-a-medium{font-size:14px;}'
       + '#echo-settings-panel .es-btn.es-a-large{font-size:18px;}'
-      + '#echo-settings-panel .es-sep{height:1px;background:rgba(255,255,255,0.1);margin:0 0 10px;}';
+      + '#echo-settings-panel .es-sep{height:1px;background:rgba(255,255,255,0.1);margin:0 0 10px;}'
+      + '#echo-settings-panel .es-reset{width:100%;font-family:"Share Tech Mono",monospace;font-size:9px;'
+      + 'letter-spacing:0.06em;text-transform:uppercase;color:rgba(255,255,255,0.4);background:transparent;'
+      + 'border:1px solid rgba(255,255,255,0.2);border-radius:2px;padding:6px 4px;cursor:pointer;text-align:center;}'
+      + '#echo-settings-panel .es-reset:hover{color:#fff;border-color:rgba(255,255,255,0.5);}';
 
     var styleEl = document.createElement('style');
     styleEl.textContent = CSS;
@@ -132,6 +209,8 @@
         btn.type = 'button';
         btn.className = 'es-btn' + (extraClass ? ' ' + extraClass + id : '') + (settings[key] === id ? ' active' : '');
         btn.textContent = table[id].label;
+        btn.dataset.key = key;
+        btn.dataset.id = id;
         btn.addEventListener('click', function(){
           settings[key] = id;
           apply(settings);
@@ -151,6 +230,21 @@
     panel.appendChild(group('Contrast', CONTRAST_ORDER, CONTRAST, 'contrast'));
     var sep2 = document.createElement('div'); sep2.className = 'es-sep'; panel.appendChild(sep2);
     panel.appendChild(group('Text Size', TEXT_ORDER, TEXT_SIZES, 'textSize', null, 'es-a-'));
+
+    var sep3 = document.createElement('div'); sep3.className = 'es-sep'; panel.appendChild(sep3);
+    var resetBtn = document.createElement('button');
+    resetBtn.type = 'button';
+    resetBtn.className = 'es-reset';
+    resetBtn.textContent = 'Reset to Defaults';
+    resetBtn.addEventListener('click', function(){
+      Object.keys(DEFAULTS).forEach(function(k){ settings[k] = DEFAULTS[k]; });
+      apply(settings);
+      save(settings);
+      panel.querySelectorAll('.es-btn').forEach(function(b){
+        b.classList.toggle('active', settings[b.dataset.key] === b.dataset.id);
+      });
+    });
+    panel.appendChild(resetBtn);
 
     gear.addEventListener('click', function(){
       panel.classList.toggle('open');
