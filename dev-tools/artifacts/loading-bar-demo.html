@@ -60,7 +60,8 @@
     text-indent:0.45em; /* nudge for the letter-spacing so it optically centers */
   }
   #loading-label .dots{display:inline-block;width:1.4em;text-align:left;}
-  #loading-label.error-text{ color:var(--bad); letter-spacing:0.12em; text-indent:0; font-size:13px; }
+  #loading-label.error-text{ letter-spacing:0.12em; text-indent:0; font-size:13px; }
+  #loading-label.error-text.error-colored{ color:var(--bad); }
 
   #pctLine{
     color:var(--dim);
@@ -72,13 +73,15 @@
   #retryBtn{
     font-family:'Share Tech Mono',monospace;
     font-size:12px;letter-spacing:0.14em;text-transform:uppercase;
-    color:var(--bad);background:transparent;
-    border:1px solid var(--bad);border-radius:2px;
+    color:var(--accent);background:transparent;
+    border:1px solid var(--accent);border-radius:2px;
     padding:9px 22px;cursor:pointer;
     display:none;
   }
-  #retryBtn:hover{ background:rgba(255,77,94,0.12); }
+  #retryBtn:hover{ background:rgba(232,115,42,0.12); }
   #retryBtn.show{ display:inline-block; }
+  #retryBtn.error-colored{ color:var(--bad); border-color:var(--bad); }
+  #retryBtn.error-colored:hover{ background:rgba(255,77,94,0.12); }
 
   /* ── VALUE BOX PANEL ── */
   #panel{
@@ -107,6 +110,26 @@
   .value-box input[type="number"]:focus{ outline:none; border-bottom-color:var(--white); }
   .value-box .unit{ font-size:10px; color:var(--dim); }
   .value-box .hint{ font-size:9px; color:rgba(255,255,255,0.22); line-height:1.4; }
+  .value-box .minmax{ display:flex; align-items:center; gap:6px; }
+  .value-box .minmax input[type="number"]{ width:52px; }
+  .value-box .toggle-row{
+    display:flex; align-items:center; gap:7px;
+    margin-top:2px; padding-top:8px; border-top:1px solid rgba(255,255,255,0.08);
+  }
+  .value-box .toggle-row input[type="checkbox"]{
+    appearance:none; -webkit-appearance:none;
+    width:14px; height:14px; border:1px solid var(--accent); border-radius:2px;
+    background:transparent; cursor:pointer; position:relative; flex-shrink:0;
+  }
+  .value-box .toggle-row input[type="checkbox"]:checked{ background:var(--accent); }
+  .value-box .toggle-row input[type="checkbox"]:checked::after{
+    content:"\2713"; position:absolute; top:-3px; left:1px;
+    font-size:11px; color:#000;
+  }
+  .value-box .toggle-row label{
+    font-size:10px; letter-spacing:0.05em; text-transform:none;
+    color:var(--dim); cursor:pointer;
+  }
 
   #controls{
     z-index:1;
@@ -155,13 +178,24 @@
   </div>
   <div class="value-box">
     <label>Stutter Length</label>
-    <div class="row"><input type="number" id="stutterLen" value="150" min="20" max="1000" step="10"><span class="unit">ms each</span></div>
-    <div class="hint">How long each hitch freezes the bar.</div>
+    <div class="row minmax">
+      <input type="number" id="stutterLenMin" value="80" min="10" max="2000" step="10"><span class="unit">to</span>
+      <input type="number" id="stutterLenMax" value="220" min="10" max="2000" step="10"><span class="unit">ms</span>
+    </div>
+    <div class="hint">Each hitch picks a random length in this range.</div>
+    <div class="toggle-row">
+      <input type="checkbox" id="stripeToggle" checked>
+      <label for="stripeToggle">Stripe fill during stutter</label>
+    </div>
   </div>
   <div class="value-box">
     <label>Fail Chance</label>
     <div class="row"><input type="number" id="failChance" value="0" min="0" max="100" step="5"><span class="unit">%</span></div>
     <div class="hint">Odds this run ends in "Error downloading content" instead of finishing.</div>
+    <div class="toggle-row">
+      <input type="checkbox" id="failColorToggle" checked>
+      <label for="failColorToggle">Color red on failure</label>
+    </div>
   </div>
 </div>
 
@@ -185,8 +219,11 @@
 
   var loadTimeInput = document.getElementById('loadTime');
   var stutterCountInput = document.getElementById('stutterCount');
-  var stutterLenInput = document.getElementById('stutterLen');
+  var stutterLenMinInput = document.getElementById('stutterLenMin');
+  var stutterLenMaxInput = document.getElementById('stutterLenMax');
   var failChanceInput = document.getElementById('failChance');
+  var stripeToggle = document.getElementById('stripeToggle');
+  var failColorToggle = document.getElementById('failColorToggle');
 
   var raf = null;
   var dotsTimer = null;
@@ -194,9 +231,14 @@
   function clampInputs(){
     var lt = Math.max(0.3, Math.min(15, parseFloat(loadTimeInput.value) || 2.5));
     var sc = Math.max(0, Math.min(20, Math.round(parseFloat(stutterCountInput.value) || 0)));
-    var sl = Math.max(20, Math.min(1000, parseFloat(stutterLenInput.value) || 150));
+    var slMin = Math.max(10, Math.min(2000, parseFloat(stutterLenMinInput.value) || 80));
+    var slMax = Math.max(10, Math.min(2000, parseFloat(stutterLenMaxInput.value) || 220));
+    if (slMax < slMin){ var tmp = slMin; slMin = slMax; slMax = tmp; }
     var fc = Math.max(0, Math.min(100, parseFloat(failChanceInput.value) || 0));
-    return { loadTimeMs: lt * 1000, stutterCount: sc, stutterLenMs: sl, failChance: fc };
+    return {
+      loadTimeMs: lt * 1000, stutterCount: sc, stutterLenMinMs: slMin, stutterLenMaxMs: slMax,
+      failChance: fc, stripe: stripeToggle.checked, failColorize: failColorToggle.checked
+    };
   }
 
   function runDots(){
@@ -211,17 +253,19 @@
   function showLoadingUI(){
     barOutline.classList.remove('errored');
     fill.classList.remove('stutter');
-    label.classList.remove('error-text');
+    label.classList.remove('error-text', 'error-colored');
     label.innerHTML = 'LOADING<span class="dots" id="dots"></span>';
     dots = document.getElementById('dots');
     pctLine.style.display = '';
-    retryBtn.classList.remove('show');
+    retryBtn.classList.remove('show', 'error-colored');
   }
 
-  function showErrorUI(){
+  function showErrorUI(colorize){
     if (dotsTimer) clearInterval(dotsTimer);
-    barOutline.classList.add('errored');
+    barOutline.classList.toggle('errored', colorize);
     label.classList.add('error-text');
+    label.classList.toggle('error-colored', colorize);
+    retryBtn.classList.toggle('error-colored', colorize);
     label.textContent = 'ERROR DOWNLOADING CONTENT';
     pctLine.style.display = 'none';
     retryBtn.classList.add('show');
@@ -269,16 +313,18 @@
 
       if (willFail && pct >= failAtPct){
         fill.style.width = failAtPct.toFixed(1) + '%';
-        showErrorUI();
+        showErrorUI(cfg.failColorize);
         raf = null;
         return;
       }
 
-      // Trigger the next stutter once progress reaches it.
+      // Trigger the next stutter once progress reaches it — each one gets
+      // its own random length within the min/max range, not a fixed value.
       if (nextStutterIdx < stutterPoints.length && pct >= stutterPoints[nextStutterIdx]){
         nextStutterIdx++;
-        pausedUntil = ts + cfg.stutterLenMs;
-        fill.classList.add('stutter');
+        var thisStutterMs = cfg.stutterLenMinMs + Math.random() * (cfg.stutterLenMaxMs - cfg.stutterLenMinMs);
+        pausedUntil = ts + thisStutterMs;
+        if (cfg.stripe) fill.classList.add('stutter');
       }
 
       fill.style.width = pct + '%';
@@ -301,7 +347,7 @@
 
   replayBtn.addEventListener('click', play);
   retryBtn.addEventListener('click', play);
-  [loadTimeInput, stutterCountInput, stutterLenInput, failChanceInput].forEach(function(el){
+  [loadTimeInput, stutterCountInput, stutterLenMinInput, stutterLenMaxInput, failChanceInput, stripeToggle, failColorToggle].forEach(function(el){
     el.addEventListener('change', play);
   });
 
