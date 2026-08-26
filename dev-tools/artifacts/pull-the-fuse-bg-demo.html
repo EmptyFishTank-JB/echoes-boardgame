@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+CiAgPHJlY3QgeD0iNSIgeT0iNiIgd2lkdGg9IjYiIGhlaWdodD0iMTAiIHJ4PSIxIiBmaWxsPSIjZTg3MzJhIiBvcGFjaXR5PSIwLjkiLz4KICA8cmVjdCB4PSIxMyIgeT0iMiIgd2lkdGg9IjYiIGhlaWdodD0iMTQiIHJ4PSIxIiBmaWxsPSIjZTg3MzJhIi8+CiAgPHJlY3QgeD0iMjEiIHk9IjYiIHdpZHRoPSI2IiBoZWlnaHQ9IjEwIiByeD0iMSIgZmlsbD0iI2U4NzMyYSIgb3BhY2l0eT0iMC45Ii8+CiAgPHJlY3QgeD0iMSIgeT0iMTciIHdpZHRoPSIxMyIgaGVpZ2h0PSIxMyIgcng9IjIuNSIgZmlsbD0iI2Q4MWYyZiIvPgogIDxjaXJjbGUgY3g9IjQuMyIgY3k9IjIwLjMiIHI9IjEuMyIgZmlsbD0iI2ZmZiIvPgogIDxjaXJjbGUgY3g9IjcuNSIgY3k9IjIzLjUiIHI9IjEuMyIgZmlsbD0iI2ZmZiIvPgogIDxjaXJjbGUgY3g9IjEwLjciIGN5PSIyNi43IiByPSIxLjMiIGZpbGw9IiNmZmYiLz4KICA8cmVjdCB4PSIxOCIgeT0iMTciIHdpZHRoPSIxMyIgaGVpZ2h0PSIxMyIgcng9IjIuNSIgZmlsbD0iIzFjOGZjNyIvPgogIDxjaXJjbGUgY3g9IjI3LjciIGN5PSIyMC4zIiByPSIxLjMiIGZpbGw9IiNmZmYiLz4KICA8Y2lyY2xlIGN4PSIyMS4zIiBjeT0iMjYuNyIgcj0iMS4zIiBmaWxsPSIjZmZmIi8+Cjwvc3ZnPgo=">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ECHOES // Cascade Failure</title>
+<title>ECHOES — BG Demo (Pull the Fuse)</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -17,7 +17,6 @@
     --blue:       #4fc3f7;
     --good:       #4fe0a1;
     --bad:        #ff4d5e;
-    --violet:     #b98aff;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body {
@@ -106,10 +105,10 @@
     opacity: 0.7;
   }
 
-  /* ── WAGER ── */
+  /* ── STAKE SCREEN ── */
   .stake-row {
     display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;
-    margin: 18px 0 4px;
+    margin: 18px 0 22px;
   }
   .resource-btn {
     font-family: 'Share Tech Mono', monospace;
@@ -132,9 +131,6 @@
     padding: 14px 0; margin: 20px 0;
   }
   .rules-mini strong { color: var(--text); }
-  .rules-mini .num-violet { color: var(--violet); font-weight: 700; }
-  .rules-mini .num-green { color: var(--good); font-weight: 700; }
-  .rules-mini .num-blue { color: var(--accent); font-weight: 700; }
 
   .btn {
     display: block; width: 100%;
@@ -151,9 +147,8 @@
     border: 1px solid var(--border);
   }
   .btn.secondary:hover:not(:disabled) { color: var(--text); border-color: var(--text-dim); }
-  .btn.good { background: var(--good); }
-  .btn.risk { background: var(--orange); }
 
+  /* ── GAME SCREEN ── */
   .status-bar {
     display: flex; justify-content: center; align-items: center;
     font-family: 'Share Tech Mono', monospace; font-size: 11px;
@@ -161,79 +156,53 @@
     margin: 4px 0 4px;
   }
   .status-bar .wager { color: var(--orange); }
-
-  /* ── TOTAL GAUGE ── */
-  .gauge-section-label {
-    font-family: 'Share Tech Mono', monospace; font-size: 11px;
-    letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-dim);
-    margin: 18px 0 10px; text-align: center;
-  }
-  .gauge-wrap {
-    position: relative;
-    border-radius: 4px;
-    background: rgba(255,255,255,0.04);
-    border: 1px solid var(--border);
-    padding: 3px;
-    margin-bottom: 6px;
-  }
-  .gauge-wrap.disabled { opacity: 0.3; }
-  .gauge-segments {
-    display: grid;
-    grid-template-columns: repeat(21, 1fr);
-    gap: 2px;
-    height: 22px;
-  }
-  .gauge-seg {
-    position: relative;
-    background: rgba(255,255,255,0.04);
-    border: 1px solid var(--border);
-    border-radius: 2px;
-    transition: background 0.2s, border-color 0.2s;
-  }
-  .gauge-seg.zone-orange.lit { background: rgba(232,115,42,0.08); border-color: var(--orange); }
-  .gauge-seg.zone-violet.lit { background: rgba(185,138,255,0.08); border-color: var(--violet); }
-  .gauge-seg.zone-blue.lit { background: rgba(79,195,247,0.08); border-color: var(--accent); }
-  .gauge-seg.zone-green.lit { background: rgba(79,224,161,0.08); border-color: var(--good); }
-  /* Overflow past 21 overlays on top of the existing 21 bars, starting
-     from the leftmost bar again (bar 22 = bar 1, bar 23 = bar 2, ...). */
-  .gauge-seg.overlay {
-    background: rgba(255,77,94,0.08);
-    border-color: var(--bad);
-  }
-  .gauge-seg.overlay::after {
-    content: "";
-    position: absolute; inset: 0;
-    border-radius: 1px;
-    background: repeating-linear-gradient(135deg,
-      var(--bad) 0px, var(--bad) 3px,
-      transparent 3px, transparent 6px);
-  }
-  .gauge-ticks {
-    display: grid;
-    grid-template-columns: repeat(21, 1fr);
-    gap: 2px;
-    font-family: 'Share Tech Mono', monospace; font-size: 9px;
-    color: var(--text-dim); margin-bottom: 14px; padding: 0 3px;
-  }
-  .gauge-ticks span { text-align: center; }
-
-  .total-row {
-    display: flex; justify-content: center; align-items: baseline; gap: 18px;
-    margin-bottom: 6px;
-  }
-  .total-value {
-    font-family: 'Share Tech Mono', monospace; font-weight: 700;
-    font-size: 34px; color: var(--text);
-  }
-  .total-label {
-    font-family: 'Share Tech Mono', monospace; font-size: 10px;
-    letter-spacing: 0.18em; text-transform: uppercase; color: var(--text-dim);
-  }
-  .ones-count { color: var(--red); }
-
   .pips { display: flex; gap: 6px; justify-content: center; margin: 0 0 18px; }
   .pip { width: 9px; height: 9px; border-radius: 2px; background: rgba(255,255,255,0.12); border: 1px solid var(--border); }
   .pip.used { background: var(--orange); border-color: var(--orange); }
+
+  .fuse-row {
+    display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px;
+    margin-bottom: 26px;
+    transition: opacity 0.2s;
+  }
+  .fuse-row.disabled { opacity: 0.3; pointer-events: none; }
+  .fuse {
+    aspect-ratio: 1; border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: clamp(18px, 4vw, 26px); font-weight: 700;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    color: var(--text);
+    position: relative; overflow: hidden;
+    transition: 0.3s;
+  }
+  .fuse.shut {
+    background: rgba(255,77,94,0.08);
+    border-color: var(--bad);
+    color: var(--bad);
+  }
+  .fuse.shut::after {
+    content: "";
+    position: absolute; left: -10%; top: 50%; width: 120%; height: 2px;
+    background: var(--bad); transform: translateY(-50%) rotate(-18deg);
+  }
+  .fuse.just-shut { animation: cut 0.5s ease; }
+  @keyframes cut {
+    0% { transform: scale(1.15); box-shadow: 0 0 18px rgba(255,77,94,0.6); }
+    100% { transform: scale(1); box-shadow: none; }
+  }
+  .fuse-row.surge-pick .fuse:not(.shut) {
+    cursor: pointer;
+    border-color: var(--orange);
+    background: rgba(232,115,42,0.12);
+    animation: surge-pulse 1s ease-in-out infinite;
+  }
+  @keyframes surge-pulse {
+    0%, 100% { box-shadow: 0 0 0 rgba(232,115,42,0); }
+    50% { box-shadow: 0 0 12px rgba(232,115,42,0.55); }
+  }
+  .math-line .surge { color: var(--orange); font-weight: 700; }
 
   .dice-stage {
     display: flex; align-items: center; justify-content: center; gap: 28px;
@@ -267,15 +236,14 @@
   .math-line {
     text-align: center; font-family: 'Share Tech Mono', monospace;
     font-size: 13px; color: var(--text-dim); letter-spacing: 0.06em;
-    margin-bottom: 18px; min-height: 18px;
+    margin-bottom: 22px; min-height: 18px;
   }
   .math-line .val { color: var(--text); font-weight: 700; }
-  .math-line .val-one { color: var(--red); font-weight: 700; }
+  .math-line .cut { color: var(--bad); }
 
   .log {
     font-family: 'Share Tech Mono', monospace; font-size: 11px;
     color: var(--text-dim); line-height: 1.9;
-    max-height: 90px; overflow-y: auto;
     border-top: 1px solid var(--border);
     padding-top: 12px; margin-bottom: 20px;
   }
@@ -294,11 +262,9 @@
   }
   .result-banner .big {
     font-weight: 900; letter-spacing: 0.05em; text-transform: uppercase;
-    font-size: clamp(24px, 5vw, 36px); margin-bottom: 10px;
+    font-size: clamp(26px, 5vw, 38px); margin-bottom: 10px;
   }
   .result-banner.win .big { color: var(--good); }
-  .result-banner.win-blue .big { color: var(--accent); }
-  .result-banner.partial .big { color: var(--violet); }
   .result-banner.fail .big { color: var(--bad); }
   .result-detail {
     font-family: 'Share Tech Mono', monospace; font-size: 12px;
@@ -325,47 +291,81 @@
 </style>
 </head>
 <body>
-<script src="loading-bar.js"></script>
+
+<div id="bg-toggle-demo">
+  <div class="bgd-label">// BACKGROUND</div>
+  <button class="bgd-btn active" data-bg="current">This Page's Own</button>
+  <button class="bgd-btn" data-bg="flat">Flat Dark</button>
+  <button class="bgd-btn" data-bg="gradient">Gradient Glow</button>
+  <button class="bgd-btn" data-bg="black">Pure Black</button>
+</div>
+<style>
+  #bg-toggle-demo{position:fixed;top:14px;right:14px;z-index:99999;display:flex;flex-direction:column;gap:5px;
+    background:rgba(10,12,15,0.92);border:1px solid rgba(232,115,42,0.4);border-radius:4px;padding:10px 12px;
+    font-family:'Share Tech Mono',monospace;}
+  #bg-toggle-demo .bgd-label{font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.4);margin-bottom:3px;}
+  #bg-toggle-demo .bgd-btn{display:block;width:100%;font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:0.05em;text-transform:uppercase;
+    color:#E8732A;background:transparent;border:1px solid #E8732A;border-radius:2px;padding:6px 10px;cursor:pointer;text-align:left;}
+  #bg-toggle-demo .bgd-btn:hover{background:rgba(232,115,42,0.12);}
+  #bg-toggle-demo .bgd-btn.active{background:#E8732A;color:#0a0c0f;font-weight:bold;}
+</style>
+<script>
+(function(){
+  var BGS = {
+    flat: '#0a0c0f',
+    gradient: 'radial-gradient(ellipse 80% 60% at 50% 0%, rgba(79,195,247,0.06) 0%, transparent 60%), radial-gradient(ellipse 70% 50% at 50% 100%, rgba(232,115,42,0.06) 0%, transparent 60%), linear-gradient(160deg, #030508 0%, #070b12 45%, #05080d 100%)',
+    black: '#000000'
+  };
+  document.querySelectorAll('#bg-toggle-demo .bgd-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      document.querySelectorAll('#bg-toggle-demo .bgd-btn').forEach(function(b){ b.classList.remove('active'); });
+      btn.classList.add('active');
+      var key = btn.dataset.bg;
+      document.body.style.background = (key === 'current') ? '' : BGS[key];
+    });
+  });
+})();
+</script>
+
+<script src="../../mini-games/loading-bar.js"></script>
 
 <nav>
-  <a href="../index.html">&larr; Echoes</a>
+  <a href="../../index.html">&larr; Echoes</a>
   <span class="sep">//</span>
-  <a href="../rules.html">Rules &amp; Design</a>
+  <a href="../../rules.html">Rules &amp; Design</a>
   <span class="sep">//</span>
-  <a href="../echo-events.html">Echo Events</a>
+  <a href="../../echo-events.html">Echo Events</a>
   <span class="sep">//</span>
-  <a href="../assets.html">Assets</a>
+  <a href="../../assets.html">Assets</a>
 </nav>
 
 <nav class="games-nav">
-  <a href="pull-the-fuse.html">Pull the Fuse</a>
+  <a href="../../mini-games/pull-the-fuse.html" style="color:var(--accent);">Pull the Fuse</a>
   <span class="sep">//</span>
-  <a href="dead-reckoning.html">Dead Reckoning</a>
+  <a href="../../mini-games/dead-reckoning.html">Dead Reckoning</a>
   <span class="sep">//</span>
-  <a href="cascade-failure.html" style="color:var(--accent);">Cascade Failure</a>
+  <a href="../../mini-games/cascade-failure.html">Cascade Failure</a>
   <span class="sep">//</span>
-  <a href="pressure-leak.html">Pressure Leak</a>
+  <a href="../../mini-games/pressure-leak.html">Pressure Leak</a>
   <span class="sep">//</span>
-  <a href="dead-signal.html">Dead Signal</a>
+  <a href="../../mini-games/dead-signal.html">Dead Signal</a>
   <span class="sep">//</span>
-  <a href="core-stabilization.html">Core Stabilization</a>
+  <a href="../../mini-games/core-stabilization.html">Core Stabilization</a>
 </nav>
 
 <header class="title-block">
-  <div class="eyebrow">// Echo Event 04 — Push Your Luck</div>
-  <h1>Cascade Failure</h1>
-  <p class="subtitle">Roll up to three times, stacking a running total across every die. Bank at 14 or higher to walk away with your wager &mdash; push past 18 and it doubles, hit 21 exactly and it triples. Overshoot 21, or come up short, and the reactor spikes.</p>
+  <div class="eyebrow">// Echo Event 02 — Puzzle Solving</div>
+  <h1>Pull the Fuse</h1>
+  <p class="subtitle">Two coordinate dice — Red and Blue. Cut all six fuses using each die's face, their sum, or their difference before you run out of rolls.</p>
 </header>
 
 <div class="panel">
 
   <div class="rules-mini">
     <div><strong>Wager:</strong> Stake one resource before rolling. No resource = automatic failure.</div>
-    <div><strong>Partial Win:</strong> Bank <span class="num-violet">14&ndash;17</span> &mdash; wager returned, no bonus.</div>
-    <div><strong>Win:</strong> Bank <span class="num-blue">18&ndash;20</span> &mdash; wager doubled. Bank exactly <span class="num-green">21</span> &mdash; wager tripled.</div>
-    <div><strong>Short:</strong> Run out of rolls under 14 &mdash; wager lost, +3 Noise.</div>
-    <div><strong>Bust:</strong> Total exceeds 21 &mdash; wager lost, +3 Noise.</div>
-    <div><strong>Every Run:</strong> +1 Noise per &ldquo;1&rdquo; rolled, whether you win or lose.</div>
+    <div><strong>Win:</strong> All 6 fuses cut within 3 rolls &mdash; wager returned, doubled.</div>
+    <div><strong>System Surge:</strong> Rolling doubles cuts the matching fuse, plus lets you pick one more open fuse to shut.</div>
+    <div><strong>Fail:</strong> Rolls exhausted with fuses still open &mdash; wager lost, +1 Noise per open fuse.</div>
   </div>
 
   <div class="stake-row" id="resourceRow">
@@ -376,21 +376,7 @@
   </div>
   <div class="status-bar"><span class="wager" id="wagerLabel">No wager staked</span></div>
 
-  <div class="gauge-section-label">// Running Total — Safe at 14+, Win at 18&ndash;21, 21 Pays Triple</div>
-  <div class="gauge-wrap disabled" id="gaugeWrap">
-    <div class="gauge-segments" id="gaugeSegments"></div>
-  </div>
-  <div class="gauge-ticks">
-    <span style="grid-column:1;">1</span>
-    <span style="grid-column:14;">14</span>
-    <span style="grid-column:18;">18</span>
-    <span style="grid-column:21;">21</span>
-  </div>
-
-  <div class="total-row">
-    <div><span class="total-value" id="totalValue">0</span> <span class="total-label">Total</span></div>
-    <div><span class="total-value ones-count" id="onesValue">0</span> <span class="total-label">Ones</span></div>
-  </div>
+  <div class="fuse-row disabled" id="fuseRow"></div>
 
   <div class="pips" id="pips">
     <div class="pip"></div><div class="pip"></div><div class="pip"></div>
@@ -407,15 +393,15 @@
     </div>
   </div>
 
-  <div class="math-line" id="mathLine">Stake a resource to unlock the reactor.</div>
+  <div class="math-line" id="mathLine">Stake a resource to unlock the fuse board.</div>
 
   <div class="log" id="log"></div>
 
-  <div class="btn-row" id="actionRow">
+  <div class="btn-row">
     <button class="btn" id="rollBtn" disabled>Roll the Dice</button>
   </div>
 
-  <!-- RESULT (appears below everything once the run ends) -->
+  <!-- RESULT (appears below everything once rolls are spent) -->
   <div id="resultScreen" class="hidden">
     <div class="result-banner" id="resultBanner">
       <div class="big" id="resultBig"></div>
@@ -574,31 +560,6 @@
             osc.start(t); osc.stop(t+0.1);
           });
         } catch(e) {}
-      },
-      chime(freq){
-        try {
-          const c = getCtx();
-          const osc = c.createOscillator(); osc.type='triangle'; osc.frequency.value=freq;
-          const gn = c.createGain();
-          gn.gain.setValueAtTime(0, c.currentTime);
-          gn.gain.linearRampToValueAtTime(VOL*0.4, c.currentTime+0.015);
-          gn.gain.exponentialRampToValueAtTime(0.001, c.currentTime+0.22);
-          osc.connect(gn); gn.connect(c.destination);
-          osc.start(); osc.stop(c.currentTime+0.22);
-        } catch(e) {}
-      },
-      bustAlert(){
-        try {
-          const c = getCtx();
-          const gn = c.createGain(); gn.connect(c.destination);
-          [110,116].forEach((freq) => {
-            const osc = c.createOscillator(); osc.type='sawtooth'; osc.frequency.value=freq;
-            osc.connect(gn);
-            osc.start(); osc.stop(c.currentTime+0.22);
-          });
-          gn.gain.setValueAtTime(VOL*0.5, c.currentTime);
-          gn.gain.exponentialRampToValueAtTime(0.001, c.currentTime+0.22);
-        } catch(e) {}
       }
     };
   })();
@@ -613,30 +574,24 @@
   };
 
   const MAX_ROLLS = 3;
-  const PARTIAL_MIN = 14;
-  const WIN_MIN = 18, WIN_MAX = 21;
-  const GAUGE_SEGMENTS = 21;
-  const FILL_STEP_MS = 90;
+  const NUMS = [1,2,3,4,5,6];
 
   let wager = null;
-  let total = 0;
-  let onesCount = 0;
+  let fuseOpen = {};
   let rollsUsed = 0;
   let gameOver = false;
+  let surgeActive = false;
 
+  const resultScreen = document.getElementById('resultScreen');
   const resourceRow  = document.getElementById('resourceRow');
   const wagerLabel   = document.getElementById('wagerLabel');
-  const gaugeWrap    = document.getElementById('gaugeWrap');
-  const gaugeSegments = document.getElementById('gaugeSegments');
-  const totalValue   = document.getElementById('totalValue');
-  const onesValue    = document.getElementById('onesValue');
   const pipsEl       = document.getElementById('pips');
+  const fuseRow      = document.getElementById('fuseRow');
   const dieRed       = document.getElementById('dieRed');
   const dieBlue      = document.getElementById('dieBlue');
   const mathLine     = document.getElementById('mathLine');
   const logEl        = document.getElementById('log');
-  const actionRow    = document.getElementById('actionRow');
-  const resultScreen = document.getElementById('resultScreen');
+  const rollBtn      = document.getElementById('rollBtn');
   const resultBanner = document.getElementById('resultBanner');
   const resultBig    = document.getElementById('resultBig');
   const resultDetail = document.getElementById('resultDetail');
@@ -651,74 +606,15 @@
     }
   }
 
-  // 21 fixed bars: below 14 = orange, 14-17 = violet (partial win), 18-20 =
-  // blue (full win), 21 = green (triple). Points past 21 don't add new
-  // bars — they overlay back onto the same 21, starting from bar 1 again
-  // (point 22 = bar 1, point 23 = bar 2, ...).
-  function zoneClass(i){
-    if (i < PARTIAL_MIN) return 'zone-orange';
-    if (i < WIN_MIN) return 'zone-violet';
-    if (i < WIN_MAX) return 'zone-blue';
-    return 'zone-green';
-  }
-
-  function buildGaugeSegments(){
-    gaugeSegments.innerHTML = '';
-    for (let i = 1; i <= GAUGE_SEGMENTS; i++){
-      const seg = document.createElement('div');
-      seg.className = 'gauge-seg ' + zoneClass(i);
-      seg.dataset.i = i;
-      gaugeSegments.appendChild(seg);
-    }
-  }
-
-  // For point n (1-based, can exceed 21), find which bar lights up and
-  // whether it's a base fill or an overlay (wrapped past 21).
-  function pointToSegment(n){
-    if (n <= GAUGE_SEGMENTS) return { barIndex: n, overlay: false };
-    const overflow = n - GAUGE_SEGMENTS;
-    const barIndex = ((overflow - 1) % GAUGE_SEGMENTS) + 1;
-    return { barIndex, overlay: true };
-  }
-
-  function segByIndex(i){
-    return gaugeSegments.children[i - 1];
-  }
-
-  function resetGaugeVisual(){
-    gaugeSegments.querySelectorAll('.gauge-seg').forEach(seg => {
-      seg.classList.remove('lit', 'overlay');
+  function buildFuseRow(){
+    fuseRow.innerHTML = '';
+    NUMS.forEach(n => {
+      const el = document.createElement('div');
+      el.className = 'fuse';
+      el.textContent = n;
+      el.id = 'fuse-' + n;
+      fuseRow.appendChild(el);
     });
-    totalValue.textContent = total;
-    onesValue.textContent = onesCount;
-  }
-
-  // Animate the newly-crossed points (fromTotal, toTotal] one bar at a
-  // time, left to right, instead of updating the whole meter at once.
-  function animateGaugeFill(fromTotal, toTotal){
-    totalValue.textContent = toTotal;
-    onesValue.textContent = onesCount;
-    let step = 0;
-    for (let n = fromTotal + 1; n <= toTotal; n++){
-      const { barIndex, overlay } = pointToSegment(n);
-      const seg = segByIndex(barIndex);
-      const progress = barIndex / GAUGE_SEGMENTS;
-      setTimeout(() => {
-        if (seg) seg.classList.add(overlay ? 'overlay' : 'lit');
-        if (n === GAUGE_SEGMENTS + 1){
-          SFX.bustAlert();
-        } else if (n === WIN_MAX){
-          SFX.chime(440);
-        } else if (n === WIN_MIN){
-          SFX.chime(329.5);
-        } else if (n === PARTIAL_MIN){
-          SFX.chime(261.5);
-        } else {
-          SFX.barTick(progress);
-        }
-      }, step * FILL_STEP_MS);
-      step++;
-    }
   }
 
   function updatePips(){
@@ -733,17 +629,17 @@
     logEl.scrollTop = logEl.scrollHeight;
   }
 
-  function updateGate(){
-    gaugeWrap.classList.toggle('disabled', !wager);
+  function openFuseCount(){
+    return NUMS.filter(n => fuseOpen[n]).length;
   }
 
   resourceRow.addEventListener('pointerenter', (e) => {
     const btn = e.target.closest && e.target.closest('.resource-btn');
-    if (btn && !gameOver && rollsUsed === 0) SFX.hover();
+    if (btn && rollsUsed === 0 && !gameOver) SFX.hover();
   }, true);
 
   resourceRow.addEventListener('click', (e) => {
-    if (gameOver || rollsUsed > 0) return;
+    if (rollsUsed > 0 || gameOver) return;
     const btn = e.target.closest('.resource-btn');
     if (!btn) return;
     SFX.select();
@@ -751,46 +647,19 @@
     btn.classList.add('selected');
     wager = btn.dataset.resource;
     wagerLabel.textContent = 'Wager: ' + wager;
-    mathLine.textContent = 'Reactor online. Roll when ready.';
-    updateGate();
-    renderActions();
+    fuseRow.classList.remove('disabled');
+    mathLine.textContent = 'Roll to reveal Red, Blue, Sum, and Difference.';
+    rollBtn.disabled = false;
   });
 
-  function renderActions(){
-    actionRow.innerHTML = '';
-    if (gameOver) return;
+  rollBtn.addEventListener('click', () => {
+    if (gameOver || !wager || rollsUsed >= MAX_ROLLS) return;
+    SFX.select();
+    rollBtn.disabled = true;
     if (rollsUsed === 0){
-      const roll = document.createElement('button');
-      roll.className = 'btn';
-      roll.id = 'rollBtn';
-      roll.textContent = 'Roll the Dice';
-      roll.disabled = !wager;
-      roll.addEventListener('click', () => { SFX.select(); doRoll(); });
-      actionRow.appendChild(roll);
-    } else if (total > WIN_MAX || rollsUsed >= MAX_ROLLS) {
-      // no choice left — resolveEnd() handles this case directly
-    } else {
-      const bank = document.createElement('button');
-      bank.className = 'btn good';
-      bank.textContent = total < PARTIAL_MIN ? 'Bank It (needs ' + PARTIAL_MIN + '+)' :
-        total === WIN_MAX ? 'Bank It (21 — TRIPLE!)' :
-        total >= WIN_MIN ? 'Bank It (' + total + ')' :
-        'Bank It (' + total + ' — safe)';
-      bank.disabled = total < PARTIAL_MIN;
-      bank.addEventListener('click', () => { SFX.select(); resolveEnd('banked'); });
-      actionRow.appendChild(bank);
-
-      const push = document.createElement('button');
-      push.className = 'btn risk';
-      push.textContent = 'Push Your Luck (' + (MAX_ROLLS - rollsUsed) + ' left)';
-      push.addEventListener('click', () => { SFX.select(); doRoll(); });
-      actionRow.appendChild(push);
+      resourceRow.querySelectorAll('.resource-btn').forEach(b => b.classList.add('locked'));
+      SFX.lock();
     }
-  }
-
-  function doRoll(){
-    if (gameOver || rollsUsed >= MAX_ROLLS) return;
-    actionRow.querySelectorAll('button').forEach(b => b.disabled = true);
     dieRed.classList.add('rolling');
     dieBlue.classList.add('rolling');
 
@@ -805,7 +674,7 @@
         resolveRoll();
       }
     }, 60);
-  }
+  });
 
   function resolveRoll(){
     dieRed.classList.remove('rolling');
@@ -814,101 +683,134 @@
 
     const red = 1 + Math.floor(Math.random()*6);
     const blue = 1 + Math.floor(Math.random()*6);
+    const sum = red + blue;
+    const diff = Math.abs(red - blue);
     renderDie(dieRed, red);
     renderDie(dieBlue, blue);
-    if (rollsUsed === 0){
-      resourceRow.querySelectorAll('.resource-btn').forEach(b => b.classList.add('locked'));
-      SFX.lock();
-    }
     rollsUsed++;
-    const beforeTotal = total;
-    total += red + blue;
-    const onesThisRoll = (red === 1 ? 1 : 0) + (blue === 1 ? 1 : 0);
-    onesCount += onesThisRoll;
     updatePips();
-    animateGaugeFill(beforeTotal, total);
 
-    mathLine.innerHTML = 'Roll ' + rollsUsed + '/' + MAX_ROLLS + ': Red <span class="val">' + red +
-      '</span> + Blue <span class="val">' + blue + '</span> &rarr; total <span class="val">' + total + '</span>' +
-      (onesCount ? ' <span class="val-one">(' + onesCount + ' one' + (onesCount > 1 ? 's' : '') + ')</span>' : '');
+    const candidates = [
+      {v: red,  label: 'Red ' + red},
+      {v: blue, label: 'Blue ' + blue},
+      {v: sum,  label: 'Sum ' + sum},
+      {v: diff, label: 'Diff ' + diff}
+    ];
+
+    const cutThisRoll = [];
+    candidates.forEach(c => {
+      if (c.v >= 1 && c.v <= 6 && fuseOpen[c.v]){
+        fuseOpen[c.v] = false;
+        cutThisRoll.push(c.v);
+      }
+    });
+
+    mathLine.innerHTML = 'Red <span class="val">' + red + '</span> &middot; Blue <span class="val">' + blue +
+      '</span> &middot; Sum <span class="val">' + sum + '</span> &middot; Diff <span class="val">' + diff + '</span>' +
+      (cutThisRoll.length ? ' &rarr; cut <span class="cut">' + cutThisRoll.join(', ') + '</span>' : ' &rarr; nothing new cut');
 
     log('<span class="tag">Roll ' + rollsUsed + '/' + MAX_ROLLS + '</span> — Red ' + red + ', Blue ' + blue +
-      ' — running total ' + total + (onesThisRoll ? ', +' + onesThisRoll + ' to Ones' : ''));
+      ', Sum ' + sum + ', Diff ' + diff + (cutThisRoll.length ? ' — cut ' + cutThisRoll.join(', ') : ' — no new fuses cut'));
 
-    if (total > WIN_MAX){
-      resolveEnd('bust');
+    cutThisRoll.forEach((n, i) => {
+      const el = document.getElementById('fuse-' + n);
+      el.classList.add('shut', 'just-shut');
+      setTimeout(() => el.classList.remove('just-shut'), 500);
+      setTimeout(() => SFX.confirm(), i * 90);
+    });
+
+    const isDouble = (red === blue);
+    if (isDouble && openFuseCount() > 0){
+      beginSurge();
+    } else {
+      finishRoll();
+    }
+  }
+
+  // System Surge: rolling doubles lets the player shut one extra open
+  // fuse of their choice, on top of whatever the roll itself cut.
+  function beginSurge(){
+    surgeActive = true;
+    SFX.surge();
+    mathLine.innerHTML += ' <span class="surge">&mdash; System Surge! Pick one more fuse to shut.</span>';
+    log('<span class="tag">System Surge</span> — doubles rolled. Choose one more open fuse to shut.');
+    fuseRow.classList.add('surge-pick');
+  }
+
+  fuseRow.addEventListener('pointerenter', (e) => {
+    if (!surgeActive) return;
+    const cell = e.target.closest && e.target.closest('.fuse');
+    if (cell && !cell.classList.contains('shut')) SFX.hover();
+  }, true);
+
+  fuseRow.addEventListener('click', (e) => {
+    if (!surgeActive) return;
+    const cell = e.target.closest('.fuse');
+    if (!cell || cell.classList.contains('shut')) return;
+    SFX.select();
+    const n = parseInt(cell.id.replace('fuse-', ''), 10);
+    fuseOpen[n] = false;
+    cell.classList.add('shut', 'just-shut');
+    setTimeout(() => cell.classList.remove('just-shut'), 500);
+    log('<span class="tag">Surge Pick</span> — shut fuse ' + n + '.');
+    surgeActive = false;
+    fuseRow.classList.remove('surge-pick');
+    finishRoll();
+  });
+
+  function finishRoll(){
+    if (openFuseCount() === 0){
+      endGame(true);
       return;
     }
     if (rollsUsed >= MAX_ROLLS){
-      resolveEnd('forced');
+      endGame(false);
       return;
     }
-    renderActions();
+    rollBtn.disabled = false;
+    rollBtn.textContent = 'Roll Again (' + (MAX_ROLLS - rollsUsed) + ' left)';
   }
 
-  function resolveEnd(reason){
+  function endGame(won){
     gameOver = true;
-    actionRow.innerHTML = '';
-    updateGate();
-    const fullWin = total >= WIN_MIN && total <= WIN_MAX;
-    const partialWin = total >= PARTIAL_MIN && total < WIN_MIN;
-    const exact = total === WIN_MAX;
-    // The reactor keeps a noise signature for every "1" rolled during the
-    // run, win or lose — only the flat +3 penalty is fail-only.
-    const onesNoise = onesCount > 0
-      ? ' <strong>+' + onesCount + ' Noise</strong> (' + onesCount + ' one' + (onesCount === 1 ? '' : 's') + ' rolled).'
-      : '';
+    rollBtn.disabled = true;
     setTimeout(() => {
       resultScreen.classList.remove('hidden');
-      if (fullWin && exact){
+      if (won){
         SFX.win();
         resultBanner.className = 'result-banner win';
-        resultBig.textContent = 'PERFECT CONTAINMENT';
-        resultDetail.innerHTML = 'Banked at exactly <strong>21</strong>. <strong>' + wager + '</strong> returned, tripled.' + onesNoise;
-      } else if (fullWin){
-        SFX.win();
-        resultBanner.className = 'result-banner win-blue';
-        resultBig.textContent = 'CASCADE CONTAINED';
-        resultDetail.innerHTML = 'Banked at <strong>' + total + '</strong>. <strong>' + wager + '</strong> returned, doubled.' + onesNoise;
-      } else if (partialWin){
-        SFX.win();
-        resultBanner.className = 'result-banner partial';
-        resultBig.textContent = 'STABILIZED';
-        resultDetail.innerHTML = 'Banked at <strong>' + total + '</strong> — a partial containment. <strong>' + wager + '</strong> returned, no bonus.' + onesNoise;
-      } else if (reason === 'bust'){
-        SFX.fail();
-        resultBanner.className = 'result-banner fail';
-        resultBig.textContent = 'REACTOR OVERLOAD';
-        resultDetail.innerHTML = 'Total hit <strong>' + total + '</strong> — past the 21 limit. <strong>' + wager +
-          '</strong> lost — <strong>+3 Noise</strong>' + (onesCount > 0 ? ', plus' + onesNoise : '.');
+        resultBig.textContent = 'ALL FUSES CUT';
+        resultDetail.innerHTML = '<strong>' + wager + '</strong> returned, doubled, after ' + rollsUsed + ' roll' + (rollsUsed === 1 ? '' : 's') + '.';
       } else {
         SFX.fail();
+        const openList = NUMS.filter(n => fuseOpen[n]);
         resultBanner.className = 'result-banner fail';
-        resultBig.textContent = 'CONTAINMENT FAILED';
-        resultDetail.innerHTML = 'Stopped at <strong>' + total + '</strong> — short of ' + PARTIAL_MIN + '. <strong>' + wager +
-          '</strong> lost — <strong>+3 Noise</strong>' + (onesCount > 0 ? ', plus' + onesNoise : '.');
+        resultBig.textContent = 'ROLLS EXHAUSTED';
+        resultDetail.innerHTML = '<strong>' + wager + '</strong> lost. Fuse' + (openList.length === 1 ? '' : 's') + ' ' +
+          openList.join(', ') + ' still open — <strong>+' + openList.length + ' Noise</strong>.';
       }
       resultScreen.scrollIntoView({ behavior: 'smooth', block: 'end' });
-    }, 400);
+    }, 500);
   }
 
   function resetGame(){
     wager = null;
-    total = 0;
-    onesCount = 0;
+    NUMS.forEach(n => fuseOpen[n] = true);
     rollsUsed = 0;
     gameOver = false;
+    surgeActive = false;
     resourceRow.querySelectorAll('.resource-btn').forEach(b => b.classList.remove('selected', 'locked'));
     wagerLabel.textContent = 'No wager staked';
-    buildGaugeSegments();
-    resetGaugeVisual();
+    fuseRow.classList.remove('surge-pick');
+    fuseRow.classList.add('disabled');
+    buildFuseRow();
     updatePips();
     renderDie(dieRed, 1);
     renderDie(dieBlue, 1);
-    mathLine.textContent = 'Stake a resource to unlock the reactor.';
+    mathLine.textContent = 'Stake a resource to unlock the fuse board.';
     logEl.innerHTML = '';
-    renderActions();
-    updateGate();
+    rollBtn.textContent = 'Roll the Dice';
+    rollBtn.disabled = true;
     resultScreen.classList.add('hidden');
   }
 
@@ -968,7 +870,7 @@
     var tzName = tzFmt.formatToParts(d).find(function(p){ return p.type === 'timeZoneName'; }).value;
     return dateStr + ' ' + hh + ':' + mm + ' ' + tzName;
   }
-  fetch('https://api.github.com/repos/EmptyFishTank-JB/echoes-boardgame/commits?path=mini-games/cascade-failure.html&per_page=1')
+  fetch('https://api.github.com/repos/EmptyFishTank-JB/echoes-boardgame/commits?path=dev-tools/artifacts/pull-the-fuse-bg-demo.html&per_page=1')
     .then(function(r){ if (!r.ok) throw new Error('bad response'); return r.json(); })
     .then(function(data){
       if (!data || !data.length) throw new Error('no commits');
