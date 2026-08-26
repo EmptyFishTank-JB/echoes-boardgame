@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+CiAgPHN0eWxlPgogICAgQGtleWZyYW1lcyBmewogICAgICAwJXtvcGFjaXR5OjF9CiAgICAgIDQwJXtvcGFjaXR5OjF9CiAgICAgIDUwJXtvcGFjaXR5OjAuNH0KICAgICAgNjAle29wYWNpdHk6MX0KICAgICAgMTAwJXtvcGFjaXR5OjF9CiAgICB9CiAgPC9zdHlsZT4KICAgICAgPGcgc3R5bGU9ImFuaW1hdGlvbjpmIDVzIDAuMDAwcyBpbmZpbml0ZSI+CiAgICAgICAgPHJlY3QgeD0iMC4wIiB5PSIxMC4wIgogICAgICAgICAgICAgIHdpZHRoPSI4LjAiIGhlaWdodD0iMTIuMCIKICAgICAgICAgICAgICByeD0iMi4wIgogICAgICAgICAgICAgIGZpbGw9IiNlODczMmEiIG9wYWNpdHk9IjAuNiIvPgogICAgICAgIDxyZWN0IHg9IjEuMCIgeT0iMTEuMCIKICAgICAgICAgICAgICB3aWR0aD0iNiIgaGVpZ2h0PSIxMC4wIgogICAgICAgICAgICAgIHJ4PSIxIiBmaWxsPSIjZTg3MzJhIi8+CiAgICAgIDwvZz4KICAgICAgPGcgc3R5bGU9ImFuaW1hdGlvbjpmIDVzIDEuMDAwcyBpbmZpbml0ZSI+CiAgICAgICAgPHJlY3QgeD0iMTIuMCIgeT0iNC4wIgogICAgICAgICAgICAgIHdpZHRoPSI4LjAiIGhlaWdodD0iMjQuMCIKICAgICAgICAgICAgICByeD0iMi4wIgogICAgICAgICAgICAgIGZpbGw9IiNlODczMmEiIG9wYWNpdHk9IjAuNiIvPgogICAgICAgIDxyZWN0IHg9IjEzLjAiIHk9IjUuMCIKICAgICAgICAgICAgICB3aWR0aD0iNiIgaGVpZ2h0PSIyMi4wIgogICAgICAgICAgICAgIHJ4PSIxIiBmaWxsPSIjZTg3MzJhIi8+CiAgICAgIDwvZz4KICAgICAgPGcgc3R5bGU9ImFuaW1hdGlvbjpmIDVzIDIuMDAwcyBpbmZpbml0ZSI+CiAgICAgICAgPHJlY3QgeD0iMjQuMCIgeT0iMTAuMCIKICAgICAgICAgICAgICB3aWR0aD0iOC4wIiBoZWlnaHQ9IjEyLjAiCiAgICAgICAgICAgICAgcng9IjIuMCIKICAgICAgICAgICAgICBmaWxsPSIjZTg3MzJhIiBvcGFjaXR5PSIwLjYiLz4KICAgICAgICA8cmVjdCB4PSIyNS4wIiB5PSIxMS4wIgogICAgICAgICAgICAgIHdpZHRoPSI2IiBoZWlnaHQ9IjEwLjAiCiAgICAgICAgICAgICAgcng9IjEiIGZpbGw9IiNlODczMmEiLz4KICAgICAgPC9nPgo8L3N2Zz4=">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ECHOES — BG Demo (Home)</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --text:       #eef0f5;
+    --text-dim:   rgba(238,240,245,0.45);
+    --accent:     #4fc3f7;
+    --border:     rgba(238,240,245,0.1);
+    --flicker-min: 0.88;
+    --flicker-max: 0.98;
+    --flicker-rate: 1s;
+    --rgb-red:    #ff003c;
+    --rgb-cyan:   #00eaff;
+    --rgb-green:  #00ff00;
+    --rgb-duration: 0.25s;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    width: 100%; height: 100%;
+    background: #0a0c0f;
+    overflow: hidden;
+    font-family: 'Barlow Condensed', sans-serif;
+    color: var(--text);
+  }
+
+  /* ── STATIC SCANLINE OVERLAY (replaces video + parallax + iridescent) ── */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.03) 2px,
+      rgba(0,0,0,0.03) 4px
+    );
+  }
+
+  #scanlines {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+      0deg,
+      rgba(255,255,255,0.018) 0px,
+      rgba(255,255,255,0.018) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    gap: 0;
+    padding: 22px 40px;
+    background: linear-gradient(180deg, rgba(0,0,0,0.7) 0%, transparent 100%);
+    animation: fadeDown 1.2s ease 0.8s both;
+  }
+
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  nav a {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    text-decoration: none;
+    transition: color 0.2s;
+    padding: 4px 0;
+  }
+
+  nav a:hover { color: var(--text); }
+
+  nav .sep {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: rgba(238,240,245,0.2);
+    margin: 0 18px;
+    letter-spacing: 0;
+    user-select: none;
+  }
+
+  /* ── CENTER STAGE ── */
+  main {
+    position: fixed;
+    inset: 0;
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 40px 60px;
+    text-align: center;
+  }
+
+  /* ── GLITCH LOGO ── */
+  .title {
+    position: relative;
+    display: inline-block;
+    line-height: 0.88;
+    animation: fadeUp 1.4s cubic-bezier(0.16,1,0.3,1) 0.2s both;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .title .base {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: clamp(80px, 13vw, 180px);
+    font-weight: 900;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text);
+    position: relative;
+    z-index: 5;
+    display: block;
+  }
+
+  .title .base.flicker-on { animation: logoFlicker var(--flicker-rate) infinite; }
+
+  @keyframes logoFlicker {
+    0%,46%,52%,100% { opacity: 1; }
+    48%             { opacity: var(--flicker-min); }
+    50%             { opacity: var(--flicker-max); }
+  }
+
+  .title .base::before, .title .base::after {
+    content: attr(data-text);
+    position: absolute; inset: 0;
+    opacity: 0; pointer-events: none; z-index: -1;
+  }
+
+  .title .base.glitching::before {
+    color: var(--rgb-red);
+    animation: glitchRed var(--rgb-duration) steps(2,end);
+  }
+  .title .base.glitching::after {
+    color: var(--rgb-cyan);
+    animation: glitchCyan var(--rgb-duration) steps(2,end);
+  }
+
+  .title .base.rgb-green {
+    position: absolute; inset: 0;
+    color: var(--rgb-green);
+    opacity: 0; pointer-events: none; z-index: -2;
+  }
+  .title .base.rgb-green.glitching {
+    animation: glitchGreen var(--rgb-duration) steps(2,end);
+  }
+
+  @keyframes glitchRed {
+    0%   { opacity:1; transform:translate(-6px,-2px); }
+    25%  { opacity:1; transform:translate( 6px, 3px); }
+    50%  { opacity:1; transform:translate(-5px, 2px); }
+    75%  { opacity:1; transform:translate( 7px,-2px); }
+    100% { opacity:0; transform:translate(0,0); }
+  }
+  @keyframes glitchCyan {
+    0%   { opacity:1; transform:translate( 6px, 2px); }
+    25%  { opacity:1; transform:translate(-6px,-3px); }
+    50%  { opacity:1; transform:translate( 5px,-2px); }
+    75%  { opacity:1; transform:translate(-7px, 2px); }
+    100% { opacity:0; transform:translate(0,0); }
+  }
+  @keyframes glitchGreen {
+    0%   { opacity:1; transform:translate(-4px, 3px); }
+    25%  { opacity:1; transform:translate( 5px,-2px); }
+    50%  { opacity:1; transform:translate(-3px,-3px); }
+    75%  { opacity:1; transform:translate( 4px, 2px); }
+    100% { opacity:0; transform:translate(0,0); }
+  }
+
+  .slice {
+    position: absolute; top: 0; left: 0;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: clamp(80px, 13vw, 180px);
+    font-weight: 900;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    color: var(--text);
+    opacity: 0;
+    mix-blend-mode: screen;
+    pointer-events: none;
+  }
+
+  /* ── THREAT LINE ── */
+  .threat-wrap {
+    margin-top: 28px;
+    max-width: 640px;
+    animation: fadeUp 1.4s cubic-bezier(0.16,1,0.3,1) 0.55s both;
+  }
+
+  .log-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    color: var(--accent);
+    opacity: 0.7;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    display: block;
+  }
+
+  @keyframes termCursor {
+    0%, 49% { opacity: 1; }
+    50%, 100% { opacity: 0; }
+  }
+
+  .log-label::after {
+    content: '_';
+    display: inline-block;
+    margin-left: 3px;
+    animation: termCursor 0.9s step-end infinite;
+  }
+
+  .threat-line {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: clamp(12px, 1.4vw, 14px);
+    line-height: 1.85;
+    color: var(--text-dim);
+    letter-spacing: 0.04em;
+  }
+
+  .threat-line em {
+    color: var(--text-dim);
+    font-style: normal;
+  }
+
+  /* ── ENTER PROMPT ── */
+  .enter-prompt {
+    position: fixed;
+    bottom: 52px;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    animation: fadeUp 1s ease 1.8s both;
+  }
+
+  .enter-prompt a {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .enter-prompt a:hover { color: var(--text); }
+
+  .enter-arrow {
+    width: 1px;
+    height: 28px;
+    background: linear-gradient(to bottom, rgba(238,240,245,0.3), transparent);
+    animation: pulse 2.2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 0.4; transform: scaleY(1); }
+    50%       { opacity: 1;   transform: scaleY(1.15); }
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    z-index: 10;
+    padding: 7px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: linear-gradient(0deg, rgba(0,0,0,0.65) 0%, transparent 100%);
+    animation: fadeDown 1s ease 1.8s both;
+  }
+
+  footer span {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    color: rgba(238,240,245,0.25);
+    text-transform: uppercase;
+  }
+
+  footer span.accent { color: rgba(79,195,247,0.5); }
+
+  .footer-meta { opacity: 0.6; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 600px) {
+    nav { padding: 18px 24px; }
+    main {
+      padding: 64px 24px 100px;
+      justify-content: center;
+    }
+    .threat-wrap { max-width: 100%; }
+    .enter-prompt {
+      position: fixed;
+      bottom: 52px;
+      left: 0;
+      right: 0;
+    }
+    .enter-arrow { display: block; }
+    footer { padding: 10px 24px; }
+    footer span.right { display: none; }
+    #devToolsLink { top: 18px; right: 24px; }
+  }
+
+  /* ── DEV TOOLS ── */
+  #devToolsLink {
+    position: fixed;
+    top: 22px; right: 40px;
+    z-index: 1001;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px; height: 26px;
+    color: var(--text-dim);
+    opacity: 0.22;
+    transition: opacity 0.25s ease, color 0.25s ease;
+  }
+  #devToolsLink:hover { opacity: 0.9; color: var(--accent); }
+  #devToolsLink svg { width: 24px; height: 12.5px; display: block; }
+</style>
+</head>
+<body>
+
+<div id="bg-toggle-demo">
+  <div class="bgd-label">// BACKGROUND</div>
+  <button class="bgd-btn active" data-bg="current">This Page's Own</button>
+  <button class="bgd-btn" data-bg="flat">Flat Dark</button>
+  <button class="bgd-btn" data-bg="gradient">Gradient Glow</button>
+  <button class="bgd-btn" data-bg="black">Pure Black</button>
+</div>
+<style>
+  #bg-toggle-demo{position:fixed;top:14px;right:14px;z-index:99999;display:flex;flex-direction:column;gap:5px;
+    background:rgba(10,12,15,0.92);border:1px solid rgba(232,115,42,0.4);border-radius:4px;padding:10px 12px;
+    font-family:'Share Tech Mono',monospace;}
+  #bg-toggle-demo .bgd-label{font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.4);margin-bottom:3px;}
+  #bg-toggle-demo .bgd-btn{display:block;width:100%;font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:0.05em;text-transform:uppercase;
+    color:#E8732A;background:transparent;border:1px solid #E8732A;border-radius:2px;padding:6px 10px;cursor:pointer;text-align:left;}
+  #bg-toggle-demo .bgd-btn:hover{background:rgba(232,115,42,0.12);}
+  #bg-toggle-demo .bgd-btn.active{background:#E8732A;color:#0a0c0f;font-weight:bold;}
+</style>
+<script>
+(function(){
+  var BGS = {
+    flat: '#0a0c0f',
+    gradient: 'radial-gradient(ellipse 80% 60% at 50% 0%, rgba(79,195,247,0.06) 0%, transparent 60%), radial-gradient(ellipse 70% 50% at 50% 100%, rgba(232,115,42,0.06) 0%, transparent 60%), linear-gradient(160deg, #030508 0%, #070b12 45%, #05080d 100%)',
+    black: '#000000'
+  };
+  document.querySelectorAll('#bg-toggle-demo .bgd-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      document.querySelectorAll('#bg-toggle-demo .bgd-btn').forEach(function(b){ b.classList.remove('active'); });
+      btn.classList.add('active');
+      var key = btn.dataset.bg;
+      document.body.style.background = (key === 'current') ? '' : BGS[key];
+    });
+  });
+})();
+</script>
+
+
+<div id="scanlines"></div>
+
+<!-- ══ NAVIGATION ════════════════════════════════════════════════ -->
+<nav>
+  <a href="../../rules.html">Rules &amp; Design</a>
+  <span class="sep">//</span>
+  <a href="../../echo-events.html">Echo Events</a>
+  <span class="sep">//</span>
+  <a href="../../assets.html">Assets</a>
+</nav>
+
+<a href="../hub.html" id="devToolsLink" aria-label="Dev Tools">
+  <svg viewBox="0 0 46 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M15 2 L4 12 L15 22" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M31 2 L42 12 L31 22" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M15 12 L18.2 12 L20.2 8.5 L22.2 12 L24.2 2.5 L26.2 20.5 L28.2 13.5 L29.8 15.5 L31 12" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+</a>
+
+<!-- ══ CENTER CONTENT ════════════════════════════════════════════ -->
+<main>
+  <!-- ECHOES Glitch Logo -->
+  <div class="title">
+    <span class="base flicker-on" id="echoTitle" data-text="ECHOES">ECHOES</span>
+    <span class="base rgb-green" id="echoTitleGreen" data-text="ECHOES">ECHOES</span>
+    <!-- Slices for scatter glitch -->
+    <span class="slice" style="clip-path:inset(0% 0px 86.1645%)">ECHOES</span>
+    <span class="slice" style="clip-path:inset(13.8355% 0px 66.8849%)">ECHOES</span>
+    <span class="slice" style="clip-path:inset(33.1151% 0px 54.5699%)">ECHOES</span>
+    <span class="slice" style="clip-path:inset(45.4301% 0px 49.4385%)">ECHOES</span>
+    <span class="slice" style="clip-path:inset(50.5615% 0px 38.1559%)">ECHOES</span>
+    <span class="slice" style="clip-path:inset(61.8441% 0px 33.9591%)">ECHOES</span>
+    <span class="slice" style="clip-path:inset(66.0409% 0px 30.0274%)">ECHOES</span>
+    <span class="slice" style="clip-path:inset(69.9726% 0px 26.7103%)">ECHOES</span>
+    <span class="slice" style="clip-path:inset(73.2897% 0px 20.6346%)">ECHOES</span>
+    <span class="slice" style="clip-path:inset(79.3654% 0px 15.7379%)">ECHOES</span>
+    <span class="slice" style="clip-path:inset(84.2621% 0px 13.838%)">ECHOES</span>
+    <span class="slice" style="clip-path:inset(86.162% 0px 12.0554%)">ECHOES</span>
+    <span class="slice" style="clip-path:inset(87.9446% 0px 10.8264%)">ECHOES</span>
+    <span class="slice" style="clip-path:inset(89.1736% 0px 8.59373%)">ECHOES</span>
+    <span class="slice" style="clip-path:inset(91.4063% 0px 7.40451%)">ECHOES</span>
+    <span class="slice" style="clip-path:inset(92.5955% 0px 6.59513%)">ECHOES</span>
+    <span class="slice" style="clip-path:inset(93.4049% 0px 6.19623%)">ECHOES</span>
+    <span class="slice" style="clip-path:inset(93.8038% 0px 4.81237%)">ECHOES</span>
+    <span class="slice" style="clip-path:inset(95.1876% 0px 4.15647%)">ECHOES</span>
+    <span class="slice" style="clip-path:inset(95.8435% 0px 0%)">ECHOES</span>
+  </div>
+
+  <!-- Threat Line / Ship Log -->
+  <div class="threat-wrap">
+    <span class="log-label">// Ship Log — Personal Entry</span>
+    <p class="threat-line">
+      There's something on the ship with us.
+      We don't know what it is.
+      We don't know if it can be hurt.
+      <em>Hell, we don't even know if it can be killed.</em>
+      It goes after sound, that much we've figured out.
+      Our weapons don't do shit, but push it away, for a time.
+      So far, the only thing we've managed to do is stay alive.
+      <em>Barely.</em>
+    </p>
+  </div>
+</main>
+
+<!-- ══ ENTER PROMPT ═══════════════════════════════════════════════ -->
+<div class="enter-prompt">
+  <a href="../../terminal.html">ECHOES — SHIP SYSTEM TERMINAL 426</a>
+  <div class="enter-arrow"></div>
+</div>
+
+<!-- ══ FOOTER ════════════════════════════════════════════════════ -->
+<footer>
+  <span>ECHOES · &copy; 2026 EmptyFishTank-JB · In Development <span class="footer-meta">&middot; Updated <span id="updatedInfo">&mdash;</span> &middot; Commit <span id="commitInfo">&mdash;</span> &middot; STARDATE <span id="stardate">&mdash;</span></span></span>
+  <span class="accent right">// All content subject to change</span>
+</footer>
+
+<!-- ══ GLITCH ENGINE ══════════════════════════════════════════════ -->
+<script>
+(function(){
+  const config = {
+    glitchType: "E", maxOffset: 55,
+    rgbDuration: 0.25, rgbMinDelay: 1.5, rgbMaxDelay: 7,
+    sliceDuration: 0.2, sliceMinDelay: 2, sliceMaxDelay: 8,
+    flickerEnabled: true, flickerRate: 1,
+    flickerRandom: true, flickerRateMin: 0.4, flickerRateMax: 2.2,
+    rgbEnabled: true, rgbMode: "3", glitchEnabled: true
+  };
+
+  const titleEl      = document.getElementById("echoTitle");
+  const titleGreenEl = document.getElementById("echoTitleGreen");
+  if (!titleEl || !titleGreenEl) return;
+
+  function rand(min, max){ return Math.random() * (max - min) + min; }
+
+  /* Flicker */
+  let flickerTimer = null;
+  function runRandomFlicker(){
+    if (!config.flickerRandom || !config.flickerEnabled) return;
+    const rate = rand(config.flickerRateMin, config.flickerRateMax);
+    document.documentElement.style.setProperty("--flicker-rate", rate.toFixed(3) + "s");
+    flickerTimer = setTimeout(runRandomFlicker, rate * 1000);
+  }
+  function startFlickerLoop(){
+    clearTimeout(flickerTimer);
+    if (config.flickerRandom && config.flickerEnabled){ runRandomFlicker(); }
+    else { document.documentElement.style.setProperty("--flicker-rate", config.flickerRate + "s"); }
+  }
+
+  /* Slice movement */
+  function applyMovement(slice, index){
+    if (!config.glitchEnabled) return;
+    if (config.glitchType === "D"){
+      slice.style.transform = `translateX(${Math.sin(Date.now()/80+index) * config.maxOffset}px)`;
+      return;
+    }
+    slice.style.transform = `translateX(${rand(-config.maxOffset, config.maxOffset)}px)`;
+  }
+
+  /* RGB split glitch */
+  function startRGBGlitch(){
+    if (config.rgbEnabled){
+      titleEl.classList.add("glitching");
+      if (config.rgbMode === "3") titleGreenEl.classList.add("glitching");
+    }
+    setTimeout(() => {
+      titleEl.classList.remove("glitching");
+      titleGreenEl.classList.remove("glitching");
+    }, config.rgbDuration * 1000);
+    setTimeout(startRGBGlitch, rand(config.rgbMinDelay, config.rgbMaxDelay) * 1000);
+  }
+
+  /* Slice scatter glitch */
+  function startSliceGlitch(){
+    if (!config.glitchEnabled){ setTimeout(startSliceGlitch, 1000); return; }
+    const slices = document.querySelectorAll(".title .slice");
+    slices.forEach((s, i) => {
+      s.style.opacity = 1;
+      s.style.transition = `transform ${config.sliceDuration}s steps(2,end), opacity ${config.sliceDuration}s`;
+      applyMovement(s, i);
+    });
+    setTimeout(() => {
+      slices.forEach(s => { s.style.opacity = 0; s.style.transform = "translateX(0)"; });
+    }, config.sliceDuration * 1000);
+    setTimeout(startSliceGlitch, rand(config.sliceMinDelay, config.sliceMaxDelay) * 1000);
+  }
+
+  /* Start everything after the fade-in animation */
+  setTimeout(() => {
+    startFlickerLoop();
+    startRGBGlitch();
+    startSliceGlitch();
+  }, 600);
+
+})();
+
+/* ── FAVICON ANIMATION (Chrome-compatible) ───────────────────────────────── */
+(function () {
+  const favicon = document.querySelector('link[rel="icon"]');
+  if (!favicon) return;
+
+  const DUR    = 5000;   // ms per cycle
+  const STAG   = 1000;   // ms stagger between bars
+
+  function ease(t) {
+    // 0-40% full, 40-50% fade out, 50-60% fade in, 60-100% full
+    if (t < 0.40) return 1.0;
+    if (t < 0.50) return 1.0 - (1.0 - 0.4) * ((t - 0.40) / 0.10);
+    if (t < 0.60) return 0.4 + (1.0 - 0.4) * ((t - 0.50) / 0.10);
+    return 1.0;
+  }
+
+  function op(offset) {
+    return ease(((Date.now() - offset) % DUR) / DUR);
+  }
+
+  function buildSVG() {
+    const o = [op(0), op(STAG), op(STAG * 2)];
+    return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">'
+      + '<g opacity="' + o[0].toFixed(3) + '"><rect x="-1" y="9" width="8" height="12" rx="2" fill="#E8732A" opacity="0.6"/><rect x="0" y="10" width="6" height="10" rx="1" fill="#E8732A"/></g>'
+      + '<g opacity="' + o[1].toFixed(3) + '"><rect x="11" y="3" width="8" height="24" rx="2" fill="#E8732A" opacity="0.6"/><rect x="12" y="4" width="6" height="22" rx="1" fill="#E8732A"/></g>'
+      + '<g opacity="' + o[2].toFixed(3) + '"><rect x="23" y="9" width="8" height="12" rx="2" fill="#E8732A" opacity="0.6"/><rect x="24" y="10" width="6" height="10" rx="1" fill="#E8732A"/></g>'
+      + '</svg>';
+  }
+
+  setInterval(function () {
+    try {
+      favicon.href = 'data:image/svg+xml;base64,' + btoa(buildSVG());
+    } catch(e) {}
+  }, 50);
+})();
+</script>
+
+
+<script>
+(function(){
+  var stardateEl = document.getElementById('stardate');
+  if (!stardateEl) return;
+  function pad(n, len){ return String(n).padStart(len, '0'); }
+  function chicagoParts(date){
+    var fmt = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'America/Chicago',
+      year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: '2-digit', minute: '2-digit', hour12: false
+    });
+    var parts = {};
+    fmt.formatToParts(date).forEach(function(p){ if (p.type !== 'literal') parts[p.type] = p.value; });
+    if (parts.hour === '24') parts.hour = '00';
+    return parts;
+  }
+  function dayOfYear(year, month, day){
+    var y = parseInt(year, 10);
+    var start = Date.UTC(y, 0, 1);
+    var current = Date.UTC(y, parseInt(month, 10) - 1, parseInt(day, 10));
+    return Math.floor((current - start) / 86400000) + 1;
+  }
+  function updateStardate(){
+    var parts = chicagoParts(new Date());
+    var day = dayOfYear(parts.year, parts.month, parts.day);
+    stardateEl.textContent = parts.year + '.' + pad(day, 3) + '.' + parts.hour + parts.minute;
+  }
+  updateStardate();
+  setInterval(updateStardate, 1000);
+})();
+</script>
+
+<script>
+(function(){
+  var elCommit = document.getElementById('commitInfo');
+  var elUpdated = document.getElementById('updatedInfo');
+  if (!elCommit && !elUpdated) return;
+  function formatCentral(isoDate){
+    var d = new Date(isoDate);
+    var dateFmt = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Chicago', year:'numeric', month:'2-digit', day:'2-digit' });
+    var timeFmt = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Chicago', hour:'2-digit', minute:'2-digit', hour12:false });
+    var tzFmt = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Chicago', timeZoneName: 'short' });
+    var dateStr = dateFmt.format(d);
+    var hh = timeFmt.formatToParts(d).find(function(p){ return p.type === 'hour'; }).value;
+    if (hh === '24') hh = '00';
+    var mm = timeFmt.formatToParts(d).find(function(p){ return p.type === 'minute'; }).value;
+    var tzName = tzFmt.formatToParts(d).find(function(p){ return p.type === 'timeZoneName'; }).value;
+    return dateStr + ' ' + hh + ':' + mm + ' ' + tzName;
+  }
+  fetch('https://api.github.com/repos/EmptyFishTank-JB/echoes-boardgame/commits?path=dev-tools/artifacts/index-bg-demo.html&per_page=1')
+    .then(function(r){ if (!r.ok) throw new Error('bad response'); return r.json(); })
+    .then(function(data){
+      if (!data || !data.length) throw new Error('no commits');
+      var c = data[0];
+      var sha = c.sha.slice(0, 7);
+      var date = c.commit && c.commit.committer && c.commit.committer.date;
+      if (elCommit) elCommit.textContent = sha;
+      if (elUpdated) elUpdated.textContent = date ? formatCentral(date) : 'unknown';
+    })
+    .catch(function(){
+      if (elCommit) elCommit.textContent = 'unavailable';
+      if (elUpdated) elUpdated.textContent = 'unavailable';
+    });
+})();
+</script>
+</body>
+</html>
