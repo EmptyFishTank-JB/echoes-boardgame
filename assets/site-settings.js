@@ -31,18 +31,13 @@
     flat: { label: 'Flat Dark', value: '#0a0c0f', themeColor: '#0a0c0f' },
     gradient: {
       label: 'Gradient Glow',
-      // A straight 180deg sweep (not the old 160deg diagonal) keeps
-      // every point along a given row the same color, and the last
-      // stop holds flat from 82% down instead of finishing exactly at
-      // 100% — both needed so the very bottom edge of the page is a
-      // single uniform color a mobile browser can sample to color the
-      // Android system nav bar (see BACKGROUNDS comment above). The
-      // bottom radial glow is nudged up off that edge for the same
-      // reason — centered on it, it would reintroduce side-to-side
-      // variation right where we need it flat.
+      // The diagonal sweep is decorative only — the Android system nav
+      // bar color comes from the separate background-color declaration
+      // in each page's `body` rule (see themeColor / --bg-solid), not
+      // from anything about this gradient's shape.
       value: 'radial-gradient(ellipse 80% 60% at 50% 0%, rgba(79,195,247,0.06) 0%, transparent 60%), '
         + 'radial-gradient(ellipse 70% 50% at 50% 82%, rgba(232,115,42,0.06) 0%, transparent 55%), '
-        + 'linear-gradient(180deg, #030508 0%, #070b12 45%, #05080d 82%, #05080d 100%)',
+        + 'linear-gradient(160deg, #030508 0%, #070b12 45%, #05080d 82%, #05080d 100%)',
       themeColor: '#05080d'
     },
     black: { label: 'Pure Black', value: '#000000', themeColor: '#000000' }
