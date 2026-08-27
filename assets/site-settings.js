@@ -113,12 +113,19 @@
 
     if (hc){
       html.style.setProperty('--bg', CONTRAST.high.bg);
+      html.style.setProperty('--bg-solid', CONTRAST.high.bg);
       html.style.setProperty('--text', CONTRAST.high.text);
       html.style.setProperty('--text-dim', CONTRAST.high.textDim);
       html.style.setProperty('--text-bright', CONTRAST.high.textBright);
       setThemeColor(CONTRAST.high.bg);
     } else {
       html.style.setProperty('--bg', BACKGROUNDS[settings.bg].value);
+      // --bg-solid stays a flat color always, even when --bg is a
+      // gradient — anything using --bg as a proxy for "the app's dark
+      // color" in a `color:` declaration (not a `background:`) needs
+      // this instead, since a gradient is an invalid <color> value and
+      // silently drops the whole declaration.
+      html.style.setProperty('--bg-solid', BACKGROUNDS[settings.bg].themeColor);
       html.style.removeProperty('--text');
       html.style.removeProperty('--text-dim');
       html.style.removeProperty('--text-bright');
