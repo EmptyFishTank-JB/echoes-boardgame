@@ -1306,7 +1306,8 @@
         <table>
           <thead><tr><th>Action</th><th>Noise</th></tr></thead>
           <tbody>
-            <tr><td><span style="color:var(--accent);">Search Locker / Cache / Ammo Crate</span><br><span style="color:var(--text-dim);font-size:12px;">Open and rummage through a container in the current room.</span></td><td>+2</td></tr>
+            <tr><td><span style="color:var(--accent);">Search Locker / Cache</span><br><span style="color:var(--text-dim);font-size:12px;">Open and rummage through a container in the current room.</span></td><td>+2</td></tr>
+            <tr><td><span style="color:var(--accent);">Restock at Ammo Crate</span><br><span style="color:var(--text-dim);font-size:12px;">Draw Universal Ammo from a fixed Ammo Crate location. Deterministic yield, not a random search — prevents repeat-search farming. Yield per restock TBD.</span></td><td>+1</td></tr>
             <tr><td><span style="color:var(--accent);">Pick Up / Drop / Swap Item</span><br><span style="color:var(--text-dim);font-size:12px;">Any combination of these counts as one action.</span></td><td>+1</td></tr>
             <tr><td><span style="color:var(--accent);">Craft Item</span><br><span style="color:var(--text-dim);font-size:12px;">Requires blueprint unlocked and resources in backpack.</span></td><td>+1</td></tr>
             <tr><td><span style="color:var(--accent);">Interact with Terminal</span><br><span style="color:var(--text-dim);font-size:12px;">Draw Echo Card. Standard noise level.</span></td><td>+1</td></tr>
@@ -1632,36 +1633,41 @@
       </div>
       <p>Blueprints are not cards — they're static Tech Tree unlocks on the Objective Board. Each blueprint slot requires a set number of objectives (drawn from Room Cards) to be chained and completed in order before that blueprint's own tasks can be started. Once completed, the blueprint is unlocked for all players. See <a href="#taskboard">// 17 Objective Board &amp; Tech Tree</a> for the full chain-resolution rules.</p>
 
-      <h3>Crafting Tiers</h3>
+      <h3>Item Categories</h3>
+      <p>No crafting tiers — items are organized by category instead. Category has no effect on resource cost; it's purely organizational.</p>
       <div class="tbl-wrap">
         <table>
-          <thead><tr><th>Tier</th><th>Resources</th><th>Item Types</th></tr></thead>
+          <thead><tr><th>Category</th><th>Items</th></tr></thead>
           <tbody>
-            <tr><td>CRUDE</td><td>Salvage + Scrap</td><td>Improvised tools, melee weapons, basic armor.</td></tr>
-            <tr><td>STANDARD</td><td>Salvage + Components</td><td>Functional tools, gadgets, basic firearms.</td></tr>
-            <tr><td>ADVANCED</td><td>Components + Data</td><td>Sophisticated equipment, advanced firearms, scanners.</td></tr>
+            <tr><td>Melee Weapons</td><td>Army Knife, Stun Baton, Axe</td></tr>
+            <tr><td>Ranged Weapons</td><td>Pistol, Rifle, Shotgun, Flamethrower</td></tr>
+            <tr><td>Armor</td><td>Scrap Bracer</td></tr>
+            <tr><td>Consumables</td><td>Medpack, Distraction Item, Flare</td></tr>
+            <tr><td>Utility Items</td><td>Fuel Cells, and other items not yet part of the game</td></tr>
           </tbody>
         </table>
       </div>
 
-      <h3>Crafting Recipes</h3>
+      <h3>Item List &amp; Crafting Recipes</h3>
+      <p>Every item in the game is craftable except Universal Ammo, which is found only. Costs below are a preliminary pass — expect adjustment through playtesting.</p>
       <div class="tbl-wrap">
         <table>
-          <thead><tr><th>Item</th><th>Tier</th><th>Recipe</th></tr></thead>
+          <thead><tr><th>Item</th><th>Category</th><th>Recipe</th></tr></thead>
           <tbody>
-            <tr><td>Army Knife</td><td>Crude</td><td>1 Salvage + 1 Scrap</td></tr>
-            <tr><td>Stun Baton</td><td>Crude</td><td>1 Salvage + 2 Scrap</td></tr>
-            <tr><td>Axe</td><td>Crude</td><td>2 Salvage + 1 Scrap</td></tr>
-            <tr><td>Scrap Bracer (1×2 Armor)</td><td>Crude</td><td>1 Salvage + 2 Scrap</td></tr>
-            <tr><td><s>Flare Gun</s> <span style="color:var(--text-dim);font-size:11px;">[REMOVED — see Flare consumable]</span></td><td>—</td><td>—</td></tr>
-            <tr><td>Pistol</td><td>Standard</td><td>2 Salvage + 2 Components</td></tr>
-            <tr><td>Rifle</td><td>Standard</td><td>2 Salvage + 3 Components</td></tr>
-            <tr><td>Medpack</td><td>Standard</td><td>2 Salvage + 2 Components</td></tr>
-            <tr><td>Shotgun</td><td>Advanced</td><td>3 Components + 2 Data</td></tr>
-            <tr><td>Flamethrower</td><td>Advanced</td><td>4 Components + 3 Data</td></tr>
-            <tr><td>Makeshift Fuel Cell</td><td>Advanced</td><td>3 Salvage + 2 Components + 1 Data</td></tr>
-            <tr><td>Distraction Item</td><td>TBD</td><td>TBD</td></tr>
-            <tr><td>Flare</td><td>TBD</td><td>TBD — throwable consumable. +1 noise. Visual priority override for 1 creature phase. Throwing distance TBD.</td></tr>
+            <tr><td>Army Knife</td><td>Melee Weapon</td><td>1 Salvage + 1 Scrap</td></tr>
+            <tr><td>Stun Baton</td><td>Melee Weapon</td><td>1 Salvage + 2 Scrap</td></tr>
+            <tr><td>Axe</td><td>Melee Weapon</td><td>2 Salvage + 1 Scrap</td></tr>
+            <tr><td>Pistol</td><td>Ranged Weapon</td><td>2 Salvage + 2 Components</td></tr>
+            <tr><td>Rifle</td><td>Ranged Weapon</td><td>2 Salvage + 3 Components</td></tr>
+            <tr><td>Shotgun</td><td>Ranged Weapon</td><td>3 Components + 2 Data</td></tr>
+            <tr><td>Flamethrower</td><td>Ranged Weapon</td><td>4 Components + 3 Data</td></tr>
+            <tr><td>Scrap Bracer (1×2 Armor)</td><td>Armor</td><td>1 Salvage + 2 Scrap</td></tr>
+            <tr><td>Medpack</td><td>Consumable</td><td>2 Salvage + 2 Components</td></tr>
+            <tr><td>Distraction Item</td><td>Consumable</td><td>1 Salvage + 1 Scrap</td></tr>
+            <tr><td>Flare</td><td>Consumable</td><td>1 Scrap</td></tr>
+            <tr><td>Official Fuel Cell</td><td>Utility</td><td>3 Salvage + 3 Components + 2 Data</td></tr>
+            <tr><td>Makeshift Fuel Cell</td><td>Utility</td><td>3 Salvage + 2 Components + 1 Data</td></tr>
+            <tr><td>Universal Ammo</td><td>—</td><td><span style="color:var(--text-dim);">Found only — not crafted. See Ammo Crate Restock, <a href="#noise">// 06 Actions &amp; Noise</a>.</span></td></tr>
           </tbody>
         </table>
       </div>
@@ -1775,7 +1781,7 @@
 
       <h4 style="margin-top:16px;">Example Task Types</h4>
       <ul class="rules-list">
-        <li><strong>Terminal Skill Check:</strong> Go to [family] room, interact with terminal, pass a D12 skill check with specific required faces — e.g. 2× Tools or 1× DNA.</li>
+        <li><strong>Terminal Skill Check:</strong> Go to [family] room, interact with terminal, pass a D12 skill check with specific required faces — e.g. 2× Tech or 1× DNA.</li>
         <li><strong>Workbench Cost:</strong> Go to [family] room, interact with workbench, spend a specific resource cost — e.g. 2 Scrap + 1 Salvage.</li>
         <li><strong>Delivery:</strong> Carry specific item(s) to a [family] room and place them at the location the task specifies.</li>
       </ul>
@@ -1812,7 +1818,8 @@
       <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Prologue / lore text rewrite</div><div class="item-note">Ship log style, movie cold-open narration. Written from crew member POV. In progress.</div></div></div>
       <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Encumbered threshold — exact value</div><div class="item-note">~80% of backpack capacity. Applies to backpack only. Equipment grid is separate.</div></div></div>
       <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Flare throwing distance</div><div class="item-note">Standalone consumable. +1 noise. Visual priority override 1 creature phase.</div></div></div>
-      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Distraction item — recipe and tier</div><div class="item-note">Crafted consumable. Place or throw. Distance TBD.</div></div></div>
+      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Distraction item throwing/placement distance</div><div class="item-note">Recipe now set (1 Salvage + 1 Scrap). Distance still TBD.</div></div></div>
+      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Ammo Crate restock yield</div><div class="item-note">Exact Universal Ammo quantity gained per restock action still TBD.</div></div></div>
       <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Locker detection roll mechanic</div><div class="item-note">Triggers when creature physically reaches player's locker. Roll system TBD.</div></div></div>
       <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Seal Door — full mechanic documentation</div><div class="item-note">Blocks creature until end of next player's creature phase. Crew coordination required.</div></div></div>
       
@@ -1820,7 +1827,10 @@
       <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">LoS Rush triggers mid-move</div><div class="item-note">Any LoS contact during creature movement triggers rush — not only at end of move.</div></div></div>
       <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Flare gun removed</div><div class="item-note">Flare is a standalone throwable consumable. No weapon required.</div></div></div>
       <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Equipment grid holds all weapons and armor</div><div class="item-note">Ranged, melee, armor — all in equipment grid. Ammo in backpack.</div></div></div>
-      
+      <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Crafting tiers removed</div><div class="item-note">Crude/Standard/Advanced tiers replaced with organizational categories (Melee Weapons, Ranged Weapons, Armor, Consumables, Utility Items) — category has no effect on cost.</div></div></div>
+      <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Full item list &amp; preliminary crafting costs set</div><div class="item-note">Every item is now craftable except Universal Ammo (found only). All costs are a first pass — expect rebalancing through playtesting.</div></div></div>
+      <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Universal Ammo is found-only, not crafted</div><div class="item-note">Restock at Ammo Crate is a deterministic action (1 action, +1 noise, fixed yield) rather than a random search — prevents repeat-search farming for ammo specifically.</div></div></div>
+
       <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Threat Token conversion</div><div class="item-note">How tokens affect creature aggression on introduction.</div></div></div>
       <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Biohazard face</div><div class="item-note">Valid D12 requirement face alongside Tech, DNA, and Tools. Appears on specific cards as defined by card design. No global effect — all requirements are card-specific.</div></div></div>
       <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Skill check pass conditions</div><div class="item-note">Pass conditions are card-specific. Each Echo Card defines its own face requirements and quantities. Roll Resolution in Section 07 governs all checks. Card design and notation is part of the ~120 card design phase.</div></div></div>
