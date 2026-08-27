@@ -153,9 +153,9 @@
     if (!slot) return;
 
     var CSS = ''
-      + '.echo-settings-gear{background:transparent;border:1px solid rgba(255,255,255,0.18);border-radius:50%;'
+      + '.echo-settings-gear{background:transparent;border:1px solid var(--text-dim,#6b7080);border-radius:50%;'
       + 'width:26px;height:26px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;'
-      + 'color:rgba(255,255,255,0.5);transition:color 0.15s,border-color 0.15s;padding:0;}'
+      + 'color:var(--text-dim,#6b7080);transition:color 0.15s,border-color 0.15s;padding:0;}'
       + '.echo-settings-gear:hover,.echo-settings-gear.active{color:var(--accent,#E8732A);border-color:var(--accent,#E8732A);}'
       + '.echo-settings-gear svg{width:15px;height:15px;}'
       + '#echo-settings-panel{position:fixed;bottom:16px;right:16px;z-index:99999;width:210px;'
