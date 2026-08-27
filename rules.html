@@ -1024,7 +1024,7 @@
     <a href="#crafting">14 · Crafting</a>
     <a href="#echo-deck">15 · Echo Deck</a>
     <a href="#mini-games">16 · Echo Events</a>
-    <a href="#taskboard">17 · Task Board</a>
+    <a href="#taskboard">17 · Objective Board &amp; Tech Tree</a>
     <a href="#escape">18 · Escape Phase</a>
     <a href="#open">19 · Open Items</a>
 
@@ -1134,7 +1134,7 @@
       <ul class="rules-list">
         <li><strong>Dormant Phase:</strong> Failed noise checks produce Threat Tokens. Toggle cards inert.</li>
         <li><strong>Bridge Objective:</strong> Crew reaches Bridge, interacts with main terminal → draws CONTACT card.</li>
-        <li><strong>CONTACT Card:</strong> Names a room family. Placed pending on Task Board. Threat Tokens stack on it.</li>
+        <li><strong>CONTACT Card:</strong> Names a room family. Threat Tokens stack on it. <em>Card source and exact placement mechanic under reconsideration — see Open Items.</em></li>
         <li><strong>Introduction:</strong> Named room family discovered → creature placed in that room. Threat Tokens convert. Status flips to ACTIVE.</li>
         <li><strong>Scenario B:</strong> If family already on board when CONTACT drawn → creature emerges in most recently discovered room of that family.</li>
       </ul>
@@ -1591,8 +1591,8 @@
         <table>
           <thead><tr><th>Type</th><th>Size</th><th>Grid Spaces</th><th>Source</th></tr></thead>
           <tbody>
-            <tr><td>Official Fuel Cell</td><td>2×2</td><td>4 spaces</td><td>Found via Echo Deck (room cards, Stacked Task chains). Craftable if blueprint is discovered. Exact source subject to change.</td></tr>
-            <tr><td>Makeshift Fuel Cell</td><td>1×2</td><td>2 spaces</td><td>Found via Echo Deck or crafted from blueprint. Requires twice as many trips to refuel. Exact source subject to change.</td></tr>
+            <tr><td>Official Fuel Cell</td><td>2×2</td><td>4 spaces</td><td>Found via Echo Deck (room cards, Objective Board chains). Craftable once its blueprint is unlocked on the Tech Tree. Exact source subject to change.</td></tr>
+            <tr><td>Makeshift Fuel Cell</td><td>1×2</td><td>2 spaces</td><td>Found via Echo Deck or crafted once its blueprint is unlocked on the Tech Tree. Requires twice as many trips to refuel. Exact source subject to change.</td></tr>
           </tbody>
         </table>
       </div>
@@ -1630,7 +1630,7 @@
         <span class="section-num">// 14</span>
         <h2 class="section-title">Crafting</h2>
       </div>
-      <p>Blueprints are Echo Cards (~15–20% of deck). When drawn, placed on Task Board as a mini quest chain. Once completed, blueprint unlocked for all players.</p>
+      <p>Blueprints are not cards — they're static Tech Tree unlocks on the Objective Board. Each blueprint slot requires a set number of objectives (drawn from Room Cards) to be chained and completed in order before that blueprint's own tasks can be started. Once completed, the blueprint is unlocked for all players. See <a href="#taskboard">// 17 Objective Board &amp; Tech Tree</a> for the full chain-resolution rules.</p>
 
       <h3>Crafting Tiers</h3>
       <div class="tbl-wrap">
@@ -1672,20 +1672,23 @@
         <span class="section-num">// 15</span>
         <h2 class="section-title">The Echo Deck</h2>
       </div>
-      <p>The unified narrative engine. ~120 cards (planned) handling room discovery, loot, events, blueprints, mini-games, and data retrieval. Every draw carries potential to change board state, generate resources, trigger objectives, or interrupt play.</p>
+      <p>The unified narrative engine. ~120 cards (planned) handling room discovery, loot, events, objectives, mini-games, and data retrieval. Every draw carries potential to change board state, generate resources, trigger objectives, or interrupt play.</p>
 
       <h3>Deck Composition (~120 Cards Planned)</h3>
       <div class="tbl-wrap">
         <table>
           <thead><tr><th>Card Type</th><th>Count</th><th>Function</th></tr></thead>
           <tbody>
-            <tr><td>Room Cards</td><td>~70–80</td><td>Primary discovery loop. Room type, lore, resource icons, events, tasks, terminal indicators.</td></tr>
+            <tr><td>Room Cards</td><td>~70–80</td><td>Primary discovery loop. Room type, lore, resource icons, events, tasks, terminal indicators. Some are marked <strong>Objective</strong> — see below.</td></tr>
             <tr><td>Echo Event Mini-Games</td><td>~12 (6×2) &mdash; ~10%</td><td>Interrupt mechanic. Must resolve before original draw continues.</td></tr>
-            <tr><td>Blueprint Cards</td><td>~15–20%</td><td>Unlock craftable items via Stacked Task chains.</td></tr>
             <tr><td>CONTACT Card</td><td>1</td><td>Unique. Triggers creature introduction when drawn at Operations Center terminal.</td></tr>
           </tbody>
         </table>
       </div>
+      <div class="callout info"><strong>// Pending</strong>Blueprints are no longer their own card type (they're static Tech Tree unlocks — see <a href="#taskboard">// 17</a>), so the ~15–20% previously set aside for Blueprint Cards needs reallocating across the remaining types.</div>
+
+      <h3>Room Card Tasks &amp; Objectives</h3>
+      <p>Not every Room Card carries a task, and not every task is an objective. Cards marked <strong>Objective</strong> feed the Objective Board &amp; Tech Tree (<a href="#taskboard">// 17</a>) — their tasks are resolved in order, tied to that card's room family, and completed at whatever the task specifies (a room of that family, a terminal, or a workbench). Cards with a task that <em>isn't</em> marked Objective resolve immediately on draw and never touch the board.</p>
 
       <h3>Drawing Rules</h3>
       <ul class="rules-list">
@@ -1743,21 +1746,37 @@
         <div><a href="echo-events.html" class="callout-btn">&#9654; Open Echo Events</a></div>
       </div>
     </section>
-    <!-- 18 TASK BOARD -->
+    <!-- 17 OBJECTIVE BOARD & TECH TREE -->
     <section class="section" id="taskboard">
       <div class="section-header">
         <span class="section-num">// 17</span>
-        <h2 class="section-title">Task Board</h2>
+        <h2 class="section-title">Objective Board &amp; Tech Tree</h2>
       </div>
-      <p>Official term. Previously referred to as Objective Board — retired. Echo cards that cannot be immediately resolved are placed here as pending tasks.</p>
+      <p>Official term. Replaces "Task Board." Hosts the Tech Tree — a row of static blueprint slots, unlocked left to right — plus the Pending Objective Queue for objectives not yet slotted in.</p>
 
-      <h3>Task Types</h3>
+      <h3>Blueprints Are Tech Tree Unlocks, Not Cards</h3>
+      <p>Blueprints are never drawn. Each blueprint occupies a fixed slot on the Tech Tree and specifies exactly how many objectives (0–3) it requires to unlock. That count lives on the blueprint slot only — objective cards never carry their own chain requirement, so a drawn objective can only ever occupy a single link in one blueprint's chain, never introduce a chain-within-a-chain.</p>
+
+      <h3>Populating the Tree</h3>
       <ul class="rules-list">
-        <li><strong>Singular Tasks:</strong> Single Echo card. Resolved when crew completes the indicated objective. Removed when fulfilled.</li>
-        <li><strong>Stacked / Chained / Nested Tasks:</strong> One card requires 2+ prerequisite cards completed first. Cards placed alongside parent card. Resolved bottom-up.</li>
-        <li><strong>Blueprint Tasks:</strong> Blueprint Echo cards use Stacked Task system as mini quest chains to unlock craftable items for the whole crew.</li>
+        <li><strong>Tier Order:</strong> Slots populate low-tier blueprint first, then the next — blueprint 2's slots can't be populated before blueprint 1's are filled.</li>
+        <li><strong>Free Placement:</strong> An objective drawn from a Room Card may be slotted into an eligible chain immediately, at no extra action cost — same action as the draw.</li>
+        <li><strong>Ahead of Completion:</strong> Population can run ahead of completion — blueprints 1 through 4 can all have their chains fully populated before blueprint 1's own tasks are even started.</li>
+        <li><strong>One Card, One Chain:</strong> Once an objective is slotted, it's locked to that chain — it can never be reapplied elsewhere.</li>
       </ul>
-      <div class="callout info"><strong>// Pending</strong>Maximum simultaneous pending tasks, consequences for unresolved tasks, and exact nested chain population rules still to be determined.</div>
+
+      <h3>Chain Resolution (In Order, Bottom-Up)</h3>
+      <p>Everything resolves in order, at every level — it reads like a quest line: task unlocks task, objective unlocks objective, chain unlocks blueprint.</p>
+      <ul class="rules-list">
+        <li><strong>Tasks:</strong> Within a single objective, its own tasks (max 3) resolve in order — each must be completed before the next can be started. Tasks are completed at whatever the card specifies — a room of that objective's family, a terminal, or a workbench.</li>
+        <li><strong>Objectives:</strong> Within a chain, objectives complete bottom-up — the objective furthest from the blueprint (the last one added to a full chain) must be fully completed before the next one up can be started. The final objective in the chain must complete before the blueprint's own tasks can begin.</li>
+        <li><strong>Blueprints:</strong> Tech Tree tier order gates completion as well as population — blueprint 1 must be completed before blueprint 2's tasks can be started, blueprint 2 before blueprint 3, and so on.</li>
+      </ul>
+
+      <h3>Pending Objective Queue</h3>
+      <p>An objective the crew doesn't slot immediately joins the back of the Pending Objective Queue. Pending objectives are pulled from the front of the queue only — players cannot cherry-pick a specific one out of order.</p>
+
+      <div class="callout info"><strong>// Pending</strong>Pending Objective Queue cap (if any), consequences for a blueprint that never gets fully populated, and the Workbench mechanic itself are still to be determined.</div>
     </section>
     <!-- 16 ESCAPE -->
     <section class="section" id="escape">
@@ -1767,7 +1786,7 @@
       </div>
       <ul class="rules-list">
         <li><strong>Fuel Grid:</strong> 2×10 grid at the Dock. 20 total spaces. Need 16 filled.</li>
-        <li><strong>Official Cell:</strong> 2×2 (4 spaces). Found via Task Board chains.</li>
+        <li><strong>Official Cell:</strong> 2×2 (4 spaces). Found via Objective Board chains.</li>
         <li><strong>Makeshift Fuel Cell:</strong> 1×2 (2 spaces). Found via Echo Deck or crafted. Twice the trips to refuel.</li>
         <li><strong>Carrier Rule:</strong> Fuel Cell carrier must drop heavy weapons or armor. Crew acts as bodyguards.</li>
         <li><strong>Death Drop:</strong> Carrier death drops cell at exact location. Recovery mission required.</li>
@@ -1806,11 +1825,13 @@
       <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Medpack heal value</div><div class="item-note">Exact health restored by Medpack and Medical room.</div></div></div>
       <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Board layout draft</div><div class="item-note">30×36 design. Bridge, Dock, corridor network, vent placement.</div></div></div>
       <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Post-encounter sequence adjustments</div><div class="item-note">Player flagged adjustments needed — to be revisited.</div></div></div>
-      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Task Board population rules</div><div class="item-note">Max simultaneous tasks, unresolved consequences, nested chain triggers.</div></div></div>
-      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Creature introduction — final trigger details</div><div class="item-note">Bridge + CONTACT card system established. Exact mechanics TBD.</div></div></div>
+      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Pending Objective Queue cap</div><div class="item-note">Whether a max queue size is needed, and consequences for a blueprint chain that never gets fully populated.</div></div></div>
+      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Workbench mechanic</div><div class="item-note">New task-resolution location alongside rooms and terminals. Low cost to add or cut — exact rules TBD.</div></div></div>
+      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Blueprint Card deck share reallocation</div><div class="item-note">Blueprints are now Tech Tree unlocks, not cards — the ~15–20% previously set aside for them needs redistributing across the remaining Echo Deck card types.</div></div></div>
+      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">CONTACT card mechanic — under reconsideration</div><div class="item-note">Not part of the original design notes. Undecided whether it stays as a mechanic at all, and if so whether it's a separate card/stack outside the Echo Deck or a signifier within it — kept to avoid adding a new card type unless necessary.</div></div></div>
       <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Half-speed on noise check pass</div><div class="item-note">Creature always moves half speed toward noise on successful check.</div></div></div>
       <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Noise resets each turn</div><div class="item-note">Tracker resets at start of each player's turn.</div></div></div>
-      <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Task Board — official term locked</div><div class="item-note">Replaces "Objective Board" everywhere.</div></div></div>
+      <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Objective Board — official term locked</div><div class="item-note">Replaces "Task Board" everywhere. Hosts the Tech Tree and Pending Objective Queue.</div></div></div>
     </section>
 
   </main>
