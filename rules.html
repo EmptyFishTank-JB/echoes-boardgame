@@ -1289,7 +1289,7 @@
           <thead><tr><th>Type</th><th>Speed</th><th>Noise</th><th>Cost</th></tr></thead>
           <tbody>
             <tr><td>Normal Move</td><td>Base Speed</td><td>+1 per Move</td><td>Per Move used</td></tr>
-            <tr><td>Encumbered (backpack threshold ~80% — TBD)</td><td>Base Speed</td><td>+2 per Move</td><td>Per Move used</td></tr>
+            <tr><td>Encumbered (backpack fill ≥ 80%)</td><td>Base Speed</td><td>+2 per Move</td><td>Per Move used</td></tr>
             <tr><td>Quiet Move</td><td>Base Speed −2</td><td>0 per Move</td><td>1 Action</td></tr>
             <tr><td>Run</td><td>Base Speed +4</td><td>+3 (once per phase)</td><td>1 Action</td></tr>
             <tr><td>Vent Movement</td><td>Base Speed</td><td>+2 per Move</td><td>Per Move used</td></tr>
@@ -1320,9 +1320,9 @@
             <tr><td><span style="color:var(--accent);">Ready / Brace</span><br><span style="color:var(--text-dim);font-size:12px;">Prepare for an encounter. No noise generated.</span></td><td>0</td></tr>
             <tr><td><span style="color:var(--accent);">Distraction Action</span><br><span style="color:var(--text-dim);font-size:12px;">Generates noise at the target location, not the player's location. Choose one method below.</span></td><td>+2 at target</td></tr>
             <tr><td style="padding-left:28px; color:var(--text-dim);">↳ Melee weapon (bang environment, weapon not consumed)</td><td>+2</td></tr>
-            <tr><td style="padding-left:28px; color:var(--text-dim);">↳ Distraction item (crafted consumable — place or throw, distance TBD)</td><td>+2</td></tr>
+            <tr><td style="padding-left:28px; color:var(--text-dim);">↳ Distraction item (crafted consumable — throw up to 8 spaces unobstructed, or place while adjacent)</td><td>+2</td></tr>
             <tr><td style="padding-left:28px; color:var(--text-dim);">↳ Ranged weapon (1 ammo consumed, noise at impact location)</td><td>+2</td></tr>
-            <tr><td style="padding-left:28px; color:var(--text-dim);">↳ Flare (consumable, throwable, distance TBD — visual priority override, 1 creature phase)</td><td>+1</td></tr>
+            <tr><td style="padding-left:28px; color:var(--text-dim);">↳ Flare (consumable, throwable up to 8 spaces unobstructed — visual priority override, 1 creature phase)</td><td>+1</td></tr>
             <tr><td><span style="color:var(--accent);">Melee Attack</span><br><span style="color:var(--text-dim);font-size:12px;">Encounter action. Creature already present — noise irrelevant.</span></td><td>+0</td></tr>
             <tr><td><span style="color:var(--accent);">Ranged Attack</span><br><span style="color:var(--text-dim);font-size:12px;">Encounter action. Creature already present — noise irrelevant.</span></td><td>+0</td></tr>
             <tr><td><span style="color:var(--accent);">Bridge Terminal</span><br><span style="color:var(--text-dim);font-size:12px;">High-stakes terminal interaction. Exact value TBD.</span></td><td>+3 to +4</td></tr>
@@ -1582,11 +1582,12 @@
       <ul class="rules-list">
         <li>~22 slots in compartments. Compartments are cosmetic — items go anywhere they fit.</li>
         <li><strong>Ammo</strong> is stored in the backpack and competes for inventory space.</li>
-        <li><strong>Encumbered threshold:</strong> when backpack fill reaches ~80% capacity (exact value TBD), movement noise increases to +2 per move action.</li>
+        <li><strong>Encumbered threshold:</strong> when backpack fill reaches 80% capacity, movement noise increases to +2 per move action.</li>
         <li>Certain compartments have designated item types (e.g., Fuel Cell slot).</li>
         <li><strong>Reserved Slots:</strong> Can hold any item when empty. Designated item takes priority when needed — other items must relocate or be dropped.</li>
         <li>Backpack boards are interchangeable between playthroughs.</li>
       </ul>
+      <div class="callout info"><strong>// Optional — Space Cubes</strong>A physical difficulty variant, playable or not by choice: each player starts with 5 small cubes occupying backpack slots as visual placeholders for their remaining safe capacity. When a cube's slot is needed for a real item, that cube moves out to a side track instead — a glance at the track shows exactly how encumbered the player is without counting slots.</div>
 
       <h3>Fuel Cells</h3>
       <div class="tbl-wrap">
@@ -1819,9 +1820,9 @@
       <p>Outstanding design questions tracked for future sessions.</p>
 
       <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Prologue / lore text rewrite</div><div class="item-note">Ship log style, movie cold-open narration. Written from crew member POV. In progress.</div></div></div>
-      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Encumbered threshold — exact value</div><div class="item-note">~80% of backpack capacity. Applies to backpack only. Equipment grid is separate.</div></div></div>
-      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Flare throwing distance</div><div class="item-note">Standalone consumable. +1 noise. Visual priority override 1 creature phase.</div></div></div>
-      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Distraction item throwing/placement distance</div><div class="item-note">Recipe now set (1 Salvage + 1 Scrap). Distance still TBD.</div></div></div>
+      <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Encumbered threshold: 80% of backpack capacity</div><div class="item-note">Applies to backpack only. Equipment grid is separate. Physical component idea (optional difficulty variant): 5 "space cubes" occupy backpack slots as visual placeholders for remaining safe capacity — when one must be removed to make room for a real item, that cube moves to a side track and the player is Encumbered. Doubles as an at-a-glance encumbrance meter.</div></div></div>
+      <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Flare throwing distance: up to 8 spaces</div><div class="item-note">Requires an unobstructed straight-line path from the player.</div></div></div>
+      <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Distraction Item throw/placement distance</div><div class="item-note">Throwing: up to 8 spaces, unobstructed straight line — same as Flare, and any throwable item. Placement: player must be adjacent to the placed location.</div></div></div>
       <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Ammo Crate restock yield: 2</div><div class="item-note">Preliminary value — subject to adjustment through playtesting.</div></div></div>
       <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Locker detection roll mechanic</div><div class="item-note">Triggers when creature physically reaches player's locker. Roll system TBD.</div></div></div>
       <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Seal Door — full mechanic documentation</div><div class="item-note">Blocks creature until end of next player's creature phase. Crew coordination required.</div></div></div>
