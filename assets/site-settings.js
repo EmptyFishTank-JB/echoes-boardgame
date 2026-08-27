@@ -19,15 +19,24 @@
 (function(){
   var STORE_KEY = 'echoSiteSettings';
 
+  // `themeColor` is a flat approximation for the mobile browser chrome /
+  // Android system nav bar (<meta name="theme-color">), which only
+  // accepts a solid color — it can't render `value`'s gradient layers.
+  // Without an explicit theme-color, Chrome on Android samples the
+  // actual pixel color at the bottom edge of the page to extend into
+  // the system nav bar; a gradient's bottom edge isn't a single flat
+  // color, so that auto-sampling falls back to white. Stating a color
+  // here keeps the nav bar dark for Gradient Glow too.
   var BACKGROUNDS = {
-    flat: { label: 'Flat Dark', value: '#0a0c0f' },
+    flat: { label: 'Flat Dark', value: '#0a0c0f', themeColor: '#0a0c0f' },
     gradient: {
       label: 'Gradient Glow',
       value: 'radial-gradient(ellipse 80% 60% at 50% 0%, rgba(79,195,247,0.06) 0%, transparent 60%), '
         + 'radial-gradient(ellipse 70% 50% at 50% 100%, rgba(232,115,42,0.06) 0%, transparent 60%), '
-        + 'linear-gradient(160deg, #030508 0%, #070b12 45%, #05080d 100%)'
+        + 'linear-gradient(160deg, #030508 0%, #070b12 45%, #05080d 100%)',
+      themeColor: '#05080d'
     },
-    black: { label: 'Pure Black', value: '#000000' }
+    black: { label: 'Pure Black', value: '#000000', themeColor: '#000000' }
   };
   var BG_ORDER = ['flat', 'gradient', 'black'];
 
@@ -85,6 +94,16 @@
     (document.head || document.documentElement).appendChild(el);
   }
 
+  function setThemeColor(color){
+    var meta = document.querySelector('meta[name="theme-color"]');
+    if (!meta){
+      meta = document.createElement('meta');
+      meta.name = 'theme-color';
+      (document.head || document.documentElement).appendChild(meta);
+    }
+    meta.setAttribute('content', color);
+  }
+
   function apply(settings){
     var html = document.documentElement;
     var hc = settings.contrast === 'high';
@@ -97,11 +116,13 @@
       html.style.setProperty('--text', CONTRAST.high.text);
       html.style.setProperty('--text-dim', CONTRAST.high.textDim);
       html.style.setProperty('--text-bright', CONTRAST.high.textBright);
+      setThemeColor(CONTRAST.high.bg);
     } else {
       html.style.setProperty('--bg', BACKGROUNDS[settings.bg].value);
       html.style.removeProperty('--text');
       html.style.removeProperty('--text-dim');
       html.style.removeProperty('--text-bright');
+      setThemeColor(BACKGROUNDS[settings.bg].themeColor);
     }
 
     html.style.zoom = TEXT_SIZES[settings.textSize].zoom;
