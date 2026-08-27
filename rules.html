@@ -1307,7 +1307,7 @@
           <thead><tr><th>Action</th><th>Noise</th></tr></thead>
           <tbody>
             <tr><td><span style="color:var(--accent);">Search Locker / Cache</span><br><span style="color:var(--text-dim);font-size:12px;">Open and rummage through a container in the current room.</span></td><td>+2</td></tr>
-            <tr><td><span style="color:var(--accent);">Restock at Ammo Crate</span><br><span style="color:var(--text-dim);font-size:12px;">Draw Universal Ammo from a fixed Ammo Crate location. Deterministic yield, not a random search — prevents repeat-search farming. Yield per restock TBD.</span></td><td>+1</td></tr>
+            <tr><td><span style="color:var(--accent);">Restock at Ammo Crate</span><br><span style="color:var(--text-dim);font-size:12px;">Draw 2 Universal Ammo from a fixed Ammo Crate location. Deterministic yield, not a random search — prevents repeat-search farming.</span></td><td>+1</td></tr>
             <tr><td><span style="color:var(--accent);">Pick Up / Drop / Swap Item</span><br><span style="color:var(--text-dim);font-size:12px;">Any combination of these counts as one action.</span></td><td>+1</td></tr>
             <tr><td><span style="color:var(--accent);">Craft Item</span><br><span style="color:var(--text-dim);font-size:12px;">Requires blueprint unlocked and resources in backpack.</span></td><td>+1</td></tr>
             <tr><td><span style="color:var(--accent);">Interact with Terminal</span><br><span style="color:var(--text-dim);font-size:12px;">Draw Echo Card. Standard noise level.</span></td><td>+1</td></tr>
@@ -1592,11 +1592,12 @@
         <table>
           <thead><tr><th>Type</th><th>Size</th><th>Grid Spaces</th><th>Source</th></tr></thead>
           <tbody>
-            <tr><td>Official Fuel Cell</td><td>2×2</td><td>4 spaces</td><td>Crafted once its blueprint is unlocked on the Tech Tree.</td></tr>
+            <tr><td>Official Fuel Cell</td><td>2×2</td><td>4 spaces</td><td>Crafted once its blueprint is unlocked on the Tech Tree. Prerequisite: Makeshift Fuel Cell blueprint must be fully completed first.</td></tr>
             <tr><td>Makeshift Fuel Cell</td><td>1×2</td><td>2 spaces</td><td>Crafted once its blueprint is unlocked on the Tech Tree. Requires twice as many trips to refuel.</td></tr>
           </tbody>
         </table>
       </div>
+      <div class="callout info"><strong>// Pending</strong>Fuel Cells are the Tech Tree's one explicit prerequisite chain (Makeshift → Official) — unlike every other blueprint, which unlocks in parallel. Additional pacing mechanics are still needed so the crew can't unlock both Fuel Cell blueprints and rush straight into the Escape Phase — exact mechanic TBD.</div>
       <div class="callout info"><strong>// Fuel Cell Notes</strong>Both Fuel Cell types occupy reserved backpack slots, leaving remaining compartments available. The Official Fuel Cell (2×2) uses 4 reserved slots; the Makeshift Fuel Cell (1×2) uses 2. Whatever's already in those slots must be relocated or dropped to make room — carrying a Fuel Cell requires no other special state. If the carrier dies, the Fuel Cell drops at the death location and must be recovered by surviving crew. Exact slot assignments subject to change.</div>
     </section>
     <!-- 07 RESOURCES -->
@@ -1665,7 +1666,7 @@
             <tr><td>Medpack</td><td>Consumable</td><td>2 Salvage + 2 Components</td></tr>
             <tr><td>Distraction Item</td><td>Consumable</td><td>1 Salvage + 1 Scrap</td></tr>
             <tr><td>Flare</td><td>Consumable</td><td>1 Scrap</td></tr>
-            <tr><td>Official Fuel Cell</td><td>Utility</td><td>3 Salvage + 3 Components + 2 Data</td></tr>
+            <tr><td>Official Fuel Cell</td><td>Utility</td><td>3 Salvage + 3 Components + 2 Data <span style="color:var(--text-dim);font-size:11px;">(requires Makeshift Fuel Cell blueprint completed first)</span></td></tr>
             <tr><td>Makeshift Fuel Cell</td><td>Utility</td><td>3 Salvage + 2 Components + 1 Data</td></tr>
             <tr><td>Universal Ammo</td><td>—</td><td><span style="color:var(--text-dim);">Found only — not crafted. See Ammo Crate Restock, <a href="#noise">// 06 Actions &amp; Noise</a>.</span></td></tr>
           </tbody>
@@ -1758,16 +1759,17 @@
         <span class="section-num">// 17</span>
         <h2 class="section-title">Objective Board &amp; Tech Tree</h2>
       </div>
-      <p>Official term. Replaces "Task Board." Hosts the Tech Tree — a row of static blueprint slots, unlocked left to right — plus the Pending Objective Queue for objectives not yet slotted in.</p>
+      <p>Official term. Replaces "Task Board." Hosts the Tech Tree — a set of static blueprint slots — plus the Pending Objective Queue for objectives not yet slotted in. The crew already knows what these items are; the Tech Tree represents figuring out how to actually assemble them from what's on hand aboard the Charon.</p>
 
       <h3>Blueprints Are Tech Tree Unlocks, Not Cards</h3>
       <p>Blueprints are never drawn. Each blueprint occupies a fixed slot on the Tech Tree and specifies exactly how many objectives (0–3) it requires to unlock. That count lives on the blueprint slot only — objective cards never carry their own chain requirement, so a drawn objective can only ever occupy a single link in one blueprint's chain, never introduce a chain-within-a-chain.</p>
 
       <h3>Populating the Tree</h3>
       <ul class="rules-list">
-        <li><strong>Tier Order:</strong> Slots populate low-tier blueprint first, then the next — blueprint 2's slots can't be populated before blueprint 1's are filled.</li>
+        <li><strong>Parallel by Default:</strong> Blueprints are independent — the crew can populate and work any blueprint's chain in any order they choose. No global order across the tree.</li>
         <li><strong>Free Placement:</strong> An objective drawn from a Room Card may be slotted into an eligible chain immediately, at no extra action cost — same action as the draw.</li>
-        <li><strong>Ahead of Completion:</strong> Population can run ahead of completion — blueprints 1 through 4 can all have their chains fully populated before blueprint 1's own tasks are even started.</li>
+        <li><strong>Explicit Prerequisites:</strong> A blueprint may name one specific prerequisite blueprint that must be fully completed before its own chain can be populated. This is a property of that one blueprint, not a rule about the whole tree — see <a href="#inventory">// 12 Inventory — Fuel Cells</a> for the current example.</li>
+        <li><strong>Ahead of Completion:</strong> On any blueprint without a prerequisite, population can run ahead of completion — every objective slot can be filled before that blueprint's own tasks are even started.</li>
         <li><strong>One Card, One Chain:</strong> Once an objective is slotted, it's locked to that chain — it can never be reapplied elsewhere.</li>
       </ul>
 
@@ -1776,7 +1778,7 @@
       <ul class="rules-list">
         <li><strong>Tasks:</strong> Within a single objective, its own tasks (max 3) resolve in order — each must be completed before the next can be started. Tasks are completed at whatever the card specifies — a room of that objective's family, a terminal, or a workbench.</li>
         <li><strong>Objectives:</strong> Within a chain, objectives complete bottom-up — the objective furthest from the blueprint (the last one added to a full chain) must be fully completed before the next one up can be started. The final objective in the chain must complete before the blueprint's own tasks can begin.</li>
-        <li><strong>Blueprints:</strong> Tech Tree tier order gates completion as well as population — blueprint 1 must be completed before blueprint 2's tasks can be started, blueprint 2 before blueprint 3, and so on.</li>
+        <li><strong>Blueprints:</strong> Completing one blueprint has no effect on any other, unless that other blueprint explicitly names it as a prerequisite.</li>
       </ul>
 
       <h4 style="margin-top:16px;">Example Task Types</h4>
@@ -1819,7 +1821,7 @@
       <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Encumbered threshold — exact value</div><div class="item-note">~80% of backpack capacity. Applies to backpack only. Equipment grid is separate.</div></div></div>
       <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Flare throwing distance</div><div class="item-note">Standalone consumable. +1 noise. Visual priority override 1 creature phase.</div></div></div>
       <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Distraction item throwing/placement distance</div><div class="item-note">Recipe now set (1 Salvage + 1 Scrap). Distance still TBD.</div></div></div>
-      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Ammo Crate restock yield</div><div class="item-note">Exact Universal Ammo quantity gained per restock action still TBD.</div></div></div>
+      <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Ammo Crate restock yield: 2</div><div class="item-note">Preliminary value — subject to adjustment through playtesting.</div></div></div>
       <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Locker detection roll mechanic</div><div class="item-note">Triggers when creature physically reaches player's locker. Roll system TBD.</div></div></div>
       <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Seal Door — full mechanic documentation</div><div class="item-note">Blocks creature until end of next player's creature phase. Crew coordination required.</div></div></div>
       
@@ -1846,6 +1848,8 @@
       <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Pending Objective Queue cap</div><div class="item-note">Whether a max queue size is needed, and consequences for a blueprint chain that never gets fully populated.</div></div></div>
       <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Workbench mechanic</div><div class="item-note">New task-resolution location alongside rooms and terminals. Low cost to add or cut — exact rules TBD.</div></div></div>
       <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Expansion blueprints will be card-based</div><div class="item-note">The base game's Tech Tree slots are fixed. Expansion content instead uses standalone Blueprint Cards, each printing its own unlock requirements. Integration details (how they mix into or alongside the Echo Deck) still TBD.</div></div></div>
+      <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Blueprints unlock in parallel, Fuel Cells are the exception</div><div class="item-note">No global tier order across the Tech Tree — every blueprint except Fuel Cells can be worked in any order. Official Fuel Cell explicitly requires the Makeshift Fuel Cell blueprint completed first.</div></div></div>
+      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Fuel Cell blueprint pacing</div><div class="item-note">Need a mechanic to stop the crew from unlocking both Fuel Cell blueprints and rushing straight into the Escape Phase. Exact approach TBD.</div></div></div>
       <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Blueprint Card deck share reallocation</div><div class="item-note">Blueprints are now Tech Tree unlocks, not cards — the ~15–20% previously set aside for them needs redistributing across the remaining Echo Deck card types.</div></div></div>
       <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">CONTACT card mechanic — under reconsideration</div><div class="item-note">Not part of the original design notes. Undecided whether it stays as a mechanic at all, and if so whether it's a separate card/stack outside the Echo Deck or a signifier within it — kept to avoid adding a new card type unless necessary.</div></div></div>
       <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Half-speed on noise check pass</div><div class="item-note">Creature always moves half speed toward noise on successful check.</div></div></div>
