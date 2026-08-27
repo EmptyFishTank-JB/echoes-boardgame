@@ -1024,7 +1024,7 @@
     <a href="#crafting">14 · Crafting</a>
     <a href="#echo-deck">15 · Echo Deck</a>
     <a href="#mini-games">16 · Echo Events</a>
-    <a href="#taskboard">17 · Objective Board &amp; Tech Tree</a>
+    <a href="#taskboard">17 · Objective Board</a>
     <a href="#escape">18 · Escape Phase</a>
     <a href="#open">19 · Open Items</a>
 
@@ -1312,7 +1312,7 @@
             <tr><td><span style="color:var(--accent);">Craft Item</span><br><span style="color:var(--text-dim);font-size:12px;">Requires blueprint unlocked and resources in backpack.</span></td><td>+1</td></tr>
             <tr><td><span style="color:var(--accent);">Interact with Terminal</span><br><span style="color:var(--text-dim);font-size:12px;">Draw Echo Card. Standard noise level.</span></td><td>+1</td></tr>
             <tr><td><span style="color:var(--accent);">Quiet Terminal Interaction</span><br><span style="color:var(--text-dim);font-size:12px;">Requires Tech skill or item. Silent access.</span></td><td>0</td></tr>
-            <tr><td><span style="color:var(--accent);">Data Extraction</span><br><span style="color:var(--text-dim);font-size:12px;">Retrieve a placed Data Token at an adjacent terminal or data point. See <a href="#resources">// 13 Resources — Data Retrieval Loop</a>.</span></td><td>TBD</td></tr>
+            <tr><td><span style="color:var(--accent);">Data Extraction</span><br><span style="color:var(--text-dim);font-size:12px;">Claim a Data Token already placed at an adjacent terminal or data point. Separate action from the Echo card draw that placed the token there. See <a href="#resources">// 13 Resources — Data Retrieval Loop</a>.</span></td><td>+1</td></tr>
             <tr><td><span style="color:var(--accent);">Seal Door</span><br><span style="color:var(--text-dim);font-size:12px;">Blocks creature until end of next player's creature phase, then opens. Requires crew coordination to lure creature away.</span></td><td>+1</td></tr>
             <tr><td><span style="color:var(--accent);">Enter / Exit Locker</span><br><span style="color:var(--text-dim);font-size:12px;">Each transition costs one action and generates noise.</span></td><td>+1 each</td></tr>
             <tr><td><span style="color:var(--accent);">Vent Entry / Exit</span><br><span style="color:var(--text-dim);font-size:12px;">Each transition costs one action. Higher noise than lockers.</span></td><td>+2 each</td></tr>
@@ -1326,7 +1326,7 @@
             <tr><td><span style="color:var(--accent);">Melee Attack</span><br><span style="color:var(--text-dim);font-size:12px;">Encounter action. Creature already present — noise irrelevant.</span></td><td>+0</td></tr>
             <tr><td><span style="color:var(--accent);">Ranged Attack</span><br><span style="color:var(--text-dim);font-size:12px;">Encounter action. Creature already present — noise irrelevant.</span></td><td>+0</td></tr>
             <tr><td><span style="color:var(--accent);">Bridge Terminal</span><br><span style="color:var(--text-dim);font-size:12px;">High-stakes terminal interaction. Exact value TBD.</span></td><td>+3 to +4</td></tr>
-            <tr><td><span style="color:var(--accent);">Bridge Terminal Alarm</span><br><span style="color:var(--text-dim);font-size:12px;">Failed interaction triggers an immediate noise check.</span></td><td>+4 to +6</td></tr>
+            <tr><td><span style="color:var(--accent);">Bridge Terminal Alarm</span><br><span style="color:var(--text-dim);font-size:12px;">Failed interaction triggers an immediate noise check.</span></td><td>Card's stated noise +3</td></tr>
             <tr><td><span style="color:var(--accent);">No-Resource Auto-Fail</span><br><span style="color:var(--text-dim);font-size:12px;">Attempting an action without required resources. Immediate penalty.</span></td><td>+4</td></tr>
           </tbody>
         </table>
@@ -1634,7 +1634,7 @@
         <span class="section-num">// 14</span>
         <h2 class="section-title">Crafting</h2>
       </div>
-      <p>Blueprints are not cards — they're static Tech Tree unlocks on the Objective Board. Each blueprint slot requires a set number of objectives (drawn from Room Cards) to be chained and completed in order before that blueprint's own tasks can be started. Once completed, the blueprint is unlocked for all players. See <a href="#taskboard">// 17 Objective Board &amp; Tech Tree</a> for the full chain-resolution rules.</p>
+      <p>Blueprints are not cards — they're static Tech Tree unlocks on the Objective Board. Each blueprint slot requires a set number of objectives (drawn from Room Cards) to be chained and completed in order before that blueprint's own tasks can be started. Once completed, the blueprint is unlocked for all players. See <a href="#taskboard">// 17 Objective Board</a> for the full chain-resolution rules.</p>
 
       <h3>Item Categories</h3>
       <p>No crafting tiers — items are organized by category instead. Category has no effect on resource cost; it's purely organizational.</p>
@@ -1697,7 +1697,7 @@
       <div class="callout info"><strong>// Pending</strong>Blueprints are no longer their own card type (they're static Tech Tree unlocks — see <a href="#taskboard">// 17</a>), so the ~15–20% previously set aside for Blueprint Cards needs reallocating across the remaining types.</div>
 
       <h3>Room Card Tasks &amp; Objectives</h3>
-      <p>Not every Room Card carries a task, and not every task is an objective. Cards marked <strong>Objective</strong> feed the Objective Board &amp; Tech Tree (<a href="#taskboard">// 17</a>) — their tasks are resolved in order, tied to that card's room family, and completed at whatever the task specifies (a room of that family, a terminal, or a workbench). Cards with a task that <em>isn't</em> marked Objective resolve immediately on draw and never touch the board.</p>
+      <p>Not every Room Card carries a task, and not every task is an objective. Cards marked <strong>Objective</strong> feed the Objective Board (<a href="#taskboard">// 17</a>) — their tasks are resolved in order, tied to that card's room family, and completed at whatever the task specifies (a room of that family, a terminal, or a workbench). Cards with a task that <em>isn't</em> marked Objective resolve immediately on draw and never touch the board.</p>
 
       <h3>Drawing Rules</h3>
       <ul class="rules-list">
@@ -1714,7 +1714,7 @@
 
       <h3>Bridge Terminals</h3>
       <p>One dedicated terminal per room family. Available regardless of whether that room exists on board.</p>
-      <div class="callout danger"><strong>// Warning</strong>Operations Center terminals generate significantly higher noise than standard terminals. Failed interaction triggers an alarm — immediate noise spike and noise check before turn ends.</div>
+      <div class="callout danger"><strong>// Warning</strong>Operations Center terminals generate significantly higher noise than standard terminals. Failed interaction triggers an alarm — immediate noise spike of the card's stated noise value +3, plus a noise check before turn ends.</div>
     </section>
     <!-- 05 MINI-GAMES -->
     <section class="section" id="mini-games">
@@ -1759,7 +1759,7 @@
     <section class="section" id="taskboard">
       <div class="section-header">
         <span class="section-num">// 17</span>
-        <h2 class="section-title">Objective Board &amp; Tech Tree</h2>
+        <h2 class="section-title">Objective Board</h2>
       </div>
       <p>Official term. Replaces "Task Board." Hosts the Tech Tree — a set of static blueprint slots — plus the Pending Objective Queue for objectives not yet slotted in. The crew already knows what these items are; the Tech Tree represents figuring out how to actually assemble them from what's on hand aboard the Charon.</p>
 
@@ -1838,8 +1838,8 @@
       <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Threat Token conversion</div><div class="item-note">How tokens affect creature aggression on introduction.</div></div></div>
       <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Biohazard face</div><div class="item-note">Valid D12 requirement face alongside Tech, DNA, and Tools. Appears on specific cards as defined by card design. No global effect — all requirements are card-specific.</div></div></div>
       <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Skill check pass conditions</div><div class="item-note">Pass conditions are card-specific. Each Echo Card defines its own face requirements and quantities. Roll Resolution in Section 07 governs all checks. Card design and notation is part of the ~120 card design phase.</div></div></div>
-      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Operations Center terminal noise — exact value</div><div class="item-note">Confirmed higher than standard. +3 to +4 estimated.</div></div></div>
-      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Data Extraction action — noise value</div><div class="item-note">Action now listed in // 06 Actions &amp; Noise; exact noise cost still TBD.</div></div></div>
+      <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Operations Center terminal alarm: card's stated noise +3</div><div class="item-note">Failing the interaction adds +3 to whatever noise value the card specifies, rather than a flat range.</div></div></div>
+      <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Data Extraction action noise value: +1</div><div class="item-note">Listed in // 06 Actions &amp; Noise. Separate action from the Echo card draw that places the Data Token — the card only places it, extraction claims it later.</div></div></div>
       <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Hiding detection roll mechanic</div><div class="item-note">General detection roll system for all hiding types. Locker-specific trigger documented separately. Full mechanic TBD.</div></div></div>
       <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Vent hiding rules</div><div class="item-note">Noise marker position effect on vent hiding viability.</div></div></div>
       <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Two additional hiding locations</div><div class="item-note">Debris piles, crawlspaces, alcoves — rules TBD.</div></div></div>
