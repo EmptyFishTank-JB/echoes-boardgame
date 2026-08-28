@@ -270,8 +270,6 @@
     margin-right: var(--layout-main-margin-right);
     padding: 40px var(--layout-pad-r) 80px var(--layout-pad-l);
     background: rgba(10,12,15,0.88);
-    border-left: 1px solid var(--border);
-    border-right: 1px solid var(--border);
   }
 
   /* ── SECTIONS ── */
@@ -1236,20 +1234,7 @@
     const root = document.documentElement.style;
     root.setProperty('--layout-nav-reserve-l','0px');
     root.setProperty('--layout-nav-reserve-r','0px');
-    if(window.innerWidth <= 768){
-      nav.style.top = '';
-      nav.style.height = '';
-      return; // mobile: nav hidden, main full-width
-    }
-    // Align nav's top with the first content section instead of the very
-    // top of the viewport, so it starts flush with the first section
-    // rather than reaching up behind the header.
-    const firstSection = document.getElementById('overview');
-    if(firstSection){
-      const navTop = firstSection.getBoundingClientRect().top + window.pageYOffset;
-      nav.style.top = navTop + 'px';
-      nav.style.height = 'calc(100vh - ' + navTop + 'px)';
-    }
+    if(window.innerWidth <= 768) return; // mobile: nav hidden, main full-width
     const navWidth = nav.getBoundingClientRect().width
       || parseInt(getComputedStyle(document.documentElement).getPropertyValue('--layout-nav-width'), 10) || 240;
     let mainRect = main.getBoundingClientRect();
