@@ -332,13 +332,12 @@
     .enter-arrow { display: block; }
     footer { padding: 10px 24px; }
     footer span.right { display: none; }
-    #devToolsLink { top: 18px; right: 24px; }
   }
 
   /* ── DEV TOOLS ── */
   #devToolsLink {
     position: fixed;
-    top: 22px; right: 40px;
+    top: 19.5px; right: 40px;
     z-index: 1001;
     display: flex;
     align-items: center;
@@ -346,10 +345,22 @@
     width: 26px; height: 26px;
     color: var(--text-dim);
     opacity: 0.22;
+    animation: fadeDownDim 1.2s ease 0.8s both;
     transition: opacity 0.25s ease, color 0.25s ease;
+  }
+  @keyframes fadeDownDim {
+    from { opacity: 0; transform: translateY(-12px); }
+    to   { opacity: 0.22; transform: translateY(0); }
   }
   #devToolsLink:hover { opacity: 0.9; color: var(--accent); }
   #devToolsLink svg { width: 24px; height: 12.5px; display: block; }
+
+  @media (max-width: 600px) {
+    /* Moved out of the nav row entirely on narrow screens — the three
+       nav links run wide enough at this size that a top-right icon
+       overlaps the last link's text. Bottom-right keeps it clear. */
+    #devToolsLink { top: auto; right: 16px; bottom: 16px; }
+  }
 </style>
 </head>
 <body>
