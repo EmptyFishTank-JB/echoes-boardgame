@@ -220,9 +220,12 @@
     var gear = document.createElement('button');
     gear.className = 'echo-settings-gear';
     gear.setAttribute('aria-label', 'Site settings');
-    gear.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'
-      + '<circle cx="12" cy="12" r="3"/>'
-      + '<path d="M19.4 13a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V19a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1.08-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H4a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H10a1.65 1.65 0 0 0 1-1.51V4a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V10a1.65 1.65 0 0 0 1.51 1H20a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>'
+    // Precise 8-tooth gear, computed with trigonometry (evenly spaced,
+    // symmetric teeth) rather than hand-drawn — filled silhouette with
+    // a punched hub hole via fill-rule="evenodd".
+    gear.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor" fill-rule="evenodd">'
+      + '<path d="M 12 1.7 L 15.34 2.26 L 14.59 4.43 L 17.66 6.34 L 19.28 4.72 L 21.25 7.47 L 19.18 8.48 L 20 12 L 22.3 12 L 21.74 15.34 L 19.57 14.59 L 17.66 17.66 L 19.28 19.28 L 16.53 21.25 L 15.52 19.18 L 12 20 L 12 22.3 L 8.66 21.74 L 9.41 19.57 L 6.34 17.66 L 4.72 19.28 L 2.75 16.53 L 4.82 15.52 L 4 12 L 1.7 12 L 2.26 8.66 L 4.43 9.41 L 6.34 6.34 L 4.72 4.72 L 7.47 2.75 L 8.48 4.82 L 12 4 Z '
+      + 'M 15.4 12 A 3.4 3.4 0 1 0 8.6 12 A 3.4 3.4 0 1 0 15.4 12 Z"/>'
       + '</svg>';
 
     var panel = document.createElement('div');
