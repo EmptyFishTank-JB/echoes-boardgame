@@ -345,21 +345,22 @@
     width: 26px; height: 26px;
     color: var(--text-dim);
     opacity: 0.22;
-    animation: fadeDownDim 1.2s ease 0.8s both;
+    animation: fadeDownDim 1.2s ease 0.8s backwards;
     transition: opacity 0.25s ease, color 0.25s ease;
   }
   @keyframes fadeDownDim {
     from { opacity: 0; transform: translateY(-12px); }
     to   { opacity: 0.22; transform: translateY(0); }
   }
-  #devToolsLink:hover { opacity: 0.9; color: var(--accent); }
+  #devToolsLink:hover { opacity: 1; color: var(--accent); }
   #devToolsLink svg { width: 24px; height: 12.5px; display: block; }
 
   @media (max-width: 600px) {
     /* Moved out of the nav row entirely on narrow screens — the three
        nav links run wide enough at this size that a top-right icon
-       overlaps the last link's text. Bottom-right keeps it clear. */
-    #devToolsLink { top: auto; right: 16px; bottom: 16px; }
+       overlaps the last link's text. Sits above the fixed footer bar
+       (and its settings gear) instead of behind it. */
+    #devToolsLink { top: auto; right: 16px; bottom: 95px; }
   }
 </style>
 </head>
