@@ -618,9 +618,11 @@
   .drawer-toggle {
     display: none;
     position: fixed;
-    top: 16px; left: 16px;
+    bottom: 16px; left: 50%;
+    transform: translateX(-50%);
+    top: auto;
     z-index: 210;
-    width: 42px; height: 42px;
+    width: 21px; height: 21px;
     align-items: center; justify-content: center;
     gap: 4px;
     background: rgba(10,12,15,0.92);
@@ -630,7 +632,7 @@
     padding: 0;
   }
   .drawer-toggle:hover { border-color: var(--accent); }
-  .drawer-toggle .signal-icon { margin-bottom: 0; }
+  .drawer-toggle .signal-icon { margin-bottom: 0; transform: scale(0.5); }
   .drawer-backdrop {
     display: none;
     position: fixed; inset: 0;
