@@ -1,0 +1,1828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Standalone Rules Editor — Echoes</title>
+<style>
+  :root{
+    --bg:#0a0c0f; --surface:#12151a; --surface2:#181c22; --border:#262b33;
+    --text:#c9d1d9; --text-dim:#6b7280; --text-bright:#fff;
+    --accent:#E8732A; --accent2:#4fc3f7; --danger:#e85f5f;
+    --mono:'JetBrains Mono', ui-monospace, monospace;
+    --body:'Inter', system-ui, sans-serif;
+  }
+  html,body{ margin:0; min-height:100%; background:var(--bg); color:var(--text); font-family:var(--body); }
+  #rb-loader{
+    min-height:100vh; display:flex; flex-direction:column; align-items:center;
+    justify-content:center; gap:18px; text-align:center; padding:24px; box-sizing:border-box;
+  }
+  #rb-loader h1{
+    font-family:var(--mono); font-size:14px; letter-spacing:0.1em; color:var(--accent);
+    text-transform:uppercase; margin:0;
+  }
+  #rb-loader p{ max-width:560px; font-size:13px; line-height:1.7; color:var(--text-dim); margin:0; }
+  #rb-loader .rb-drop{
+    border:1px dashed var(--border); border-radius:6px; padding:40px 60px;
+    font-family:var(--mono); font-size:12px; color:var(--text-dim); cursor:pointer;
+    transition:border-color .15s, color .15s; display:block;
+  }
+  #rb-loader .rb-drop:hover, #rb-loader .rb-drop.rb-drag{ border-color:var(--accent); color:var(--accent); }
+  #rb-loader input[type="file"]{ display:none; }
+  #rb-loader .rb-err{ color:var(--danger); font-family:var(--mono); font-size:11px; min-height:14px; }
+  #rb-loader .rb-hint{ font-family:var(--mono); font-size:10px; color:var(--text-dim); opacity:0.7; }
+</style>
+</head>
+<body>
+<div id="rb-loader">
+  <h1>// Standalone Rules Editor</h1>
+  <p>Open a local HTML copy of a site page (for example <code>rules.html</code>) to explore and use the same
+  in-page editing components and options available on the live site, without the editor being embedded in the
+  real file. Nothing is uploaded &mdash; the file is read and edited entirely in this browser tab. When finished,
+  use Save / Save As in the editor toolbar to write the edited copy back out, then hand that file over to have
+  the matching changes applied to the actual page in the repo.</p>
+  <label class="rb-drop" id="rbDropZone">Click to choose a file, or drop one here
+    <input type="file" id="rbFileInput" accept=".html,.htm">
+  </label>
+  <div class="rb-err" id="rbErr"></div>
+  <div class="rb-hint">Chrome / Edge recommended &mdash; enables direct Save back to the same file on disk.</div>
+</div>
+
+<script type="text/plain" id="rb-editor-css-src">
+  /* ── RULES EDITOR (v023) — F426 to toggle ── */
+  .rb-ui { display: none; }
+
+  /* Block wrapper: a horizontal toolbar bar sits above the content, full width,
+     like a mini header — never beside or overlapping it, so wide tables (many
+     columns) are never covered. Toolbar lives OUTSIDE the editable content
+     entirely (sibling, not child) — this is what prevents it being selected/
+     erased while editing text, and it stacks in normal flow so nothing can
+     clip or cover it regardless of the content's own overflow/width. */
+  .rb-block-wrap { display: flex; flex-direction: column; gap: 6px; }
+  .rb-block-wrap > .rb-block { width: 100%; }
+
+  .rb-toolbar-bar {
+    display: none; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 6px;
+    width: 100%; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 4px; padding: 6px 10px; font-family: var(--mono);
+  }
+  body.rb-edit-mode .rb-toolbar-bar { display: flex; }
+  .rb-toolbar-bar .rb-type-label {
+    font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent);
+    padding-right: 8px; border-right: 1px solid var(--border); white-space: nowrap;
+  }
+  .rb-toolbar-bar button, .rb-toolbar-bar select {
+    width: auto; text-align: left; background: var(--surface); color: var(--text-dim);
+    border: 1px solid var(--border); font-size: 10px; padding: 3px 6px; cursor: pointer;
+    border-radius: 2px; font-family: var(--mono);
+  }
+  .rb-toolbar-bar button:hover { color: var(--accent); border-color: var(--accent); }
+  .rb-toolbar-bar > .rb-style-panel {
+    display: flex; flex-direction: row; flex-wrap: wrap; gap: 10px; align-items: flex-end;
+    width: 100%; margin-top: 4px; padding-top: 6px; border-top: 1px dashed var(--border);
+  }
+  .rb-style-panel label { display: flex; flex-direction: column; gap: 2px; font-size: 9px; color: var(--text-dim); }
+  .rb-style-panel input, .rb-style-panel select { width: auto; }
+
+  .rb-section-toolbar {
+    gap: 6px; margin-top: 16px; padding-top: 12px; border-top: 1px dashed var(--border);
+    align-items: center; flex-wrap: wrap;
+  }
+  body.rb-edit-mode .rb-section-toolbar { display: flex; }
+  .rb-section-toolbar button, .rb-savebar button, .rb-nav-controls button, .rb-add-bookmark,
+  .rb-layout-panel button {
+    background: var(--surface); color: var(--text-dim); border: 1px solid var(--border);
+    font-size: 10px; padding: 2px 5px; cursor: pointer; border-radius: 2px; font-family: var(--mono);
+  }
+  .rb-section-toolbar button:hover, .rb-savebar button:hover,
+  .rb-nav-controls button:hover, .rb-add-bookmark:hover { color: var(--accent); border-color: var(--accent); }
+  .rb-section-toolbar select {
+    background: var(--surface); color: var(--text); border: 1px solid var(--border);
+    font-size: 11px; padding: 2px 4px;
+  }
+
+  .rb-nag {
+    position: fixed; top: 44px; left: 50%; transform: translateX(-50%);
+    z-index: 997; background: var(--surface2); border: 1px solid var(--accent);
+    color: var(--text); font-family: var(--mono); font-size: 11px; padding: 8px 14px;
+    border-radius: 3px; align-items: center; gap: 8px; max-width: 90vw; text-align: center;
+  }
+  .rb-nag button {
+    background: var(--surface); color: var(--text-dim); border: 1px solid var(--border);
+    font-size: 10px; padding: 2px 8px; cursor: pointer; border-radius: 2px; font-family: var(--mono);
+  }
+  .rb-nag button:hover { color: var(--accent); border-color: var(--accent); }
+  .rb-badge {
+    position: fixed; top: 10px; left: 50%; transform: translateX(-50%);
+    z-index: 999; background: var(--danger); color: #fff; font-family: var(--mono);
+    font-size: 11px; padding: 5px 14px; border-radius: 3px; letter-spacing: 0.1em;
+    align-items: center; gap: 8px;
+  }
+  body.rb-edit-mode .rb-badge { display: flex; }
+  .rb-savebar {
+    position: fixed; bottom: 54px; left: 50%; transform: translateX(-50%); z-index: 998;
+    background: rgba(10,12,15,0.97); border: 1px solid var(--accent); border-radius: 4px;
+    padding: 8px 14px; gap: 8px; align-items: center; justify-content: center; flex-wrap: wrap;
+    max-width: 92vw; box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+  }
+  body.rb-edit-mode .rb-savebar { display: flex; }
+  [contenteditable="true"] { outline: 1px dashed rgba(232,115,42,0.35); outline-offset: 3px; }
+  [contenteditable="true"]:focus { outline: 1px solid var(--accent); }
+  .rb-nav-controls { gap: 2px; margin: -4px 0 6px 2px; }
+  body.rb-edit-mode .rb-nav-controls { display: flex; }
+  .rb-add-bookmark { margin-top: 6px; width: 100%; }
+  body.rb-edit-mode .rb-add-bookmark { display: block; }
+  .rb-mini-del {
+    position: absolute; top: 2px; right: 2px; width: 16px; height: 16px; line-height: 1;
+    font-size: 9px; padding: 0; z-index: 10; background: var(--surface); color: var(--text-dim);
+    border: 1px solid var(--border); border-radius: 2px; cursor: pointer;
+  }
+  body.rb-edit-mode .rb-mini-del { display: block; }
+  .rb-mini-color {
+    position: absolute; top: 2px; right: 22px; width: 16px; height: 16px; line-height: 1;
+    font-size: 9px; padding: 0; z-index: 10; background: var(--surface); color: var(--text-dim);
+    border: 1px solid var(--border); border-radius: 2px; cursor: pointer;
+  }
+  body.rb-edit-mode .rb-mini-color { display: block; }
+  .rb-status { font-family: var(--mono); font-size: 10px; color: var(--text-dim); margin-left: 8px; }
+
+  /* ── Page layout controls (nav position / main alignment / padding) ──
+     Driven by CSS custom properties on :root so a full-file Save bakes
+     the current layout in as plain inline style — no separate config file. */
+  .rb-layout-panel {
+    position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+    z-index: 998; background: var(--surface2); border: 1px solid var(--accent);
+    border-radius: 4px; padding: 12px 16px; display: none; flex-wrap: wrap;
+    gap: 10px; font-family: var(--mono); font-size: 11px; max-width: 90vw;
+  }
+  .rb-layout-panel.rb-open { display: flex; }
+  .rb-layout-panel label { display: flex; flex-direction: column; gap: 3px; color: var(--text-dim); font-size: 10px; }
+  .rb-layout-panel input, .rb-layout-panel select {
+    background: var(--surface); color: var(--text); border: 1px solid var(--border);
+    font-size: 11px; padding: 3px 5px; width: 90px;
+  }
+
+  /* ── floating text-selection format toolbar ──
+     Appears above/below whatever text is highlighted while editing. Shows the
+     current font/size/color for the selection, or a "mixed" placeholder when
+     the highlighted text isn't uniform. */
+  .rb-text-toolbar {
+    position: fixed; z-index: 1000; display: none; flex-direction: row; align-items: center;
+    gap: 4px; background: var(--surface2); border: 1px solid var(--accent);
+    border-radius: 4px; padding: 5px 6px; font-family: var(--mono); box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+  }
+  .rb-text-toolbar.rb-open { display: flex; }
+  .rb-text-toolbar button {
+    background: var(--surface); color: var(--text-dim); border: 1px solid var(--border);
+    font-size: 11px; width: 26px; height: 24px; line-height: 1; cursor: pointer;
+    border-radius: 2px; font-family: var(--mono);
+  }
+  .rb-text-toolbar button:hover { color: var(--accent); border-color: var(--accent); }
+  .rb-text-toolbar button.rb-txt-active { color: #0a0c0f; background: var(--accent); border-color: var(--accent); }
+  .rb-text-toolbar select, .rb-text-toolbar input[type="number"] {
+    background: var(--surface); color: var(--text); border: 1px solid var(--border);
+    font-size: 10px; padding: 3px 4px; border-radius: 2px; font-family: var(--mono);
+  }
+  .rb-text-toolbar select { width: 118px; }
+  .rb-text-toolbar input[type="number"] { width: 48px; }
+  .rb-text-toolbar input[type="number"]::placeholder { color: var(--text-dim); font-style: italic; }
+  .rb-text-toolbar .rb-txt-sep { width: 1px; align-self: stretch; background: var(--border); margin: 0 2px; }
+  .rb-text-toolbar input[type="color"] {
+    width: 26px; height: 24px; padding: 0; border: 1px solid var(--border); border-radius: 2px;
+    background: var(--surface); cursor: pointer;
+  }
+  /* ── quick find panel (edit mode) ── */
+  .rb-find-panel {
+    position: fixed; top: 54px; right: 16px; z-index: 999; display: none;
+    flex-direction: row; align-items: center; gap: 6px; background: var(--surface2);
+    border: 1px solid var(--accent); border-radius: 4px; padding: 6px 8px;
+    font-family: var(--mono); box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+  }
+  .rb-find-panel.rb-open { display: flex; }
+  .rb-find-panel input {
+    background: var(--surface); color: var(--text); border: 1px solid var(--border);
+    font-size: 12px; padding: 4px 6px; border-radius: 2px; font-family: var(--mono); width: 180px;
+  }
+  .rb-find-panel button {
+    background: var(--surface); color: var(--text-dim); border: 1px solid var(--border);
+    font-size: 11px; padding: 3px 7px; cursor: pointer; border-radius: 2px; font-family: var(--mono);
+  }
+  .rb-find-panel button:hover { color: var(--accent); border-color: var(--accent); }
+  .rb-find-status { font-size: 10px; color: var(--text-dim); white-space: nowrap; min-width: 54px; }
+  /* Custom Highlight API paint for find matches — purely visual, doesn't touch
+     the document Selection, so the find input never loses focus while typing. */
+  ::highlight(rb-find-all) { background: rgba(232,115,42,0.28); }
+  ::highlight(rb-find-current) { background: var(--accent); color: #0a0c0f; }
+
+  /* ── small flashing toast (undo/redo with nothing left, etc.) ── */
+  .rb-toast {
+    position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%);
+    z-index: 1001; display: none; background: var(--surface2); border: 1px solid var(--danger);
+    color: var(--text); font-family: var(--mono); font-size: 11px; padding: 6px 14px;
+    border-radius: 3px; letter-spacing: 0.05em;
+  }
+  .rb-toast.rb-show { display: block; animation: rbToastFlash 0.6s ease-in-out 2; }
+  @keyframes rbToastFlash { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+</script>
+<script type="text/plain" id="rb-editor-js-src">
+/* ── RULES EDITOR v020 — type F426 to toggle edit mode ─────────────────── */
+(function(){
+  const STORAGE_KEY = 'echoes_standalone_editor_v001';
+  let loadedFileName = window.__rbLoadedFileName || 'edited.html';
+  const navEl = document.querySelector('nav');
+  const mainEl = document.querySelector('main');
+  if(!navEl || !mainEl) return;
+
+  let editMode = false;
+  let undoStack = [], redoStack = [];
+  let typingSessionCaptured = false;
+  let saveTimer = null;
+
+  const TEMPLATES = {
+    paragraph: () => { const p = document.createElement('p'); p.textContent = 'New paragraph text.'; return p; },
+    h3: () => { const h = document.createElement('h3'); h.textContent = 'New Subheading'; return h; },
+    h4: () => { const h = document.createElement('h4'); h.textContent = '// New Label'; return h; },
+    callout: () => { const d = document.createElement('div'); d.className = 'callout info'; d.innerHTML = '<strong>// Note</strong>New callout text.'; return d; },
+    table: () => { const d = document.createElement('div'); d.className = 'tbl-wrap'; d.innerHTML = '<table><thead><tr><th>Column 1</th><th>Column 2</th></tr></thead><tbody><tr><td>Cell</td><td>Cell</td></tr></tbody></table>'; return d; },
+    statgrid: () => { const d = document.createElement('div'); d.className = 'stat-grid'; d.innerHTML = '<div class="stat-card"><div class="stat-label">Label</div><div class="stat-value">0</div><div class="stat-desc">Description</div></div>'; return d; },
+    ruleslist: () => { const u = document.createElement('ul'); u.className = 'rules-list'; u.innerHTML = '<li>New item</li>'; return u; },
+    openitem: () => { const d = document.createElement('div'); d.className = 'open-item'; d.innerHTML = '<span class="tag pending">PENDING</span><div><div class="item-text">New item</div><div class="item-note">Note</div></div>'; return d; },
+    prologue: () => { const d = document.createElement('div'); d.className = 'prologue'; d.innerHTML = '<div class="pull-quote">// New Note</div><p>Text.</p>'; return d; },
+    threatline: () => { const d = document.createElement('div'); d.className = 'threat-line'; d.textContent = 'New threat line text.'; return d; }
+  };
+
+  function escapeHTML(s){ const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+  function setEditable(el, on){
+    if(!el) return;
+    el.contentEditable = on;
+    el.classList.toggle('rb-editable', !!on);
+  }
+
+  function slugify(s){
+    const base = s.toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'') || 'section';
+    let id = base, n = 2;
+    while(document.getElementById(id)){ id = base + '-' + n; n++; }
+    return id;
+  }
+
+  /* ── header/footer ("chrome") — snapshotted by field, not by innerHTML block,
+     so we never recreate #echoTitle/#echoTitleGreen (the glitch script caches
+     references to those exact nodes at page load; replacing them would silently
+     kill the glitch effect). ── */
+  function syncTitleText(){
+    const titleEl = document.getElementById('echoTitle');
+    const greenEl = document.getElementById('echoTitleGreen');
+    if(!titleEl) return;
+    const text = titleEl.textContent;
+    titleEl.setAttribute('data-text', text);
+    if(greenEl){ greenEl.textContent = text; greenEl.setAttribute('data-text', text); }
+    document.querySelectorAll('.title .slice').forEach(s => { s.textContent = text; });
+  }
+
+  function snapshotChrome(){
+    const titleEl = document.getElementById('echoTitle');
+    const statusEl = document.querySelector('.header-meta .status-badge');
+    const footerP = document.querySelector('footer p');
+    return {
+      title: titleEl ? titleEl.textContent : null,
+      metas: Array.from(document.querySelectorAll('.header-meta .meta-tag')).map(m => m.innerHTML),
+      status: statusEl ? statusEl.innerHTML : null,
+      footer: footerP ? footerP.innerHTML : null
+    };
+  }
+
+  function restoreChrome(c){
+    if(!c) return;
+    if(typeof c.title === 'string'){
+      const titleEl = document.getElementById('echoTitle');
+      if(titleEl){ titleEl.textContent = c.title; syncTitleText(); }
+    }
+    if(c.metas){
+      const metas = document.querySelectorAll('.header-meta .meta-tag');
+      metas.forEach((m,i) => { if(c.metas[i] !== undefined) m.innerHTML = c.metas[i]; });
+    }
+    if(typeof c.status === 'string'){
+      const s = document.querySelector('.header-meta .status-badge');
+      if(s) s.innerHTML = c.status;
+    }
+    if(typeof c.footer === 'string'){
+      const f = document.querySelector('footer p');
+      if(f) f.innerHTML = c.footer;
+    }
+  }
+
+  function decorateChrome(){
+    const titleEl = document.getElementById('echoTitle');
+    if(titleEl){
+      setEditable(titleEl, true);
+      if(!titleEl.dataset.rbBound){
+        titleEl.dataset.rbBound = '1';
+        titleEl.addEventListener('input', syncTitleText);
+      }
+    }
+    document.querySelectorAll('.header-meta .meta-tag, .header-meta .status-badge').forEach(n => setEditable(n, true));
+    const footerP = document.querySelector('footer p');
+    if(footerP) setEditable(footerP, true);
+  }
+
+  /* ── clean serialization (strip editor UI before save/export/undo) ── */
+  function cleanClone(el){
+    const clone = el.cloneNode(true);
+    clone.querySelectorAll('.rb-ui').forEach(n => n.remove());
+    clone.querySelectorAll('.rb-block-wrap').forEach(wrap => {
+      const first = wrap.firstElementChild;
+      if(first) wrap.parentNode.insertBefore(first, wrap);
+      wrap.remove();
+    });
+    clone.querySelectorAll('.rb-nav-item').forEach(item => {
+      const a = item.querySelector('a');
+      if(a) item.parentNode.insertBefore(a, item);
+      item.remove();
+    });
+    clone.querySelectorAll('.rb-block').forEach(n => n.classList.remove('rb-block'));
+    clone.querySelectorAll('.rb-editable').forEach(n => n.classList.remove('rb-editable'));
+    clone.querySelectorAll('[contenteditable]').forEach(n => n.removeAttribute('contenteditable'));
+    return clone;
+  }
+
+  function snapshot(){
+    return { nav: cleanClone(navEl).innerHTML, main: cleanClone(mainEl).innerHTML, chrome: snapshotChrome() };
+  }
+
+  function restore(s){
+    navEl.innerHTML = s.nav;
+    mainEl.innerHTML = s.main;
+    if(s.chrome) restoreChrome(s.chrome);
+    if(editMode) decorateAll();
+  }
+
+  function captureBeforeChange(){
+    undoStack.push(snapshot());
+    if(undoStack.length > 50) undoStack.shift();
+    redoStack = [];
+    bumpEditsSinceExport();
+  }
+
+  /* ── export nag ── */
+  const EXPORT_NAG_THRESHOLD = 20;
+  let editsSinceExport = 0;
+  try{ editsSinceExport = parseInt(localStorage.getItem(STORAGE_KEY + '_edits') || '0', 10) || 0; }catch(e){}
+
+  function bumpEditsSinceExport(){
+    editsSinceExport++;
+    try{ localStorage.setItem(STORAGE_KEY + '_edits', String(editsSinceExport)); }catch(e){}
+    if(editsSinceExport >= EXPORT_NAG_THRESHOLD && editsSinceExport % EXPORT_NAG_THRESHOLD === 0){
+      showNag('You have ' + editsSinceExport + ' unsaved-to-disk edits. Consider hitting Save to write them to your file.');
+    }
+  }
+
+  function resetEditsSinceExport(){
+    editsSinceExport = 0;
+    try{ localStorage.setItem(STORAGE_KEY + '_edits', '0'); }catch(e){}
+    hideNag();
+  }
+
+  function showNag(msg){
+    let nag = document.querySelector('.rb-nag');
+    if(!nag){
+      nag = document.createElement('div');
+      nag.className = 'rb-ui rb-nag';
+      document.body.appendChild(nag);
+    }
+    nag.innerHTML = '<span>⚠ ' + msg + '</span>'
+      + '<button data-rb-action="save">Save Now</button>'
+      + '<button data-rb-action="clearhistory" title="Wipe the autosave cache + undo history stored in this browser, so reopening the file starts fresh">Clear History</button>'
+      + '<button data-rb-action="dismissnag">✕</button>';
+    nag.style.display = 'flex';
+  }
+
+  function hideNag(){
+    const nag = document.querySelector('.rb-nag');
+    if(nag) nag.style.display = 'none';
+  }
+
+  let toastTimer = null;
+  function showToast(msg){
+    let toast = document.querySelector('.rb-toast');
+    if(!toast){
+      toast = document.createElement('div');
+      toast.className = 'rb-ui rb-toast';
+      document.body.appendChild(toast);
+    }
+    toast.textContent = msg;
+    toast.classList.remove('rb-show');
+    void toast.offsetWidth; // restart the flash animation
+    toast.classList.add('rb-show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { toast.classList.remove('rb-show'); }, 1400);
+  }
+
+  function undo(){
+    if(!undoStack.length){ showToast('Nothing left to undo'); return; }
+    redoStack.push(snapshot()); restore(undoStack.pop()); saveToStorage(true);
+  }
+  function redo(){
+    if(!redoStack.length){ showToast('Nothing left to redo'); return; }
+    undoStack.push(snapshot()); restore(redoStack.pop()); saveToStorage(true);
+  }
+
+  /* ── persistence ── */
+  function saveToStorage(manual){
+    clearTimeout(saveTimer);
+    const doSave = () => {
+      try{
+        const data = JSON.stringify({ v:'022', savedAt: new Date().toISOString(), nav: cleanClone(navEl).innerHTML, main: cleanClone(mainEl).innerHTML, chrome: snapshotChrome() });
+        localStorage.setItem(STORAGE_KEY, data);
+        const status = document.querySelector('.rb-status');
+        if(status) status.textContent = 'Saved ' + new Date().toLocaleTimeString();
+      }catch(e){ console.error('Save failed', e); }
+    };
+    if(manual) doSave(); else saveTimer = setTimeout(doSave, 500);
+  }
+
+  function loadFromStorage(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if(!raw) return false;
+      const data = JSON.parse(raw);
+      if(data.nav) navEl.innerHTML = data.nav;
+      if(data.main) mainEl.innerHTML = data.main;
+      if(data.chrome) restoreChrome(data.chrome);
+      return true;
+    }catch(e){ console.error('Load failed', e); return false; }
+  }
+
+  /* ── FILE SAVE / SAVE AS ──
+     Writes a complete, standalone HTML file (this same file, with the editor
+     baked back in so it stays editable) directly back to disk — no separate
+     JSON data file involved. Uses the File System Access API (Chrome/Edge/Opera).
+     First Save (or Save As) prompts a file picker to get a writable handle;
+     subsequent plain Saves reuse that handle silently. Browsers without the
+     API (Firefox/Safari) fall back to a normal file download. ── */
+  let fileHandle = null;
+
+  function buildFullCleanHTML(){
+    const rootClone = document.documentElement.cloneNode(true);
+    rootClone.querySelectorAll('.rb-ui').forEach(n => n.remove());
+    rootClone.querySelectorAll('#rb-standalone-style, #rb-standalone-script').forEach(n => n.remove());
+    rootClone.querySelectorAll('.rb-block-wrap').forEach(wrap => {
+      const first = wrap.firstElementChild;
+      if(first) wrap.parentNode.insertBefore(first, wrap);
+      wrap.remove();
+    });
+    rootClone.querySelectorAll('.rb-nav-item').forEach(item => {
+      const a = item.querySelector('a');
+      if(a) item.parentNode.insertBefore(a, item);
+      item.remove();
+    });
+    rootClone.querySelectorAll('.rb-block').forEach(n => n.classList.remove('rb-block'));
+    rootClone.querySelectorAll('.rb-editable').forEach(n => n.classList.remove('rb-editable'));
+    rootClone.querySelectorAll('[contenteditable]').forEach(n => n.removeAttribute('contenteditable'));
+    rootClone.querySelectorAll('[data-nav-group]').forEach(n => n.removeAttribute('data-nav-group'));
+    rootClone.querySelectorAll('[data-rb-bound]').forEach(n => n.removeAttribute('data-rb-bound'));
+    const bodyClone = rootClone.querySelector('body');
+    if(bodyClone) bodyClone.classList.remove('rb-edit-mode');
+    return '<!DOCTYPE html>\n' + rootClone.outerHTML;
+  }
+
+  function downloadFullHTML(html){
+    const blob = new Blob([html], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = (fileHandle && fileHandle.name) || loadedFileName || ('edited_' + new Date().toISOString().replace(/[:.]/g,'-') + '.html');
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+    resetEditsSinceExport();
+    saveToStorage(true);
+    alert("Your browser can't save directly back to a file (that needs Chrome, Edge, or another Chromium browser). Downloaded a new copy instead \u2014 replace your existing file with this one.");
+  }
+
+  async function saveToFile(forceNewLocation){
+    const html = buildFullCleanHTML();
+    if(!window.showSaveFilePicker){
+      downloadFullHTML(html);
+      return;
+    }
+    try{
+      if(!fileHandle || forceNewLocation){
+        fileHandle = await window.showSaveFilePicker({
+          suggestedName: (fileHandle && fileHandle.name) || loadedFileName,
+          types: [{ description: 'HTML File', accept: { 'text/html': ['.html'] } }]
+        });
+      }
+      const writable = await fileHandle.createWritable();
+      await writable.write(html);
+      await writable.close();
+      resetEditsSinceExport();
+      saveToStorage(true);
+      const status = document.querySelector('.rb-status');
+      if(status) status.textContent = 'Saved to ' + fileHandle.name + ' ' + new Date().toLocaleTimeString();
+    }catch(e){
+      if(e && e.name === 'AbortError') return; // user cancelled the picker
+      alert('Save failed: ' + (e && e.message ? e.message : e));
+    }
+  }
+
+  /* ── page layout settings (nav position, main alignment/width, padding) ──
+     Stored as CSS custom properties on the root element's inline style, so a
+     full-file Save bakes the current layout in directly — no separate config. ── */
+  function readLayoutSettings(){
+    const cs = getComputedStyle(document.documentElement);
+    const navRight = cs.getPropertyValue('--layout-nav-right').trim();
+    const marginL = cs.getPropertyValue('--layout-main-margin-left').trim();
+    const marginR = cs.getPropertyValue('--layout-main-margin-right').trim();
+    let mainAlign = 'center';
+    if(marginL === '0' || marginL === '0px') mainAlign = 'left';
+    else if(marginR === '0' || marginR === '0px') mainAlign = 'right';
+    return {
+      navSide: (navRight === '0' || navRight === '0px') ? 'right' : 'left',
+      mainAlign: mainAlign,
+      maxw: parseInt(cs.getPropertyValue('--layout-main-maxw'), 10) || 0,
+      padL: parseInt(cs.getPropertyValue('--layout-pad-l'), 10) || 48,
+      padR: parseInt(cs.getPropertyValue('--layout-pad-r'), 10) || 48
+    };
+  }
+
+  function applyLayoutSettings(s){
+    const root = document.documentElement.style;
+    document.documentElement.dataset.navSide = s.navSide === 'right' ? 'right' : 'left';
+    if(s.navSide === 'right'){
+      root.setProperty('--layout-nav-left','auto');
+      root.setProperty('--layout-nav-right','0');
+    } else {
+      root.setProperty('--layout-nav-left','0');
+      root.setProperty('--layout-nav-right','auto');
+    }
+    if(s.mainAlign === 'left'){
+      root.setProperty('--layout-main-margin-left','0');
+      root.setProperty('--layout-main-margin-right','auto');
+    } else if(s.mainAlign === 'right'){
+      root.setProperty('--layout-main-margin-left','auto');
+      root.setProperty('--layout-main-margin-right','0');
+    } else {
+      root.setProperty('--layout-main-margin-left','auto');
+      root.setProperty('--layout-main-margin-right','auto');
+    }
+    if(s.maxw && s.maxw > 0) root.setProperty('--layout-main-maxw', s.maxw + 'px');
+    else root.setProperty('--layout-main-maxw', 'none');
+    if(s.padL !== undefined) root.setProperty('--layout-pad-l', s.padL + 'px');
+    if(s.padR !== undefined) root.setProperty('--layout-pad-r', s.padR + 'px');
+    try{ localStorage.setItem(STORAGE_KEY + '_layout', JSON.stringify(s)); }catch(e){}
+    updateNavLayout();
+  }
+
+  function loadLayoutSettings(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY + '_layout');
+      if(raw) applyLayoutSettings(JSON.parse(raw));
+      else updateNavLayout();
+    }catch(e){ updateNavLayout(); }
+  }
+
+  /* ── nav positioning: attaches nav flush against main's rendered edge,
+     without main ever reserving space for it — main and header-inner stay
+     centered/aligned purely by their own maxw+margin. Only when the viewport
+     is too narrow for nav to fit in main's natural side margin does this add
+     just enough reserve padding to .container so nav can't overlap the text. ── */
+  function updateNavLayout(){
+    const nav = document.querySelector('nav');
+    const main = document.querySelector('main');
+    if(!nav || !main) return;
+    const root = document.documentElement.style;
+    root.setProperty('--layout-nav-reserve-l','0px');
+    root.setProperty('--layout-nav-reserve-r','0px');
+    if(window.innerWidth <= 768) return; // mobile: nav hidden, main full-width
+    const side = document.documentElement.dataset.navSide === 'right' ? 'right' : 'left';
+    const navWidth = nav.getBoundingClientRect().width
+      || parseInt(getComputedStyle(document.documentElement).getPropertyValue('--layout-nav-width'), 10) || 240;
+    let mainRect = main.getBoundingClientRect();
+    if(side === 'left'){
+      // if main's natural left margin can't fit nav, reserve navWidth outright
+      // (not just the shortfall) — max-width clamping means a partial reserve
+      // can under-shift main, which would push nav off-screen. A full reserve
+      // is always enough: main's left edge can only end up >= navWidth.
+      if(mainRect.left < navWidth) root.setProperty('--layout-nav-reserve-l', navWidth + 'px');
+      mainRect = main.getBoundingClientRect();
+      nav.style.left = (mainRect.left - navWidth) + 'px';
+      nav.style.right = 'auto';
+    } else {
+      if((window.innerWidth - mainRect.right) < navWidth) root.setProperty('--layout-nav-reserve-r', navWidth + 'px');
+      mainRect = main.getBoundingClientRect();
+      nav.style.left = mainRect.right + 'px';
+      nav.style.right = 'auto';
+    }
+  }
+
+  let navLayoutResizeRaf = null;
+  window.addEventListener('resize', function(){
+    if(navLayoutResizeRaf) return;
+    navLayoutResizeRaf = requestAnimationFrame(function(){ navLayoutResizeRaf = null; updateNavLayout(); });
+  });
+  window.addEventListener('load', updateNavLayout);
+
+  function ensureLayoutPanel(){
+    if(document.querySelector('.rb-layout-panel')) return;
+    const panel = document.createElement('div');
+    panel.className = 'rb-ui rb-layout-panel';
+    panel.innerHTML =
+      '<label>Nav side<select class="rb-lay-navside"><option value="left">Left</option><option value="right">Right</option></select></label>'
+      + '<label>Main align<select class="rb-lay-align"><option value="left">Left</option><option value="center">Center</option><option value="right">Right</option></select></label>'
+      + '<label>Max width (px, 0 = full width)<input type="number" class="rb-lay-maxw" min="0" max="2000" step="10" placeholder="0"></label>'
+      + '<label>Padding left (px)<input type="number" class="rb-lay-padl" min="0" max="200" step="4"></label>'
+      + '<label>Padding right (px)<input type="number" class="rb-lay-padr" min="0" max="200" step="4"></label>'
+      + '<button data-rb-action="applylayout" style="align-self:flex-end;">Apply</button>'
+      + '<button data-rb-action="resetlayout" style="align-self:flex-end;">Reset Default</button>';
+    document.body.appendChild(panel);
+  }
+
+  /* ── table helpers ──
+     Row/column removal targets whichever one is picked in the toolbar's
+     row/col <select>, not just the last — populateTablePickers() keeps those
+     dropdowns in sync with the table's current row/column count. */
+  function tableOf(wrap){ return wrap.querySelector('table'); }
+  function bodyRowsOf(t){ const tbody = t.querySelector('tbody'); return tbody ? Array.from(tbody.querySelectorAll(':scope > tr')) : Array.from(t.querySelectorAll(':scope > tr')).filter(tr => !tr.closest('thead')); }
+  function headerRowOf(t){ return t.querySelector('thead tr') || t.querySelector('tr'); }
+
+  function addRow(wrap){
+    const t = tableOf(wrap); if(!t) return;
+    const tbody = t.querySelector('tbody') || t;
+    const headerRow = headerRowOf(t);
+    const cols = headerRow ? headerRow.children.length : 1;
+    const tr = document.createElement('tr');
+    for(let i=0;i<cols;i++){ const td = document.createElement('td'); td.textContent = '—'; if(editMode) setEditable(td, true); tr.appendChild(td); }
+    tbody.appendChild(tr);
+  }
+  function removeRowAt(wrap, idx){
+    const t = tableOf(wrap); if(!t) return false;
+    const rows = bodyRowsOf(t);
+    if(rows.length <= 1 || !rows[idx]) return false;
+    rows[idx].remove();
+    return true;
+  }
+  function addCol(wrap){
+    const t = tableOf(wrap); if(!t) return;
+    t.querySelectorAll('tr').forEach(tr => {
+      const inHead = !!tr.closest('thead');
+      const cell = document.createElement(inHead ? 'th' : 'td');
+      cell.textContent = inHead ? 'New' : '—';
+      if(editMode) setEditable(cell, true);
+      tr.appendChild(cell);
+    });
+  }
+  function removeColAt(wrap, idx){
+    const t = tableOf(wrap); if(!t) return false;
+    const headerRow = headerRowOf(t);
+    if(!headerRow || headerRow.children.length <= 1 || !headerRow.children[idx]) return false;
+    t.querySelectorAll('tr').forEach(tr => { if(tr.children[idx]) tr.children[idx].remove(); });
+    return true;
+  }
+  function populateTablePickers(wrap, toolbar){
+    const t = tableOf(wrap);
+    const rowPick = toolbar.querySelector('.rb-row-pick');
+    const colPick = toolbar.querySelector('.rb-col-pick');
+    if(!t || (!rowPick && !colPick)) return;
+    if(rowPick){
+      const prev = rowPick.value;
+      const rows = bodyRowsOf(t);
+      rowPick.innerHTML = rows.map((tr, i) => '<option value="' + i + '">Row ' + (i + 1) + '</option>').join('');
+      if(prev && rows[prev]) rowPick.value = prev;
+    }
+    if(colPick){
+      const prev = colPick.value;
+      const headerRow = headerRowOf(t);
+      const count = headerRow ? headerRow.children.length : 0;
+      colPick.innerHTML = Array.from({ length: count }, (_, i) => '<option value="' + i + '">Col ' + (i + 1) + '</option>').join('');
+      if(prev && parseInt(prev, 10) < count) colPick.value = prev;
+    }
+  }
+
+  /* ── stat-grid helpers ── */
+  function addCard(grid){
+    const card = document.createElement('div');
+    card.className = 'stat-card';
+    card.innerHTML = '<div class="stat-label">LABEL</div><div class="stat-value">0</div><div class="stat-desc">Description</div>';
+    grid.appendChild(card);
+    decorateStatCard(card);
+  }
+  function decorateStatCard(card){
+    if(card.querySelector(':scope > .rb-mini-del')) return;
+    card.querySelectorAll('.stat-label,.stat-value,.stat-desc').forEach(n => setEditable(n, true));
+    const del = document.createElement('button');
+    del.className = 'rb-ui rb-mini-del';
+    del.setAttribute('data-rb-action','removecard');
+    del.title = 'Remove card';
+    del.textContent = '✕';
+    card.appendChild(del);
+    const color = document.createElement('button');
+    color.className = 'rb-ui rb-mini-color';
+    color.setAttribute('data-rb-action','togglecardcolor');
+    color.title = 'Cycle accent color (default \u2192 blue \u2192 danger \u2192 success)';
+    color.textContent = '🎨';
+    card.appendChild(color);
+  }
+
+  /* ── type labels (shown at the top of each block's toolbar) ── */
+  function calloutTypeOf(el){
+    return ['warning','danger','success'].find(c => el.classList.contains(c)) || 'info';
+  }
+  function getBlockLabel(el){
+    if(el.classList.contains('callout')){
+      const t = calloutTypeOf(el);
+      return 'Callout — ' + t.charAt(0).toUpperCase() + t.slice(1);
+    }
+    if(el.classList.contains('tbl-wrap')) return 'Table';
+    if(el.classList.contains('stat-grid')) return 'Stat Grid';
+    if(el.classList.contains('rules-list')) return 'Rules List';
+    if(el.classList.contains('open-item')) return 'Open Item';
+    if(el.classList.contains('prologue')) return 'Prologue';
+    if(el.classList.contains('threat-line')) return 'Threat Line';
+    if(el.tagName === 'H3') return 'Subheading';
+    if(el.tagName === 'H4') return 'Label';
+    if(el.tagName === 'P') return 'Paragraph';
+    return 'Component';
+  }
+  function updateBlockLabel(unit, toolbar){
+    const label = toolbar.querySelector(':scope > .rb-type-label');
+    if(label) label.textContent = getBlockLabel(unit);
+  }
+
+  /* ── toolbar builders ── */
+  function buildToolbarHTML(unit){
+    const isTable = unit.classList.contains('tbl-wrap');
+    const isGrid = unit.classList.contains('stat-grid');
+    const isPrologue = unit.classList.contains('prologue');
+    const isCallout = unit.classList.contains('callout');
+    let extra = '';
+    if(isTable) extra = '<button data-rb-action="addrow" title="Add row">+ Row</button>'
+      + '<select class="rb-row-pick" title="Row to remove"></select>'
+      + '<button data-rb-action="removerowat" title="Remove the selected row">- Row</button>'
+      + '<button data-rb-action="addcol" title="Add column">+ Col</button>'
+      + '<select class="rb-col-pick" title="Column to remove"></select>'
+      + '<button data-rb-action="removecolat" title="Remove the selected column">- Col</button>';
+    if(isGrid) extra = '<button data-rb-action="addcard" title="Add stat card">+ Card</button>';
+    if(isPrologue) extra = '<select class="rb-prologue-add" title="Text style to add">'
+      + '<option value="quote">Quote/Title</option>'
+      + '<option value="body">Body (dim italic)</option>'
+      + '<option value="note">Bright Note</option>'
+      + '</select><button data-rb-action="addprologueline" title="Add this text line">+ Line</button>';
+    if(isCallout){
+      const cur = calloutTypeOf(unit);
+      extra = '<select class="rb-callout-type" title="Callout color/type">'
+        + ['info','warning','danger','success'].map(v => '<option value="' + v + '"' + (v===cur?' selected':'') + '>' + v.charAt(0).toUpperCase() + v.slice(1) + '</option>').join('')
+        + '</select><button data-rb-action="setcallouttype">Set Type</button>';
+    }
+    return '<div class="rb-type-label">' + getBlockLabel(unit) + '</div>'
+      + '<button data-rb-action="moveup" title="Move up">↑ Up</button>'
+      + '<button data-rb-action="movedown" title="Move down">↓ Down</button>'
+      + '<button data-rb-action="duplicate" title="Duplicate">⧉ Duplicate</button>'
+      + '<button data-rb-action="delete" title="Delete">✕ Delete</button>'
+      + '<button data-rb-action="style" title="Style overrides">🎨 Style</button>'
+      + extra;
+  }
+
+  function addPrologueLine(prologue, type){
+    let el;
+    if(type === 'quote'){
+      el = document.createElement('div');
+      el.className = 'pull-quote';
+      el.textContent = '// New Line';
+    } else if(type === 'note'){
+      el = document.createElement('p');
+      el.style.marginTop = '10px';
+      el.style.color = 'var(--text-bright)';
+      el.style.fontStyle = 'normal';
+      el.textContent = 'Note text.';
+    } else {
+      el = document.createElement('p');
+      el.textContent = 'Body text.';
+    }
+    prologue.appendChild(el);
+  }
+
+  /* ── decorateBlock(unit, wrap): unit is the actual content element; wrap is the
+     .rb-block-wrap flex container holding [unit, toolbar-sidebar] as siblings.
+     The toolbar is NEVER inside the editable content, which is what prevents it
+     being accidentally selected/erased while typing, and keeps it clear of any
+     overflow/clipping on the content box itself. ── */
+  function decorateBlock(unit, wrap){
+    unit.classList.add('rb-block');
+    const existingToolbar = wrap.querySelector(':scope > .rb-toolbar-bar');
+    if(existingToolbar){
+      updateBlockLabel(unit, existingToolbar);
+      return;
+    }
+    const toolbar = document.createElement('div');
+    toolbar.className = 'rb-ui rb-toolbar-bar';
+    toolbar.contentEditable = false;
+    toolbar.innerHTML = buildToolbarHTML(unit);
+    wrap.insertBefore(toolbar, wrap.firstChild);
+
+    if(unit.classList.contains('stat-grid')){
+      unit.querySelectorAll('.stat-card').forEach(decorateStatCard);
+    } else if(unit.classList.contains('tbl-wrap')){
+      unit.querySelectorAll('td,th').forEach(c => { setEditable(c, true); });
+      populateTablePickers(unit, toolbar);
+    } else {
+      setEditable(unit, true);
+    }
+  }
+
+  function decorateSection(sec){
+    const h2 = sec.querySelector(':scope > .section-header .section-title');
+    if(h2) setEditable(h2, true);
+
+    Array.from(sec.children).forEach(child => {
+      if(child.classList.contains('section-header')) return;
+      if(child.classList.contains('rb-section-toolbar')) return;
+      if(child.classList.contains('rb-block-wrap')){
+        const inner = child.querySelector(':scope > .rb-block') || child.firstElementChild;
+        if(inner) decorateBlock(inner, child);
+        return;
+      }
+      const wrap = document.createElement('div');
+      wrap.className = 'rb-block-wrap';
+      child.parentNode.insertBefore(wrap, child);
+      wrap.appendChild(child);
+      decorateBlock(child, wrap);
+    });
+
+    if(!sec.querySelector(':scope > .rb-section-toolbar')){
+      const bar = document.createElement('div');
+      bar.className = 'rb-ui rb-section-toolbar';
+      bar.contentEditable = false;
+      bar.innerHTML = '<button data-rb-action="duplicatesection">⧉ Section</button>'
+        + '<button data-rb-action="deletesection">✕ Section</button>'
+        + '<button data-rb-action="movesectionup">↑ Section</button>'
+        + '<button data-rb-action="movesectiondown">↓ Section</button>'
+        + '<select class="rb-add-select">'
+        + '<option value="paragraph">Paragraph</option>'
+        + '<option value="h3">Subheading (H3)</option>'
+        + '<option value="h4">Label (H4)</option>'
+        + '<option value="callout">Callout</option>'
+        + '<option value="table">Table</option>'
+        + '<option value="statgrid">Stat Grid</option>'
+        + '<option value="ruleslist">Rules List</option>'
+        + '<option value="openitem">Open Item</option>'
+        + '<option value="prologue">Prologue</option>'
+        + '<option value="threatline">Threat Line</option>'
+        + '</select>'
+        + '<button data-rb-action="addcomponent">+ Add Component</button>';
+      sec.appendChild(bar);
+    }
+  }
+
+  function decorateNav(){
+    const links = Array.from(navEl.querySelectorAll(':scope > a'));
+    let currentGroup = 'default';
+    Array.from(navEl.children).forEach(child => {
+      if(child.classList.contains('nav-label')) currentGroup = child.textContent.trim();
+      if(child.tagName === 'A') child.setAttribute('data-nav-group', currentGroup);
+    });
+    links.forEach(a => {
+      setEditable(a, true);
+      const item = document.createElement('div');
+      item.className = 'rb-nav-item';
+      item.setAttribute('data-nav-group', a.getAttribute('data-nav-group') || 'default');
+      a.parentNode.insertBefore(item, a);
+      item.appendChild(a);
+      const ctrl = document.createElement('span');
+      ctrl.className = 'rb-ui rb-nav-controls';
+      ctrl.contentEditable = false;
+      ctrl.innerHTML = '<button data-rb-action="navup" title="Move up">↑</button><button data-rb-action="navdown" title="Move down">↓</button><button data-rb-action="navdel" title="Remove">✕</button>';
+      item.appendChild(ctrl);
+    });
+    if(!navEl.querySelector('.rb-add-bookmark')){
+      const btn = document.createElement('button');
+      btn.className = 'rb-ui rb-add-bookmark';
+      btn.setAttribute('data-rb-action','addbookmark');
+      btn.textContent = '+ Add Bookmark';
+      navEl.appendChild(btn);
+    }
+  }
+
+  function getSectionsGroupItems(){
+    return Array.from(navEl.querySelectorAll('.rb-nav-item')).filter(item =>
+      (item.getAttribute('data-nav-group') || '').toLowerCase().indexOf('section') !== -1);
+  }
+
+  function syncNavToSections(){
+    const secs = Array.from(mainEl.querySelectorAll(':scope > section.section'));
+    const secIds = secs.map(s => s.id);
+    const items = getSectionsGroupItems();
+    if(!items.length) return;
+    const matched = {};
+    const unmatched = [];
+    items.forEach(item => {
+      const a = item.querySelector('a');
+      const href = a ? (a.getAttribute('href') || '') : '';
+      const id = href.charAt(0) === '#' ? href.slice(1) : null;
+      if(id && secIds.indexOf(id) !== -1) matched[id] = item; else unmatched.push(item);
+    });
+    const newOrder = [];
+    secIds.forEach(id => { if(matched[id]) newOrder.push(matched[id]); });
+    unmatched.forEach(item => newOrder.push(item));
+    const anchor = items[items.length - 1].nextSibling;
+    newOrder.forEach(item => navEl.insertBefore(item, anchor));
+  }
+
+  function ensureBadgeAndSavebar(){
+    if(!document.querySelector('.rb-badge')){
+      const badge = document.createElement('div');
+      badge.className = 'rb-ui rb-badge';
+      badge.innerHTML = '<span>● EDIT MODE — type F426 to exit</span>';
+      document.body.appendChild(badge);
+    }
+    if(!document.querySelector('.rb-savebar')){
+      const bar = document.createElement('div');
+      bar.className = 'rb-ui rb-savebar';
+      bar.innerHTML = '<button data-rb-action="addsection">+ Add Section</button>'
+        + '<button data-rb-action="undo">↶ Undo</button>'
+        + '<button data-rb-action="redo">↷ Redo</button>'
+        + '<button data-rb-action="save">💾 Save</button>'
+        + '<button data-rb-action="saveas">💾 Save As</button>'
+        + '<button data-rb-action="togglelayout">⚏ Layout</button>'
+        + '<button data-rb-action="togglefind">🔎 Find</button>'
+        + '<button data-rb-action="clearhistory" title="Wipe the autosave cache + undo history stored in this browser, then reload fresh from this file">🗑 Clear History</button>'
+        + '<span class="rb-status"></span>';
+      document.body.appendChild(bar);
+    }
+    ensureLayoutPanel();
+  }
+
+  function decorateAll(){
+    mainEl.querySelectorAll(':scope > section.section').forEach(decorateSection);
+    decorateNav();
+    decorateChrome();
+    ensureBadgeAndSavebar();
+  }
+
+  /* ── structural actions ── */
+  function moveUnit(wrap, dir){
+    if(dir < 0 && wrap.previousElementSibling && !wrap.previousElementSibling.classList.contains('section-header')){
+      wrap.parentNode.insertBefore(wrap, wrap.previousElementSibling);
+    } else if(dir > 0 && wrap.nextElementSibling && !wrap.nextElementSibling.classList.contains('rb-section-toolbar')){
+      wrap.parentNode.insertBefore(wrap.nextElementSibling, wrap);
+    }
+  }
+  function duplicateUnit(wrap){
+    const clone = wrap.cloneNode(true);
+    clone.querySelectorAll('.rb-ui').forEach(n => n.remove());
+    wrap.parentNode.insertBefore(clone, wrap.nextSibling);
+  }
+  function addComponent(sec, type){
+    const maker = TEMPLATES[type];
+    if(!maker) return;
+    const el = maker();
+    const bar = sec.querySelector(':scope > .rb-section-toolbar');
+    if(bar) sec.insertBefore(el, bar); else sec.appendChild(el);
+  }
+  function addSection(){
+    const title = window.prompt('Section title:');
+    if(!title) return;
+    captureBeforeChange();
+    const id = slugify(title);
+    const count = mainEl.querySelectorAll(':scope > section.section').length + 1;
+    const num = String(count).padStart(2,'0');
+    const sec = document.createElement('section');
+    sec.className = 'section';
+    sec.id = id;
+    sec.innerHTML = '<div class="section-header"><span class="section-num">// ' + num + '</span><h2 class="section-title">' + escapeHTML(title) + '</h2></div>';
+    mainEl.appendChild(sec);
+    const addBtn = navEl.querySelector('.rb-add-bookmark');
+    const a = document.createElement('a');
+    a.href = '#' + id;
+    a.textContent = num + ' · ' + title;
+    if(addBtn) navEl.insertBefore(a, addBtn); else navEl.appendChild(a);
+    renumberSections();
+    decorateAll();
+    syncNavToSections();
+    saveToStorage(true);
+  }
+  function deleteSection(sec){
+    if(!confirm('Delete this entire section? Its bookmark will also be removed.')) return;
+    captureBeforeChange();
+    const id = sec.id;
+    sec.remove();
+    const link = navEl.querySelector('a[href="#' + id + '"]');
+    if(link){ const item = link.closest('.rb-nav-item') || link; item.remove(); }
+    renumberSections();
+    syncNavToSections();
+    saveToStorage(true);
+  }
+  function duplicateSection(sec){
+    captureBeforeChange();
+    const oldId = sec.id;
+    const origLink = navEl.querySelector('a[href="#' + oldId + '"]');
+    const origLabel = origLink ? origLink.textContent : null;
+    const clone = sec.cloneNode(true);
+    clone.querySelectorAll('.rb-ui').forEach(n => n.remove());
+    let newId = oldId + '-copy', n = 2;
+    while(document.getElementById(newId)){ newId = oldId + '-copy' + n; n++; }
+    clone.id = newId;
+    sec.parentNode.insertBefore(clone, sec.nextSibling);
+    if(origLink){
+      const newA = document.createElement('a');
+      newA.href = '#' + newId;
+      newA.textContent = (origLabel || 'Section') + ' (copy)';
+      const origItem = origLink.closest('.rb-nav-item') || origLink;
+      origItem.parentNode.insertBefore(newA, origItem.nextSibling);
+    }
+    renumberSections();
+    decorateAll();
+    syncNavToSections();
+    saveToStorage(true);
+  }
+  function moveSection(sec, dir){
+    captureBeforeChange();
+    if(dir < 0 && sec.previousElementSibling){ sec.parentNode.insertBefore(sec, sec.previousElementSibling); }
+    else if(dir > 0 && sec.nextElementSibling){ sec.parentNode.insertBefore(sec.nextElementSibling, sec); }
+    renumberSections();
+    syncNavToSections();
+    saveToStorage(true);
+  }
+  function renumberSections(){
+    const secs = mainEl.querySelectorAll(':scope > section.section');
+    secs.forEach((s,i) => {
+      const num = String(i+1).padStart(2,'0');
+      const numEl = s.querySelector(':scope > .section-header .section-num');
+      if(numEl) numEl.textContent = '// ' + num;
+    });
+  }
+
+  function moveNavItem(btn, dir){
+    const item = btn.closest('.rb-nav-item');
+    if(!item) return;
+    const group = item.getAttribute('data-nav-group');
+    if(dir < 0 && item.previousElementSibling
+        && item.previousElementSibling.classList.contains('rb-nav-item')
+        && item.previousElementSibling.getAttribute('data-nav-group') === group){
+      navEl.insertBefore(item, item.previousElementSibling);
+    } else if(dir > 0 && item.nextElementSibling
+        && item.nextElementSibling.classList.contains('rb-nav-item')
+        && item.nextElementSibling.getAttribute('data-nav-group') === group){
+      navEl.insertBefore(item.nextElementSibling, item);
+    }
+  }
+  function removeNavItem(btn){ const item = btn.closest('.rb-nav-item'); if(item) item.remove(); }
+  function addBookmark(){
+    const label = window.prompt('Bookmark label:');
+    if(!label) return;
+    const target = window.prompt('Link target (e.g. #section-id or index.html):', '#');
+    captureBeforeChange();
+    const addBtn = navEl.querySelector('.rb-add-bookmark');
+    const a = document.createElement('a');
+    a.href = target || '#';
+    a.textContent = label;
+    if(addBtn) navEl.insertBefore(a, addBtn); else navEl.appendChild(a);
+    decorateAll();
+    saveToStorage(true);
+  }
+
+  function toggleStylePanel(unit, toolbar){
+    const existing = toolbar.querySelector(':scope > .rb-style-panel');
+    if(existing){ existing.remove(); return; }
+    const panel = document.createElement('div');
+    panel.className = 'rb-ui rb-style-panel';
+    panel.contentEditable = false;
+    const curFont = unit.style.fontSize ? parseInt(unit.style.fontSize,10) : '';
+    const curAlign = unit.style.textAlign || 'left';
+    let html = '<label>Font size (px) <input type="number" class="rb-fs" value="' + curFont + '" placeholder="default"></label>'
+      + '<label>Align <select class="rb-align">'
+      + ['left','center','right'].map(v => '<option value="' + v + '"' + (v===curAlign?' selected':'') + '>' + v + '</option>').join('')
+      + '</select></label>';
+    if(unit.classList.contains('tbl-wrap')){
+      const table = unit.querySelector('table');
+      const firstRow = table.querySelector('tr');
+      const cols = firstRow ? firstRow.children.length : 0;
+      const existingCols = table.querySelectorAll('colgroup col');
+      html += '<div style="border-top:1px solid var(--border); margin-top:4px; padding-top:4px;">Column widths (%)</div>';
+      for(let i=0;i<cols;i++){
+        const w = existingCols[i] ? parseFloat(existingCols[i].style.width) || '' : '';
+        html += '<label>Col ' + (i+1) + ' <input type="number" class="rb-colw" data-idx="' + i + '" value="' + w + '" placeholder="auto"></label>';
+      }
+    }
+    if(unit.classList.contains('open-item')){
+      const tag = unit.querySelector('.tag');
+      const cur = tag ? (tag.classList.contains('confirmed') ? 'confirmed' : tag.classList.contains('progress') ? 'progress' : 'pending') : 'pending';
+      html += '<label>Status <select class="rb-tagstatus">'
+        + ['pending','progress','confirmed'].map(v => '<option value="' + v + '"' + (v===cur?' selected':'') + '>' + v + '</option>').join('')
+        + '</select></label>';
+    }
+    html += '<button data-rb-action="applystyle" style="margin-top:4px;">Apply</button>';
+    panel.innerHTML = html;
+    toolbar.appendChild(panel);
+  }
+
+  /* ── floating text-selection format toolbar ──
+     Shows font family/size/color + B/I/U/S for whatever text is currently
+     highlighted inside an editable region, and lets you change it. Family/size/
+     color are applied by wrapping the selection in a <span> (execCommand can't
+     do arbitrary px sizes); bold/italic/underline/strike use execCommand since
+     the browser already handles splitting/merging existing formatting for those. */
+  /* Kept to exactly the fonts this page actually uses (--body/--head/--mono),
+     so the picker can never suggest a font that doesn't exist anywhere on the
+     page. If you introduce a new font in the CSS, add it here too. */
+  const FONT_OPTIONS = [
+    { label: 'Body (Barlow)', value: 'Barlow, sans-serif', match: ['barlow'] },
+    { label: 'Heading (Barlow Condensed)', value: '"Barlow Condensed", sans-serif', match: ['barlow condensed'] },
+    { label: 'Mono (Share Tech Mono)', value: '"Share Tech Mono", monospace', match: ['share tech mono'] }
+  ];
+  const MIXED = '__mixed__';
+
+  let savedRange = null;
+  let savedEditable = null;
+
+  function rgbToHex(rgb){
+    const m = /^rgba?\((\d+),\s*(\d+),\s*(\d+)/.exec(rgb || '');
+    if(!m) return '#e8732a';
+    return '#' + [1,2,3].map(i => parseInt(m[i],10).toString(16).padStart(2,'0')).join('');
+  }
+
+  function matchFontOption(computedFamily){
+    const first = (computedFamily || '').split(',')[0].replace(/["']/g,'').trim().toLowerCase();
+    const found = FONT_OPTIONS.find(o => o.match.includes(first));
+    return found ? found.value : null;
+  }
+
+  function getRangeTextNodes(range){
+    let root = range.commonAncestorContainer;
+    if(root.nodeType !== 1) root = root.parentNode;
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    const out = [];
+    let n;
+    while((n = walker.nextNode())){
+      if(!n.textContent || !n.textContent.trim()) continue;
+      if(range.intersectsNode ? range.intersectsNode(n) : true) out.push(n);
+    }
+    return out;
+  }
+
+  function computeSelectionState(range){
+    const nodes = getRangeTextNodes(range);
+    if(!nodes.length) return null;
+    let family, size, color, famMixed = false, sizeMixed = false, colorMixed = false;
+    nodes.forEach(n => {
+      const cs = getComputedStyle(n.parentElement);
+      const f = matchFontOption(cs.fontFamily);
+      const s = Math.round(parseFloat(cs.fontSize));
+      const c = rgbToHex(cs.color);
+      if(family === undefined) family = f; else if(family !== f) famMixed = true;
+      if(size === undefined) size = s; else if(size !== s) sizeMixed = true;
+      if(color === undefined) color = c; else if(color !== c) colorMixed = true;
+    });
+    return {
+      family: famMixed ? MIXED : (family || MIXED),
+      size: sizeMixed ? null : size,
+      color: colorMixed ? null : color
+    };
+  }
+
+  function ensureTextToolbar(){
+    let bar = document.querySelector('.rb-text-toolbar');
+    if(bar) return bar;
+    bar = document.createElement('div');
+    bar.className = 'rb-ui rb-text-toolbar';
+    bar.innerHTML =
+      '<button type="button" data-txt="bold" title="Bold"><b>B</b></button>'
+      + '<button type="button" data-txt="italic" title="Italic"><i>I</i></button>'
+      + '<button type="button" data-txt="underline" title="Underline"><u>U</u></button>'
+      + '<button type="button" data-txt="strikeThrough" title="Strikethrough"><s>S</s></button>'
+      + '<div class="rb-txt-sep"></div>'
+      + '<select class="rb-txt-family" title="Font family"></select>'
+      + '<input type="number" class="rb-txt-size" min="8" max="200" step="1" title="Font size (px)" placeholder="px">'
+      + '<input type="color" class="rb-txt-color" title="Text color">'
+      + '<div class="rb-txt-sep"></div>'
+      + '<button type="button" data-txt="clear" title="Clear formatting">✕</button>';
+    document.body.appendChild(bar);
+
+    // Built via DOM APIs (not innerHTML) since font values like
+    // '"Barlow Condensed", sans-serif' contain quote characters that would
+    // otherwise break out of an HTML attribute string.
+    const familySelect = bar.querySelector('.rb-txt-family');
+    const mixedOpt = document.createElement('option');
+    mixedOpt.value = MIXED;
+    mixedOpt.disabled = true;
+    mixedOpt.textContent = '…';
+    familySelect.appendChild(mixedOpt);
+    FONT_OPTIONS.forEach(o => {
+      const opt = document.createElement('option');
+      opt.value = o.value;
+      opt.textContent = o.label;
+      familySelect.appendChild(opt);
+    });
+
+    // Buttons must not steal focus/selection away from the editable text.
+    bar.addEventListener('mousedown', function(e){
+      if(e.target.closest('button')) e.preventDefault();
+    });
+
+    bar.querySelectorAll('button[data-txt]').forEach(btn => {
+      btn.addEventListener('click', function(){
+        const cmd = btn.getAttribute('data-txt');
+        if(!restoreSavedSelection()) return;
+        captureBeforeChange();
+        if(cmd === 'clear'){
+          try{ document.execCommand('removeFormat'); }catch(err){}
+        } else {
+          try{ document.execCommand(cmd); }catch(err){}
+        }
+        afterInlineChange();
+      });
+    });
+
+    bar.querySelector('.rb-txt-family').addEventListener('change', function(){
+      if(!restoreSavedSelection()) return;
+      captureBeforeChange();
+      try{ document.execCommand('fontName', false, this.value); }catch(err){}
+      afterInlineChange();
+    });
+
+    bar.querySelector('.rb-txt-size').addEventListener('change', function(){
+      const px = parseInt(this.value, 10);
+      if(!px || !restoreSavedSelection()) return;
+      captureBeforeChange();
+      applyWrappedStyle({ fontSize: px + 'px' });
+      afterInlineChange();
+    });
+
+    bar.querySelector('.rb-txt-color').addEventListener('change', function(){
+      if(!restoreSavedSelection()) return;
+      captureBeforeChange();
+      try{ document.execCommand('foreColor', false, this.value); }catch(err){}
+      afterInlineChange();
+    });
+
+    return bar;
+  }
+
+  function restoreSavedSelection(){
+    if(!savedRange || !savedEditable) return false;
+    savedEditable.focus();
+    try{ document.execCommand('styleWithCSS', false, true); }catch(err){}
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(savedRange);
+    return true;
+  }
+
+  function applyWrappedStyle(styleProps){
+    const sel = window.getSelection();
+    if(!sel.rangeCount) return;
+    const range = sel.getRangeAt(0);
+    if(range.collapsed) return;
+    let span = null;
+    const container = range.commonAncestorContainer;
+    const candidate = container.nodeType === 1 ? container : container.parentElement;
+    if(candidate && candidate.classList && candidate.classList.contains('rb-inline-style') && range.toString() === candidate.textContent){
+      span = candidate;
+    } else {
+      const frag = range.extractContents();
+      span = document.createElement('span');
+      span.className = 'rb-inline-style';
+      span.appendChild(frag);
+      range.insertNode(span);
+    }
+    Object.keys(styleProps).forEach(k => { span.style[k] = styleProps[k]; });
+    const newRange = document.createRange();
+    newRange.selectNodeContents(span);
+    sel.removeAllRanges();
+    sel.addRange(newRange);
+    savedRange = newRange.cloneRange();
+  }
+
+  function afterInlineChange(){
+    const sel = window.getSelection();
+    if(sel.rangeCount && !sel.isCollapsed) savedRange = sel.getRangeAt(0).cloneRange();
+    updateTextToolbarUI();
+    saveToStorage(true);
+  }
+
+  function positionTextToolbar(bar, range){
+    const rect = range.getBoundingClientRect();
+    bar.style.visibility = 'hidden';
+    bar.classList.add('rb-open');
+    const bw = bar.offsetWidth, bh = bar.offsetHeight;
+    let top = rect.top - bh - 8;
+    if(top < 4) top = rect.bottom + 8;
+    let left = rect.left + (rect.width / 2) - (bw / 2);
+    left = Math.max(4, Math.min(left, window.innerWidth - bw - 4));
+    bar.style.top = top + 'px';
+    bar.style.left = left + 'px';
+    bar.style.visibility = 'visible';
+  }
+
+  function updateTextToolbarUI(){
+    const bar = document.querySelector('.rb-text-toolbar');
+    if(!bar || !savedRange) return;
+    const state = computeSelectionState(savedRange);
+    if(!state) return;
+    ['bold','italic','underline','strikeThrough'].forEach(cmd => {
+      const btn = bar.querySelector('[data-txt="' + cmd + '"]');
+      let active = false;
+      try{ active = document.queryCommandState(cmd); }catch(err){}
+      btn.classList.toggle('rb-txt-active', active);
+    });
+    bar.querySelector('.rb-txt-family').value = state.family;
+    const sizeInput = bar.querySelector('.rb-txt-size');
+    sizeInput.value = state.size === null ? '' : state.size;
+    sizeInput.placeholder = state.size === null ? '...' : 'px';
+    const colorInput = bar.querySelector('.rb-txt-color');
+    colorInput.value = state.color === null ? '#e8732a' : state.color;
+    colorInput.title = state.color === null ? 'Text color (mixed)' : 'Text color';
+  }
+
+  function showTextToolbar(range, editable){
+    savedRange = range.cloneRange();
+    savedEditable = editable;
+    const bar = ensureTextToolbar();
+    updateTextToolbarUI();
+    positionTextToolbar(bar, range);
+  }
+
+  function hideTextToolbar(){
+    const bar = document.querySelector('.rb-text-toolbar');
+    if(bar) bar.classList.remove('rb-open');
+    savedRange = null;
+    savedEditable = null;
+  }
+
+  document.addEventListener('selectionchange', function(){
+    if(!editMode) return;
+    const bar = document.querySelector('.rb-text-toolbar');
+    if(bar && bar.contains(document.activeElement)) return; // don't hide while using the toolbar's own controls
+    const sel = window.getSelection();
+    if(!sel || !sel.rangeCount || sel.isCollapsed){ hideTextToolbar(); return; }
+    const range = sel.getRangeAt(0);
+    const anchorEl = range.commonAncestorContainer.nodeType === 1 ? range.commonAncestorContainer : range.commonAncestorContainer.parentElement;
+    const editable = anchorEl && anchorEl.closest('[contenteditable="true"]');
+    if(!editable){ hideTextToolbar(); return; }
+    showTextToolbar(range, editable);
+  });
+
+  /* ── quick find (edit mode) ──
+     Searches visible text inside <main> (skipping editor chrome). Matches are
+     painted with the CSS Custom Highlight API — a purely visual overlay that
+     never touches the document Selection, so the find input keeps focus while
+     you type the whole query. Selecting/scrolling to a match (which does need
+     the Selection API) only happens on an explicit Enter/Next/Prev, never as
+     a side effect of typing. Open with the Find button or "/" (when not typing). */
+  const supportsHighlightAPI = typeof CSS !== 'undefined' && !!CSS.highlights && typeof Highlight !== 'undefined';
+  let findHighlightAll = null;
+  let findHighlightCurrent = null;
+  if(supportsHighlightAPI){
+    findHighlightAll = new Highlight();
+    findHighlightCurrent = new Highlight();
+    CSS.highlights.set('rb-find-all', findHighlightAll);
+    CSS.highlights.set('rb-find-current', findHighlightCurrent);
+  }
+
+  let findMatches = [];
+  let findIndex = -1;
+
+  function collectFindMatches(query){
+    findMatches = [];
+    findIndex = -1;
+    if(supportsHighlightAPI){ findHighlightAll.clear(); findHighlightCurrent.clear(); }
+    if(!query) return;
+    const q = query.toLowerCase();
+    const walker = document.createTreeWalker(mainEl, NodeFilter.SHOW_TEXT, {
+      acceptNode(n){
+        if(!n.textContent || !n.textContent.trim()) return NodeFilter.FILTER_REJECT;
+        if(n.parentElement && n.parentElement.closest('.rb-ui')) return NodeFilter.FILTER_REJECT;
+        return NodeFilter.FILTER_ACCEPT;
+      }
+    });
+    let node;
+    while((node = walker.nextNode())){
+      const text = node.textContent.toLowerCase();
+      let idx = 0;
+      while((idx = text.indexOf(q, idx)) !== -1){
+        const range = document.createRange();
+        range.setStart(node, idx);
+        range.setEnd(node, idx + q.length);
+        findMatches.push(range);
+        if(supportsHighlightAPI) findHighlightAll.add(range);
+        idx += q.length;
+      }
+    }
+  }
+
+  function updateFindStatus(query){
+    const status = document.querySelector('.rb-find-status');
+    if(!status) return;
+    if(!query) status.textContent = '';
+    else if(!findMatches.length) status.textContent = 'No matches';
+    else status.textContent = (findIndex + 1) + ' / ' + findMatches.length;
+  }
+
+  function gotoFindMatch(dir){
+    if(!findMatches.length) return;
+    findIndex = (findIndex + dir + findMatches.length) % findMatches.length;
+    const range = findMatches[findIndex];
+    if(supportsHighlightAPI){
+      findHighlightCurrent.clear();
+      findHighlightCurrent.add(range);
+    } else {
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+    }
+    const el = range.startContainer.nodeType === 1 ? range.startContainer : range.startContainer.parentElement;
+    if(el) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    updateFindStatus(document.querySelector('.rb-find-input').value);
+  }
+
+  function ensureFindPanel(){
+    let panel = document.querySelector('.rb-find-panel');
+    if(panel) return panel;
+    panel = document.createElement('div');
+    panel.className = 'rb-ui rb-find-panel';
+    panel.innerHTML =
+      '<input type="text" class="rb-find-input" placeholder="Find in page...">'
+      + '<span class="rb-find-status"></span>'
+      + '<button type="button" data-rb-action="findprev" title="Previous (Shift+Enter)">↑</button>'
+      + '<button type="button" data-rb-action="findnext" title="Next (Enter)">↓</button>'
+      + '<button type="button" data-rb-action="closefind" title="Close (Esc)">✕</button>';
+    document.body.appendChild(panel);
+
+    const input = panel.querySelector('.rb-find-input');
+    input.addEventListener('input', function(){
+      // Only recompute + paint match highlights here — never move selection/
+      // focus, so you can type the entire query without interruption.
+      collectFindMatches(this.value);
+      updateFindStatus(this.value);
+    });
+    input.addEventListener('keydown', function(e){
+      if(e.key === 'Enter'){ e.preventDefault(); gotoFindMatch(e.shiftKey ? -1 : 1); }
+      else if(e.key === 'Escape'){ e.preventDefault(); closeFindPanel(); }
+      e.stopPropagation();
+    });
+    return panel;
+  }
+
+  function openFindPanel(){
+    const panel = ensureFindPanel();
+    panel.classList.add('rb-open');
+    const input = panel.querySelector('.rb-find-input');
+    input.focus();
+    input.select();
+  }
+
+  function closeFindPanel(){
+    const panel = document.querySelector('.rb-find-panel');
+    if(panel) panel.classList.remove('rb-open');
+    findMatches = [];
+    findIndex = -1;
+    if(supportsHighlightAPI){ findHighlightAll.clear(); findHighlightCurrent.clear(); }
+  }
+
+  /* ── event delegation ── */
+  document.addEventListener('click', function(e){
+    const btn = e.target.closest('[data-rb-action]');
+    if(!btn || !editMode) return;
+    const action = btn.getAttribute('data-rb-action');
+    const wrap = btn.closest('.rb-block-wrap');
+    const unit = wrap ? (wrap.querySelector(':scope > .rb-block') || wrap.firstElementChild) : null;
+    const toolbar = btn.closest('.rb-toolbar-bar');
+    const sec = btn.closest('section.section');
+
+    switch(action){
+      case 'moveup': captureBeforeChange(); moveUnit(wrap,-1); decorateAll(); saveToStorage(true); break;
+      case 'movedown': captureBeforeChange(); moveUnit(wrap,1); decorateAll(); saveToStorage(true); break;
+      case 'duplicate': captureBeforeChange(); duplicateUnit(wrap); decorateAll(); saveToStorage(true); break;
+      case 'delete':
+        if(confirm('Delete this component?')){ captureBeforeChange(); wrap.remove(); decorateAll(); saveToStorage(true); }
+        break;
+      case 'style': toggleStylePanel(unit, toolbar); break;
+      case 'setcallouttype': {
+        const sel = toolbar.querySelector('.rb-callout-type');
+        if(sel){
+          captureBeforeChange();
+          ['info','warning','danger','success'].forEach(c => unit.classList.remove(c));
+          unit.classList.add(sel.value);
+          updateBlockLabel(unit, toolbar);
+          saveToStorage(true);
+        }
+        break;
+      }
+      case 'togglecardcolor': {
+        const card = btn.closest('.stat-card');
+        if(card){
+          captureBeforeChange();
+          const CARD_COLORS = ['', 'blue', 'danger', 'success'];
+          const current = CARD_COLORS.find(c => c && card.classList.contains(c)) || '';
+          const next = CARD_COLORS[(CARD_COLORS.indexOf(current) + 1) % CARD_COLORS.length];
+          CARD_COLORS.forEach(c => { if(c) card.classList.remove(c); });
+          if(next) card.classList.add(next);
+          saveToStorage(true);
+        }
+        break;
+      }
+      case 'applystyle': {
+        captureBeforeChange();
+        const panel = btn.closest('.rb-style-panel');
+        const fs = panel.querySelector('.rb-fs').value;
+        const al = panel.querySelector('.rb-align').value;
+        unit.style.fontSize = fs ? fs + 'px' : '';
+        unit.style.textAlign = al;
+        const colInputs = panel.querySelectorAll('.rb-colw');
+        if(colInputs.length){
+          const table = unit.querySelector('table');
+          const widths = Array.from(colInputs).map(i => i.value ? parseFloat(i.value) : null);
+          if(widths.some(w => w)){
+            let colgroup = table.querySelector('colgroup');
+            if(!colgroup){ colgroup = document.createElement('colgroup'); table.insertBefore(colgroup, table.firstChild); }
+            colgroup.innerHTML = widths.map(w => '<col style="width:' + (w || 'auto') + (w ? '%' : '') + '">').join('');
+          }
+        }
+        const tagSel = panel.querySelector('.rb-tagstatus');
+        if(tagSel){
+          const tag = unit.querySelector('.tag');
+          tag.classList.remove('pending','progress','confirmed');
+          tag.classList.add(tagSel.value);
+        }
+        panel.remove();
+        decorateAll();
+        saveToStorage(true);
+        break;
+      }
+      case 'addrow': captureBeforeChange(); addRow(unit); populateTablePickers(unit, toolbar); saveToStorage(true); break;
+      case 'addcol': captureBeforeChange(); addCol(unit); populateTablePickers(unit, toolbar); saveToStorage(true); break;
+      case 'removerowat': {
+        const sel = toolbar.querySelector('.rb-row-pick');
+        const idx = sel ? parseInt(sel.value, 10) : NaN;
+        const t = tableOf(unit);
+        const rows = t ? bodyRowsOf(t) : [];
+        if(isNaN(idx) || !rows[idx]) break;
+        if(rows.length <= 1){ showToast('A table needs at least one row'); break; }
+        captureBeforeChange();
+        removeRowAt(unit, idx);
+        populateTablePickers(unit, toolbar);
+        saveToStorage(true);
+        break;
+      }
+      case 'removecolat': {
+        const sel = toolbar.querySelector('.rb-col-pick');
+        const idx = sel ? parseInt(sel.value, 10) : NaN;
+        const t = tableOf(unit);
+        const headerRow = t ? headerRowOf(t) : null;
+        if(isNaN(idx) || !headerRow || !headerRow.children[idx]) break;
+        if(headerRow.children.length <= 1){ showToast('A table needs at least one column'); break; }
+        captureBeforeChange();
+        removeColAt(unit, idx);
+        populateTablePickers(unit, toolbar);
+        saveToStorage(true);
+        break;
+      }
+      case 'addcard': captureBeforeChange(); addCard(unit); decorateAll(); saveToStorage(true); break;
+      case 'addprologueline': {
+        const sel = toolbar.querySelector('.rb-prologue-add');
+        captureBeforeChange();
+        addPrologueLine(unit, sel ? sel.value : 'body');
+        decorateAll();
+        saveToStorage(true);
+        break;
+      }
+      case 'removecard': {
+        const card = btn.closest('.stat-card');
+        if(card){ captureBeforeChange(); card.remove(); saveToStorage(true); }
+        break;
+      }
+      case 'duplicatesection': duplicateSection(sec); break;
+      case 'deletesection': deleteSection(sec); break;
+      case 'movesectionup': moveSection(sec,-1); break;
+      case 'movesectiondown': moveSection(sec,1); break;
+      case 'addcomponent': {
+        const sel = sec.querySelector('.rb-add-select');
+        captureBeforeChange();
+        addComponent(sec, sel.value);
+        decorateAll();
+        saveToStorage(true);
+        break;
+      }
+      case 'addsection': addSection(); break;
+      case 'navup': captureBeforeChange(); moveNavItem(btn,-1); decorateAll(); saveToStorage(true); break;
+      case 'navdown': captureBeforeChange(); moveNavItem(btn,1); decorateAll(); saveToStorage(true); break;
+      case 'navdel':
+        if(confirm('Remove this bookmark?')){ captureBeforeChange(); removeNavItem(btn); decorateAll(); saveToStorage(true); }
+        break;
+      case 'addbookmark': addBookmark(); break;
+      case 'undo': undo(); break;
+      case 'redo': redo(); break;
+      case 'save': saveToFile(false); break;
+      case 'saveas': saveToFile(true); break;
+      case 'dismissnag': hideNag(); break;
+      case 'togglefind': {
+        const panel = document.querySelector('.rb-find-panel');
+        if(panel && panel.classList.contains('rb-open')) closeFindPanel(); else openFindPanel();
+        break;
+      }
+      case 'findnext': gotoFindMatch(1); break;
+      case 'findprev': gotoFindMatch(-1); break;
+      case 'closefind': closeFindPanel(); break;
+      case 'clearhistory': {
+        if(confirm('Clear all unsaved edit history? This wipes the autosave cache and undo/redo history stored in this browser, then reloads the page fresh from this file. It does NOT touch the .html file on disk.')){
+          try{
+            localStorage.removeItem(STORAGE_KEY);
+            localStorage.removeItem(STORAGE_KEY + '_edits');
+            localStorage.removeItem(STORAGE_KEY + '_layout');
+          }catch(err){}
+          undoStack = [];
+          redoStack = [];
+          resetEditsSinceExport();
+          location.reload();
+        }
+        break;
+      }
+      case 'togglelayout': {
+        ensureLayoutPanel();
+        const panel = document.querySelector('.rb-layout-panel');
+        const opening = !panel.classList.contains('rb-open');
+        panel.classList.toggle('rb-open');
+        if(opening){
+          const s = readLayoutSettings();
+          panel.querySelector('.rb-lay-navside').value = s.navSide;
+          panel.querySelector('.rb-lay-align').value = s.mainAlign;
+          panel.querySelector('.rb-lay-maxw').value = s.maxw;
+          panel.querySelector('.rb-lay-padl').value = s.padL;
+          panel.querySelector('.rb-lay-padr').value = s.padR;
+        }
+        break;
+      }
+      case 'applylayout': {
+        const panel = document.querySelector('.rb-layout-panel');
+        applyLayoutSettings({
+          navSide: panel.querySelector('.rb-lay-navside').value,
+          mainAlign: panel.querySelector('.rb-lay-align').value,
+          maxw: parseInt(panel.querySelector('.rb-lay-maxw').value, 10) || 900,
+          padL: parseInt(panel.querySelector('.rb-lay-padl').value, 10) || 0,
+          padR: parseInt(panel.querySelector('.rb-lay-padr').value, 10) || 0
+        });
+        break;
+      }
+      case 'resetlayout': {
+        const d = { navSide:'left', mainAlign:'center', maxw:1100, padL:48, padR:48 };
+        applyLayoutSettings(d);
+        const panel = document.querySelector('.rb-layout-panel');
+        panel.querySelector('.rb-lay-navside').value = d.navSide;
+        panel.querySelector('.rb-lay-align').value = d.mainAlign;
+        panel.querySelector('.rb-lay-maxw').value = d.maxw;
+        panel.querySelector('.rb-lay-padl').value = d.padL;
+        panel.querySelector('.rb-lay-padr').value = d.padR;
+        break;
+      }
+    }
+  });
+
+  /* ── typing history + autosave ── */
+  document.addEventListener('focusin', function(e){
+    if(editMode && e.target.isContentEditable){
+      if(!typingSessionCaptured){ captureBeforeChange(); typingSessionCaptured = true; }
+    }
+  });
+  document.addEventListener('focusout', function(e){
+    if(e.target && e.target.isContentEditable){ typingSessionCaptured = false; saveToStorage(); }
+  });
+  document.addEventListener('input', function(e){
+    if(editMode && e.target && e.target.isContentEditable){ saveToStorage(); }
+  });
+
+  /* ── edit mode toggle + keyboard ── */
+  function enterEditMode(){ decorateAll(); }
+  function exitEditMode(){
+    document.querySelectorAll('.rb-editable').forEach(n => { setEditable(n, false); });
+    hideNag();
+  }
+  function toggleEditMode(){
+    editMode = !editMode;
+    document.body.classList.toggle('rb-edit-mode', editMode);
+    if(editMode) enterEditMode(); else { exitEditMode(); saveToStorage(true); }
+  }
+
+  let keyBuf = '';
+  document.addEventListener('keydown', function(e){
+    const ae = document.activeElement;
+    const typing = ae && (ae.isContentEditable || ae.tagName==='INPUT' || ae.tagName==='TEXTAREA');
+    if(editMode && (e.ctrlKey || e.metaKey)){
+      const k = e.key.toLowerCase();
+      if(k==='z' && !e.shiftKey){ e.preventDefault(); undo(); return; }
+      if(k==='y' || (k==='z' && e.shiftKey)){ e.preventDefault(); redo(); return; }
+      if(typing && !e.shiftKey && (k==='b' || k==='i' || k==='u')){
+        e.preventDefault();
+        try{ document.execCommand('styleWithCSS', false, true); }catch(err){}
+        captureBeforeChange();
+        document.execCommand(k==='b' ? 'bold' : k==='i' ? 'italic' : 'underline');
+        afterInlineChange();
+        return;
+      }
+      if(typing && e.shiftKey && k==='x'){
+        e.preventDefault();
+        try{ document.execCommand('styleWithCSS', false, true); }catch(err){}
+        captureBeforeChange();
+        document.execCommand('strikeThrough');
+        afterInlineChange();
+        return;
+      }
+    }
+    if(typing){ keyBuf=''; return; }
+    if(editMode && e.key === '/'){ e.preventDefault(); openFindPanel(); return; }
+    if(e.key.length===1){
+      keyBuf = (keyBuf + e.key.toLowerCase()).slice(-4);
+      if(keyBuf==='f426'){ toggleEditMode(); keyBuf=''; }
+    }
+  });
+
+  /* ── warn before leaving with edits not yet saved to disk ── */
+  window.addEventListener('beforeunload', function(e){
+    if(editsSinceExport > 0){
+      e.preventDefault();
+      e.returnValue = '';
+    }
+  });
+
+  loadFromStorage();
+  loadLayoutSettings();
+  if(!editMode) toggleEditMode();
+
+  /* ── re-scroll to the URL's #hash once the page settles ──
+     loadFromStorage() can swap in a saved copy of the content, and web
+     fonts finishing late can reflow the page — both happen after the
+     browser's own initial jump-to-anchor, so a deep link like
+     rules.html#mini-games can land on the wrong section. Re-apply the
+     scroll once things have actually stabilized. */
+  if (location.hash){
+    const rescrollToHash = () => {
+      const target = document.querySelector(location.hash);
+      if (target) target.scrollIntoView();
+    };
+    requestAnimationFrame(() => requestAnimationFrame(rescrollToHash));
+    window.addEventListener('load', () => setTimeout(rescrollToHash, 50));
+    if (document.fonts && document.fonts.ready){
+      document.fonts.ready.then(() => setTimeout(rescrollToHash, 50));
+    }
+  }
+})();
+</script>
+
+<script>
+(function(){
+  var dropZone = document.getElementById('rbDropZone');
+  var input = document.getElementById('rbFileInput');
+  var errEl = document.getElementById('rbErr');
+
+  function showError(msg){ errEl.textContent = msg; }
+
+  function loadFileText(text, filename){
+    var cssSrc = document.getElementById('rb-editor-css-src').textContent;
+    var jsSrc = document.getElementById('rb-editor-js-src').textContent;
+
+    var parsed = new DOMParser().parseFromString(text, 'text/html');
+    parsed.querySelectorAll('script').forEach(function(n){ n.remove(); });
+
+    document.title = parsed.title || document.title;
+    document.head.innerHTML = parsed.head.innerHTML;
+    document.body.innerHTML = parsed.body.innerHTML;
+    document.body.className = parsed.body.className || '';
+
+    window.__rbLoadedFileName = filename;
+
+    var styleEl = document.createElement('style');
+    styleEl.id = 'rb-standalone-style';
+    styleEl.textContent = cssSrc;
+    document.head.appendChild(styleEl);
+
+    var scriptEl = document.createElement('script');
+    scriptEl.id = 'rb-standalone-script';
+    scriptEl.textContent = jsSrc;
+    document.body.appendChild(scriptEl);
+  }
+
+  function handleFile(file){
+    if(!file){ return; }
+    if(!/\.html?$/i.test(file.name)){
+      showError('Please choose an .html file.');
+      return;
+    }
+    var reader = new FileReader();
+    reader.onerror = function(){ showError('Could not read that file.'); };
+    reader.onload = function(){ loadFileText(String(reader.result), file.name); };
+    reader.readAsText(file);
+  }
+
+  dropZone.addEventListener('click', function(e){
+    if(e.target !== input) input.click();
+  });
+  input.addEventListener('change', function(){ handleFile(input.files && input.files[0]); });
+  dropZone.addEventListener('dragover', function(e){ e.preventDefault(); dropZone.classList.add('rb-drag'); });
+  dropZone.addEventListener('dragleave', function(){ dropZone.classList.remove('rb-drag'); });
+  dropZone.addEventListener('drop', function(e){
+    e.preventDefault();
+    dropZone.classList.remove('rb-drag');
+    handleFile(e.dataTransfer.files && e.dataTransfer.files[0]);
+  });
+})();
+</script>
+</body>
+</html>
