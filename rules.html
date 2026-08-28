@@ -85,6 +85,7 @@
   /* ── HEADER ── */
   header {
     position: relative;
+    z-index: 3; /* stack above #scanlines */
     /* mirrors .container's nav-reserve so header-inner centers within the same
        reduced box as main whenever updateNavLayout() has to reserve room. */
     padding: 48px var(--layout-nav-reserve-r) 36px var(--layout-nav-reserve-l);
@@ -188,6 +189,8 @@
 
   /* ── LAYOUT ── */
   .container {
+    position: relative;
+    z-index: 3; /* stack above #scanlines */
     padding-left: var(--layout-nav-reserve-l);
     padding-right: var(--layout-nav-reserve-r);
     min-height: calc(100vh - 200px);
@@ -245,21 +248,6 @@
     color: var(--accent);
     border-left-color: var(--accent);
     padding-left: 16px;
-  }
-
-  nav a.sub {
-    font-size: 11px;
-    font-weight: 400;
-    font-family: var(--body);
-    padding-left: 24px;
-    margin-left: -16px;
-    color: #444;
-  }
-
-  nav a.sub:hover {
-    color: var(--accent2);
-    border-left-color: var(--accent2);
-    padding-left: 28px;
   }
 
   /* ── IN-CONTENT CROSS-REFERENCE LINKS ── */
@@ -630,10 +618,6 @@
     );
   }
 
-  /* ── STACK CONTENT ABOVE BG LAYERS ── */
-  header  { position: relative; z-index: 3; }
-  .container { position: relative; z-index: 3; }
-
   /* ── FOOTER ── */
   footer {
     position: fixed;
@@ -920,10 +904,6 @@
     width: 26px; height: 24px; padding: 0; border: 1px solid var(--border); border-radius: 2px;
     background: var(--surface); cursor: pointer;
   }
-  .rb-text-toolbar .rb-txt-mixed {
-    font-size: 9px; color: var(--text-dim); letter-spacing: 0.05em; white-space: nowrap;
-  }
-
   /* ── quick find panel (edit mode) ── */
   .rb-find-panel {
     position: fixed; top: 54px; right: 16px; z-index: 999; display: none;
@@ -1169,7 +1149,7 @@
         </div>
       </div>
     </section>
-    <!-- 17 CHARACTERS -->
+    <!-- 03 CHARACTERS -->
     <section class="section" id="characters">
       <div class="section-header">
         <span class="section-num">// 03</span>
@@ -1198,7 +1178,7 @@
       <h4>// Force (Passive)</h4>
       <p>Pushback is not capped at weapon's dice pool size. Automatically gains +1 pushback beyond normal cap on every Defense Roll. Applies to all weapons.</p>
     </section>
-    <!-- 13 BOARD -->
+    <!-- 04 BOARD & ROOMS -->
     <section class="section" id="board">
       <div class="section-header">
         <span class="section-num">// 04</span>
@@ -1263,7 +1243,7 @@
         </table>
       </div>
     </section>
-    <!-- 03 TURN STRUCTURE -->
+    <!-- 05 TURN STRUCTURE -->
     <section class="section" id="turn">
       <div class="section-header">
         <span class="section-num">// 05</span>
@@ -1292,7 +1272,7 @@
         <li>Apply Line of Sight Rush if applicable</li>
       </ul>
     </section>
-    <!-- 08 NOISE -->
+    <!-- 06 ACTIONS & NOISE -->
     <section class="section" id="noise">
       <div class="section-header">
         <span class="section-num">// 06</span>
@@ -1349,7 +1329,7 @@
         </table>
       </div>
     </section>
-    <!-- 06 DICE -->
+    <!-- 07 DICE ENGINE -->
     <section class="section" id="dice">
       <div class="section-header">
         <span class="section-num">// 07</span>
@@ -1413,7 +1393,7 @@
       </div>
       <p style="font-size:12px; color:var(--text-dim); margin-top:6px;">If the player had stopped at Roll 2, both Noise faces would have counted. By taking Roll 3, they cleared one but converted the other to a Noise Spike — a genuine gamble.</p>
     </section>
-    <!-- 09 COMBAT -->
+    <!-- 08 COMBAT -->
     <section class="section" id="combat">
       <div class="section-header">
         <span class="section-num">// 08</span>
@@ -1495,7 +1475,7 @@
       </div>
       <div class="callout success"><strong>// Melee Bonus</strong>Melee weapon users receive +1 Action on top of the standard flee — rewarding players who choose to fight back.</div>
     </section>
-    <!-- 10 WEAPONS -->
+    <!-- 09 WEAPONS -->
     <section class="section" id="weapons">
       <div class="section-header">
         <span class="section-num">// 09</span>
@@ -1529,7 +1509,7 @@
         </table>
       </div>
     </section>
-    <!-- 14 HIDING -->
+    <!-- 10 HIDING -->
     <section class="section" id="hiding">
       <div class="section-header">
         <span class="section-num">// 10</span>
@@ -1549,7 +1529,7 @@
       <h3>Additional Locations</h3>
       <p>Three additional hiding location types planned: debris piles (medium risk), maintenance crawlspaces (medium risk), and bulkhead alcoves (high risk). Risk tiers and detection rolls TBD.</p>
     </section>
-    <!-- 15 HEALTH -->
+    <!-- 11 HEALTH -->
     <section class="section" id="health">
       <div class="section-header">
         <span class="section-num">// 11</span>
@@ -1573,7 +1553,7 @@
       </div>
       <p>At zero health: player eliminated. Inventory drops at death location. Surviving crew may attempt recovery.</p>
     </section>
-    <!-- 12 INVENTORY -->
+    <!-- 12 INVENTORY & EQUIPMENT -->
     <section class="section" id="inventory">
       <div class="section-header">
         <span class="section-num">// 12</span>
@@ -1619,7 +1599,7 @@
       <div class="callout info"><strong>// Pending</strong>Fuel Cells are the one explicit prerequisite chain among the Blueprints (Makeshift → Official) — unlike every other blueprint, which unlocks in parallel. Additional pacing mechanics are still needed so the crew can't unlock both Fuel Cell blueprints and rush straight into the Escape Phase — exact mechanic TBD.</div>
       <div class="callout info"><strong>// Fuel Cell Notes</strong>Both Fuel Cell types occupy reserved backpack slots, leaving remaining compartments available. The Official Fuel Cell (2×2) uses 4 reserved slots; the Makeshift Fuel Cell (1×2) uses 2. Whatever's already in those slots must be relocated or dropped to make room — carrying a Fuel Cell requires no other special state. If the carrier dies, the Fuel Cell drops at the death location and must be recovered by surviving crew. Exact slot assignments subject to change.</div>
     </section>
-    <!-- 07 RESOURCES -->
+    <!-- 13 RESOURCES -->
     <section class="section" id="resources">
       <div class="section-header">
         <span class="section-num">// 13</span>
@@ -1645,7 +1625,7 @@
         <li>Perform data extraction action to retrieve the token.</li>
       </ul>
     </section>
-    <!-- 11 CRAFTING -->
+    <!-- 14 CRAFTING -->
     <section class="section" id="crafting">
       <div class="section-header">
         <span class="section-num">// 14</span>
@@ -1692,7 +1672,7 @@
         </table>
       </div>
     </section>
-    <!-- 04 ECHO DECK -->
+    <!-- 15 ECHO DECK -->
     <section class="section" id="echo-deck">
       <div class="section-header">
         <span class="section-num">// 15</span>
@@ -1733,7 +1713,7 @@
       <p>One dedicated terminal per room family. Available regardless of whether that room exists on board.</p>
       <div class="callout danger"><strong>// Warning</strong>Operations Center terminals generate significantly higher noise than standard terminals. Failed interaction triggers an alarm — immediate noise spike of the card's stated noise value +3, plus a noise check before turn ends.</div>
     </section>
-    <!-- 05 MINI-GAMES -->
+    <!-- 16 MINI-GAMES -->
     <section class="section" id="mini-games">
       <div class="section-header">
         <span class="section-num">// 16</span>
@@ -1772,7 +1752,7 @@
         <div><a href="echo-events.html" class="callout-btn">&#9654; Open Echo Events</a></div>
       </div>
     </section>
-    <!-- 17 OBJECTIVE BOARD & TECH TREE -->
+    <!-- 17 OBJECTIVE BOARD -->
     <section class="section" id="taskboard">
       <div class="section-header">
         <span class="section-num">// 17</span>
@@ -1813,7 +1793,7 @@
 
       <div class="callout info"><strong>// Pending</strong>Pending Objective Queue cap (if any), consequences for a blueprint that never gets fully populated, and the Workbench mechanic itself are still to be determined.</div>
     </section>
-    <!-- 16 ESCAPE -->
+    <!-- 18 ESCAPE -->
     <section class="section" id="escape">
       <div class="section-header">
         <span class="section-num">// 18</span>
@@ -1836,45 +1816,56 @@
       </div>
       <p>Outstanding design questions tracked for future sessions.</p>
 
+      <h4>Narrative &amp; Setup</h4>
       <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Prologue / lore text rewrite</div><div class="item-note">Ship log style, movie cold-open narration. Written from crew member POV. In progress.</div></div></div>
+      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Board layout draft</div><div class="item-note">30×36 design. Bridge, Dock, corridor network, vent placement.</div></div></div>
+
+      <h4>Items &amp; Crafting</h4>
       <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Encumbered threshold: 80% of backpack capacity</div><div class="item-note">Applies to backpack only. Equipment grid is separate. Physical component idea (optional difficulty variant): 5 "space cubes" occupy backpack slots as visual placeholders for remaining safe capacity — when one must be removed to make room for a real item, that cube moves to a side track and the player is Encumbered. Doubles as an at-a-glance encumbrance meter.</div></div></div>
       <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Flare throwing distance: up to 8 spaces</div><div class="item-note">Requires an unobstructed straight-line path from the player.</div></div></div>
       <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Distraction Item throw/placement distance</div><div class="item-note">Throwing: up to 8 spaces, unobstructed straight line — same as Flare, and any throwable item. Placement: player must be adjacent to the placed location.</div></div></div>
-      <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Ammo Crate restock yield: 2</div><div class="item-note">Preliminary value — subject to adjustment through playtesting.</div></div></div>
-      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Locker detection roll mechanic</div><div class="item-note">Triggers when creature physically reaches player's locker. Roll system TBD.</div></div></div>
-      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Seal Door — full mechanic documentation</div><div class="item-note">Blocks creature until end of next player's creature phase. Crew coordination required.</div></div></div>
-      
-      <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Creature powers down crew ship at Operations Center</div><div class="item-note">Triggered when crew reaches Operations Center. Crew unaware until escape attempt.</div></div></div>
-      <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">LoS Rush triggers mid-move</div><div class="item-note">Any LoS contact during creature movement triggers rush — not only at end of move.</div></div></div>
       <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Flare gun removed</div><div class="item-note">Flare is a standalone throwable consumable. No weapon required.</div></div></div>
       <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Equipment grid holds all weapons and armor</div><div class="item-note">Ranged, melee, armor — all in equipment grid. Ammo in backpack.</div></div></div>
       <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Crafting tiers removed</div><div class="item-note">Crude/Standard/Advanced tiers replaced with organizational categories (Melee Weapons, Ranged Weapons, Armor, Consumables, Utility Items) — category has no effect on cost.</div></div></div>
       <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Full item list &amp; preliminary crafting costs set</div><div class="item-note">Every item is now craftable except Universal Ammo (found only). All costs are a first pass — expect rebalancing through playtesting.</div></div></div>
       <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Universal Ammo is found-only, not crafted</div><div class="item-note">Restock at Ammo Crate is a deterministic action (1 action, +1 noise, fixed yield) rather than a random search — prevents repeat-search farming for ammo specifically.</div></div></div>
+      <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Ammo Crate restock yield: 2</div><div class="item-note">Preliminary value — subject to adjustment through playtesting.</div></div></div>
+      <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Recovery values set</div><div class="item-note">Resting +1 Health/+0 noise, Medpack +3 Health/+0 noise, Medical Room +8 Health/+3 noise (machinery). All preliminary — subject to adjustment through playtesting.</div></div></div>
 
-      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Threat Token conversion</div><div class="item-note">How tokens affect creature aggression on introduction.</div></div></div>
-      <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Biohazard face</div><div class="item-note">Valid D12 requirement face alongside Tech, DNA, and Tools. Appears on specific cards as defined by card design. No global effect — all requirements are card-specific.</div></div></div>
-      <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Skill check pass conditions</div><div class="item-note">Pass conditions are card-specific. Each Echo Card defines its own face requirements and quantities. Roll Resolution in Section 07 governs all checks. Card design and notation is part of the ~120 card design phase.</div></div></div>
+      <h4>Objective Board &amp; Blueprints</h4>
+      <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Objective Board — official term locked</div><div class="item-note">Hosts the Blueprints and Pending Objective Queue.</div></div></div>
+      <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Expansion blueprints will be card-based</div><div class="item-note">The base game's Blueprint slots are fixed. Expansion content instead uses standalone Blueprint Cards, each printing its own unlock requirements. Integration details (how they mix into or alongside the Echo Deck) still TBD.</div></div></div>
+      <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Blueprints unlock in parallel, Fuel Cells are the exception</div><div class="item-note">No global tier order across the Blueprints — every blueprint except Fuel Cells can be worked in any order. Official Fuel Cell explicitly requires the Makeshift Fuel Cell blueprint completed first.</div></div></div>
+      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Pending Objective Queue cap</div><div class="item-note">Whether a max queue size is needed, and consequences for a blueprint chain that never gets fully populated.</div></div></div>
+      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Workbench mechanic</div><div class="item-note">New task-resolution location alongside rooms and terminals. Low cost to add or cut — exact rules TBD.</div></div></div>
+      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Fuel Cell blueprint pacing</div><div class="item-note">Need a mechanic to stop the crew from unlocking both Fuel Cell blueprints and rushing straight into the Escape Phase. Exact approach TBD.</div></div></div>
+      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Blueprint Card deck share reallocation</div><div class="item-note">Blueprints are static unlocks, not cards — the ~15–20% set aside for them needs redistributing across the remaining Echo Deck card types.</div></div></div>
+
+      <h4>Creature, Noise &amp; Cards</h4>
+      <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Creature powers down crew ship at Operations Center</div><div class="item-note">Triggered when crew reaches Operations Center. Crew unaware until escape attempt.</div></div></div>
+      <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">LoS Rush triggers mid-move</div><div class="item-note">Any LoS contact during creature movement triggers rush — not only at end of move.</div></div></div>
+      <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Half-speed on noise check pass</div><div class="item-note">Creature always moves half speed toward noise on successful check.</div></div></div>
+      <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Noise resets each turn</div><div class="item-note">Tracker resets at start of each player's turn.</div></div></div>
       <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Operations Center terminal alarm: card's stated noise +3</div><div class="item-note">Failing the interaction adds +3 to whatever noise value the card specifies, rather than a flat range.</div></div></div>
       <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Data Extraction action noise value: +1</div><div class="item-note">Listed in // 06 Actions &amp; Noise. Separate action from the Echo card draw that places the Data Token — the card only places it, extraction claims it later.</div></div></div>
+      <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Biohazard face</div><div class="item-note">Valid D12 requirement face alongside Tech, DNA, and Tools. Appears on specific cards as defined by card design. No global effect — all requirements are card-specific.</div></div></div>
+      <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Skill check pass conditions</div><div class="item-note">Pass conditions are card-specific. Each Echo Card defines its own face requirements and quantities. Roll Resolution in Section 07 governs all checks. Card design and notation is part of the ~120 card design phase.</div></div></div>
+      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Threat Token conversion</div><div class="item-note">How tokens affect creature aggression on introduction.</div></div></div>
+      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">CONTACT card mechanic — under reconsideration</div><div class="item-note">Not part of the original design notes. Undecided whether it stays as a mechanic at all, and if so whether it's a separate card/stack outside the Echo Deck or a signifier within it — kept to avoid adding a new card type unless necessary.</div></div></div>
+
+      <h4>Hiding &amp; Defense</h4>
+      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Locker detection roll mechanic</div><div class="item-note">Triggers when creature physically reaches player's locker. Roll system TBD.</div></div></div>
       <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Hiding detection roll mechanic</div><div class="item-note">General detection roll system for all hiding types. Locker-specific trigger documented separately. Full mechanic TBD.</div></div></div>
       <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Vent hiding rules</div><div class="item-note">Noise marker position effect on vent hiding viability.</div></div></div>
       <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Two additional hiding locations</div><div class="item-note">Debris piles, crawlspaces, alcoves — rules TBD.</div></div></div>
+      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Seal Door — full mechanic documentation</div><div class="item-note">Blocks creature until end of next player's creature phase. Crew coordination required.</div></div></div>
+
+      <h4>Escape Phase &amp; Endgame</h4>
       <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Escape Phase final creature encounter</div><div class="item-note">Endgame creature resolution mechanic.</div></div></div>
-      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Character abilities ×5</div><div class="item-note">Medic, Engineer, Scout, Data Specialist, Scavenger.</div></div></div>
-      <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Recovery values set</div><div class="item-note">Resting +1 Health/+0 noise, Medpack +3 Health/+0 noise, Medical Room +8 Health/+3 noise (machinery). All preliminary — subject to adjustment through playtesting.</div></div></div>
-      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Board layout draft</div><div class="item-note">30×36 design. Bridge, Dock, corridor network, vent placement.</div></div></div>
       <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Post-encounter sequence adjustments</div><div class="item-note">Player flagged adjustments needed — to be revisited.</div></div></div>
-      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Pending Objective Queue cap</div><div class="item-note">Whether a max queue size is needed, and consequences for a blueprint chain that never gets fully populated.</div></div></div>
-      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Workbench mechanic</div><div class="item-note">New task-resolution location alongside rooms and terminals. Low cost to add or cut — exact rules TBD.</div></div></div>
-      <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Expansion blueprints will be card-based</div><div class="item-note">The base game's Blueprint slots are fixed. Expansion content instead uses standalone Blueprint Cards, each printing its own unlock requirements. Integration details (how they mix into or alongside the Echo Deck) still TBD.</div></div></div>
-      <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Blueprints unlock in parallel, Fuel Cells are the exception</div><div class="item-note">No global tier order across the Blueprints — every blueprint except Fuel Cells can be worked in any order. Official Fuel Cell explicitly requires the Makeshift Fuel Cell blueprint completed first.</div></div></div>
-      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Fuel Cell blueprint pacing</div><div class="item-note">Need a mechanic to stop the crew from unlocking both Fuel Cell blueprints and rushing straight into the Escape Phase. Exact approach TBD.</div></div></div>
-      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Blueprint Card deck share reallocation</div><div class="item-note">Blueprints are static unlocks, not cards — the ~15–20% set aside for them needs redistributing across the remaining Echo Deck card types.</div></div></div>
-      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">CONTACT card mechanic — under reconsideration</div><div class="item-note">Not part of the original design notes. Undecided whether it stays as a mechanic at all, and if so whether it's a separate card/stack outside the Echo Deck or a signifier within it — kept to avoid adding a new card type unless necessary.</div></div></div>
-      <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Half-speed on noise check pass</div><div class="item-note">Creature always moves half speed toward noise on successful check.</div></div></div>
-      <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Noise resets each turn</div><div class="item-note">Tracker resets at start of each player's turn.</div></div></div>
-      <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Objective Board — official term locked</div><div class="item-note">Hosts the Blueprints and Pending Objective Queue.</div></div></div>
+
+      <h4>Characters</h4>
+      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Character abilities ×5</div><div class="item-note">Medic, Engineer, Scout, Data Specialist, Scavenger.</div></div></div>
     </section>
 
   </main>
