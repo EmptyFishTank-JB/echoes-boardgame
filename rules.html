@@ -679,6 +679,25 @@
   }
   body.drawer-open .drawer-backdrop { display: block; opacity: 1; }
 
+  /* ── NAV DRAWER MODE ──
+     Applied by updateNavLayout() (see script near end of body) whenever the
+     sidebar nav doesn't have room to sit beside main content without
+     overlapping it — not just below the 768px breakpoint below, but on any
+     viewport (e.g. some tablets in portrait) where nav width + a readable
+     main column genuinely don't both fit. Mirrors the mobile nav rules in
+     the media query so both triggers land on the same layout. */
+  body.nav-drawer-mode .drawer-toggle { display: flex; }
+  body.nav-drawer-mode nav {
+    left: 0 !important; right: auto !important;
+    width: 82vw; max-width: 320px;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    z-index: 200;
+  }
+  body.nav-drawer-mode.drawer-open nav { transform: translateX(0); box-shadow: 8px 0 24px rgba(0,0,0,0.5); }
+  body.nav-drawer-mode main { max-width: 100% !important; margin-left: 0 !important; margin-right: 0 !important; }
+  body.nav-drawer-mode .container { padding-left: 0 !important; padding-right: 0 !important; }
+
   /* ── RESPONSIVE ── */
   @media (max-width: 768px) {
     footer { position: static; padding: 24px; }
@@ -1657,6 +1676,7 @@
       <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Universal Ammo is found-only, not crafted</div><div class="item-note">Restock at Ammo Crate is a deterministic action (1 action, +1 noise, fixed yield) rather than a random search — prevents repeat-search farming for ammo specifically.</div></div></div>
       <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Ammo Crate restock yield: 2</div><div class="item-note">Preliminary value — subject to adjustment through playtesting.</div></div></div>
       <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Recovery values set</div><div class="item-note">Resting +1 Health/+0 noise, Medpack +3 Health/+0 noise, Medical Room +8 Health/+3 noise (machinery). All preliminary — subject to adjustment through playtesting.</div></div></div>
+      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Player board mockup</div><div class="item-note">Physical/visual design in progress in AutoCAD. Layout regions already described in // 12 Inventory &amp; Equipment (top/left/right/bottom zones) — mockup to formalize the actual dimensions and card/token placement.</div></div></div>
 
       <h4>Objective Board &amp; Blueprints</h4>
       <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Objective Board — official term locked</div><div class="item-note">Hosts the Blueprints and Pending Objective Queue.</div></div></div>
@@ -1678,6 +1698,7 @@
       <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Skill check pass conditions</div><div class="item-note">Pass conditions are card-specific. Each Echo Card defines its own face requirements and quantities. Roll Resolution in Section 07 governs all checks. Card design and notation is part of the ~120 card design phase.</div></div></div>
       <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Threat Token conversion</div><div class="item-note">How tokens affect creature aggression on introduction.</div></div></div>
       <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">CONTACT card mechanic — under reconsideration</div><div class="item-note">Not part of the original design notes. Undecided whether it stays as a mechanic at all, and if so whether it's a separate card/stack outside the Echo Deck or a signifier within it — kept to avoid adding a new card type unless necessary.</div></div></div>
+      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Echo Card template / format</div><div class="item-note">Physical layout for the main Echo Cards (distinct from the Echo Event Mini-Game cards in // 16). Known so far: room family type, objective, a lore snippet, and a 20-digit alphanumeric code. Full content inventory still needs a pass through the rules to confirm everything that belongs on the card face.</div></div></div>
 
       <h4>Hiding &amp; Defense</h4>
       <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Locker detection roll mechanic</div><div class="item-note">Triggers when creature physically reaches player's locker. Roll system TBD.</div></div></div>
@@ -1814,6 +1835,66 @@
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') closeDrawer();
   });
+})();
+</script>
+
+<script>
+/* ── NAV LAYOUT: keep the sidebar nav from overlapping main content ──
+   Positions nav flush against main's rendered edge and, when the viewport
+   is too narrow for both, reserves just enough padding so nav can't cover
+   the text. If nav genuinely doesn't have room to sit beside a readable
+   main column at all (not just below the 768px breakpoint — some tablets
+   in portrait land in between), switches to the same drawer/hamburger mode
+   used on phones instead of letting them overlap. */
+(function(){
+  const nav = document.querySelector('nav');
+  const main = document.querySelector('main');
+  if(!nav || !main) return;
+
+  const MIN_MAIN_WIDTH = 320; // narrowest a readable content column should get
+
+  function updateNavLayout(){
+    const root = document.documentElement.style;
+    const navWidth = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--layout-nav-width'), 10) || 240;
+    const forceDrawer = window.innerWidth <= 768 || window.innerWidth < (navWidth + MIN_MAIN_WIDTH);
+
+    document.body.classList.toggle('nav-drawer-mode', forceDrawer);
+    root.setProperty('--layout-nav-reserve-l', '0px');
+    root.setProperty('--layout-nav-reserve-r', '0px');
+
+    if(forceDrawer){
+      nav.style.left = '';
+      nav.style.right = '';
+      return;
+    }
+
+    const side = document.documentElement.dataset.navSide === 'right' ? 'right' : 'left';
+    const measuredNavWidth = nav.getBoundingClientRect().width || navWidth;
+    let mainRect = main.getBoundingClientRect();
+    if(side === 'left'){
+      if(mainRect.left < measuredNavWidth) root.setProperty('--layout-nav-reserve-l', measuredNavWidth + 'px');
+      mainRect = main.getBoundingClientRect();
+      nav.style.left = (mainRect.left - measuredNavWidth) + 'px';
+      nav.style.right = 'auto';
+    } else {
+      if((window.innerWidth - mainRect.right) < measuredNavWidth) root.setProperty('--layout-nav-reserve-r', measuredNavWidth + 'px');
+      mainRect = main.getBoundingClientRect();
+      nav.style.left = mainRect.right + 'px';
+      nav.style.right = 'auto';
+    }
+  }
+
+  let navLayoutRaf = null;
+  function scheduleUpdate(){
+    if(navLayoutRaf) return;
+    navLayoutRaf = requestAnimationFrame(function(){ navLayoutRaf = null; updateNavLayout(); });
+  }
+
+  window.addEventListener('resize', scheduleUpdate);
+  window.addEventListener('orientationchange', function(){ setTimeout(updateNavLayout, 50); });
+  window.addEventListener('load', updateNavLayout);
+  if(document.fonts && document.fonts.ready){ document.fonts.ready.then(updateNavLayout); }
+  updateNavLayout();
 })();
 </script>
 
