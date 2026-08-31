@@ -854,13 +854,13 @@
     <a href="#setup">03 · Setup</a>
     <a href="#scaling">04 · Player Count Scaling</a>
     <a href="#characters">05 · Characters</a>
-    <a href="#creature">06 · The Creature</a>
+    <a href="#creature">06 · The Creature &amp; Noise</a>
     <a href="#board">07 · Board &amp; Rooms</a>
     <a href="#turn">08 · Turn Structure</a>
     <a href="#dice">09 · Dice Engine</a>
     <a href="#echo-deck">10 · Echo Deck</a>
     <a href="#mini-games">11 · Echo Events</a>
-    <a href="#noise">12 · Actions &amp; Noise</a>
+    <a href="#noise">12 · Actions</a>
     <a href="#combat">13 · Combat</a>
     <a href="#weapons">14 · Weapons</a>
     <a href="#hiding">15 · Hiding</a>
@@ -966,7 +966,7 @@
         <li><strong>Choose characters.</strong> Each player selects one of the 5&ndash;6 playable characters. See <a href="#characters">// 05 Characters</a>. Starting loadout per character TBD.</li>
         <li><strong>Set starting resources &amp; inventory.</strong> Starting Health, Speed, and any starting items TBD.</li>
         <li><strong>Shuffle the Echo Deck</strong> and place it as the shared draw pile. See <a href="#echo-deck">// 10 The Echo Deck</a>.</li>
-        <li><strong>Set the Creature to DORMANT.</strong> It does not enter play until the Introduction Sequence triggers. See <a href="#creature">// 06 The Creature</a>.</li>
+        <li><strong>Set the Creature to DORMANT.</strong> It does not enter play until the Introduction Sequence triggers. See <a href="#creature">// 06 The Creature &amp; Noise</a>.</li>
         <li><strong>Place the Objective Board</strong> and any starting Blueprint slots. See <a href="#taskboard">// 20 Objective Board</a>.</li>
         <li><strong>Determine first player.</strong> Method TBD.</li>
       </ol>
@@ -981,7 +981,7 @@
       <p>The game supports 1&ndash;5 players, cooperative (see <a href="#overview">// 01 Overview</a>). Nothing in the rules as written yet adjusts for crew size &mdash; this section tracks what should scale and how.</p>
       <div class="callout info"><strong>// Pending</strong>None of the items below are confirmed. Listed as candidates for scaling, based on what currently exists as a fixed value regardless of player count.</div>
       <ul class="rules-list">
-        <li><strong>Creature aggression / noise thresholds</strong> &mdash; does a smaller crew mean an easier or harder Noise Check curve? See <a href="#creature">// 06 The Creature</a>.</li>
+        <li><strong>Creature aggression / noise thresholds</strong> &mdash; does a smaller crew mean an easier or harder Noise Check curve? See <a href="#creature">// 06 The Creature &amp; Noise</a>.</li>
         <li><strong>Fog-of-war room count</strong> &mdash; currently ~15&ndash;20 undiscovered rooms regardless of crew size. See <a href="#board">// 07 Board &amp; Rooms</a>.</li>
         <li><strong>Echo Deck / resource density</strong> &mdash; does deck size or resource yield change with fewer players drawing? See <a href="#echo-deck">// 10 The Echo Deck</a> and <a href="#resources">// 18 Resources</a>.</li>
         <li><strong>Fuel Grid target</strong> &mdash; currently a flat 16/20 regardless of crew size. See <a href="#escape">// 21 The Escape Phase</a>.</li>
@@ -1021,7 +1021,7 @@
     <section class="section" id="creature">
       <div class="section-header">
         <span class="section-num">// 06</span>
-        <h2 class="section-title">The Creature</h2>
+        <h2 class="section-title">The Creature &amp; Noise</h2>
       </div>
       <p>The crew does not know what they are dealing with. They call it the Creature because they have no better word. It moves wrong. It appears where it should not. Weapons damage it but do not stop it. It is drawn to activity, to noise, to signal.</p>
 
@@ -1038,7 +1038,10 @@
         </table>
       </div>
 
-      <h3>Noise Check & Activation</h3>
+      <h3>Noise</h3>
+      <p>Noise Tracker runs 1&ndash;12. Resets at the start of each player's turn. Every Move and Action a player takes generates some amount of Noise — see <a href="#noise">// 12 Actions</a> for the full cost of each. What that accumulated Noise does to the Creature is covered below.</p>
+
+      <h3>Noise Check &amp; Activation</h3>
       <div class="callout warning"><strong>// Mechanic</strong>At end of each player phase, roll D12 Noise Die vs accumulated Noise Level.</div>
       <div class="tbl-wrap">
         <table>
@@ -1157,6 +1160,8 @@
         <span class="section-num">// 08</span>
         <h2 class="section-title">Turn Structure</h2>
       </div>
+      <p>A turn is one player's Player Phase immediately followed by a Creature Phase — not one Player Phase for the whole crew, then a single Creature Phase for the round. Each player triggers their own Creature Phase before play passes to the next player.</p>
+      <div class="callout info"><strong>// Pending</strong>Turn order between players — fixed seating order, rotating, player's choice — is not yet decided.</div>
 
       <h3>Player Phase</h3>
       <div class="callout info"><strong>// Free-Form Turn</strong>Each player has 2 Moves and 2 Actions per turn. They may be taken in any order with one restriction — see callout below.</div>
@@ -1165,7 +1170,7 @@
           <thead><tr><th></th><th>Description</th><th>Notes</th></tr></thead>
           <tbody>
             <tr><td><strong>Move 1 / Move 2</strong></td><td>Move up to Speed in any direction</td><td>Entering an unexplored room → draw Echo Card. Moves may be taken before or after Actions in any order.</td></tr>
-            <tr><td><strong>Action 1 / Action 2</strong></td><td>Any available action</td><td>Full list in <a href="#noise">// 12 Actions &amp; Noise</a>. Actions may be taken before or after Moves.</td></tr>
+            <tr><td><strong>Action 1 / Action 2</strong></td><td>Any available action</td><td>Full list in <a href="#noise">// 12 Actions</a>. Actions may be taken before or after Moves.</td></tr>
             <tr><td><strong>Character Ability</strong></td><td>Optional. Once per turn.</td><td>Any time during the phase. Does not replace an Action.</td></tr>
             <tr><td><strong>Track Noise</strong></td><td>Update Noise Meter</td><td>Before Creature Phase begins.</td></tr>
           </tbody>
@@ -1174,11 +1179,14 @@
       <div class="callout warning"><strong>// No Move After Action 2</strong>The player cannot take a Move after their second Action — with one exception: if Action 2 is <strong>Run</strong> or <strong>Quiet Move</strong>, one Move is permitted after. No other exception.</div>
 
       <h3>Creature Phase</h3>
-      <ul class="rules-list">
-        <li>Roll D12 Noise Die vs accumulated Noise Level</li>
-        <li>Determine awareness tier and resolve creature movement</li>
-        <li>Apply Line of Sight Rush if applicable</li>
-      </ul>
+      <p>Triggered once, immediately after the active player's Player Phase ends.</p>
+      <ol class="rules-list" style="padding-left: 20px;">
+        <li><strong>Noise Check.</strong> Roll D12 Noise Die vs the accumulated Noise Level. See <a href="#creature">// 06 The Creature &amp; Noise</a> for the full pass/fail table.</li>
+        <li><strong>Resolve Creature movement</strong> per the check's outcome &mdash; half speed toward the noise on a pass, or one of three failure tiers (Direct Pursuit, Vent Shortcut, Immediate Vent). See <a href="#creature">// 06</a>.</li>
+        <li><strong>Apply Line of Sight Rush</strong> if the Creature gets LoS on any player at any point during that movement. See <a href="#creature">// 06</a>.</li>
+        <li><strong>Resolve a Creature Encounter</strong> if the Creature reaches a player. See <a href="#combat">// 13 Combat</a>.</li>
+        <li><strong>Noise resets</strong> to 0 for the next player's turn.</li>
+      </ol>
     </section>
     <!-- 09 DICE ENGINE -->
     <section class="section" id="dice">
@@ -1324,13 +1332,14 @@
         <div><a href="echo-events.html" class="callout-btn">&#9654; Open Echo Events</a></div>
       </div>
     </section>
-    <!-- 12 ACTIONS & NOISE -->
+    <!-- 12 ACTIONS -->
     <section class="section" id="noise">
       <div class="section-header">
         <span class="section-num">// 12</span>
-        <h2 class="section-title">Actions &amp; Noise</h2>
+        <h2 class="section-title">Actions</h2>
       </div>
-      <p>Noise Tracker runs 1–12. Resets at the start of each player's turn. All values are added per instance unless stated otherwise.</p>
+      <p>What a player can do with their Moves and Actions each turn, and the Noise each one generates. All values are added per instance unless stated otherwise.</p>
+      <div class="callout info"><strong>// Note</strong>Noise generated here accumulates on a shared meter and is checked each Creature Phase — see <a href="#creature">// 06 The Creature &amp; Noise</a> for how it's tracked and resolved, and <a href="#turn">// 08 Turn Structure</a> for where that check falls in a turn.</div>
 
       <h3>Movement Variants</h3>
       <div class="tbl-wrap">
@@ -1655,7 +1664,7 @@
             <tr><td>Flare</td><td>Consumable</td><td>1 Scrap</td></tr>
             <tr><td>Official Fuel Cell</td><td>Utility</td><td>3 Salvage + 3 Components + 2 Data <span style="color:var(--text-dim);font-size:11px;">(requires Makeshift Fuel Cell blueprint completed first)</span></td></tr>
             <tr><td>Makeshift Fuel Cell</td><td>Utility</td><td>3 Salvage + 2 Components + 1 Data</td></tr>
-            <tr><td>Universal Ammo</td><td>—</td><td><span style="color:var(--text-dim);">Found only — not crafted. See Ammo Crate Restock, <a href="#noise">// 12 Actions &amp; Noise</a>.</span></td></tr>
+            <tr><td>Universal Ammo</td><td>—</td><td><span style="color:var(--text-dim);">Found only — not crafted. See Ammo Crate Restock, <a href="#noise">// 12 Actions</a>.</span></td></tr>
           </tbody>
         </table>
       </div>
@@ -1763,6 +1772,7 @@
       <h4>Narrative &amp; Setup</h4>
       <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Prologue / lore text rewrite</div><div class="item-note">Ship log style, movie cold-open narration. Written from crew member POV. In progress.</div></div></div>
       <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Board layout draft</div><div class="item-note">30×36 design. Bridge, Dock, corridor network, vent placement.</div></div></div>
+      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Turn order / rotation</div><div class="item-note">How player order is determined — fixed seating, rotating, player's choice — and how first player is picked at Setup. Each player's own Creature Phase already fires right after their Player Phase (// 08 Turn Structure); this is only about the order players take their turns in.</div></div></div>
 
       <h4>Items &amp; Crafting</h4>
       <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Encumbered threshold: 80% of backpack capacity</div><div class="item-note">Applies to backpack only. Equipment grid is separate. Physical component idea (optional difficulty variant): 5 "space cubes" occupy backpack slots as visual placeholders for remaining safe capacity — when one must be removed to make room for a real item, that cube moves to a side track and the player is Encumbered. Doubles as an at-a-glance encumbrance meter.</div></div></div>
@@ -1792,7 +1802,7 @@
       <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Half-speed on noise check pass</div><div class="item-note">Creature always moves half speed toward noise on successful check.</div></div></div>
       <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Noise resets each turn</div><div class="item-note">Tracker resets at start of each player's turn.</div></div></div>
       <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Operations Center terminal alarm: card's stated noise +3</div><div class="item-note">Failing the interaction adds +3 to whatever noise value the card specifies, rather than a flat range.</div></div></div>
-      <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Data Extraction action noise value: +1</div><div class="item-note">Listed in // 12 Actions &amp; Noise. Separate action from the Echo card draw that places the Data Token — the card only places it, extraction claims it later.</div></div></div>
+      <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Data Extraction action noise value: +1</div><div class="item-note">Listed in // 12 Actions. Separate action from the Echo card draw that places the Data Token — the card only places it, extraction claims it later.</div></div></div>
       <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Biohazard face</div><div class="item-note">Valid D12 requirement face alongside Tech, DNA, and Tools. Appears on specific cards as defined by card design. No global effect — all requirements are card-specific.</div></div></div>
       <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Skill check pass conditions</div><div class="item-note">Pass conditions are card-specific. Each Echo Card defines its own face requirements and quantities. Roll Resolution in Section 09 governs all checks. Card design and notation is part of the ~120 card design phase.</div></div></div>
       <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Threat Token conversion</div><div class="item-note">How tokens affect creature aggression on introduction.</div></div></div>
