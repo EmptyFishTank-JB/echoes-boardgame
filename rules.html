@@ -1039,10 +1039,10 @@
       </div>
 
       <h3>Noise</h3>
-      <p>Noise Tracker runs 1&ndash;12. Resets at the start of each player's turn. Every Move and Action a player takes generates some amount of Noise — see <a href="#noise">// 12 Actions</a> for the full cost of each. What that accumulated Noise does to the Creature is covered below.</p>
+      <p>Each player tracks their own Noise Tracker, 1&ndash;12, on their character board — it is not a shared meter. Resets at the start of that player's turn. Every Move and Action a player takes generates some amount of Noise on their own tracker — see <a href="#noise">// 12 Actions</a> for the full cost of each. What that accumulated Noise does to the Creature is covered below.</p>
 
       <h3>Noise Check &amp; Activation</h3>
-      <div class="callout warning"><strong>// Mechanic</strong>At end of each player phase, roll D12 Noise Die vs accumulated Noise Level.</div>
+      <div class="callout warning"><strong>// Mechanic</strong>At end of each player phase, roll D12 Noise Die vs that player's own accumulated Noise Level.</div>
       <div class="tbl-wrap">
         <table>
           <thead><tr><th>Result</th><th>Outcome</th><th>Creature Behavior</th></tr></thead>
@@ -1181,7 +1181,7 @@
       <h3>Creature Phase</h3>
       <p>Triggered once, immediately after the active player's Player Phase ends.</p>
       <ol class="rules-list" style="padding-left: 20px;">
-        <li><strong>Noise Check.</strong> Roll D12 Noise Die vs the accumulated Noise Level. See <a href="#creature">// 06 The Creature &amp; Noise</a> for the full pass/fail table.</li>
+        <li><strong>Noise Check.</strong> Roll D12 Noise Die vs the active player's accumulated Noise Level (each player's Noise Tracker is their own). See <a href="#creature">// 06 The Creature &amp; Noise</a> for the full pass/fail table.</li>
         <li><strong>Resolve Creature movement</strong> per the check's outcome &mdash; half speed toward the noise on a pass, or one of three failure tiers (Direct Pursuit, Vent Shortcut, Immediate Vent). See <a href="#creature">// 06</a>.</li>
         <li><strong>Apply Line of Sight Rush</strong> if the Creature gets LoS on any player at any point during that movement. See <a href="#creature">// 06</a>.</li>
         <li><strong>Resolve a Creature Encounter</strong> if the Creature reaches a player. See <a href="#combat">// 13 Combat</a>.</li>
@@ -1339,7 +1339,7 @@
         <h2 class="section-title">Actions</h2>
       </div>
       <p>What a player can do with their Moves and Actions each turn, and the Noise each one generates. All values are added per instance unless stated otherwise.</p>
-      <div class="callout info"><strong>// Note</strong>Noise generated here accumulates on a shared meter and is checked each Creature Phase — see <a href="#creature">// 06 The Creature &amp; Noise</a> for how it's tracked and resolved, and <a href="#turn">// 08 Turn Structure</a> for where that check falls in a turn.</div>
+      <div class="callout info"><strong>// Note</strong>Noise generated here accumulates on the active player's own Noise Tracker (each player has their own — it is not shared) and is checked each Creature Phase — see <a href="#creature">// 06 The Creature &amp; Noise</a> for how it's tracked and resolved, and <a href="#turn">// 08 Turn Structure</a> for where that check falls in a turn.</div>
 
       <h3>Movement Variants</h3>
       <div class="tbl-wrap">
