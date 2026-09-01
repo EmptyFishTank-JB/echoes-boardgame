@@ -89,12 +89,18 @@
 
   // Forcibly brightens the footer text on every page, including spans
   // that hardcode a low-opacity color instead of using --text-dim.
+  // The dev-tools icon is deliberately excluded and pinned back to its
+  // normal dim/low-opacity look - it's meant to stay easy to miss even
+  // in high contrast, not get brightened along with the footer text.
   var HC_STYLE_ID = 'echo-hc-footer-override';
   function ensureHcStyle(){
     if (document.getElementById(HC_STYLE_ID)) return;
     var el = document.createElement('style');
     el.id = HC_STYLE_ID;
-    el.textContent = 'html.echo-hc footer, html.echo-hc footer *{color:#f5f7fb !important;opacity:1 !important;}';
+    el.textContent =
+      'html.echo-hc footer, html.echo-hc footer *{color:#f5f7fb !important;opacity:1 !important;}' +
+      'html.echo-hc #devToolsLink,html.echo-hc #devToolsLink *{color:rgba(238,240,245,0.45) !important;opacity:0.22 !important;}' +
+      'html.echo-hc #devToolsLink:hover,html.echo-hc #devToolsLink:hover *{color:var(--accent) !important;opacity:1 !important;}';
     (document.head || document.documentElement).appendChild(el);
   }
 
