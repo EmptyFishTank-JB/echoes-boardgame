@@ -83,6 +83,18 @@
     to   { opacity: 1; transform: translateY(0); }
   }
 
+  /* Opacity-only fade for footer specifically - a non-"none" transform
+     value (even translateY(0) held by animation-fill-mode:both) makes
+     an element a containing block for its own position:fixed
+     descendants. The dev-tools link lives inside footer now (see the
+     footer markup) and needs top/right to resolve against the real
+     viewport, not footer's box, so footer can't use fadeDown's
+     translateY slide the way nav does. */
+  @keyframes fadeDownOpacity {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+
   nav a {
     font-family: 'Share Tech Mono', monospace;
     font-size: 11px;
@@ -293,23 +305,53 @@
   }
 
   /* ── FOOTER ──
-     .footer-track / .footer-info / .footer-icons exist for the mobile
-     swipe-reveal layout below. On desktop they're display:contents —
-     invisible to the box model — so footer's own flex row lays out
-     their children exactly as if the wrappers weren't there. */
+     Same swipe-reveal structure on every screen size now: a 2-page
+     horizontal scroller — info page first (visible by default, text
+     centered/stacked), an icons page after it holding the settings
+     gear. Scrolling/dragging/swiping left reveals the icons page. No
+     visible scrollbar — scroll-snap gives it a deliberate "slide over"
+     feel instead of free scroll, and it snaps back to the info page on
+     release. The dev-tools link is a DOM child of .footer-icons too,
+     but position:fixed (below) lifts it out of this flow entirely on
+     desktop, back to its usual spot up in the nav row — only on small
+     screens does it actually become part of the scrollable icons page
+     (see the media query below). */
   footer {
     position: fixed;
     bottom: 0; left: 0; right: 0;
     z-index: 10;
-    padding: 7px 40px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: linear-gradient(0deg, rgba(0,0,0,0.65) 0%, transparent 100%);
-    animation: fadeDown 1s ease 1.8s both;
+    padding: 0;
+    background: linear-gradient(0deg, rgba(0,0,0,0.75) 0%, transparent 100%);
+    animation: fadeDownOpacity 1s ease 1.8s both;
   }
 
-  .footer-track, .footer-info, .footer-icons { display: contents; }
+  .footer-track {
+    display: flex;
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .footer-track::-webkit-scrollbar { display: none; height: 0; }
+
+  .footer-info, .footer-icons {
+    flex: 0 0 100%;
+    width: 100%;
+    scroll-snap-align: start;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 46px;
+  }
+  .footer-info {
+    flex-direction: column;
+    gap: 3px;
+    text-align: center;
+    padding: 8px 16px;
+  }
+  .footer-icons { gap: 22px; }
 
   footer span {
     font-family: 'Share Tech Mono', monospace;
@@ -321,7 +363,19 @@
 
   footer span.accent { color: rgba(79,195,247,0.5); }
 
-  .footer-icons { display: contents; align-items: center; gap: 10px; }
+  /* Each metadata item (Updated/Commit/STARDATE) is its own atomic unit
+     that never breaks mid-value - the row wraps between items, never
+     inside one, and two or more share a line whenever they fit. */
+  .footer-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: center;
+    column-gap: 10px;
+    row-gap: 2px;
+  }
+  .meta-item { white-space: nowrap; }
+  .meta-item + .meta-item::before { content: '\00b7'; margin-right: 10px; opacity: 0.6; }
 
   /* ── DEV TOOLS ── */
   #devToolsLink {
@@ -344,46 +398,13 @@
   #devToolsLink:hover { opacity: 1; color: var(--accent); }
   #devToolsLink svg { width: 24px; height: 12.5px; display: block; }
 
-  /* ── RESPONSIVE (shared mobile — portrait narrow width OR landscape
-     short height): swipe-reveal footer. The footer becomes a 2-page
-     horizontal scroller — info page first (visible by default), an
-     icons page after it holding the dev-tools link and settings gear.
-     Scrolling/swiping left reveals the icons page. No visible scrollbar
-     — scroll-snap gives it a deliberate "slide over" feel instead of
-     free scroll, and it snaps back to the info page on release. ── */
+  /* ── RESPONSIVE (portrait narrow width OR landscape short height) ──
+     Only the dev-tools link's position changes here: on small screens
+     it leaves its fixed top-right spot and joins the gear as part of
+     the scrollable icons page instead (top-right is too cramped once
+     the nav links wrap). The footer's swipe-reveal structure itself is
+     already the same at every size — nothing else to switch on here. ── */
   @media (max-width: 600px), (max-height: 500px) and (orientation: landscape) {
-    footer {
-      padding: 0;
-      display: block;
-      background: linear-gradient(0deg, rgba(0,0,0,0.75) 0%, transparent 100%);
-    }
-    .footer-track {
-      display: flex;
-      width: 100%;
-      overflow-x: auto;
-      overflow-y: hidden;
-      scroll-snap-type: x mandatory;
-      scrollbar-width: none;
-      -ms-overflow-style: none;
-    }
-    .footer-track::-webkit-scrollbar { display: none; height: 0; }
-    .footer-info, .footer-icons {
-      flex: 0 0 100%;
-      width: 100%;
-      scroll-snap-align: start;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 46px;
-    }
-    .footer-info {
-      flex-direction: column;
-      gap: 3px;
-      text-align: center;
-      padding: 8px 16px;
-    }
-    .footer-info .footer-meta { display: block; }
-    .footer-icons { gap: 22px; }
     #devToolsLink {
       position: static;
       width: 30px; height: 30px;
@@ -505,7 +526,12 @@
 <footer>
   <div class="footer-track">
     <div class="footer-info">
-      <span>ECHOES · &copy; 2026 EmptyFishTank-JB · In Development <span class="footer-meta">&middot; Updated <span id="updatedInfo">&mdash;</span> &middot; Commit <span id="commitInfo">&mdash;</span> &middot; STARDATE <span id="stardate">&mdash;</span></span></span>
+      <span class="footer-line">ECHOES · &copy; 2026 EmptyFishTank-JB · In Development</span>
+      <span class="footer-meta">
+        <span class="meta-item">Updated <span id="updatedInfo">&mdash;</span></span>
+        <span class="meta-item">Commit <span id="commitInfo">&mdash;</span></span>
+        <span class="meta-item">STARDATE <span id="stardate">&mdash;</span></span>
+      </span>
       <span class="accent">// All content subject to change</span>
     </div>
     <div class="footer-icons">
