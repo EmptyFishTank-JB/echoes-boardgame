@@ -1019,7 +1019,7 @@
         <table>
           <thead><tr><th>Role</th><th>Primary System</th><th>Status</th></tr></thead>
           <tbody>
-            <tr><td>Combat Specialist</td><td>Weapons, Defense Roll, Creature Encounters</td><td>Abilities confirmed</td></tr>
+            <tr><td>Combat Specialist</td><td>Weapons, Attack / Defense Roll, Creature Encounters</td><td>Abilities confirmed</td></tr>
             <tr><td>Medic / Support</td><td>Healing, Crew Recovery</td><td>Pending</td></tr>
             <tr><td>Engineer / Technician</td><td>Crafting, Terminals, Resources</td><td>Pending</td></tr>
             <tr><td>Scout / Infiltrator</td><td>Movement, Stealth, Noise</td><td>Pending</td></tr>
@@ -1031,9 +1031,9 @@
 
       <h3>Combat Specialist Abilities</h3>
       <h4>// Hardened (Passive)</h4>
-      <p>After all 3 Defense Roll attempts are exhausted, may reroll 1 die one additional time. Defense rolls only. Once per creature encounter.</p>
+      <p>After all 3 Attack / Defense Roll attempts are exhausted, may reroll 1 die one additional time. Attack / Defense rolls only. Once per creature encounter.</p>
       <h4>// Force (Passive)</h4>
-      <p>Pushback is not capped at weapon's dice pool size. Automatically gains +1 pushback beyond normal cap on every Defense Roll. Applies to all weapons.</p>
+      <p>Pushback is not capped at weapon's dice pool size. Automatically gains +1 pushback beyond normal cap on every Attack / Defense Roll. Applies to all weapons.</p>
     </section>
     <!-- 06 CREATURE -->
     <section class="section" id="creature">
@@ -1443,10 +1443,21 @@
         <li>Cost: 1 action. No weapon required.</li>
         <li>Roll all 5 D12 system dice once.</li>
         <li>Each Hazard or Wild face = −1 damage. Maximum −5.</li>
-        <li>Stacks with Armor and Defense Roll.</li>
+        <li>Stacks with Armor and Attack / Defense Roll.</li>
       </ul>
+      <div class="callout info">
+        <strong>// Brace — Live Roller</strong>
+        A live roller for Brace: roll all 5 D12 System Dice once and it tallies the Hazard/Wild faces for you into the damage reduction.
+        <div><a href="rollers/d12-roller-brace.html" class="callout-btn">&#9654; Open the Brace Roller</a></div>
+      </div>
 
-      <h3>Defense Roll</h3>
+      <h3>Attack / Defense Roll</h3>
+      <p>The same roll whether the player is defending against the creature's attack or choosing to proactively attack it — the dice pool, rolls, and math below apply either way.</p>
+      <div class="callout info">
+        <strong>// Attack / Defense — Live Roller</strong>
+        A live roller for this exact sequence: pick your weapon, toggle Ready/Brace, enter Makeshift Armor, then roll up to 3 times — Hazard/Wild faces lock in automatically and Void removes the die. End Roll computes damage and pushback for you.
+        <div><a href="rollers/d12-roller-combat.html" class="callout-btn">&#9654; Open the Attack / Defense Roller</a></div>
+      </div>
       <div class="tbl-wrap">
         <table>
           <thead><tr><th>Weapon</th><th>Dice Pool</th><th>Max Pushback</th></tr></thead>
@@ -1482,7 +1493,7 @@
           <thead><tr><th>Step</th><th>Action</th></tr></thead>
           <tbody>
             <tr><td>1</td><td>Apply Brace faces (if Brace taken). Note Ready bonus.</td></tr>
-            <tr><td>2</td><td>Defense Roll: weapon dice pool, up to 3 rolls, keep Hazard/Wild, Void removes die.</td></tr>
+            <tr><td>2</td><td>Attack / Defense Roll: weapon dice pool, up to 3 rolls, keep Hazard/Wild, Void removes die.</td></tr>
             <tr><td>3</td><td>Damage: 5 base − Brace faces − Defense faces − Armor. Floors at 0.</td></tr>
             <tr><td>4</td><td>Pushback: 1 space per face, capped at pool size + Ready bonus.</td></tr>
             <tr><td>5</td><td>Melee check: flip token (or destroy). Grant +1 bonus Action.</td></tr>
@@ -1767,8 +1778,8 @@
             <tr><td><strong>D6 Coordinate Dice</strong></td><td>The Blue and Red die pair used exclusively for Echo Event mini-games. Never mixed with the D12 System Dice.</td><td><a href="#dice">// 09</a></td></tr>
             <tr><td><strong>Roll Resolution</strong></td><td>The standard dice-check structure all D12 System Dice checks follow, modeled after Ship, Captain, Crew.</td><td><a href="#dice">// 09</a></td></tr>
             <tr><td><strong>Biohazard</strong></td><td>A valid D12 requirement face alongside Tech, DNA, and Tools. Appears on specific cards as defined by card design.</td><td><a href="#dice">// 09</a></td></tr>
-            <tr><td><strong>Defense Roll</strong></td><td>The dice-pool roll made to resist a Creature encounter, using the equipped weapon's dice pool.</td><td><a href="#combat">// 13</a></td></tr>
-            <tr><td><strong>Pushback</strong></td><td>Spaces the Creature is forced back per Defense Roll face rolled, capped at the weapon's dice pool size (plus any bonus).</td><td><a href="#combat">// 13</a></td></tr>
+            <tr><td><strong>Attack / Defense Roll</strong></td><td>The dice-pool roll made to resist a Creature encounter or to proactively attack it, using the equipped weapon's dice pool.</td><td><a href="#combat">// 13</a></td></tr>
+            <tr><td><strong>Pushback</strong></td><td>Spaces the Creature is forced back per Attack / Defense Roll face rolled, capped at the weapon's dice pool size (plus any bonus).</td><td><a href="#combat">// 13</a></td></tr>
             <tr><td><strong>Run</strong></td><td>A declared movement modifier: +4 Speed, +3 Noise once per phase. Cannot combine with Quiet Move.</td><td><a href="#turn">// 08</a></td></tr>
             <tr><td><strong>Quiet Move</strong></td><td>A declared movement modifier: Speed &minus;2, nullifies all Move noise for the phase (including Encumbered noise). Cannot combine with Run.</td><td><a href="#turn">// 08</a></td></tr>
             <tr><td><strong>Encumbered</strong></td><td>Status when backpack fill reaches 80% of capacity. Increases movement noise to +2 per Move.</td><td><a href="#inventory">// 17</a></td></tr>
@@ -1795,7 +1806,7 @@
       <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Turn order chosen at Setup, fixed for the game</div><div class="item-note">Players choose who goes first and the order everyone takes their turn in. No rotating or changing once play begins. Each player's own Creature Phase still fires right after their Player Phase (// 08 Turn Structure) — this only covers the order players take their turns in.</div></div></div>
 
       <h4>Items &amp; Crafting</h4>
-      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Shotgun size/dice pool</div><div class="item-note">Weapons table lists it as 1×3 (4 dice), matching a full-size long gun — but there was a direction to make it more like a sawed-off variant, sized closer to the Rifle's 1×2 (3 dice). Needs a decision pass against prior notes before Combat's Defense Roll table and the Weapons table are both updated to match.</div></div></div>
+      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Shotgun size/dice pool</div><div class="item-note">Weapons table lists it as 1×3 (4 dice), matching a full-size long gun — but there was a direction to make it more like a sawed-off variant, sized closer to the Rifle's 1×2 (3 dice). Needs a decision pass against prior notes before Combat's Attack / Defense Roll table and the Weapons table are both updated to match.</div></div></div>
       <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Encumbered threshold: 80% of backpack capacity</div><div class="item-note">Applies to backpack only. Equipment grid is separate. Physical component idea (optional difficulty variant): 5 "space cubes" occupy backpack slots as visual placeholders for remaining safe capacity — when one must be removed to make room for a real item, that cube moves to a side track and the player is Encumbered. Doubles as an at-a-glance encumbrance meter.</div></div></div>
       <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Flare throwing distance: up to 8 spaces</div><div class="item-note">Requires an unobstructed straight-line path from the player.</div></div></div>
       <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Distraction Item throw/placement distance</div><div class="item-note">Throwing: up to 8 spaces, unobstructed straight line — same as Flare, and any throwable item. Placement: player must be adjacent to the placed location.</div></div></div>
