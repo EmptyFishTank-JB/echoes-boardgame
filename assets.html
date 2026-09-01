@@ -596,7 +596,13 @@
     right: 0;
     z-index: 50;
     border-top: 1px solid var(--border);
-    padding: 12px 40px;
+    padding: 8px 16px;
+    min-height: 46px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
     text-align: center;
     text-transform: uppercase;
     background: rgba(10,12,15,0.96);
@@ -621,7 +627,6 @@
     row-gap: 2px;
     font-size: 10px;
     letter-spacing: 0.16em;
-    margin-top: 3px;
     line-height: 1.2;
   }
   .meta-item { white-space: nowrap; color: var(--text-dim); }
@@ -629,7 +634,7 @@
   .meta-item + .meta-item::before { content: '\00b7'; margin-right: 10px; opacity: 0.6; }
 
   footer span { color: var(--accent); }
-  footer p.accent { color: var(--accent); margin-top: 3px; }
+  footer p.accent { color: var(--accent); }
 
   /* ── DRAWER TOGGLE (bookmarks nav, small screens) ── */
   .drawer-toggle {
