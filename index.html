@@ -292,7 +292,11 @@
     50%       { opacity: 1;   transform: scaleY(1.15); }
   }
 
-  /* ── FOOTER ── */
+  /* ── FOOTER ──
+     .footer-track / .footer-info / .footer-icons exist for the mobile
+     swipe-reveal layout below. On desktop they're display:contents —
+     invisible to the box model — so footer's own flex row lays out
+     their children exactly as if the wrappers weren't there. */
   footer {
     position: fixed;
     bottom: 0; left: 0; right: 0;
@@ -305,6 +309,8 @@
     animation: fadeDown 1s ease 1.8s both;
   }
 
+  .footer-track, .footer-info, .footer-icons { display: contents; }
+
   footer span {
     font-family: 'Share Tech Mono', monospace;
     font-size: 10px;
@@ -315,24 +321,7 @@
 
   footer span.accent { color: rgba(79,195,247,0.5); }
 
-  /* ── RESPONSIVE ── */
-  @media (max-width: 600px) {
-    nav { padding: 18px 24px; }
-    main {
-      padding: 64px 24px 100px;
-      justify-content: center;
-    }
-    .threat-wrap { max-width: 100%; }
-    .enter-prompt {
-      position: fixed;
-      bottom: 52px;
-      left: 0;
-      right: 0;
-    }
-    .enter-arrow { display: block; }
-    footer { padding: 10px 24px; }
-    footer span.right { display: none; }
-  }
+  .footer-icons { display: contents; align-items: center; gap: 10px; }
 
   /* ── DEV TOOLS ── */
   #devToolsLink {
@@ -355,12 +344,81 @@
   #devToolsLink:hover { opacity: 1; color: var(--accent); }
   #devToolsLink svg { width: 24px; height: 12.5px; display: block; }
 
+  /* ── RESPONSIVE (shared mobile — portrait narrow width OR landscape
+     short height): swipe-reveal footer. The footer becomes a 2-page
+     horizontal scroller — info page first (visible by default), an
+     icons page after it holding the dev-tools link and settings gear.
+     Scrolling/swiping left reveals the icons page. No visible scrollbar
+     — scroll-snap gives it a deliberate "slide over" feel instead of
+     free scroll, and it snaps back to the info page on release. ── */
+  @media (max-width: 600px), (max-height: 500px) and (orientation: landscape) {
+    footer {
+      padding: 0;
+      display: block;
+      background: linear-gradient(0deg, rgba(0,0,0,0.75) 0%, transparent 100%);
+    }
+    .footer-track {
+      display: flex;
+      width: 100%;
+      overflow-x: auto;
+      overflow-y: hidden;
+      scroll-snap-type: x mandatory;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+    .footer-track::-webkit-scrollbar { display: none; height: 0; }
+    .footer-info, .footer-icons {
+      flex: 0 0 100%;
+      width: 100%;
+      scroll-snap-align: start;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 46px;
+    }
+    .footer-info {
+      flex-direction: column;
+      gap: 3px;
+      text-align: center;
+      padding: 8px 16px;
+    }
+    .footer-info .footer-meta { display: block; }
+    .footer-icons { gap: 22px; }
+    #devToolsLink {
+      position: static;
+      width: 30px; height: 30px;
+      opacity: 0.6;
+    }
+    #devToolsLink svg { width: 26px; height: 13.5px; }
+  }
+
   @media (max-width: 600px) {
-    /* Moved out of the nav row entirely on narrow screens — the three
-       nav links run wide enough at this size that a top-right icon
-       overlaps the last link's text. Sits above the fixed footer bar
-       (and its settings gear) instead of behind it. */
-    #devToolsLink { top: auto; right: 16px; bottom: 95px; }
+    nav { padding: 18px 24px; }
+    main {
+      padding: 64px 24px 100px;
+      justify-content: center;
+    }
+    .threat-wrap { max-width: 100%; }
+    .enter-prompt {
+      position: fixed;
+      bottom: 96px;
+      left: 0;
+      right: 0;
+    }
+    .enter-arrow { display: block; }
+  }
+
+  /* ── LANDSCAPE MOBILE — short viewport height ──
+     The centered title + ship log and the fixed enter-prompt/breathing
+     line have no room to both fit at desktop scale, so they overlap.
+     Shrink and tighten everything to fit above the compact footer. ── */
+  @media (max-height: 500px) and (orientation: landscape) {
+    main { padding: 16px 40px 64px; }
+    .title .base, .slice { font-size: clamp(40px, 8vw, 76px); }
+    .threat-wrap { margin-top: 12px; }
+    .threat-line { font-size: 11px; line-height: 1.55; }
+    .enter-prompt { bottom: 68px; gap: 6px; }
+    .enter-arrow { height: 16px; }
   }
 </style>
 </head>
@@ -376,14 +434,6 @@
   <span class="sep">//</span>
   <a href="assets.html">Assets</a>
 </nav>
-
-<a href="dev-tools/hub.html" id="devToolsLink" aria-label="Dev Tools">
-  <svg viewBox="0 0 46 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M15 2 L4 12 L15 22" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M31 2 L42 12 L31 22" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M15 12 L18.2 12 L20.2 8.5 L22.2 12 L24.2 2.5 L26.2 20.5 L28.2 13.5 L29.8 15.5 L31 12" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-  </svg>
-</a>
 
 <!-- ══ CENTER CONTENT ════════════════════════════════════════════ -->
 <main>
@@ -438,11 +488,22 @@
 
 <!-- ══ FOOTER ════════════════════════════════════════════════════ -->
 <footer>
-  <span>ECHOES · &copy; 2026 EmptyFishTank-JB · In Development <span class="footer-meta">&middot; Updated <span id="updatedInfo">&mdash;</span> &middot; Commit <span id="commitInfo">&mdash;</span> &middot; STARDATE <span id="stardate">&mdash;</span></span></span>
-  <span class="right" style="display:flex; align-items:center; gap:10px;">
-    <span class="accent">// All content subject to change</span>
-    <span id="echo-settings-slot"></span>
-  </span>
+  <div class="footer-track">
+    <div class="footer-info">
+      <span>ECHOES · &copy; 2026 EmptyFishTank-JB · In Development <span class="footer-meta">&middot; Updated <span id="updatedInfo">&mdash;</span> &middot; Commit <span id="commitInfo">&mdash;</span> &middot; STARDATE <span id="stardate">&mdash;</span></span></span>
+      <span class="accent">// All content subject to change</span>
+    </div>
+    <div class="footer-icons">
+      <a href="dev-tools/hub.html" id="devToolsLink" aria-label="Dev Tools">
+        <svg viewBox="0 0 46 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M15 2 L4 12 L15 22" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M31 2 L42 12 L31 22" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M15 12 L18.2 12 L20.2 8.5 L22.2 12 L24.2 2.5 L26.2 20.5 L28.2 13.5 L29.8 15.5 L31 12" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </a>
+      <span id="echo-settings-slot"></span>
+    </div>
+  </div>
 </footer>
 
 <!-- ══ GLITCH ENGINE ══════════════════════════════════════════════ -->
