@@ -251,12 +251,12 @@
   }
 
   /* ── IN-CONTENT CROSS-REFERENCE LINKS ── */
-  .section a {
+  .section a:not(.callout-btn) {
     color: var(--link);
     text-decoration: none;
     transition: opacity 0.2s;
   }
-  .section a:hover { opacity: 0.75; }
+  .section a:not(.callout-btn):hover { opacity: 0.75; }
 
   /* ── MAIN CONTENT ──
      Genuinely centered on the viewport (within the space reserved for nav),
