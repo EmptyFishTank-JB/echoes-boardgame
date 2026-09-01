@@ -420,6 +420,21 @@
     .enter-prompt { bottom: 68px; gap: 6px; }
     .enter-arrow { height: 16px; }
   }
+
+  /* ── COMPACT HERO ──
+     The two bottom values above are reasonable defaults, but the site's
+     own Large text setting (zoom: 1.15) shrinks the *effective* viewport
+     for wrapping purposes while growing the ship-log text at the same
+     time — at small screen + large text they can still collide. The
+     script below measures the real gap after layout settles and adds
+     this class only when it's actually too tight, shrinking further
+     rather than guessing a bigger static margin that's wasted 90% of
+     the time. !important because it must win over the sizing already
+     set in the media queries above. */
+  body.compact-hero .title .base, body.compact-hero .slice { font-size: clamp(26px, 6vw, 52px) !important; }
+  body.compact-hero .threat-wrap { margin-top: 8px !important; }
+  body.compact-hero .threat-line { font-size: 10px !important; line-height: 1.4 !important; }
+  body.compact-hero .log-label { margin-bottom: 6px !important; }
 </style>
 </head>
 <body>
@@ -686,6 +701,95 @@
       if (elCommit) elCommit.textContent = 'unavailable';
       if (elUpdated) elUpdated.textContent = 'unavailable';
     });
+})();
+</script>
+
+<!-- ══ MOBILE SPACING ══════════════════════════════════════════════
+     The gap between the breathing line and the footer is made to
+     exactly match the gap below the footer's own accent line, and the
+     ship-log block is shrunk (compact-hero) only if it's actually too
+     close to the breathing line — measured after layout settles, so it
+     stays correct across every combination of screen size and the
+     site's own zoom-based text-size setting instead of guessing fixed
+     margins per breakpoint. ── -->
+<script>
+(function(){
+  var footer = document.querySelector('footer');
+  var enterPrompt = document.querySelector('.enter-prompt');
+  var threatWrap = document.querySelector('.threat-wrap');
+  var track = document.querySelector('.footer-track');
+  if (!footer || !enterPrompt || !threatWrap || !track) return;
+
+  function mobileFooterActive(){
+    return getComputedStyle(track).display === 'flex';
+  }
+
+  function layout(){
+    if (!mobileFooterActive()){
+      enterPrompt.style.bottom = '';
+      document.body.classList.remove('compact-hero');
+      return;
+    }
+
+    // Start from the roomiest state each time so a setting change that
+    // *frees up* space (e.g. switching back to Small text) can undo a
+    // previously-applied compact mode, not just tighten further.
+    document.body.classList.remove('compact-hero');
+
+    var accentEl = footer.querySelector('.accent') || footer;
+    var footerRect = footer.getBoundingClientRect();
+    var accentRect = accentEl.getBoundingClientRect();
+    var gapBelowAccent = Math.max(0, window.innerHeight - accentRect.bottom);
+    var desiredBottom = (window.innerHeight - footerRect.top) + gapBelowAccent;
+
+    // The site's text-size setting (site-settings.js) scales the page via
+    // CSS zoom on <html>, not a font-size variable - and a `bottom` value
+    // set from script gets rendered already multiplied by that zoom
+    // factor (64.25px at zoom:0.9 actually lands ~57.8px from the edge).
+    // getBoundingClientRect()/innerHeight report true unzoomed viewport
+    // pixels, which is what desiredBottom above is computed in, so divide
+    // back out by the zoom factor before assigning it as a CSS value.
+    var zoom = parseFloat(getComputedStyle(document.documentElement).zoom) || 1;
+    enterPrompt.style.bottom = (desiredBottom / zoom) + 'px';
+
+    var epRect = enterPrompt.getBoundingClientRect();
+    var twRect = threatWrap.getBoundingClientRect();
+    var MIN_GAP = 16;
+    if (twRect.bottom + MIN_GAP > epRect.top){
+      document.body.classList.add('compact-hero');
+    }
+  }
+
+  window.addEventListener('resize', layout);
+  window.addEventListener('orientationchange', function(){ setTimeout(layout, 200); });
+
+  // Fixed elements here (footer, enter-prompt) fade in via independent
+  // CSS animations - measuring mid-animation would read a still-
+  // transformed position. Both have the same nominal delay+duration,
+  // but they're separate animations on separate elements and can settle
+  // at very slightly different real times under load, so layout() is
+  // called from *both* animationend handlers rather than just one -
+  // it's idempotent (always remeasures from scratch), so calling it
+  // more than once as things settle is harmless and self-correcting.
+  footer.addEventListener('animationend', layout);
+  enterPrompt.addEventListener('animationend', layout);
+
+  // The footer's build-info text starts as a short "—" placeholder and
+  // gets replaced with the commit/date (or "unavailable" on failure)
+  // once that fetch resolves, seconds later - taller/shorter text
+  // reflows the footer well after the animations above have already
+  // settled. Rather than hunt down every async thing that can change
+  // footer's size, watch the footer itself: any actual box-size change
+  // (not just the animation's opacity/transform, which this won't fire
+  // for) re-runs layout() automatically, from font loading to a live
+  // settings change to this fetch resolving late.
+  if (window.ResizeObserver){
+    new ResizeObserver(layout).observe(footer);
+  } else {
+    // no ResizeObserver support - fall back to a delay generous enough
+    // to clear both the fade animations and a slow-failing fetch.
+    window.addEventListener('load', function(){ setTimeout(layout, 4000); });
+  }
 })();
 </script>
 </body>
