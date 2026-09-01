@@ -73,7 +73,7 @@
     z-index: 10;
     display: flex;
     align-items: center;
-    gap: 0;
+    gap: 24px;
     padding: 22px 40px;
     background: linear-gradient(180deg, rgba(0,0,0,0.7) 0%, transparent 100%);
     animation: fadeDown 1.2s ease 0.8s both;
@@ -108,15 +108,6 @@
   }
 
   nav a:hover { color: var(--accent); }
-
-  nav .sep {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 11px;
-    color: rgba(238,240,245,0.2);
-    margin: 0 18px;
-    letter-spacing: 0;
-    user-select: none;
-  }
 
   /* ── CENTER STAGE ── */
   main {
@@ -288,10 +279,42 @@
     text-transform: uppercase;
     color: var(--text-dim);
     text-decoration: none;
-    transition: color 0.2s;
+    padding: 3px 6px;
+    transition: color 0.2s, background-color 0.15s ease;
   }
 
-  .enter-prompt a:hover { color: var(--accent); }
+  /* Brackets stay reserved (0 opacity) at rest so they never shift the
+     link's width on reveal - they only fade in on hover/focus, echoing
+     terminal.html's own [COMMAND] option syntax. This link is the only
+     one on the page using that language, since it's the one link that
+     actually leads into the terminal. */
+  .enter-prompt a::before,
+  .enter-prompt a::after {
+    color: var(--accent);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .enter-prompt a::before { content: '['; margin-right: 0.4em; }
+  .enter-prompt a::after  { content: ']'; margin-left: 0.4em; }
+
+  .enter-prompt a:hover,
+  .enter-prompt a:focus-visible { color: var(--accent); }
+  .enter-prompt a:hover::before, .enter-prompt a:hover::after,
+  .enter-prompt a:focus-visible::before, .enter-prompt a:focus-visible::after { opacity: 1; }
+
+  /* Press-and-hold state, mirroring terminal.html's .t-line.inverted
+     selected-command highlight (background/text swap, no transition on
+     the way in - it should snap the instant the pointer goes down).
+     Dragging off the link before release removes this class via
+     pointerleave and the browser's own click semantics then quietly
+     drop the navigation - no JS-side cancel logic needed for that part. */
+  .enter-prompt a.pressed {
+    color: #000;
+    background: var(--accent);
+    transition: none;
+  }
+  .enter-prompt a.pressed::before,
+  .enter-prompt a.pressed::after { color: #000; opacity: 1; }
 
   .enter-arrow {
     width: 1px;
@@ -495,11 +518,9 @@
 
 <!-- ══ NAVIGATION ════════════════════════════════════════════════ -->
 <nav>
-  <a href="rules.html">Rules &amp; Design</a>
-  <span class="sep">//</span>
-  <a href="echo-events.html">Echo Events</a>
-  <span class="sep">//</span>
-  <a href="assets.html">Assets</a>
+  <a href="rules.html">// Rules &amp; Design</a>
+  <a href="echo-events.html">// Echo Events</a>
+  <a href="assets.html">// Assets</a>
 </nav>
 
 <!-- ══ CENTER CONTENT ════════════════════════════════════════════ -->
@@ -899,6 +920,31 @@
 
   track.addEventListener('scroll', syncArrow);
   syncArrow();
+})();
+</script>
+
+<!-- ══ TERMINAL LINK PRESS-HOLD ═══════════════════════════════════
+     Snaps to the inverted (terminal-style) highlight the instant the
+     pointer goes down, same as a "selected command" in terminal.html.
+     Dragging off the link before releasing removes the highlight; the
+     browser's own click semantics already refuse to navigate unless
+     the pointer is released back over the link, so no cancel logic is
+     needed beyond removing the visual. ── -->
+<script>
+(function(){
+  var link = document.querySelector('.enter-prompt a');
+  if (!link) return;
+
+  function press(){ link.classList.add('pressed'); }
+  function release(){ link.classList.remove('pressed'); }
+
+  link.addEventListener('pointerdown', press);
+  link.addEventListener('pointerup', release);
+  link.addEventListener('pointerleave', release);
+  link.addEventListener('pointercancel', release);
+  link.addEventListener('pointerenter', function(e){
+    if (e.buttons & 1) press();
+  });
 })();
 </script>
 </body>
