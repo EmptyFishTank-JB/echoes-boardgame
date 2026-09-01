@@ -765,18 +765,35 @@
     var accentEl = footer.querySelector('.accent') || footer;
     var footerRect = footer.getBoundingClientRect();
     var accentRect = accentEl.getBoundingClientRect();
-    var gapBelowAccent = Math.max(0, window.innerHeight - accentRect.bottom);
-    var desiredBottom = (window.innerHeight - footerRect.top) + gapBelowAccent;
+    var targetGap = Math.max(0, window.innerHeight - accentRect.bottom);
+    var footerOffset = window.innerHeight - footerRect.top; // footer's own height, ~
+    var guessBottom = footerOffset + targetGap;
 
     // The site's text-size setting (site-settings.js) scales the page via
-    // CSS zoom on <html>, not a font-size variable - and a `bottom` value
-    // set from script gets rendered already multiplied by that zoom
-    // factor (64.25px at zoom:0.9 actually lands ~57.8px from the edge).
-    // getBoundingClientRect()/innerHeight report true unzoomed viewport
-    // pixels, which is what desiredBottom above is computed in, so divide
-    // back out by the zoom factor before assigning it as a CSS value.
-    var zoom = parseFloat(getComputedStyle(document.documentElement).zoom) || 1;
-    enterPrompt.style.bottom = (desiredBottom / zoom) + 'px';
+    // CSS zoom on <html>, not a font-size variable - and at least in
+    // Chromium, a `bottom` value set from script then renders already
+    // multiplied by that zoom factor (a declared 64px at zoom:0.9 lands
+    // ~58px from the edge - confirmed by measuring, not by trusting the
+    // zoom property's own reported value, since engines are free to
+    // implement this non-standard property differently and this needs
+    // to hold on Safari/iPadOS too). Rather than hard-code that one
+    // engine's ratio, set an initial guess, measure how it actually
+    // rendered, and solve for the correction from that - correct
+    // regardless of which engine or quirk (or none at all) is in play.
+    //
+    // The render relationship isn't simply "actual = ratio * declared" -
+    // there's also the (unaffected) fixed offset from footer's own real
+    // position, so: actualGap = ratio*declaredBottom - footerOffset.
+    // Solve for ratio from the first guess, then invert for the bottom
+    // value that actually produces targetGap.
+    enterPrompt.style.bottom = guessBottom + 'px';
+    var actualGap = footerRect.top - enterPrompt.getBoundingClientRect().bottom;
+    if (guessBottom > 0 && Math.abs(actualGap - targetGap) > 0.5){
+      var ratio = (actualGap + footerOffset) / guessBottom;
+      if (ratio > 0.01){
+        enterPrompt.style.bottom = ((targetGap + footerOffset) / ratio) + 'px';
+      }
+    }
 
     var epRect = enterPrompt.getBoundingClientRect();
     var twRect = threatWrap.getBoundingClientRect();
