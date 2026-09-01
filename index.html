@@ -369,16 +369,15 @@
     align-items: center;
     justify-content: center;
     background: transparent;
-    border: 1px solid var(--border);
-    border-radius: 50%;
+    border: none;
     color: var(--text-dim);
     font-size: 15px;
     line-height: 1;
     cursor: pointer;
     padding: 0;
-    transition: color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+    transition: color 0.2s ease, transform 0.2s ease;
   }
-  #footerSwipeArrow:hover { color: var(--accent); border-color: var(--accent); }
+  #footerSwipeArrow:hover { color: var(--accent); }
   #footerSwipeArrow.revealed { transform: translateY(-50%) rotate(180deg); }
 
   footer span {
