@@ -612,12 +612,22 @@
   }
 
   .footer-meta {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: baseline;
+    column-gap: 10px;
+    row-gap: 2px;
     font-size: 10px;
-    margin-top: 0;
+    margin-top: 4px;
     line-height: 1.2;
   }
+  .meta-item { white-space: nowrap; color: var(--text-dim); }
+  .meta-item span { color: var(--accent); }
+  .meta-item + .meta-item::before { content: '\00b7'; margin-right: 10px; opacity: 0.6; }
 
   footer span { color: var(--accent); }
+  footer p.accent { color: var(--accent); margin-top: 4px; }
 
   /* ── DRAWER TOGGLE (bookmarks nav, small screens) ── */
   .drawer-toggle {
@@ -912,8 +922,13 @@
 </div>
 
 <footer>
-  <p>ECHOES · &copy; 2026 <span>EmptyFishTank-JB</span> &middot; In Development · All content subject to change</p>
-  <p class="footer-meta">Updated <span id="updatedInfo">&mdash;</span> &middot; Commit <span id="commitInfo">&mdash;</span> &middot; STARDATE <span id="stardate">&mdash;</span></p>
+  <p>ECHOES · &copy; 2026 <span>EmptyFishTank-JB</span> &middot; In Development</p>
+  <p class="footer-meta">
+    <span class="meta-item">Updated <span id="updatedInfo">&mdash;</span></span>
+    <span class="meta-item">Commit <span id="commitInfo">&mdash;</span></span>
+    <span class="meta-item">STARDATE <span id="stardate">&mdash;</span></span>
+  </p>
+  <p class="accent">// All content subject to change</p>
 </footer>
 
 <script>
