@@ -125,7 +125,7 @@
     (document.head || document.documentElement).appendChild(el);
   }
 
-  // Film Grain + Auto Glitch, ported from the dev-tools/artifacts/
+  // Film Grain + Screen Glitch, ported from the dev-tools/artifacts/
   // rules-fx-demo.html reference build (same markup, CSS, and SVG
   // filter, just renamed to an echo-fx-* prefix) rather than a
   // from-scratch approximation - that demo is the source of truth for
@@ -139,7 +139,7 @@
   // animating background-position (tile shift) rather than translating
   // the box itself.
   //
-  // Auto Glitch is a genuine chromatic-aberration burst: an SVG filter
+  // Screen Glitch is a genuine chromatic-aberration burst: an SVG filter
   // (feColorMatrix splits R/G/B, feOffset shifts red/blue apart,
   // feBlend recombines with screen mode) applied via CSS filter:url(),
   // paired with a brief horizontal jitter so it reads as a tear rather
@@ -384,6 +384,13 @@
           save(settings);
           row.querySelectorAll('.es-btn').forEach(function(b){ b.classList.remove('active'); });
           btn.classList.add('active');
+          // Screen Glitch: fire one burst right away on the click that
+          // turns it on, like the FX demo's manual trigger button, so
+          // the effect is immediately visible rather than making the
+          // user wait out a full 6-16s cycle. Scoped to this exact
+          // click (not setAutoGlitch itself) so restoring an
+          // already-on setting on page load doesn't also flash.
+          if (key === 'autoGlitch' && id === 'on') fireGlitchPulse();
         });
         row.appendChild(btn);
       });
@@ -418,7 +425,7 @@
     panel.appendChild(group('Film Grain', FILM_GRAIN_ORDER, FILM_GRAIN, 'filmGrain', null, null,
       { order: FILM_GRAIN_INTENSITY_ORDER, table: FILM_GRAIN_INTENSITY, key: 'filmGrainIntensity' }));
     var sep2c = document.createElement('div'); sep2c.className = 'es-sep'; panel.appendChild(sep2c);
-    panel.appendChild(group('Auto Glitch', AUTO_GLITCH_ORDER, AUTO_GLITCH, 'autoGlitch'));
+    panel.appendChild(group('Screen Glitch', AUTO_GLITCH_ORDER, AUTO_GLITCH, 'autoGlitch'));
 
     var sep3 = document.createElement('div'); sep3.className = 'es-sep'; panel.appendChild(sep3);
     var resetBtn = document.createElement('button');
