@@ -69,6 +69,39 @@
     user-select: none;
   }
 
+  /* Second nav row, directly under the main site-page nav - links to
+     sibling rollers (as opposed to the site pages above it). */
+  .roller-nav {
+    width: 100%; max-width: 760px;
+    display: flex; align-items: center; justify-content: center;
+    gap: 10px; flex-wrap: wrap;
+    padding: 0 4px 22px;
+    z-index: 1;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--text-dim);
+  }
+  .roller-nav a { color: var(--accent); text-decoration: none; }
+  .roller-nav a:hover { text-decoration: underline; }
+  .roller-nav .sep { color: rgba(238,240,245,0.2); }
+
+  .signal-icon {
+    display: flex; gap: 4px; align-items: center; justify-content: center;
+    width: fit-content;
+    margin: 0 auto 10px;
+  }
+  .signal-bar {
+    width: 5px; background: var(--accent); border-radius: 2px;
+    animation: signalPulse 2s ease-in-out infinite;
+  }
+  .signal-bar:nth-child(1) { height: 8px; animation-delay: 0.2s; }
+  .signal-bar:nth-child(2) { height: 17px; animation-delay: 0s; }
+  .signal-bar:nth-child(3) { height: 8px; animation-delay: 0.4s; }
+  @keyframes signalPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
   header.title-block {
     z-index: 1;
     text-align: center;
@@ -435,7 +468,21 @@
   <a href="../assets.html">Assets</a>
 </nav>
 
+<nav class="roller-nav">
+  Other Rollers —
+  <a href="d12-roller-noise.html">Noise Die</a>
+  <span class="sep">·</span>
+  <a href="d12-roller-brace.html">Brace</a>
+  <span class="sep">·</span>
+  <a href="d12-roller-combat.html">Attack / Defense</a>
+</nav>
+
 <header class="title-block">
+  <div class="signal-icon">
+    <div class="signal-bar"></div>
+    <div class="signal-bar"></div>
+    <div class="signal-bar"></div>
+  </div>
   <div class="eyebrow">// Dice Engine</div>
   <h1>5x D12 Skill Check</h1>
   <p class="subtitle">Up to 3 rolls. Pick the faces this check needs, then roll — click a die between rolls to keep it; the Roll button only re-rolls whatever's still unlocked.</p>
