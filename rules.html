@@ -264,8 +264,8 @@
        // <NUM> <SECTION NAME>[ - <SUBSECTION NAME>]
 
      Examples:
-       <a href="#combat">// 14 COMBAT - PREPARATION ACTIONS</a>
-       <a href="#resources">// 17 RESOURCES - DATA RETRIEVAL LOOP</a>
+       <a href="#combat-preparation-actions">// 14 COMBAT - PREPARATION ACTIONS</a>
+       <a href="#resources-data-retrieval-loop">// 17 RESOURCES - DATA RETRIEVAL LOOP</a>
        <a href="#dice">// 09 DICE ENGINE</a>   (whole-section reference, no subsection)
 
      - <NUM> is the section's two-digit number from the Pages TOC below.
@@ -273,6 +273,12 @@
        stay as "&amp;", not spelled "AND").
      - Only add "- <SUBSECTION NAME>" when linking to a specific h3/h4
        inside that section, and use that heading's exact text, in caps.
+     - When a "- <SUBSECTION NAME>" is present, href MUST target that
+       heading's own id (e.g. id="combat-preparation-actions" on the
+       <h3>), not just the parent section's id — otherwise the page
+       jumps to the top of the section instead of the subsection. Give
+       every h3/h4 that's a cross-reference target an id of
+       "<section-id>-<subsection-slug>" and point the href at it.
      - This is a plain caps convention (relying on the caps input
        itself, not text-transform:uppercase), matching the nav
        column's sidebar labels (.nav-label) rather than a CSS rule
@@ -1335,8 +1341,13 @@
       <p>Some Echo Cards trigger events or hazards requiring a D12 dice roll to resolve. Each card specifies the required face(s) and quantity needed. All resolutions follow the standard <strong>Roll Resolution</strong> rules — see <a href="#dice">// 09 DICE ENGINE</a>.</p>
       <div class="callout info"><strong>// Note</strong>Card events and hazards use the D12 System Dice pool. Echo Event Mini-Games use the D6 Coordinate Dice. These are separate systems — do not mix them.</div>
 
-      <h3>Operations Center Terminals</h3>
-      <p>One dedicated terminal per room family. Available regardless of whether that room exists on board.</p>
+      <h3 id="echo-deck-operations-center-terminals">Operations Center Terminals</h3>
+      <p>One dedicated terminal per room family, all housed at the Operations Center. Each terminal represents a kind of "remote access" to its room family — a way to draw from that family's cards without physically visiting a room of that type.</p>
+      <ul class="rules-list">
+        <li><strong>Active only when needed:</strong> A room family's terminal is only interactable if that family is not currently present on board <em>and</em> there are no more undiscovered rooms left. Otherwise it's inactive — go find or use the room itself.</li>
+        <li><strong>Per terminal:</strong> Availability is checked per terminal, per room family — not for the Operations Center as a whole. Some terminals can be active while others sit inactive, depending on what's currently on the board.</li>
+        <li><strong>High risk by design:</strong> Every room family's terminal is available in the same room, which is why interacting with them is high-noise — it stops players from camping the Operations Center and farming a single family instead of exploring the board.</li>
+      </ul>
       <div class="callout danger"><strong>// Warning</strong>Operations Center terminals generate significantly higher noise than standard terminals. Failed interaction triggers an alarm — immediate noise spike of the card's stated noise value +3, plus a noise check before turn ends.</div>
     </section>
     <!-- 11 MINI-GAMES -->
@@ -1352,7 +1363,7 @@
         <li><strong>Mandatory:</strong> Every Echo Event requires staking one resource before any dice are rolled.</li>
         <li><strong>No Resources:</strong> Automatic failure. +4 Noise immediately. No rolls taken. Continue to next card draw.</li>
         <li><strong>Donation:</strong> Crewmate may cover wager if physically present in the same room when event triggers.</li>
-        <li><strong>Win:</strong> Wagered resource returned. Some mini-games award doubled payout.</li>
+        <li><strong>Win:</strong> Wagered resource returned. Some mini-games award additional payout.</li>
         <li><strong>Fail:</strong> Resource permanently lost. Noise penalty applied per mini-game.</li>
       </ul>
 
@@ -1387,7 +1398,7 @@
       <p>What a player can do with their Moves and Actions each turn, and the Noise each one generates. All values are added per instance unless stated otherwise.</p>
       <div class="callout info"><strong>// Note</strong>Noise generated here accumulates on the active player's own Noise Tracker (each player has their own — it is not shared) and is checked each Creature Phase — see <a href="#creature">// 06 THE CREATURE &amp; NOISE</a> for how it's tracked and resolved, and <a href="#turn">// 08 TURN STRUCTURE</a> for where that check falls in a turn.</div>
 
-      <h3>Movement Variants</h3>
+      <h3 id="actions-movement-variants">Movement Variants</h3>
       <div class="tbl-wrap">
         <table>
           <thead><tr><th>Type</th><th>Speed</th><th>Noise</th><th>Cost</th></tr></thead>
@@ -1401,7 +1412,7 @@
           </tbody>
         </table>
       </div>
-      <div class="callout success"><strong>// Flee Move</strong>Two free bonus Moves granted after a successful Creature encounter (see <a href="#weapons">// 15 WEAPONS - MELEE WEAPONS</a> and <a href="#combat">// 14 COMBAT - FULL ENCOUNTER SEQUENCE</a>) — not drawn from the player's normal Move allotment. Mirrors the Move 1 / Move 2 structure of a normal turn (see <a href="#turn">// 08 TURN STRUCTURE</a>): each Move is up to the player's Speed, generates 0 noise, and the creature does not pursue. Lets a player move out of the room, Seal the Door with the Reaction, then use the remaining Move to position themselves better than just standing on the other side of the door.</div>
+      <div class="callout success"><strong>// Flee Move</strong>Two free bonus Moves granted after a successful Creature encounter (see <a href="#weapons-melee-weapons">// 15 WEAPONS - MELEE WEAPONS</a> and <a href="#combat-full-encounter-sequence">// 14 COMBAT - FULL ENCOUNTER SEQUENCE</a>) — not drawn from the player's normal Move allotment. Mirrors the Move 1 / Move 2 structure of a normal turn (see <a href="#turn">// 08 TURN STRUCTURE</a>): each Move is up to the player's Speed, generates 0 noise, and the creature does not pursue. Lets a player move out of the room, Seal the Door with the Reaction, then use the remaining Move to position themselves better than just standing on the other side of the door.</div>
       <div class="callout info"><strong>// Declaring Run or Quiet Move</strong>Recommended at the start of the turn before any Move, so all movement benefits from the modification. May also be declared as Action 1 after Move 1 — only Move 2 onward is affected. Move 1 is not retroactively modified. Run and Quiet Move cannot both be declared in the same turn.</div>
       <div class="callout warning"><strong>// Run — Once Per Player Phase</strong>The +4 Speed bonus applies once per phase only. A player cannot Run twice. +3 noise is generated once for the phase — not per Move. If the player is also Encumbered, noise stacks: +2 (Encumbered) + +3 (Run) = +5 total for that phase.</div>
       <div class="callout info"><strong>// Quiet Move</strong>Nullifies all Move noise from the point of declaration forward. Speed is reduced by 2 for the entire phase. Cannot be combined with Run. Overrides Encumbered noise generation — a player who is Encumbered and declares Quiet Move generates 0 Move noise.</div>
@@ -1418,28 +1429,26 @@
             <tr><td><span style="color:var(--accent);">Craft Item</span><br><span style="color:var(--text-dim);font-size:12px;">Requires blueprint unlocked and resources in backpack.</span></td><td>+1</td></tr>
             <tr><td><span style="color:var(--accent);">Interact with Terminal</span><br><span style="color:var(--text-dim);font-size:12px;">Draw Echo Card. Standard noise level.</span></td><td>+1</td></tr>
             <tr><td><span style="color:var(--accent);">Quiet Terminal Interaction</span><br><span style="color:var(--text-dim);font-size:12px;">Requires Tech skill or item. Silent access.</span></td><td>0</td></tr>
-            <tr><td><span style="color:var(--accent);">Data Extraction</span><br><span style="color:var(--text-dim);font-size:12px;">Claim a Data Token already placed at an adjacent terminal or data point. Separate action from the Echo card draw that placed the token there. See <a href="#resources">// 17 RESOURCES - DATA RETRIEVAL LOOP</a>.</span></td><td>+1</td></tr>
+            <tr><td><span style="color:var(--accent);">Data Extraction</span><br><span style="color:var(--text-dim);font-size:12px;">Claim a Data Token already placed at an adjacent terminal or data point. Separate action from the Echo card draw that placed the token there. See <a href="#resources-data-retrieval-loop">// 17 RESOURCES - DATA RETRIEVAL LOOP</a>.</span></td><td>+1</td></tr>
             <tr><td><span style="color:var(--accent);">Seal Door</span><br><span style="color:var(--text-dim);font-size:12px;">Blocks creature until end of next player's creature phase, then opens. Requires crew coordination to lure creature away.</span></td><td>+1</td></tr>
-            <tr><td><span style="color:var(--accent);">Enter / Exit Locker</span><br><span style="color:var(--text-dim);font-size:12px;">Each transition costs one action and generates noise. See <a href="#actions">// 12 ACTIONS - HIDING</a> for full rules.</span></td><td>+1 each</td></tr>
+            <tr><td><span style="color:var(--accent);">Enter / Exit Locker</span><br><span style="color:var(--text-dim);font-size:12px;">Each transition costs one action and generates noise. See <a href="#actions-hiding">// 12 ACTIONS - HIDING</a> for full rules.</span></td><td>+1 each</td></tr>
             <tr><td><span style="color:var(--accent);">Vent Entry / Exit</span><br><span style="color:var(--text-dim);font-size:12px;">Each transition costs one action. Higher noise than lockers.</span></td><td>+2 each</td></tr>
             <tr><td><span style="color:var(--accent);">Rest</span><br><span style="color:var(--text-dim);font-size:12px;">Recover +1 Health. No noise generated.</span></td><td>+0</td></tr>
-            <tr><td><span style="color:var(--accent);">Ready / Brace</span><br><span style="color:var(--text-dim);font-size:12px;">Prepare for an encounter. No noise generated. See <a href="#combat">// 14 COMBAT - PREPARATION ACTIONS</a> for full rules.</span></td><td>0</td></tr>
+            <tr><td><span style="color:var(--accent);">Ready / Brace</span><br><span style="color:var(--text-dim);font-size:12px;">Prepare for an encounter. No noise generated. See <a href="#combat-preparation-actions">// 14 COMBAT - PREPARATION ACTIONS</a> for full rules.</span></td><td>0</td></tr>
             <tr><td><span style="color:var(--accent);">Distraction Action</span><br><span style="color:var(--text-dim);font-size:12px;">Generates noise at the target location, not the player's location. Choose one method below.</span></td><td>+2 at target</td></tr>
             <tr><td style="padding-left:28px; color:var(--text-dim);">↳ Melee weapon (bang environment, weapon not consumed)</td><td>+2</td></tr>
             <tr><td style="padding-left:28px; color:var(--text-dim);">↳ Distraction item (crafted consumable — throw up to 8 spaces unobstructed, or place while adjacent)</td><td>+2</td></tr>
             <tr><td style="padding-left:28px; color:var(--text-dim);">↳ Ranged weapon (1 ammo consumed, noise at impact location)</td><td>+2</td></tr>
             <tr><td style="padding-left:28px; color:var(--text-dim);">↳ Flare (consumable, throwable up to 8 spaces unobstructed — visual priority override, 1 creature phase)</td><td>+1</td></tr>
-            <tr><td><span style="color:var(--accent);">Melee Attack</span><br><span style="color:var(--text-dim);font-size:12px;">Encounter action. Creature already present — noise irrelevant. See <a href="#combat">// 14 COMBAT - ATTACK / DEFENSE ROLL</a> for full rules.</span></td><td>+0</td></tr>
-            <tr><td><span style="color:var(--accent);">Ranged Attack</span><br><span style="color:var(--text-dim);font-size:12px;">Encounter action. Creature already present — noise irrelevant. See <a href="#combat">// 14 COMBAT - ATTACK / DEFENSE ROLL</a> for full rules.</span></td><td>+0</td></tr>
-            <tr><td><span style="color:var(--accent);">Operations Center Terminal</span><br><span style="color:var(--text-dim);font-size:12px;">High-stakes terminal interaction. Exact value TBD.</span></td><td>+3 to +4</td></tr>
-            <tr><td><span style="color:var(--accent);">Operations Center Terminal Alarm</span><br><span style="color:var(--text-dim);font-size:12px;">Failed interaction triggers an immediate noise check.</span></td><td>Card's stated noise +3</td></tr>
-            <tr><td><span style="color:var(--accent);">No-Resource Auto-Fail</span><br><span style="color:var(--text-dim);font-size:12px;">Attempting an action without required resources. Immediate penalty.</span></td><td>+4</td></tr>
-            <tr><td><span style="color:var(--accent);">Reaction</span><br><span style="color:var(--text-dim);font-size:12px;">Situational — not part of the normal turn structure. Available only after a Creature encounter. See <a href="#actions">// 12 ACTIONS - REACTION</a> below.</span></td><td>N/A</td></tr>
+            <tr><td><span style="color:var(--accent);">Melee Attack</span><br><span style="color:var(--text-dim);font-size:12px;">Encounter action. Creature already present — noise irrelevant. See <a href="#combat-attack-defense-roll">// 14 COMBAT - ATTACK / DEFENSE ROLL</a> for full rules.</span></td><td>+0</td></tr>
+            <tr><td><span style="color:var(--accent);">Ranged Attack</span><br><span style="color:var(--text-dim);font-size:12px;">Encounter action. Creature already present — noise irrelevant. See <a href="#combat-attack-defense-roll">// 14 COMBAT - ATTACK / DEFENSE ROLL</a> for full rules.</span></td><td>+0</td></tr>
+            <tr><td><span style="color:var(--accent);">Interact with Operations Center Terminal</span><br><span style="color:var(--text-dim);font-size:12px;">High-stakes terminal interaction. Exact value TBD. See <a href="#echo-deck-operations-center-terminals">// 10 ECHO DECK - OPERATIONS CENTER TERMINALS</a> for availability rules. Failed interaction triggers the Operations Center Terminal Alarm — an immediate noise spike of the card's stated noise +3, plus a noise check before turn ends.</span></td><td>+3 to +4</td></tr>
+            <tr><td><span style="color:var(--accent);">Reaction</span><br><span style="color:var(--text-dim);font-size:12px;">Situational — not part of the normal turn structure. Available only after successfully defending against a Creature attack, melee or ranged. See <a href="#actions-reaction">// 12 ACTIONS - REACTION</a> below.</span></td><td>N/A</td></tr>
           </tbody>
         </table>
       </div>
 
-      <h3>Hiding</h3>
+      <h3 id="actions-hiding">Hiding</h3>
       <div class="callout success"><strong>// Hidden / Exposed</strong>Official terms for the player's hiding status — the same way Encumbered names an existing backpack-fill condition, Hidden and Exposed simply name the two states a player toggles between here. A player is <strong>Hidden</strong> while inside a locker, vent, or other hiding location; otherwise they are <strong>Exposed</strong>. No new mechanic — Entering/Exiting a hiding location (see Actions table above) flips the state.</div>
       <h4>Locker Hiding</h4>
       <ul class="rules-list">
@@ -1454,8 +1463,8 @@
       <h4>Additional Locations</h4>
       <p>Three additional hiding location types planned: debris piles (medium risk), maintenance crawlspaces (medium risk), and bulkhead alcoves (high risk). Risk tiers and detection rolls TBD.</p>
 
-      <h3>Reaction</h3>
-      <p>A Reaction is functionally the same as a regular Action — it just isn't taken during the normal turn structure (see <a href="#turn">// 08 TURN STRUCTURE</a>). Reactions are only available after a Creature encounter, granted by a successful Melee Weapon use (see <a href="#weapons">// 15 WEAPONS - MELEE WEAPONS</a>). They give the player a chance to put themselves in a better position relative to the Creature before play continues.</p>
+      <h3 id="actions-reaction">Reaction</h3>
+      <p>A Reaction is functionally the same as a regular Action — it just isn't taken during the normal turn structure (see <a href="#turn">// 08 TURN STRUCTURE</a>). A Reaction is granted only after successfully defending against a Creature attack (see <a href="#combat-attack-defense-roll">// 14 COMBAT - ATTACK / DEFENSE ROLL</a>) — it doesn't matter whether the player is equipped with a melee or ranged weapon. Attacking the Creature during the player's normal turn does not grant a Reaction. They give the player a chance to put themselves in a better position relative to the Creature before play continues.</p>
       <ul class="rules-list">
         <li><strong>Seal Door:</strong> Block the Creature's path. See Seal Door in the Actions table above.</li>
         <li><strong>Hide:</strong> Enter a locker, vent, or other hiding location. See Hiding above.</li>
@@ -1505,7 +1514,7 @@
         </div>
       </div>
 
-      <h3>Preparation Actions</h3>
+      <h3 id="combat-preparation-actions">Preparation Actions</h3>
       <h4>// Ready Action</h4>
       <ul class="rules-list">
         <li>Cost: 1 action. Requires weapon equipped.</li>
@@ -1526,7 +1535,7 @@
         <div><a href="rollers/d12-roller-brace.html" class="callout-btn">&#9654; Open the Brace Roller</a></div>
       </div>
 
-      <h3>Attack / Defense Roll</h3>
+      <h3 id="combat-attack-defense-roll">Attack / Defense Roll</h3>
       <p>The same roll whether the player is defending against the creature's attack or choosing to proactively attack it — the dice pool, rolls, and math below apply either way.</p>
       <div class="callout info">
         <strong>// Attack / Defense — Live Roller</strong>
@@ -1564,21 +1573,21 @@
       </ul>
       <div class="callout info"><strong>// Flip Tokens</strong>Not a separate tracking token — the item's own token is physically flipped over to mark its own remaining uses. Fresh side up means the item is unused; flipping it over after the first use shows one use remaining; the second use destroys the item. Melee weapons use this system — see <a href="#weapons">// 15 WEAPONS</a>.</div>
 
-      <h3>Full Encounter Sequence</h3>
+      <h3 id="combat-full-encounter-sequence">Full Encounter Sequence</h3>
       <div class="tbl-wrap">
         <table>
           <thead><tr><th>Step</th><th>Action</th></tr></thead>
           <tbody>
             <tr><td>1</td><td>Apply Brace faces (if Brace taken). Note Ready bonus.</td></tr>
-            <tr><td>2</td><td>Attack / Defense Roll: weapon dice pool, up to 3 rolls, keep Hazard/Biohazard/Wild, Void removes die.</td></tr>
+            <tr><td>2</td><td>Attack / Defense Roll: weapon dice pool, up to 3 rolls, keep Hazard/Biohazard/Wild, Void removes die. Successfully defending grants 1 Reaction — melee or ranged, see <a href="#actions-reaction">// 12 ACTIONS - REACTION</a>.</td></tr>
             <tr><td>3</td><td>Damage: 5 base − Brace faces − Defense faces − Armor. Floors at 0.</td></tr>
             <tr><td>4</td><td>Pushback: 1 space per face, capped at pool size + Ready bonus.</td></tr>
-            <tr><td>5</td><td>Melee check: flip token (or destroy). Grant 2 Flee Moves and 1 Reaction.</td></tr>
+            <tr><td>5</td><td>Melee check: flip token (or destroy). Grant 2 Flee Moves.</td></tr>
             <tr><td>6</td><td>Player Flee: all players, all encounter types. Full speed, 0 noise, creature does not pursue.</td></tr>
           </tbody>
         </table>
       </div>
-      <div class="callout success"><strong>// Melee Bonus</strong>Melee weapon users receive two bonus Flee Moves and a Reaction on top of the standard flee — rewarding players who choose to fight back. See <a href="#actions">// 12 ACTIONS - REACTION</a>.</div>
+      <div class="callout success"><strong>// Melee Bonus</strong>Melee weapon users receive two bonus Flee Moves on top of the standard flee — rewarding players who choose to fight back. Any player who successfully defends, melee or ranged, also receives a Reaction — see <a href="#actions-reaction">// 12 ACTIONS - REACTION</a>.</div>
     </section>
     <!-- 15 WEAPONS -->
     <section class="section" id="weapons">
@@ -1587,8 +1596,8 @@
         <h2 class="section-title">Weapons</h2>
       </div>
 
-      <h3>Melee Weapons</h3>
-      <p>Melee Weapons get 2 uses and are tracked by flipping the token to the opposite side. Both sides perform identically. Destroyed after second use. Successful Creature encounters grant 2 Flee Moves and 1 Reaction. See <a href="#actions">// 12 ACTIONS - MOVEMENT VARIANTS</a> and <a href="#actions">// 12 ACTIONS - REACTION</a>.</p>
+      <h3 id="weapons-melee-weapons">Melee Weapons</h3>
+      <p>Melee Weapons get 2 uses and are tracked by flipping the token to the opposite side. Both sides perform identically. Destroyed after second use. Successful Creature encounters grant 2 Flee Moves. See <a href="#actions-movement-variants">// 12 ACTIONS - MOVEMENT VARIANTS</a>. Successfully defending — melee or ranged — also grants a Reaction; see <a href="#actions-reaction">// 12 ACTIONS - REACTION</a>.</p>
       <div class="tbl-wrap">
         <table>
           <thead><tr><th>Weapon</th><th>Size</th><th>Dice</th><th>Special</th></tr></thead>
@@ -1647,7 +1656,7 @@
       </ul>
       <div class="callout info"><strong>// Optional — Space Cubes</strong>A physical difficulty variant, playable or not by choice: each player starts with 5 small cubes occupying backpack slots as visual placeholders for their remaining safe capacity. When a cube's slot is needed for a real item, that cube moves out to a side track instead — a glance at the track shows exactly how encumbered the player is without counting slots.</div>
 
-      <h3>Fuel Cells</h3>
+      <h3 id="inventory-fuel-cells">Fuel Cells</h3>
       <div class="tbl-wrap">
         <table>
           <thead><tr><th>Type</th><th>Size</th><th>Grid Spaces</th><th>Source</th></tr></thead>
@@ -1678,7 +1687,7 @@
         </table>
       </div>
 
-      <h3>Data Retrieval Loop</h3>
+      <h3 id="resources-data-retrieval-loop">Data Retrieval Loop</h3>
       <ul class="rules-list">
         <li>Echo card drawn at terminal indicates a data location.</li>
         <li>Place Data Token at indicated terminal or wall-mounted data point in any already-discovered room.</li>
@@ -1748,7 +1757,7 @@
       <ul class="rules-list">
         <li><strong>Parallel by Default:</strong> Blueprints are independent — the crew can populate and work any blueprint's chain in any order they choose. No global order across them.</li>
         <li><strong>Free Placement:</strong> An objective drawn from a Room Card may be slotted into an eligible chain immediately, at no extra action cost — same action as the draw.</li>
-        <li><strong>Explicit Prerequisites:</strong> A blueprint may name one specific prerequisite blueprint that must be fully completed before its own chain can be populated. This is a property of that one blueprint, not a rule about the Blueprints as a whole — see <a href="#inventory">// 16 INVENTORY - FUEL CELLS</a> for the current example.</li>
+        <li><strong>Explicit Prerequisites:</strong> A blueprint may name one specific prerequisite blueprint that must be fully completed before its own chain can be populated. This is a property of that one blueprint, not a rule about the Blueprints as a whole — see <a href="#inventory-fuel-cells">// 16 INVENTORY - FUEL CELLS</a> for the current example.</li>
         <li><strong>Ahead of Completion:</strong> On any blueprint without a prerequisite, population can run ahead of completion — every objective slot can be filled before that blueprint's own tasks are even started.</li>
         <li><strong>One Card, One Chain:</strong> Once an objective is slotted, it's locked to that chain — it can never be reapplied elsewhere.</li>
       </ul>
