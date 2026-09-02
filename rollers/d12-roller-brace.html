@@ -146,7 +146,7 @@
       transparent 8px, transparent 100%);
     transition: background 0.15s;
   }
-  /* Kept (Hazard or Wild - counts toward damage reduction) */
+  /* Kept (Hazard, Biohazard, or Wild - counts toward damage reduction) */
   .die-wrap.kept .die::before {
     background: linear-gradient(150deg, #e9fff5, #baf5da);
   }
@@ -266,6 +266,7 @@
       <path d="M 7.95 36.71 L 48.05 6.07 Q 56.00 0.00 63.95 6.07 L 104.05 36.71 Q 112.00 42.78 109.15 52.37 L 94.25 102.42 Q 91.39 112.00 81.39 112.00 L 30.61 112.00 Q 20.61 112.00 17.75 102.42 L 2.85 52.37 Q 0.00 42.78 7.95 36.71 Z" />
     </clipPath>
   </defs>
+</svg>
 
 <nav>
   <a href="../index.html">&larr; Echoes</a>
@@ -280,7 +281,7 @@
 <header class="title-block">
   <div class="eyebrow">// Brace Action</div>
   <h1>Brace Roll</h1>
-  <p class="subtitle">One action, one roll. Roll all 5 D12 System Dice once — every Hazard or Wild face showing reduces incoming damage by 1, up to &minus;5.</p>
+  <p class="subtitle">One action, one roll. Roll all 5 D12 System Dice once — every Hazard, Biohazard, or Wild face showing reduces incoming damage by 1, up to &minus;5.</p>
 </header>
 
 <div class="panel">
@@ -288,7 +289,7 @@
   <div class="rules-mini">
     <div><strong>Cost:</strong> 1 action. No weapon required.</div>
     <div><strong>Roll:</strong> all 5 D12 System Dice, once. No re-rolls.</div>
-    <div><strong>Result:</strong> each Hazard or Wild face = &minus;1 damage, maximum &minus;5.</div>
+    <div><strong>Result:</strong> each Hazard, Biohazard, or Wild face = &minus;1 damage, maximum &minus;5.</div>
     <div><strong>Stacks</strong> with Armor and Attack / Defense Roll.</div>
   </div>
 
@@ -456,7 +457,7 @@
       d.face = face;
       d.img.src = face.file;
       d.faceName.textContent = face.name;
-      const isKept = face.name === 'Hazard' || face.name === 'Wild';
+      const isKept = face.name === 'Hazard' || face.name === 'Biohazard' || face.name === 'Wild';
       d.wrap.classList.toggle('kept', isKept);
       d.statusEl.textContent = isKept ? 'DAMAGE −1' : '';
       if (isKept) kept++;
@@ -464,7 +465,7 @@
 
     const reduction = Math.min(kept, 5);
     resultBig.textContent = '−' + reduction + ' DAMAGE';
-    resultDetail.innerHTML = kept + ' Hazard/Wild face' + (kept === 1 ? '' : 's') + ' rolled &mdash; <strong>' + reduction + '</strong> damage mitigated' + (kept > 5 ? ' (capped at 5)' : '') + '.';
+    resultDetail.innerHTML = kept + ' Hazard/Biohazard/Wild face' + (kept === 1 ? '' : 's') + ' rolled &mdash; <strong>' + reduction + '</strong> damage mitigated' + (kept > 5 ? ' (capped at 5)' : '') + '.';
     resultBanner.classList.remove('hidden');
 
     const summary = dice.map(d => d.face

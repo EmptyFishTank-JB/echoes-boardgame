@@ -107,12 +107,18 @@
     opacity: 0.7;
   }
 
-  /* ── SETUP FORM ── */
+  /* ── SETUP FORM ──
+     Fixed 2-column grid, one buff toggle paired directly under the
+     field it modifies (Weapon → Ready, Armor → Brace) so nothing
+     drifts into wide empty tracks the way an auto-fit grid could. */
   .setup-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: 14px 16px;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px 20px;
     margin-bottom: 20px;
+  }
+  @media (max-width: 520px) {
+    .setup-grid { grid-template-columns: 1fr; }
   }
   .field-label {
     display: block;
@@ -134,11 +140,12 @@
     outline: none; border-color: var(--accent);
   }
   .toggle-field {
-    display: flex; align-items: center; gap: 8px;
-    padding-top: 22px;
+    display: flex; align-items: center; gap: 10px;
+    margin-top: 12px;
   }
   .toggle-field input[type="checkbox"] {
     width: 16px; height: 16px; accent-color: var(--accent);
+    flex-shrink: 0;
   }
   .toggle-field label {
     font-family: 'Share Tech Mono', monospace;
@@ -146,7 +153,7 @@
     color: var(--text);
     cursor: pointer;
   }
-  .brace-input { margin-top: 8px; }
+  .brace-input { margin-top: 10px; }
   .brace-input.hidden { display: none; }
 
   .dice-stage {
@@ -188,7 +195,7 @@
       transparent 8px, transparent 100%);
     transition: background 0.15s;
   }
-  /* Kept - Hazard or Wild, locked in for the rest of the sequence */
+  /* Kept - Hazard, Biohazard, or Wild, locked in for the rest of the sequence */
   .die-wrap.kept .die::before { background: linear-gradient(150deg, #e9fff5, #baf5da); }
   .die-wrap.kept .die::after { background: linear-gradient(to top, var(--good) 0px, var(--good) 8px, transparent 8px, transparent 100%); }
   .die-wrap.kept .die-status { color: var(--good); }
@@ -317,6 +324,7 @@
       <path d="M 7.95 36.71 L 48.05 6.07 Q 56.00 0.00 63.95 6.07 L 104.05 36.71 Q 112.00 42.78 109.15 52.37 L 94.25 102.42 Q 91.39 112.00 81.39 112.00 L 30.61 112.00 Q 20.61 112.00 17.75 102.42 L 2.85 52.37 Q 0.00 42.78 7.95 36.71 Z" />
     </clipPath>
   </defs>
+</svg>
 
 <nav>
   <a href="../index.html">&larr; Echoes</a>
@@ -331,14 +339,14 @@
 <header class="title-block">
   <div class="eyebrow">// Combat</div>
   <h1>Attack / Defense Roll</h1>
-  <p class="subtitle">Set your weapon and any active buffs, then roll. Up to 3 rolls &mdash; Hazard and Wild faces lock in automatically, Void permanently removes that die.</p>
+  <p class="subtitle">Set your weapon and any active buffs, then roll. Up to 3 rolls &mdash; Hazard, Biohazard, and Wild faces lock in automatically, Void permanently removes that die.</p>
 </header>
 
 <div class="panel">
 
   <div class="rules-mini">
-    <div><strong>Roll:</strong> weapon's dice pool, up to 3 rolls. Hazard/Wild faces are kept automatically between rolls. Void removes that die.</div>
-    <div><strong>Damage:</strong> 5 base &minus; Brace faces &minus; kept Hazard/Wild faces &minus; Armor. Floors at 0.</div>
+    <div><strong>Roll:</strong> weapon's dice pool, up to 3 rolls. Hazard/Biohazard/Wild faces are kept automatically between rolls. Void removes that die.</div>
+    <div><strong>Damage:</strong> 5 base &minus; Brace faces &minus; kept Hazard/Biohazard/Wild faces &minus; Armor. Floors at 0.</div>
     <div><strong>Pushback:</strong> 1 space per kept face, capped at weapon's max (+1 if Ready).</div>
   </div>
 
@@ -346,17 +354,15 @@
     <div>
       <label class="field-label" for="weaponSelect">Weapon</label>
       <select id="weaponSelect"></select>
+      <div class="toggle-field">
+        <input type="checkbox" id="readyToggle">
+        <label for="readyToggle">Ready Action</label>
+      </div>
     </div>
     <div>
       <label class="field-label" for="armorInput">Makeshift Armor (slots)</label>
       <input type="number" id="armorInput" min="0" step="1" value="0">
-    </div>
-    <div class="toggle-field">
-      <input type="checkbox" id="readyToggle">
-      <label for="readyToggle">Ready Action</label>
-    </div>
-    <div>
-      <div class="toggle-field" style="padding-top:0;">
+      <div class="toggle-field">
         <input type="checkbox" id="braceToggle">
         <label for="braceToggle">Brace Action</label>
       </div>
@@ -578,7 +584,7 @@
       d.face = face;
       d.img.src = face.file;
       d.faceName.textContent = face.name;
-      if (face.name === 'Hazard' || face.name === 'Wild'){
+      if (face.name === 'Hazard' || face.name === 'Biohazard' || face.name === 'Wild'){
         d.kept = true;
         d.wrap.classList.add('kept');
         d.statusEl.textContent = 'KEPT';

@@ -1228,7 +1228,7 @@
             <tr><td>TOOLS</td><td>Wrench</td><td>2</td><td>Physical/mechanical skill checks. Crafting, repairs, construction.</td></tr>
             <tr><td>DNA</td><td>DNA Strand</td><td>2</td><td>Biological/medical skill checks. Healing, biological hazards.</td></tr>
             <tr><td>HAZARD</td><td>Triangle !</td><td>1</td><td>Combat face. Counts as defense/attack success.</td></tr>
-            <tr><td>BIOHAZARD</td><td>Biohazard Symbol</td><td>1</td><td>Distinct function from Hazard. Some rolls accept either face. Full effects TBD.</td></tr>
+            <tr><td>BIOHAZARD</td><td>Biohazard Symbol</td><td>1</td><td>Counts identically to Hazard in Brace and Attack / Defense Rolls. Also a valid D12 requirement face on specific cards.</td></tr>
             <tr><td>WILD</td><td>Star Burst</td><td>1</td><td>Counts as any required face for current roll.</td></tr>
             <tr><td>NOISE</td><td>Speaker</td><td>1</td><td>Adds noise to tracker when rolled during skill checks.</td></tr>
             <tr><td>NOISE SPIKE</td><td>Spiked Speaker</td><td>1</td><td>Stronger noise addition during skill checks.</td></tr>
@@ -1442,12 +1442,12 @@
       <ul class="rules-list">
         <li>Cost: 1 action. No weapon required.</li>
         <li>Roll all 5 D12 system dice once.</li>
-        <li>Each Hazard or Wild face = −1 damage. Maximum −5.</li>
+        <li>Each Hazard, Biohazard, or Wild face = −1 damage. Maximum −5.</li>
         <li>Stacks with Armor and Attack / Defense Roll.</li>
       </ul>
       <div class="callout info">
         <strong>// Brace — Live Roller</strong>
-        A live roller for Brace: roll all 5 D12 System Dice once and it tallies the Hazard/Wild faces for you into the damage reduction.
+        A live roller for Brace: roll all 5 D12 System Dice once and it tallies the Hazard/Biohazard/Wild faces for you into the damage reduction.
         <div><a href="rollers/d12-roller-brace.html" class="callout-btn">&#9654; Open the Brace Roller</a></div>
       </div>
 
@@ -1455,7 +1455,7 @@
       <p>The same roll whether the player is defending against the creature's attack or choosing to proactively attack it — the dice pool, rolls, and math below apply either way.</p>
       <div class="callout info">
         <strong>// Attack / Defense — Live Roller</strong>
-        A live roller for this exact sequence: pick your weapon, toggle Ready/Brace, enter Makeshift Armor, then roll up to 3 times — Hazard/Wild faces lock in automatically and Void removes the die. End Roll computes damage and pushback for you.
+        A live roller for this exact sequence: pick your weapon, toggle Ready/Brace, enter Makeshift Armor, then roll up to 3 times — Hazard/Biohazard/Wild faces lock in automatically and Void removes the die. End Roll computes damage and pushback for you.
         <div><a href="rollers/d12-roller-combat.html" class="callout-btn">&#9654; Open the Attack / Defense Roller</a></div>
       </div>
       <div class="tbl-wrap">
@@ -1471,10 +1471,10 @@
         </table>
       </div>
       <ul class="rules-list">
-        <li>Up to 3 rolls. Keep Hazard and Wild faces between rolls.</li>
+        <li>Up to 3 rolls. Keep Hazard, Biohazard, and Wild faces between rolls.</li>
         <li>Void face permanently removes that die for the sequence.</li>
         <li>Noise and Noise Spike faces ignored during combat.</li>
-        <li>Each Hazard or Wild face = −1 damage AND 1 pushback space.</li>
+        <li>Each Hazard, Biohazard, or Wild face = −1 damage AND 1 pushback space.</li>
         <li>No pass/fail — sliding scale only. Every face contributes.</li>
         <li>Ready action adds +1 pushback on top of weapon cap.</li>
       </ul>
@@ -1493,7 +1493,7 @@
           <thead><tr><th>Step</th><th>Action</th></tr></thead>
           <tbody>
             <tr><td>1</td><td>Apply Brace faces (if Brace taken). Note Ready bonus.</td></tr>
-            <tr><td>2</td><td>Attack / Defense Roll: weapon dice pool, up to 3 rolls, keep Hazard/Wild, Void removes die.</td></tr>
+            <tr><td>2</td><td>Attack / Defense Roll: weapon dice pool, up to 3 rolls, keep Hazard/Biohazard/Wild, Void removes die.</td></tr>
             <tr><td>3</td><td>Damage: 5 base − Brace faces − Defense faces − Armor. Floors at 0.</td></tr>
             <tr><td>4</td><td>Pushback: 1 space per face, capped at pool size + Ready bonus.</td></tr>
             <tr><td>5</td><td>Melee check: flip token (or destroy). Grant +1 bonus Action.</td></tr>
@@ -1777,7 +1777,7 @@
             <tr><td><strong>D12 System Dice</strong></td><td>The 5-die pool used for all standard checks &mdash; card events, hazards, and skill checks.</td><td><a href="#dice">// 09</a></td></tr>
             <tr><td><strong>D6 Coordinate Dice</strong></td><td>The Blue and Red die pair used exclusively for Echo Event mini-games. Never mixed with the D12 System Dice.</td><td><a href="#dice">// 09</a></td></tr>
             <tr><td><strong>Roll Resolution</strong></td><td>The standard dice-check structure all D12 System Dice checks follow, modeled after Ship, Captain, Crew.</td><td><a href="#dice">// 09</a></td></tr>
-            <tr><td><strong>Biohazard</strong></td><td>A valid D12 requirement face alongside Tech, DNA, and Tools. Appears on specific cards as defined by card design.</td><td><a href="#dice">// 09</a></td></tr>
+            <tr><td><strong>Biohazard</strong></td><td>A valid D12 requirement face alongside Tech, DNA, and Tools. Appears on specific cards as defined by card design. Counts identically to Hazard in Brace and Attack / Defense Rolls.</td><td><a href="#dice">// 09</a></td></tr>
             <tr><td><strong>Attack / Defense Roll</strong></td><td>The dice-pool roll made to resist a Creature encounter or to proactively attack it, using the equipped weapon's dice pool.</td><td><a href="#combat">// 13</a></td></tr>
             <tr><td><strong>Pushback</strong></td><td>Spaces the Creature is forced back per Attack / Defense Roll face rolled, capped at the weapon's dice pool size (plus any bonus).</td><td><a href="#combat">// 13</a></td></tr>
             <tr><td><strong>Run</strong></td><td>A declared movement modifier: +4 Speed, +3 Noise once per phase. Cannot combine with Quiet Move.</td><td><a href="#turn">// 08</a></td></tr>
@@ -1835,7 +1835,7 @@
       <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Noise resets each turn</div><div class="item-note">Tracker resets at start of each player's turn.</div></div></div>
       <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Operations Center terminal alarm: card's stated noise +3</div><div class="item-note">Failing the interaction adds +3 to whatever noise value the card specifies, rather than a flat range.</div></div></div>
       <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Data Extraction action noise value: +1</div><div class="item-note">Listed in // 12 Actions. Separate action from the Echo card draw that places the Data Token — the card only places it, extraction claims it later.</div></div></div>
-      <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Biohazard face</div><div class="item-note">Valid D12 requirement face alongside Tech, DNA, and Tools. Appears on specific cards as defined by card design. No global effect — all requirements are card-specific.</div></div></div>
+      <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Biohazard face</div><div class="item-note">Valid D12 requirement face alongside Tech, DNA, and Tools, appearing on specific cards as defined by card design. Also counts identically to Hazard in Brace and Attack / Defense Rolls (see Combat // 13).</div></div></div>
       <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Skill check pass conditions</div><div class="item-note">Pass conditions are card-specific. Each Echo Card defines its own face requirements and quantities. Roll Resolution in Section 09 governs all checks. Card design and notation is part of the ~120 card design phase.</div></div></div>
       <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Threat Token conversion</div><div class="item-note">How tokens affect creature aggression on introduction.</div></div></div>
       <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Player-controlled Creature ("Shipmaster") mode</div><div class="item-note">Early design idea, from before the game's current form: a variant where one person plays the Creature directly — a gamemaster/"Shipmaster" role — instead of it running on the Noise Check system. Would need its own rules for how that player acts, moves, and wins/loses; how it interacts with the standard Noise Check for the rest of the crew is undecided.</div></div></div>
