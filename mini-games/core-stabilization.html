@@ -356,17 +356,32 @@
   footer {
     z-index: 1;
     margin-top: 26px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    text-align: center;
+  }
+  footer span {
     font-family: 'Share Tech Mono', monospace;
-    font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase;
+    font-size: 10px;
+    letter-spacing: 0.16em;
     color: rgba(238,240,245,0.25);
-    line-height: 1;
+    text-transform: uppercase;
   }
+  footer span.accent { color: rgba(79,195,247,0.5); }
   .footer-meta {
-    margin-top: 1px;
-    font-size: 8px;
-    opacity: 0.6;
-    line-height: 1;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: center;
+    column-gap: 10px;
+    row-gap: 2px;
   }
+  .meta-item { white-space: nowrap; }
+  .meta-item span { color: rgba(79,195,247,0.5); }
+  #commitInfo { text-transform: none; }
+  .meta-item + .meta-item::before { content: '\00b7'; margin-right: 10px; opacity: 0.6; }
 </style>
 </head>
 <body>
@@ -473,8 +488,14 @@
 
 </div>
 
-<footer>ECHOES · &copy; 2026 EmptyFishTank-JB &middot; Echo Event Mini-Game
-  <div class="footer-meta">Updated <span id="updatedInfo">&mdash;</span> &middot; Commit <span id="commitInfo">&mdash;</span> &middot; STARDATE <span id="stardate">&mdash;</span></div>
+<footer>
+  <span class="footer-line">ECHOES &middot; &copy; 2026 EmptyFishTank-JB &middot; In Development</span>
+  <span class="footer-meta">
+    <span class="meta-item">Updated <span id="updatedInfo">&mdash;</span></span>
+    <span class="meta-item">Commit <span id="commitInfo">&mdash;</span></span>
+    <span class="meta-item">STARDATE <span id="stardate">&mdash;</span></span>
+  </span>
+  <span class="accent">// All content subject to change</span>
 </footer>
 
 <script>
