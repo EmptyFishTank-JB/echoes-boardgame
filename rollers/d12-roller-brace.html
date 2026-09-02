@@ -232,25 +232,37 @@
   .log div span.good { color: var(--good); }
 
   /* Second nav row, directly under the main site-page nav - links to
-     sibling rollers (as opposed to the site pages above it). */
+     sibling rollers, styled identically to the main nav above it
+     (same font size/spacing/gap, "//" separators). The current
+     roller is accent-colored and stays that way on hover; the others
+     sit dim and brighten to full text color on hover. */
   .roller-nav {
     width: 100%; max-width: 760px;
     display: flex; align-items: center; justify-content: center;
-    gap: 10px; flex-wrap: wrap;
+    gap: 22px; flex-wrap: wrap;
     padding: 0 4px 22px;
     z-index: 1;
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase;
-    color: var(--text-dim);
   }
-  .roller-nav a { color: var(--accent); text-decoration: none; }
-  .roller-nav a:hover { text-decoration: underline; }
-  .roller-nav .sep { color: rgba(238,240,245,0.2); }
+  .roller-nav a {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--text-dim); text-decoration: none;
+    transition: color 0.2s;
+  }
+  .roller-nav a:hover { color: var(--text); }
+  .roller-nav a.current { color: var(--accent); }
+  .roller-nav .sep {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: rgba(238,240,245,0.2);
+    letter-spacing: 0;
+    user-select: none;
+  }
 
   .signal-icon {
     display: flex; gap: 4px; align-items: center; justify-content: center;
     width: fit-content;
-    margin: 0 auto 10px;
+    margin: 10px auto 0;
   }
   .signal-bar {
     width: 5px; background: var(--accent); border-radius: 2px;
@@ -301,21 +313,17 @@
 </nav>
 
 <nav class="roller-nav">
-  Other Rollers —
   <a href="d12-roller.html">Dice Engine</a>
-  <span class="sep">·</span>
+  <span class="sep">//</span>
   <a href="d12-roller-noise.html">Noise Die</a>
-  <span class="sep">·</span>
+  <span class="sep">//</span>
+  <a href="d12-roller-brace.html" class="current">Brace</a>
+  <span class="sep">//</span>
   <a href="d12-roller-combat.html">Attack / Defense</a>
 </nav>
 
 <header class="title-block">
-  <div class="signal-icon">
-    <div class="signal-bar"></div>
-    <div class="signal-bar"></div>
-    <div class="signal-bar"></div>
-  </div>
-  <div class="eyebrow">// Brace Action</div>
+  <div class="eyebrow">// Action</div>
   <h1>Brace Roll</h1>
   <p class="subtitle">One action, one roll. Roll all 5 D12 System Dice once — every Hazard, Biohazard, or Wild face showing reduces incoming damage by 1, up to &minus;5.</p>
 </header>
@@ -347,6 +355,11 @@
 
 <footer>ECHOES · &copy; 2026 EmptyFishTank-JB &middot; Dice Prototype
   <div class="footer-meta">Updated <span id="updatedInfo">&mdash;</span> &middot; Commit <span id="commitInfo">&mdash;</span> &middot; STARDATE <span id="stardate">&mdash;</span></div>
+  <div class="signal-icon">
+    <div class="signal-bar"></div>
+    <div class="signal-bar"></div>
+    <div class="signal-bar"></div>
+  </div>
 </footer>
 
 <script>
