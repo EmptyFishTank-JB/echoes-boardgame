@@ -66,7 +66,14 @@
   };
   var TEXT_ORDER = ['small', 'medium', 'large'];
 
-  var DEFAULTS = { bg: 'flat', contrast: 'normal', textSize: 'medium' };
+  // Both off by default - purely decorative, opt-in extras.
+  var FILM_GRAIN = { off: { label: 'Off' }, on: { label: 'On' } };
+  var FILM_GRAIN_ORDER = ['off', 'on'];
+
+  var AUTO_GLITCH = { off: { label: 'Off' }, on: { label: 'On' } };
+  var AUTO_GLITCH_ORDER = ['off', 'on'];
+
+  var DEFAULTS = { bg: 'flat', contrast: 'normal', textSize: 'medium', filmGrain: 'off', autoGlitch: 'off' };
 
   function load(){
     try {
@@ -76,7 +83,9 @@
       return {
         bg: BACKGROUNDS[parsed.bg] ? parsed.bg : DEFAULTS.bg,
         contrast: CONTRAST[parsed.contrast] ? parsed.contrast : DEFAULTS.contrast,
-        textSize: TEXT_SIZES[parsed.textSize] ? parsed.textSize : DEFAULTS.textSize
+        textSize: TEXT_SIZES[parsed.textSize] ? parsed.textSize : DEFAULTS.textSize,
+        filmGrain: FILM_GRAIN[parsed.filmGrain] ? parsed.filmGrain : DEFAULTS.filmGrain,
+        autoGlitch: AUTO_GLITCH[parsed.autoGlitch] ? parsed.autoGlitch : DEFAULTS.autoGlitch
       };
     } catch (e) {
       return Object.assign({}, DEFAULTS);
@@ -102,6 +111,53 @@
       'html.echo-hc #devToolsLink,html.echo-hc #devToolsLink *{color:rgba(238,240,245,0.45) !important;opacity:0.22 !important;}' +
       'html.echo-hc #devToolsLink:hover,html.echo-hc #devToolsLink:hover *{color:var(--accent) !important;opacity:1 !important;}';
     (document.head || document.documentElement).appendChild(el);
+  }
+
+  // Film Grain: the same animated SVG-turbulence overlay terminal.html
+  // uses, at a much subtler 10% opacity since this runs continuously
+  // in the background of ordinary pages rather than a dedicated CRT
+  // scene. Auto Glitch: a brief whole-page jitter/filter pulse on a
+  // random 6-16s interval - a lighter, page-wide cousin of the
+  // per-title RGB-split glitch some pages already run on their logo,
+  // since duplicating that exact per-character effect across arbitrary
+  // page content isn't practical with CSS alone.
+  var FX_STYLE_ID = 'echo-fx-style';
+  function ensureFxStyle(){
+    if (document.getElementById(FX_STYLE_ID)) return;
+    var el = document.createElement('style');
+    el.id = FX_STYLE_ID;
+    el.textContent =
+      'html.echo-film-grain body::after{content:"";position:fixed;inset:-50%;width:200%;height:200%;' +
+      'z-index:999998;pointer-events:none;' +
+      'background-image:url("data:image/svg+xml,%3Csvg viewBox=\'0 0 256 256\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noise)\' opacity=\'0.05\'/%3E%3C/svg%3E");' +
+      'opacity:0.10;animation:echoGrain 0.12s steps(1) infinite;}' +
+      '@keyframes echoGrain{' +
+      '0%{transform:translate(0,0);}10%{transform:translate(-3%,-4%);}20%{transform:translate(-6%,3%);}' +
+      '30%{transform:translate(4%,-2%);}40%{transform:translate(-2%,6%);}50%{transform:translate(-5%,-3%);}' +
+      '60%{transform:translate(3%,5%);}70%{transform:translate(6%,-4%);}80%{transform:translate(-4%,2%);}' +
+      '90%{transform:translate(2%,-6%);}100%{transform:translate(-3%,4%);}}' +
+      'html.echo-glitch-pulse body{animation:echoAutoGlitch 0.22s steps(2,end) 1;}' +
+      '@keyframes echoAutoGlitch{' +
+      '0%{transform:translate(0,0);filter:none;}' +
+      '15%{transform:translate(-2px,1px);filter:hue-rotate(8deg) contrast(1.15);}' +
+      '35%{transform:translate(2px,-1px);filter:hue-rotate(-6deg) contrast(1.1);}' +
+      '55%{transform:translate(-1px,0);filter:none;}' +
+      '100%{transform:translate(0,0);filter:none;}}';
+    (document.head || document.documentElement).appendChild(el);
+  }
+
+  var autoGlitchTimer = null;
+  function runAutoGlitchPulse(){
+    var html = document.documentElement;
+    html.classList.add('echo-glitch-pulse');
+    setTimeout(function(){ html.classList.remove('echo-glitch-pulse'); }, 250);
+    autoGlitchTimer = setTimeout(runAutoGlitchPulse, (6 + Math.random() * 10) * 1000);
+  }
+  function setAutoGlitch(enabled){
+    clearTimeout(autoGlitchTimer);
+    autoGlitchTimer = null;
+    document.documentElement.classList.remove('echo-glitch-pulse');
+    if (enabled) autoGlitchTimer = setTimeout(runAutoGlitchPulse, (6 + Math.random() * 10) * 1000);
   }
 
   function setThemeColor(color){
@@ -143,6 +199,11 @@
     }
 
     html.style.zoom = TEXT_SIZES[settings.textSize].zoom;
+
+    ensureFxStyle();
+    html.classList.toggle('echo-film-grain', settings.filmGrain === 'on');
+    setAutoGlitch(settings.autoGlitch === 'on');
+
     fixNavPadding();
   }
 
@@ -271,6 +332,10 @@
     panel.appendChild(group('Contrast', CONTRAST_ORDER, CONTRAST, 'contrast'));
     var sep2 = document.createElement('div'); sep2.className = 'es-sep'; panel.appendChild(sep2);
     panel.appendChild(group('Text Size', TEXT_ORDER, TEXT_SIZES, 'textSize', null, 'es-a-'));
+    var sep2b = document.createElement('div'); sep2b.className = 'es-sep'; panel.appendChild(sep2b);
+    panel.appendChild(group('Film Grain', FILM_GRAIN_ORDER, FILM_GRAIN, 'filmGrain'));
+    var sep2c = document.createElement('div'); sep2c.className = 'es-sep'; panel.appendChild(sep2c);
+    panel.appendChild(group('Auto Glitch', AUTO_GLITCH_ORDER, AUTO_GLITCH, 'autoGlitch'));
 
     var sep3 = document.createElement('div'); sep3.className = 'es-sep'; panel.appendChild(sep3);
     var resetBtn = document.createElement('button');
