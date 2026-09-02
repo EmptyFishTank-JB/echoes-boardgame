@@ -113,51 +113,104 @@
     (document.head || document.documentElement).appendChild(el);
   }
 
-  // Film Grain: the same animated SVG-turbulence overlay terminal.html
-  // uses, at a much subtler 10% opacity since this runs continuously
-  // in the background of ordinary pages rather than a dedicated CRT
-  // scene. Auto Glitch: a brief whole-page jitter/filter pulse on a
-  // random 6-16s interval - a lighter, page-wide cousin of the
-  // per-title RGB-split glitch some pages already run on their logo,
-  // since duplicating that exact per-character effect across arbitrary
-  // page content isn't practical with CSS alone.
+  // Film Grain + Auto Glitch, ported from the dev-tools/artifacts/
+  // rules-fx-demo.html reference build (same markup, CSS, and SVG
+  // filter, just renamed to an echo-fx-* prefix) rather than a
+  // from-scratch approximation - that demo is the source of truth for
+  // what these two are supposed to look like.
+  //
+  // Film Grain is a real fixed <div>, not a pseudo-element: tiled SVG
+  // turbulence noise, mix-blend-mode:screen (screen reliably brightens
+  // against a near-black page; normal/overlay blending barely shows),
+  // oversized on all sides via top/left/right/bottom so its own box
+  // edges stay off-screen, with the "moving grain" look coming from
+  // animating background-position (tile shift) rather than translating
+  // the box itself.
+  //
+  // Auto Glitch is a genuine chromatic-aberration burst: an SVG filter
+  // (feColorMatrix splits R/G/B, feOffset shifts red/blue apart,
+  // feBlend recombines with screen mode) applied via CSS filter:url(),
+  // paired with a brief horizontal jitter so it reads as a tear rather
+  // than a clean color fringe. This is NOT the same thing as the
+  // per-title RGB-split glitch some pages run on their logo text (that
+  // one duplicates the title into colored layers) - this is a true
+  // whole-page pixel-level effect, which is what makes it work on
+  // arbitrary content.
   var FX_STYLE_ID = 'echo-fx-style';
   function ensureFxStyle(){
     if (document.getElementById(FX_STYLE_ID)) return;
     var el = document.createElement('style');
     el.id = FX_STYLE_ID;
     el.textContent =
-      'html.echo-film-grain body::after{content:"";position:fixed;inset:-50%;width:200%;height:200%;' +
-      'z-index:999998;pointer-events:none;' +
-      'background-image:url("data:image/svg+xml,%3Csvg viewBox=\'0 0 256 256\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noise)\' opacity=\'0.05\'/%3E%3C/svg%3E");' +
-      'opacity:0.10;animation:echoGrain 0.12s steps(1) infinite;}' +
-      '@keyframes echoGrain{' +
-      '0%{transform:translate(0,0);}10%{transform:translate(-3%,-4%);}20%{transform:translate(-6%,3%);}' +
-      '30%{transform:translate(4%,-2%);}40%{transform:translate(-2%,6%);}50%{transform:translate(-5%,-3%);}' +
-      '60%{transform:translate(3%,5%);}70%{transform:translate(6%,-4%);}80%{transform:translate(-4%,2%);}' +
-      '90%{transform:translate(2%,-6%);}100%{transform:translate(-3%,4%);}}' +
-      'html.echo-glitch-pulse body{animation:echoAutoGlitch 0.22s steps(2,end) 1;}' +
-      '@keyframes echoAutoGlitch{' +
-      '0%{transform:translate(0,0);filter:none;}' +
-      '15%{transform:translate(-2px,1px);filter:hue-rotate(8deg) contrast(1.15);}' +
-      '35%{transform:translate(2px,-1px);filter:hue-rotate(-6deg) contrast(1.1);}' +
-      '55%{transform:translate(-1px,0);filter:none;}' +
-      '100%{transform:translate(0,0);filter:none;}}';
+      '#echo-fx-grain{position:fixed;top:-25%;left:-25%;right:-25%;bottom:-25%;' +
+      'z-index:9998;pointer-events:none;display:none;' +
+      'opacity:0.10;mix-blend-mode:screen;' +
+      'background-image:url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\'><filter id=\'n\'><feTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'2\' stitchTiles=\'stitch\'/></filter><rect width=\'100%25\' height=\'100%25\' filter=\'url(%23n)\'/></svg>");' +
+      'background-size:220px 220px;background-repeat:repeat;' +
+      'animation:echoGrainShift 0.5s steps(4) infinite;}' +
+      'html.echo-film-grain #echo-fx-grain{display:block;}' +
+      '@keyframes echoGrainShift{' +
+      '0%{background-position:0 0;}25%{background-position:-30px 15px;}' +
+      '50%{background-position:15px -15px;}75%{background-position:-15px 30px;}' +
+      '100%{background-position:0 0;}}' +
+      'html.echo-glitch-pulse body{filter:url(#echo-fx-glitch-filter);animation:echoGlitchJitter 0.12s steps(2) 1;}' +
+      '@keyframes echoGlitchJitter{' +
+      '0%{transform:translateX(0);}30%{transform:translateX(-3px);}' +
+      '60%{transform:translateX(2px);}100%{transform:translateX(0);}}';
     (document.head || document.documentElement).appendChild(el);
   }
 
+  // The grain div and the glitch SVG filter need real DOM nodes (a
+  // <style> block alone can't create either), so they're built once
+  // DOM is ready, same gate as the settings-gear panel below.
+  var FX_DOM_READY = false;
+  function ensureFxDom(){
+    if (FX_DOM_READY || !document.body) return;
+    FX_DOM_READY = true;
+
+    var grain = document.createElement('div');
+    grain.id = 'echo-fx-grain';
+    document.body.appendChild(grain);
+
+    var svgNS = 'http://www.w3.org/2000/svg';
+    var svg = document.createElementNS(svgNS, 'svg');
+    svg.setAttribute('width', '0');
+    svg.setAttribute('height', '0');
+    svg.setAttribute('style', 'position:absolute;');
+    svg.innerHTML =
+      '<filter id="echo-fx-glitch-filter" x="-20%" y="-20%" width="140%" height="140%">' +
+      '<feColorMatrix in="SourceGraphic" type="matrix" values="1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0" result="fxRed"/>' +
+      '<feOffset in="fxRed" dx="-6" dy="0" result="fxRedOff"/>' +
+      '<feColorMatrix in="SourceGraphic" type="matrix" values="0 0 0 0 0  0 1 0 0 0  0 0 0 0 0  0 0 0 1 0" result="fxGreen"/>' +
+      '<feColorMatrix in="SourceGraphic" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 1 0 0  0 0 0 1 0" result="fxBlue"/>' +
+      '<feOffset in="fxBlue" dx="6" dy="0" result="fxBlueOff"/>' +
+      '<feBlend in="fxRedOff" in2="fxGreen" mode="screen" result="fxRG"/>' +
+      '<feBlend in="fxRG" in2="fxBlueOff" mode="screen"/>' +
+      '</filter>';
+    document.body.appendChild(svg);
+  }
+
   var autoGlitchTimer = null;
-  function runAutoGlitchPulse(){
+  function fireGlitchPulse(){
     var html = document.documentElement;
+    // Force a reflow between remove/re-add so the burst restarts
+    // cleanly even if it's re-triggered mid-animation.
+    html.classList.remove('echo-glitch-pulse');
+    void html.offsetWidth;
     html.classList.add('echo-glitch-pulse');
-    setTimeout(function(){ html.classList.remove('echo-glitch-pulse'); }, 250);
-    autoGlitchTimer = setTimeout(runAutoGlitchPulse, (6 + Math.random() * 10) * 1000);
+    setTimeout(function(){ html.classList.remove('echo-glitch-pulse'); }, 160);
+  }
+  function scheduleAutoGlitch(){
+    autoGlitchTimer = setTimeout(function(){
+      fireGlitchPulse();
+      scheduleAutoGlitch();
+    }, (6 + Math.random() * 10) * 1000);
   }
   function setAutoGlitch(enabled){
     clearTimeout(autoGlitchTimer);
     autoGlitchTimer = null;
     document.documentElement.classList.remove('echo-glitch-pulse');
-    if (enabled) autoGlitchTimer = setTimeout(runAutoGlitchPulse, (6 + Math.random() * 10) * 1000);
+    if (enabled) scheduleAutoGlitch();
   }
 
   function setThemeColor(color){
@@ -201,6 +254,7 @@
     html.style.zoom = TEXT_SIZES[settings.textSize].zoom;
 
     ensureFxStyle();
+    ensureFxDom();
     html.classList.toggle('echo-film-grain', settings.filmGrain === 'on');
     setAutoGlitch(settings.autoGlitch === 'on');
 
@@ -367,9 +421,13 @@
     document.body.appendChild(panel);
   }
 
-  if (document.readyState === 'loading'){
-    document.addEventListener('DOMContentLoaded', buildPanel);
-  } else {
+  function onDomReady(){
+    ensureFxDom();
     buildPanel();
+  }
+  if (document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', onDomReady);
+  } else {
+    onDomReady();
   }
 })();
