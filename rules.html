@@ -907,14 +907,14 @@
     <a href="#dice">09 · Dice Engine</a>
     <a href="#echo-deck">10 · Echo Deck</a>
     <a href="#mini-games">11 · Echo Events</a>
-    <a href="#noise">12 · Actions</a>
+    <a href="#actions">12 · Actions</a>
     <a href="#health">13 · Health</a>
     <a href="#combat">14 · Combat</a>
     <a href="#weapons">15 · Weapons</a>
     <a href="#inventory">16 · Inventory</a>
     <a href="#resources">17 · Resources</a>
     <a href="#crafting">18 · Crafting</a>
-    <a href="#taskboard">19 · Objective Board</a>
+    <a href="#objective-board">19 · Objective Board</a>
     <a href="#escape">20 · Escape Phase</a>
     <a href="#glossary">21 · Glossary</a>
     <a href="#open">22 · Open Items</a>
@@ -1013,7 +1013,7 @@
         <li><strong>Set starting resources &amp; inventory.</strong> Starting Health, Speed, and any starting items TBD.</li>
         <li><strong>Shuffle the Echo Deck</strong> and place it as the shared draw pile. See <a href="#echo-deck">// 10 ECHO DECK</a>.</li>
         <li><strong>Set the Creature to DORMANT.</strong> It does not enter play until the Introduction Sequence triggers. See <a href="#creature">// 06 THE CREATURE &amp; NOISE</a>.</li>
-        <li><strong>Place the Objective Board</strong> and any starting Blueprint slots. See <a href="#taskboard">// 19 OBJECTIVE BOARD</a>.</li>
+        <li><strong>Place the Objective Board</strong> and any starting Blueprint slots. See <a href="#objective-board">// 19 OBJECTIVE BOARD</a>.</li>
         <li><strong>Determine turn order.</strong> Players choose who goes first and the order everyone takes their turn in. Fixed for the rest of the game — no rotating or changing later.</li>
       </ol>
       <div class="callout info"><strong>// Pending</strong>Starting loadouts and the fog-of-war placement procedure are still undecided. This section fills in as those are confirmed.</div>
@@ -1085,7 +1085,7 @@
       </div>
 
       <h3>Noise</h3>
-      <p>Each player tracks their own Noise Tracker, 1&ndash;12, on their character board — it is not a shared meter. Resets at the start of that player's turn. Every Move and Action a player takes generates some amount of Noise on their own tracker — see <a href="#noise">// 12 ACTIONS</a> for the full cost of each. What that accumulated Noise does to the Creature is covered below.</p>
+      <p>Each player tracks their own Noise Tracker, 1&ndash;12, on their character board — it is not a shared meter. Resets at the start of that player's turn. Every Move and Action a player takes generates some amount of Noise on their own tracker — see <a href="#actions">// 12 ACTIONS</a> for the full cost of each. What that accumulated Noise does to the Creature is covered below.</p>
 
       <h3>Noise Check &amp; Activation</h3>
       <div class="callout warning"><strong>// Mechanic</strong>At end of each player phase, roll D12 Noise Die vs that player's own accumulated Noise Level.</div>
@@ -1216,7 +1216,7 @@
           <thead><tr><th></th><th>Description</th><th>Notes</th></tr></thead>
           <tbody>
             <tr><td><strong>Move 1 / Move 2</strong></td><td>Move up to Speed in any direction</td><td>Entering an unexplored room → draw Echo Card. Moves may be taken before or after Actions in any order.</td></tr>
-            <tr><td><strong>Action 1 / Action 2</strong></td><td>Any available action</td><td>Full list in <a href="#noise">// 12 ACTIONS</a>. Actions may be taken before or after Moves.</td></tr>
+            <tr><td><strong>Action 1 / Action 2</strong></td><td>Any available action</td><td>Full list in <a href="#actions">// 12 ACTIONS</a>. Actions may be taken before or after Moves.</td></tr>
             <tr><td><strong>Character Ability</strong></td><td>Optional. Once per turn.</td><td>Any time during the phase. Does not replace an Action.</td></tr>
             <tr><td><strong>Track Noise</strong></td><td>Update Noise Meter</td><td>Before Creature Phase begins.</td></tr>
           </tbody>
@@ -1317,10 +1317,10 @@
           </tbody>
         </table>
       </div>
-      <div class="callout info"><strong>// Pending</strong>Blueprints are not their own card type — they're static unlocks on the Objective Board (see <a href="#taskboard">// 19 OBJECTIVE BOARD</a>) — so the ~15–20% set aside for them needs reallocating across the remaining Echo Deck card types.</div>
+      <div class="callout info"><strong>// Pending</strong>Blueprints are not their own card type — they're static unlocks on the Objective Board (see <a href="#objective-board">// 19 OBJECTIVE BOARD</a>) — so the ~15–20% set aside for them needs reallocating across the remaining Echo Deck card types.</div>
 
       <h3>Room Card Tasks &amp; Objectives</h3>
-      <p>Not every Room Card carries a task, and not every task is an objective. Cards marked <strong>Objective</strong> feed the Objective Board (<a href="#taskboard">// 19 OBJECTIVE BOARD</a>) — their tasks are resolved in order, tied to that card's room family, and completed at whatever the task specifies (a room of that family, a terminal, or a workbench). Cards with a task that <em>isn't</em> marked Objective resolve immediately on draw and never touch the board.</p>
+      <p>Not every Room Card carries a task, and not every task is an objective. Cards marked <strong>Objective</strong> feed the Objective Board (<a href="#objective-board">// 19 OBJECTIVE BOARD</a>) — their tasks are resolved in order, tied to that card's room family, and completed at whatever the task specifies (a room of that family, a terminal, or a workbench). Cards with a task that <em>isn't</em> marked Objective resolve immediately on draw and never touch the board.</p>
 
       <h3>Drawing Rules</h3>
       <ul class="rules-list">
@@ -1379,7 +1379,7 @@
       </div>
     </section>
     <!-- 12 ACTIONS -->
-    <section class="section" id="noise">
+    <section class="section" id="actions">
       <div class="section-header">
         <span class="section-num">// 12</span>
         <h2 class="section-title">Actions</h2>
@@ -1397,9 +1397,11 @@
             <tr><td>Quiet Move</td><td>Base Speed −2</td><td>0 per Move</td><td>1 Action</td></tr>
             <tr><td>Run</td><td>Base Speed +4</td><td>+3 (once per phase)</td><td>1 Action</td></tr>
             <tr><td>Vent Movement</td><td>Base Speed</td><td>+2 per Move</td><td>Per Move used</td></tr>
+            <tr><td>Flee Move</td><td>Full Speed</td><td>0</td><td>Granted — does not use a Move</td></tr>
           </tbody>
         </table>
       </div>
+      <div class="callout success"><strong>// Flee Move</strong>A free bonus Move granted after a successful Creature encounter (see <a href="#weapons">// 15 WEAPONS - MELEE WEAPONS</a> and <a href="#combat">// 14 COMBAT - FULL ENCOUNTER SEQUENCE</a>) — not drawn from the player's normal Move allotment. Full speed, generates 0 noise, and the creature does not pursue.</div>
       <div class="callout info"><strong>// Declaring Run or Quiet Move</strong>Recommended at the start of the turn before any Move, so all movement benefits from the modification. May also be declared as Action 1 after Move 1 — only Move 2 onward is affected. Move 1 is not retroactively modified. Run and Quiet Move cannot both be declared in the same turn.</div>
       <div class="callout warning"><strong>// Run — Once Per Player Phase</strong>The +4 Speed bonus applies once per phase only. A player cannot Run twice. +3 noise is generated once for the phase — not per Move. If the player is also Encumbered, noise stacks: +2 (Encumbered) + +3 (Run) = +5 total for that phase.</div>
       <div class="callout info"><strong>// Quiet Move</strong>Nullifies all Move noise from the point of declaration forward. Speed is reduced by 2 for the entire phase. Cannot be combined with Run. Overrides Encumbered noise generation — a player who is Encumbered and declares Quiet Move generates 0 Move noise.</div>
@@ -1418,7 +1420,7 @@
             <tr><td><span style="color:var(--accent);">Quiet Terminal Interaction</span><br><span style="color:var(--text-dim);font-size:12px;">Requires Tech skill or item. Silent access.</span></td><td>0</td></tr>
             <tr><td><span style="color:var(--accent);">Data Extraction</span><br><span style="color:var(--text-dim);font-size:12px;">Claim a Data Token already placed at an adjacent terminal or data point. Separate action from the Echo card draw that placed the token there. See <a href="#resources">// 17 RESOURCES - DATA RETRIEVAL LOOP</a>.</span></td><td>+1</td></tr>
             <tr><td><span style="color:var(--accent);">Seal Door</span><br><span style="color:var(--text-dim);font-size:12px;">Blocks creature until end of next player's creature phase, then opens. Requires crew coordination to lure creature away.</span></td><td>+1</td></tr>
-            <tr><td><span style="color:var(--accent);">Enter / Exit Locker</span><br><span style="color:var(--text-dim);font-size:12px;">Each transition costs one action and generates noise.</span></td><td>+1 each</td></tr>
+            <tr><td><span style="color:var(--accent);">Enter / Exit Locker</span><br><span style="color:var(--text-dim);font-size:12px;">Each transition costs one action and generates noise. See <a href="#actions">// 12 ACTIONS - HIDING</a> for full rules.</span></td><td>+1 each</td></tr>
             <tr><td><span style="color:var(--accent);">Vent Entry / Exit</span><br><span style="color:var(--text-dim);font-size:12px;">Each transition costs one action. Higher noise than lockers.</span></td><td>+2 each</td></tr>
             <tr><td><span style="color:var(--accent);">Rest</span><br><span style="color:var(--text-dim);font-size:12px;">Recover +1 Health. No noise generated.</span></td><td>+0</td></tr>
             <tr><td><span style="color:var(--accent);">Ready / Brace</span><br><span style="color:var(--text-dim);font-size:12px;">Prepare for an encounter. No noise generated. See <a href="#combat">// 14 COMBAT - PREPARATION ACTIONS</a> for full rules.</span></td><td>0</td></tr>
@@ -1427,16 +1429,18 @@
             <tr><td style="padding-left:28px; color:var(--text-dim);">↳ Distraction item (crafted consumable — throw up to 8 spaces unobstructed, or place while adjacent)</td><td>+2</td></tr>
             <tr><td style="padding-left:28px; color:var(--text-dim);">↳ Ranged weapon (1 ammo consumed, noise at impact location)</td><td>+2</td></tr>
             <tr><td style="padding-left:28px; color:var(--text-dim);">↳ Flare (consumable, throwable up to 8 spaces unobstructed — visual priority override, 1 creature phase)</td><td>+1</td></tr>
-            <tr><td><span style="color:var(--accent);">Melee Attack</span><br><span style="color:var(--text-dim);font-size:12px;">Encounter action. Creature already present — noise irrelevant.</span></td><td>+0</td></tr>
-            <tr><td><span style="color:var(--accent);">Ranged Attack</span><br><span style="color:var(--text-dim);font-size:12px;">Encounter action. Creature already present — noise irrelevant.</span></td><td>+0</td></tr>
+            <tr><td><span style="color:var(--accent);">Melee Attack</span><br><span style="color:var(--text-dim);font-size:12px;">Encounter action. Creature already present — noise irrelevant. See <a href="#combat">// 14 COMBAT - ATTACK / DEFENSE ROLL</a> for full rules.</span></td><td>+0</td></tr>
+            <tr><td><span style="color:var(--accent);">Ranged Attack</span><br><span style="color:var(--text-dim);font-size:12px;">Encounter action. Creature already present — noise irrelevant. See <a href="#combat">// 14 COMBAT - ATTACK / DEFENSE ROLL</a> for full rules.</span></td><td>+0</td></tr>
             <tr><td><span style="color:var(--accent);">Operations Center Terminal</span><br><span style="color:var(--text-dim);font-size:12px;">High-stakes terminal interaction. Exact value TBD.</span></td><td>+3 to +4</td></tr>
             <tr><td><span style="color:var(--accent);">Operations Center Terminal Alarm</span><br><span style="color:var(--text-dim);font-size:12px;">Failed interaction triggers an immediate noise check.</span></td><td>Card's stated noise +3</td></tr>
             <tr><td><span style="color:var(--accent);">No-Resource Auto-Fail</span><br><span style="color:var(--text-dim);font-size:12px;">Attempting an action without required resources. Immediate penalty.</span></td><td>+4</td></tr>
+            <tr><td><span style="color:var(--accent);">Reaction</span><br><span style="color:var(--text-dim);font-size:12px;">Situational — not part of the normal turn structure. Available only after a Creature encounter. See <a href="#actions">// 12 ACTIONS - REACTION</a> below.</span></td><td>N/A</td></tr>
           </tbody>
         </table>
       </div>
 
       <h3>Hiding</h3>
+      <div class="callout success"><strong>// Hidden / Exposed</strong>Official terms for the player's hiding status — the same way Encumbered names an existing backpack-fill condition, Hidden and Exposed simply name the two states a player toggles between here. A player is <strong>Hidden</strong> while inside a locker, vent, or other hiding location; otherwise they are <strong>Exposed</strong>. No new mechanic — Entering/Exiting a hiding location (see Actions table above) flips the state.</div>
       <h4>Locker Hiding</h4>
       <ul class="rules-list">
         <li><strong>Enter:</strong> 1 action. Must be adjacent to locker. +1 noise.</li>
@@ -1449,6 +1453,14 @@
 
       <h4>Additional Locations</h4>
       <p>Three additional hiding location types planned: debris piles (medium risk), maintenance crawlspaces (medium risk), and bulkhead alcoves (high risk). Risk tiers and detection rolls TBD.</p>
+
+      <h3>Reaction</h3>
+      <p>A Reaction is functionally the same as a regular Action — it just isn't taken during the normal turn structure (see <a href="#turn">// 08 TURN STRUCTURE</a>). Reactions are only available after a Creature encounter, granted by a successful Melee Weapon use (see <a href="#weapons">// 15 WEAPONS - MELEE WEAPONS</a>). They give the player a chance to put themselves in a better position relative to the Creature before play continues.</p>
+      <ul class="rules-list">
+        <li><strong>Attack (Ranged or Melee):</strong> Take another Attack / Defense Roll. See <a href="#combat">// 14 COMBAT - ATTACK / DEFENSE ROLL</a>.</li>
+        <li><strong>Seal Door:</strong> Block the Creature's path. See Seal Door in the Actions table above.</li>
+        <li><strong>Hide:</strong> Enter a locker, vent, or other hiding location. See Hiding above.</li>
+      </ul>
     </section>
     <!-- 13 HEALTH -->
     <section class="section" id="health">
@@ -1562,12 +1574,12 @@
             <tr><td>2</td><td>Attack / Defense Roll: weapon dice pool, up to 3 rolls, keep Hazard/Biohazard/Wild, Void removes die.</td></tr>
             <tr><td>3</td><td>Damage: 5 base − Brace faces − Defense faces − Armor. Floors at 0.</td></tr>
             <tr><td>4</td><td>Pushback: 1 space per face, capped at pool size + Ready bonus.</td></tr>
-            <tr><td>5</td><td>Melee check: flip token (or destroy). Grant +1 bonus Action.</td></tr>
+            <tr><td>5</td><td>Melee check: flip token (or destroy). Grant 1 Flee Move and 1 Reaction.</td></tr>
             <tr><td>6</td><td>Player Flee: all players, all encounter types. Full speed, 0 noise, creature does not pursue.</td></tr>
           </tbody>
         </table>
       </div>
-      <div class="callout success"><strong>// Melee Bonus</strong>Melee weapon users receive +1 Action on top of the standard flee — rewarding players who choose to fight back.</div>
+      <div class="callout success"><strong>// Melee Bonus</strong>Melee weapon users receive a bonus Flee Move and a Reaction on top of the standard flee — rewarding players who choose to fight back. See <a href="#actions">// 12 ACTIONS - REACTION</a>.</div>
     </section>
     <!-- 15 WEAPONS -->
     <section class="section" id="weapons">
@@ -1577,7 +1589,7 @@
       </div>
 
       <h3>Melee Weapons</h3>
-      <p>2 uses tracked by flip token. Both sides perform identically. Destroyed after second use. Successful encounters grant out-of-turn Flee + 1 bonus Action.</p>
+      <p>Melee Weapons get 2 uses and are tracked by flipping the token to the opposite side. Both sides perform identically. Destroyed after second use. Successful Creature encounters grant 1 Flee Move and 1 Reaction. See <a href="#actions">// 12 ACTIONS - MOVEMENT VARIANTS</a> and <a href="#actions">// 12 ACTIONS - REACTION</a>.</p>
       <div class="tbl-wrap">
         <table>
           <thead><tr><th>Weapon</th><th>Size</th><th>Dice</th><th>Special</th></tr></thead>
@@ -1681,7 +1693,7 @@
         <span class="section-num">// 18</span>
         <h2 class="section-title">Crafting</h2>
       </div>
-      <p>Blueprints are not cards — they're static unlocks on the Objective Board. Each blueprint slot requires a set number of objectives (drawn from Room Cards) to be chained and completed in order before that blueprint's own tasks can be started. Once completed, the blueprint is unlocked for all players. See <a href="#taskboard">// 19 OBJECTIVE BOARD</a> for the full chain-resolution rules.</p>
+      <p>Blueprints are not cards — they're static unlocks on the Objective Board. Each blueprint slot requires a set number of objectives (drawn from Room Cards) to be chained and completed in order before that blueprint's own tasks can be started. Once completed, the blueprint is unlocked for all players. See <a href="#objective-board">// 19 OBJECTIVE BOARD</a> for the full chain-resolution rules.</p>
 
       <h3>Item Categories</h3>
       <p>No crafting tiers — items are organized by category instead. Category has no effect on resource cost; it's purely organizational.</p>
@@ -1717,13 +1729,13 @@
             <tr><td>Flare</td><td>Consumable</td><td>1 Scrap</td></tr>
             <tr><td>Manufactured Fuel Cell</td><td>Utility</td><td>3 Salvage + 3 Components + 2 Data <span style="color:var(--text-dim);font-size:11px;">(requires Makeshift Fuel Cell blueprint completed first)</span></td></tr>
             <tr><td>Makeshift Fuel Cell</td><td>Utility</td><td>3 Salvage + 2 Components + 1 Data</td></tr>
-            <tr><td>Universal Ammo</td><td>—</td><td><span style="color:var(--text-dim);">Found only — not crafted. See Ammo Crate Restock, <a href="#noise">// 12 ACTIONS</a>.</span></td></tr>
+            <tr><td>Universal Ammo</td><td>—</td><td><span style="color:var(--text-dim);">Found only — not crafted. See Ammo Crate Restock, <a href="#actions">// 12 ACTIONS</a>.</span></td></tr>
           </tbody>
         </table>
       </div>
     </section>
     <!-- 19 OBJECTIVE BOARD -->
-    <section class="section" id="taskboard">
+    <section class="section" id="objective-board">
       <div class="section-header">
         <span class="section-num">// 19</span>
         <h2 class="section-title">Objective Board</h2>
@@ -1789,7 +1801,7 @@
         <table>
           <thead><tr><th>Term</th><th>Definition</th><th>See</th></tr></thead>
           <tbody>
-            <tr><td><strong>Noise</strong></td><td>Cumulative meter tracked per player each turn. Resets at the start of each player's turn. Compared against a D12 roll each Creature Phase.</td><td><a href="#noise">// 12 ACTIONS</a></td></tr>
+            <tr><td><strong>Noise</strong></td><td>Cumulative meter tracked per player each turn. Resets at the start of each player's turn. Compared against a D12 roll each Creature Phase.</td><td><a href="#actions">// 12 ACTIONS</a></td></tr>
             <tr><td><strong>Creature States</strong></td><td>DORMANT, ACTIVE, SIGNAL LOST, VENTED &mdash; the four states tracking the Creature's presence and visibility on the board.</td><td><a href="#creature">// 06 THE CREATURE &amp; NOISE</a></td></tr>
             <tr><td><strong>Threat Token</strong></td><td>Generated by failed noise checks while the Creature is DORMANT. Converts on Introduction to determine initial aggression.</td><td><a href="#creature">// 06 THE CREATURE &amp; NOISE</a></td></tr>
             <tr><td><strong>CONTACT Card</strong></td><td>Drawn at the Operations Center's main terminal. Names the room family the Creature will be introduced into.</td><td><a href="#creature">// 06 THE CREATURE &amp; NOISE</a></td></tr>
@@ -1807,9 +1819,9 @@
             <tr><td><strong>Encumbered</strong></td><td>Status when backpack fill reaches 80% of capacity. Increases movement noise to +2 per Move.</td><td><a href="#inventory">// 16 INVENTORY</a></td></tr>
             <tr><td><strong>Data Token</strong></td><td>Placed at a terminal or data point by certain Echo Card draws. Claimed later via the separate Data Extraction action.</td><td><a href="#resources">// 17 RESOURCES</a></td></tr>
             <tr><td><strong>Fuel Grid</strong></td><td>The 2&times;10 (20-space) grid at the Dock. 16 of 20 spaces must be filled with Fuel Cells to enable escape.</td><td><a href="#escape">// 20 ESCAPE PHASE</a></td></tr>
-            <tr><td><strong>Objective Board</strong></td><td>Hosts the Blueprints and the Pending Objective Queue.</td><td><a href="#taskboard">// 19 OBJECTIVE BOARD</a></td></tr>
-            <tr><td><strong>Blueprint</strong></td><td>A static unlock on the Objective Board. Requires a chain of objectives (drawn from Room Cards) to be completed in order before its own tasks can start.</td><td><a href="#taskboard">// 19 OBJECTIVE BOARD</a></td></tr>
-            <tr><td><strong>Pending Objective Queue</strong></td><td>The Objective Board's queue of drawn-but-not-yet-completed objective tasks.</td><td><a href="#taskboard">// 19 OBJECTIVE BOARD</a></td></tr>
+            <tr><td><strong>Objective Board</strong></td><td>Hosts the Blueprints and the Pending Objective Queue.</td><td><a href="#objective-board">// 19 OBJECTIVE BOARD</a></td></tr>
+            <tr><td><strong>Blueprint</strong></td><td>A static unlock on the Objective Board. Requires a chain of objectives (drawn from Room Cards) to be completed in order before its own tasks can start.</td><td><a href="#objective-board">// 19 OBJECTIVE BOARD</a></td></tr>
+            <tr><td><strong>Pending Objective Queue</strong></td><td>The Objective Board's queue of drawn-but-not-yet-completed objective tasks.</td><td><a href="#objective-board">// 19 OBJECTIVE BOARD</a></td></tr>
           </tbody>
         </table>
       </div>
