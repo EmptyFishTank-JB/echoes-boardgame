@@ -70,10 +70,21 @@
   var FILM_GRAIN = { off: { label: 'Off' }, on: { label: 'On' } };
   var FILM_GRAIN_ORDER = ['off', 'on'];
 
+  // Grain opacity, as a %, pulled from the same 0-100 range the FX demo's
+  // free-form input exposes - this is a curated slice of it (5-15) as
+  // fixed steps instead of a raw number field. '10' matches the opacity
+  // Film Grain has always defaulted to.
+  var FILM_GRAIN_INTENSITY = {};
+  var FILM_GRAIN_INTENSITY_ORDER = [];
+  for (var gi = 5; gi <= 15; gi++){
+    FILM_GRAIN_INTENSITY[String(gi)] = { label: '' };
+    FILM_GRAIN_INTENSITY_ORDER.push(String(gi));
+  }
+
   var AUTO_GLITCH = { off: { label: 'Off' }, on: { label: 'On' } };
   var AUTO_GLITCH_ORDER = ['off', 'on'];
 
-  var DEFAULTS = { bg: 'flat', contrast: 'normal', textSize: 'medium', filmGrain: 'off', autoGlitch: 'off' };
+  var DEFAULTS = { bg: 'flat', contrast: 'normal', textSize: 'medium', filmGrain: 'off', filmGrainIntensity: '10', autoGlitch: 'off' };
 
   function load(){
     try {
@@ -85,6 +96,7 @@
         contrast: CONTRAST[parsed.contrast] ? parsed.contrast : DEFAULTS.contrast,
         textSize: TEXT_SIZES[parsed.textSize] ? parsed.textSize : DEFAULTS.textSize,
         filmGrain: FILM_GRAIN[parsed.filmGrain] ? parsed.filmGrain : DEFAULTS.filmGrain,
+        filmGrainIntensity: FILM_GRAIN_INTENSITY[parsed.filmGrainIntensity] ? parsed.filmGrainIntensity : DEFAULTS.filmGrainIntensity,
         autoGlitch: AUTO_GLITCH[parsed.autoGlitch] ? parsed.autoGlitch : DEFAULTS.autoGlitch
       };
     } catch (e) {
@@ -256,6 +268,8 @@
     ensureFxStyle();
     ensureFxDom();
     html.classList.toggle('echo-film-grain', settings.filmGrain === 'on');
+    var grainEl = document.getElementById('echo-fx-grain');
+    if (grainEl) grainEl.style.opacity = (parseInt(settings.filmGrainIntensity, 10) / 100).toString();
     setAutoGlitch(settings.autoGlitch === 'on');
 
     fixNavPadding();
@@ -328,6 +342,8 @@
       + '#echo-settings-panel .es-btn.es-a-small{font-size:11px;}'
       + '#echo-settings-panel .es-btn.es-a-medium{font-size:14px;}'
       + '#echo-settings-panel .es-btn.es-a-large{font-size:18px;}'
+      + '#echo-settings-panel .es-row.es-swatch-row{gap:2px;margin-top:6px;}'
+      + '#echo-settings-panel .es-row.es-swatch-row .es-btn{padding:0;height:14px;border-radius:1px;}'
       + '#echo-settings-panel .es-sep{height:1px;background:rgba(255,255,255,0.1);margin:0 0 10px;}'
       + '#echo-settings-panel .es-reset{width:100%;font-family:"Share Tech Mono",monospace;font-size:9px;'
       + 'letter-spacing:0.06em;text-transform:uppercase;color:rgba(255,255,255,0.4);background:transparent;'
@@ -352,14 +368,9 @@
     var panel = document.createElement('div');
     panel.id = 'echo-settings-panel';
 
-    function group(label, order, table, key, applyFn, extraClass){
-      var wrap = document.createElement('div');
-      wrap.className = 'es-group';
-      var lab = document.createElement('div');
-      lab.className = 'es-label';
-      lab.textContent = '// ' + label;
+    function buildRow(order, table, key, extraClass, rowClass){
       var row = document.createElement('div');
-      row.className = 'es-row';
+      row.className = 'es-row' + (rowClass ? ' ' + rowClass : '');
       order.forEach(function(id){
         var btn = document.createElement('button');
         btn.type = 'button';
@@ -376,8 +387,25 @@
         });
         row.appendChild(btn);
       });
+      return row;
+    }
+
+    // `subRow`, when given ({order, table, key}), adds a second,
+    // unlabeled row of small unlabeled swatch buttons beneath the main
+    // row, inside the same group - same flex row, so it spans exactly
+    // as wide (flush left/right) as the row above it. Used for Film
+    // Grain's intensity steps under its Off/On row.
+    function group(label, order, table, key, applyFn, extraClass, subRow){
+      var wrap = document.createElement('div');
+      wrap.className = 'es-group';
+      var lab = document.createElement('div');
+      lab.className = 'es-label';
+      lab.textContent = '// ' + label;
       wrap.appendChild(lab);
-      wrap.appendChild(row);
+      wrap.appendChild(buildRow(order, table, key, extraClass));
+      if (subRow){
+        wrap.appendChild(buildRow(subRow.order, subRow.table, subRow.key, null, 'es-swatch-row'));
+      }
       return wrap;
     }
 
@@ -387,7 +415,8 @@
     var sep2 = document.createElement('div'); sep2.className = 'es-sep'; panel.appendChild(sep2);
     panel.appendChild(group('Text Size', TEXT_ORDER, TEXT_SIZES, 'textSize', null, 'es-a-'));
     var sep2b = document.createElement('div'); sep2b.className = 'es-sep'; panel.appendChild(sep2b);
-    panel.appendChild(group('Film Grain', FILM_GRAIN_ORDER, FILM_GRAIN, 'filmGrain'));
+    panel.appendChild(group('Film Grain', FILM_GRAIN_ORDER, FILM_GRAIN, 'filmGrain', null, null,
+      { order: FILM_GRAIN_INTENSITY_ORDER, table: FILM_GRAIN_INTENSITY, key: 'filmGrainIntensity' }));
     var sep2c = document.createElement('div'); sep2c.className = 'es-sep'; panel.appendChild(sep2c);
     panel.appendChild(group('Auto Glitch', AUTO_GLITCH_ORDER, AUTO_GLITCH, 'autoGlitch'));
 
@@ -423,6 +452,10 @@
 
   function onDomReady(){
     ensureFxDom();
+    // The grain <div> doesn't exist until ensureFxDom() just ran, so the
+    // opacity set inside the very first apply() call (made before body
+    // existed) never reached it - apply once more now that it's there.
+    apply(settings);
     buildPanel();
   }
   if (document.readyState === 'loading'){
