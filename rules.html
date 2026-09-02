@@ -250,6 +250,12 @@
     padding-left: 16px;
   }
 
+  /* Scroll-tracked "currently viewing" state for the // Sections list -
+     color only, no border-left/padding shift. That bar treatment stays
+     reserved for :hover (the click-to-jump interaction) so the two
+     signals never visually mix into one another. */
+  nav a.nav-current { color: var(--accent); }
+
   /* ── IN-CONTENT CROSS-REFERENCE LINKS ──
      CONVENTION - every in-content link that points at another section
      (a "See ..." reference, a glossary target, etc.) MUST use this
@@ -2005,6 +2011,59 @@
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') closeDrawer();
   });
+})();
+</script>
+
+<script>
+/* ── SECTION SCROLLSPY ── Colors the // Sections nav link orange for
+   whichever section is currently in view as the page scrolls - color
+   only, no border-left bar (that stays reserved for :hover on
+   click-to-jump). Independent of the drawer/nav-layout scripts above
+   and below; doesn't touch their behavior. ── */
+(function(){
+  var sections = Array.prototype.slice.call(document.querySelectorAll('main .section[id]'));
+  var navLinks = {};
+  sections.forEach(function(s){
+    var link = document.querySelector('nav a[href="#' + s.id + '"]');
+    if (link) navLinks[s.id] = link;
+  });
+  if (!sections.length) return;
+
+  var OFFSET = 140; // px from viewport top a section's heading must cross to count as "current"
+  var ticking = false;
+
+  function setCurrent(id){
+    Object.keys(navLinks).forEach(function(key){
+      navLinks[key].classList.toggle('nav-current', key === id);
+    });
+  }
+
+  function update(){
+    ticking = false;
+    // Near the bottom of the page the last section(s) may never cross
+    // OFFSET (there isn't enough scrollable room left) - just force the
+    // last section current once we're effectively at the page bottom.
+    var atBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2;
+    var current = sections[0].id;
+    if (atBottom){
+      current = sections[sections.length - 1].id;
+    } else {
+      for (var i = 0; i < sections.length; i++){
+        if (sections[i].getBoundingClientRect().top - OFFSET <= 0) current = sections[i].id;
+        else break;
+      }
+    }
+    setCurrent(current);
+  }
+
+  window.addEventListener('scroll', function(){
+    if (!ticking){
+      ticking = true;
+      requestAnimationFrame(update);
+    }
+  }, { passive: true });
+  window.addEventListener('resize', update);
+  update();
 })();
 </script>
 
