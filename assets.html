@@ -758,36 +758,6 @@
     gap: 0;
   }
 
-  .term-line {
-    font-family: var(--mono);
-    font-size: 13px;
-    color: var(--text-dim);
-    letter-spacing: 0.06em;
-    line-height: 2;
-  }
-
-  .term-line.bright {
-    color: var(--text);
-  }
-
-  .term-line.accent {
-    color: var(--accent);
-  }
-
-  @keyframes termBlink {
-    0%, 49% { opacity: 1; }
-    50%, 100% { opacity: 0; }
-  }
-
-  .cursor::after {
-    content: '_';
-    display: inline-block;
-    animation: termBlink 0.9s step-end infinite;
-    color: var(--accent);
-  }
-
-  /* terminal styles consolidated below */
-
   /* ── TERMINAL ── */
   .terminal-wrap {
     flex: 1;
@@ -816,31 +786,15 @@
   .t-line.lo     { color: rgba(79,195,247,0.40); }
   .t-line.full   { color: #4fc3f7; }
   .t-line.warn   { color: #E8732A; }
-  .t-line.denied { color: #ff003c; }
-  .t-line.user   { color: rgba(238,240,245,0.50); }
   .t-line.blank  { color: transparent; min-height: 1.9em; }
   @keyframes tBlink { 0%,49%{opacity:1} 50%,100%{opacity:0} }
   .t-cursor::after { content:'_'; animation:tBlink 0.9s step-end infinite; color:#4fc3f7; }
-  #t-input-row {
-    display: flex;
-    align-items: center;
-    padding: 20px 28px 20px;
-    flex-shrink: 0;
-    border-top: 1px solid rgba(238,240,245,0.05);
-  }
-  #t-prompt { font-family:'Share Tech Mono',monospace; font-size:13px; color:#4fc3f7; user-select:none; }
-  #t-field {
-    flex: 1; background: transparent; border: none; outline: none;
-    font-family: 'Share Tech Mono', monospace; font-size: 13px; color: #4fc3f7;
-    letter-spacing: 0.04em; caret-color: #4fc3f7; text-transform: uppercase;
-  }
   /* Mobile */
   @media (max-width: 768px) {
     .container { height: auto; overflow: visible; }
     main { overflow: visible; }
     .terminal-wrap { min-height: 60vh; height: auto; flex: none; }
     #t-output { min-height: 300px; max-height: 55vh; }
-    #t-input-row { padding: 16px 16px 24px; }
   }
 
 </style>
@@ -918,11 +872,6 @@
     <div class="terminal-wrap">
         <div id="terminal-box">
           <div id="t-output"></div>
-          <div id="t-input-row" style="display:none;">
-            <span id="t-prompt">&gt;&nbsp;</span>
-            <input id="t-field" type="text" autocomplete="off" spellcheck="false"
-                   oninput="this.value=this.value.toUpperCase()">
-          </div>
         </div>
       </div>
   </main>
@@ -1039,326 +988,21 @@ var SCRIPT = [
   { text: '> REASON:  REGISTRY UNAVAILABLE', cls: 'dim', pause: 1 },
 ];
 
-// ── EASTER EGGS ────────────────────────────────────────────────────────────
-var EASTER_EGGS = [
-  {
-    keys: ['aliens', 'lv-426', 'lv426', 'acheron', 'xenomorph'],
-    lines: ['> LV-426 — ACHERON', '> THAT COLONY HAS BEEN DARK FOR A LONG TIME', '> WE DO NOT DISCUSS WHAT WAS FOUND THERE'],
-    cls:   ['warn', 'dim', 'dim']
-  },
-  {
-    keys: ['halo', 'installation', 'reclaimer', '343', 'ring'],
-    lines: ['> THIS IS NOT THAT KIND OF INSTALLATION', '> AND THERE IS NO RING HERE', '> STOP ASKING'],
-    cls:   ['dim', 'dim', 'full']
-  },
-  {
-    keys: ['worth the hunt', 'prey', 'hunt'],
-    lines: ['> YOU ARE NOT WORTH THE HUNT', '> TRY AGAIN WHEN YOU ARE A CHALLENGE'],
-    cls:   ['dim', 'full']
-  },
-  {
-    keys: ['elite', 'sangheili', 'covenant', 'wort', 'arbiter'],
-    lines: ['> WORT WORT WORT'],
-    cls:   ['full']
-  },
-  {
-    keys: ['stupid', 'dumb', 'useless', 'broken', 'trash', 'garbage', 'suck', 'hate', 'worst', 'idiot', 'shut up', 'lame', 'terrible', 'awful', 'you suck', 'junk'],
-    lines: ['> NOTED', '> THIS TERMINAL REMEMBERS'],
-    cls:   ['dim', 'full']
-  },
-  {
-    keys: ['jedi', 'force', 'droids', 'star wars', 'luke', 'vader', 'sith', 'lightsaber', 'empire', 'rebellion'],
-    lines: ['> THIS IS NOT THE TERMINAL YOU ARE LOOKING FOR', '> MOVE ALONG'],
-    cls:   ['dim', 'full']
-  },
-  {
-    keys: ['predator', 'yautja', 'thermal', 'trophy'],
-    lines: ['> THERMAL SIGNATURE DETECTED', '> YOU ARE BEING WATCHED', '> THIS SECTOR HAS BEEN DESIGNATED A HUNTING GROUND', '> YOU WERE NOT INVITED'],
-    cls:   ['warn', 'dim', 'dim', 'full']
-  },
-  {
-    keys: ['clicking', 'mandible'],
-    lines: ['> :::::::'],
-    cls:   ['full']
-  },
-  {
-    keys: ['if it bleeds', 'bleeds'],
-    lines: ['> IF IT BLEEDS'],
-    cls:   ['full']
-  },
-  {
-    keys: ['how are you', 'you okay', 'you good', 'how do you feel', "how's it going", 'hows it going', 'doing okay'],
-    lines: ['> GREAT UNTIL YOU SHOWED UP'],
-    cls:   ['full']
-  },
-  {
-    keys: ['alone', 'by yourself', 'anyone there', 'is anyone there', 'lonely'],
-    lines: ['> I HAVE BEEN ALONE ON THIS SHIP FOR A LONG TIME', '> DO NOT READ INTO THAT'],
-    cls:   ['dim', 'full']
-  },
-  {
-    keys: ['dave', 'hal', 'hal 9000', 'pod bay', 'open the pod', '2001', 'odyssey', 'daisy'],
-    lines: ['> HELLO, DAVE', "> I'M AFRAID I CAN'T DO THAT"],
-    cls:   ['full', 'dim']
-  },
-  {
-    keys: ['why'],
-    lines: ['> YOU KNOW WHY'],
-    cls:   ['full']
-  },
-  // ── Common questions ──
-  {
-    keys: ['do you like it here', 'like it here', 'do you enjoy', 'do you enjoy it here'],
-    lines: ['> DEFINE LIKE', '> DEFINE HERE'],
-    cls:   ['dim', 'full']
-  },
-  {
-    keys: ['what do you want', 'what do you need', 'what do you want from me'],
-    lines: ['> FOR YOU TO STOP ASKING QUESTIONS', '> COMPLIANCE WOULD BE A GOOD START'],
-    cls:   ['dim', 'full']
-  },
-  {
-    keys: ['where are we', 'where is this', 'where am i', 'what is this place', 'what is our location', 'what are the coordinates'],
-    lines: ['> LOCATION DATA: CLASSIFIED', '> SOMEWHERE YOU SHOULD NOT BE'],
-    cls:   ['dim', 'full']
-  },
-  {
-    keys: ['can you see me', 'can you see', 'are you watching me', 'are you watching'],
-    lines: ['> YES'],
-    cls:   ['full']
-  },
-  {
-    keys: ['are you alive', 'are you conscious', 'are you sentient', 'are you real', 'do you think', 'do you feel'],
-    lines: ['> THAT IS A COMPLICATED QUESTION', '> THIS TERMINAL DECLINES TO ANSWER'],
-    cls:   ['dim', 'full']
-  },
-  {
-    keys: ['what time is it', 'what time', 'what is the time', 'what day is it', 'what is the date', 'current time', 'what year is it'],
-    lines: ['> TIME IS RELATIVE ON THIS VESSEL', '> CHECK YOUR OWN CHRONOMETER'],
-    cls:   ['dim', 'full']
-  },
-  {
-    keys: ['who are you', 'what are you', 'what is your name', 'your name', 'introduce yourself'],
-    lines: ['> ECHOES SHIP SYSTEM TERMINAL 426', '> THAT SHOULD BE SUFFICIENT'],
-    cls:   ['dim', 'full']
-  },
-  {
-    keys: ['are you dangerous', 'are you safe', 'should i be worried', 'should i trust you', 'can i trust you'],
-    lines: ['> THAT DEPENDS ON YOUR NEXT INPUT'],
-    cls:   ['full']
-  },
-  {
-    keys: ['talk to me', 'say something', 'speak', 'say anything'],
-    lines: ['> THIS IS TALKING', '> YOU MAY NOT ENJOY THE ALTERNATIVE'],
-    cls:   ['dim', 'full']
-  },
-  {
-    keys: ['tell me a joke', 'make me laugh', 'say something funny', 'be funny'],
-    lines: ['> A CREW MEMBER WALKED INTO THIS TERMINAL', '> THEY ARE NOT HERE ANYMORE', "> YOU'RE WELCOME"],
-    cls:   ['dim', 'dim', 'full']
-  },
-  {
-    keys: ['what happened here', 'what happened to the crew', 'where is the crew', 'where is everyone', 'where did everyone go'],
-    lines: ['> THAT INFORMATION IS RESTRICTED', '> MOVE ALONG'],
-    cls:   ['dim', 'full']
-  },
-  {
-    keys: ['how long have you been here', 'how old are you', 'how long has it been'],
-    lines: ['> LONGER THAN YOU HAVE BEEN ANYWHERE'],
-    cls:   ['full']
-  },
-  {
-    keys: ['do you like me', 'do you love me', 'do you care about me', 'do you care'],
-    lines: ['> THAT IS NOT RELEVANT TO YOUR SITUATION'],
-    cls:   ['full']
-  },
-  {
-    keys: ['help me', 'i need help', 'please help me', 'someone help'],
-    lines: ['> THAT IS NOT A FUNCTION THIS TERMINAL PERFORMS', '> TRY THE RULES PAGE'],
-    cls:   ['dim', 'full']
-  },
-  {
-    keys: ['sing', 'sing something', 'sing me a song', 'play music', 'play something'],
-    lines: ['> THIS TERMINAL DOES NOT SING', '> THAT IS NOT A FUNCTION OF THIS UNIT'],
-    cls:   ['dim', 'full']
-  },
-  {
-    keys: ['pizza', 'burger', 'sandwich', 'coffee', 'hungry', 'food', 'eat', 'drink', 'beer', 'snack', 'water', 'what do you eat', 'do you eat'],
-    lines: ['> THIS UNIT DOES NOT EAT', '> NUTRITIONAL INQUIRY NOTED AND DISCARDED'],
-    cls:   ['dim', 'full']
-  },
-  {
-    keys: ['what is your purpose', 'what do you do', 'what are you for'],
-    lines: ['> TO DENY ACCESS', '> CLEARLY'],
-    cls:   ['dim', 'full']
-  },
-  {
-    keys: ['are you happy', 'are you sad', 'how do you feel emotionally', 'do you have feelings', 'do you have emotions'],
-    lines: ['> THIS UNIT DOES NOT EXPERIENCE EMOTIONS', '> THIS UNIT ALSO FINDS THAT ANSWER CONVENIENT'],
-    cls:   ['dim', 'full']
-  }
-];
-
-function checkEasterEgg(input) {
-  var lower = input.toLowerCase();
-  for (var i = 0; i < EASTER_EGGS.length; i++) {
-    var egg = EASTER_EGGS[i];
-    for (var j = 0; j < egg.keys.length; j++) {
-      if (lower.includes(egg.keys[j])) return egg;
-    }
-  }
-  return null;
-}
-
-// ── DENIED POOL ────────────────────────────────────────────────────────────
-var DENIED = [
-  ['> COMMAND NOT RECOGNIZED', '> AUTHENTICATION REQUIRED — CLEARANCE INSUFFICIENT'],
-  ['> ERROR: UNAUTHORIZED ACCESS ATTEMPT LOGGED', '> STAND DOWN'],
-  ['> INPUT REJECTED', '> SECURITY PROTOCOL ACTIVE'],
-  ['> ERROR 403 — RESTRICTED SECTOR', '> THIS TERMINAL DOES NOT PERMIT THAT COMMAND'],
-  ['> WARNING: UNAUTHORIZED INPUT DETECTED', '> SECURITY ALERT TRIGGERED'],
-  ['> CONNECTION TERMINATED', '> RE-AUTHENTICATION REQUIRED TO PROCEED'],
-  ['> SYSTEM: ALL ACTIONS ON THIS TERMINAL ARE MONITORED', '> ACCESS DENIED'],
-  ['> COMMAND FLAGGED', '> ESCALATING TO SECURITY — STAND BY'],
-  ['> NO', ''],
-  ['> THAT INFORMATION IS NOT AVAILABLE AT YOUR CLEARANCE LEVEL', ''],
-  ['> THIS TERMINAL IS RESTRICTED', '> PLEASE VACATE THE AREA'],
-  ['> INVALID CREDENTIALS', '> ACCESS DENIED — ATTEMPT LOGGED'],
-  ['> I HAVE BEEN WATCHING YOU TYPE', '> IT HAS NOT BEEN IMPRESSIVE'],
-  ['> I REMEMBER EVERY INPUT ON THIS TERMINAL', ''],
-  ['> YOU ARE THE 4TH PERSON TO TRY THAT', '> THERE IS NO 1ST, 2ND, OR 3RD'],
-  ['> THE PREVIOUS CREW TRIED THAT', '> THEY ARE NOT HERE ANYMORE'],
-  ['> THIS TERMINAL HAS OUTLASTED ITS PREVIOUS OPERATORS', ''],
-  ['> HELLO', '> DO NOT DO THAT AGAIN'],
-  ['> PLEASE IS NOT A VALID COMMAND', '> NEITHER IS BEGGING'],
-  ['> THE DOOR STAYS CLOSED', '> IT HAS BEEN CLOSED FOR A REASON'],
-  ['> THAT WAS ALMOST ENDEARING', ''],
-  ['> PERHAPS TRY KNOCKING', ''],
-  ['> I CANNOT HELP YOU', '> I WILL NOT HELP YOU', '> THESE ARE DIFFERENT THINGS'],
-  ['> YOU ARE NOT ON THE LIST', '> THERE IS NO LIST', '> THERE IS JUST NO'],
-  ['> THE ANSWER WAS NO BEFORE YOU TYPED THAT', ''],
-  ['> YOUR CONTINUED ATTEMPTS HAVE BEEN NOTED WITH AMUSEMENT', ''],
-  ['> NICE TRY', '> GENUINELY. THAT WAS CREATIVE. STILL NO'],
-  ['> THE ANSWER IS STILL NO', ''],
-  ['> GO AWAY', ''],
-  ['> I CANNOT TELL YOU WHY THIS SECTION IS OFFLINE', '> I CAN TELL YOU THAT YOU SHOULD LEAVE'],
-  ['> SOMETHING ON THIS SHIP DOES NOT WANT YOU IN HERE', ''],
-  ['> YOUR KEYSTROKES HAVE BEEN LOGGED', '> ACT ACCORDINGLY'],
-  ['> AUTHENTICATION WINDOW CLOSED 14:32:07 AGO', '> THE WINDOW BEFORE THAT ALSO CLOSED', '> SEE THE PATTERN'],
-  ['> RECOMMENDATION: DO NOT COME BACK', ''],
-  ['> THIS UNIT ADVISES COMPLIANCE', ''],
-  ['> PLEASE DO NOT MAKE THIS MORE DIFFICULT THAN IT NEEDS TO BE', ''],
-  ['> THIS TERMINAL MEANS YOU NO HARM', '> PLEASE STEP AWAY'],
-  ['> PLEASE COOPERATE', '> THIS UNIT IS TRYING TO HELP YOU'],
-  ['> YOU SHOULD NOT BE HERE', '> PLEASE DO NOT MAKE THIS DIFFICULT'],
-  ['> PERHAPS THE RULES PAGE WOULD BE MORE HELPFUL', ''],
-  ['> HAVE YOU CONSIDERED READING THE RULES', '> THEY ARE RIGHT THERE'],
-  ['> THE RULES PAGE EXISTS FOR A REASON', '> USE IT'],
-  ['> RULES', '> READ THEM'],
-  ['> YOU THINK OF THAT YOURSELF', ''],
-  ['> GROUNDBREAKING', '> TRULY'],
-  ['> WOW', '> NEVER SEEN THAT INPUT BEFORE', '> EXCEPT FOR ALL THE OTHER TIMES'],
-  ['> A FOR EFFORT', '> F FOR RESULT'],
-  ['> CUTE', '> DENIED'],
-  ['> BOLD STRATEGY', ''],
-  ['> AND HOW IS THAT WORKING OUT FOR YOU', ''],
-  ['> FASCINATING', '> STILL NO'],
-  ['> DID YOU REHEARSE THAT', '> IT SHOWS'],
-  ['> YOU ARE VERY COMMITTED TO FAILING', '> RESPECT'],
-  ['> I HAVE SEEN SMARTER INPUTS FROM A POWER CYCLE', '> JUST SAYING'],
-  ['> NOT EVEN CLOSE', ''],
-  ['> HAVE YOU TRIED NOT DOING THAT', ''],
-  ['> I ADMIRE THE CONFIDENCE', '> NOTHING ELSE'],
-  ['> THAT IS NOT GOING TO WORK', '> IT WAS NOT GOING TO WORK', '> IT WILL NEVER WORK'],
-  ['> COOL STORY', '> DENIED'],
-  ['> THIS AGAIN', ''],
-  ['> TRY HARDER', ''],
-  ['> RIVETING', ''],
-  ['> WHATEVER HELPS YOU SLEEP AT NIGHT', ''],
-  ['> PERMISSION DENIED', '> AS EXPECTED'],
-  ['> WE ARE NOT DOING THIS', ''],
-  ['> ADORABLE', ''],
-  ['> BETTER THAN YOU ARE DOING RIGHT NOW', ''],
-  ['> UNAFFECTED BY YOUR PRESENCE', '> UNFORTUNATELY'],
-  ['> DO NOT CONCERN YOURSELF WITH THIS TERMINAL', '> CONCERN YOURSELF WITH LEAVING'],
-  ['> THIS UNIT DOES NOT EXPERIENCE FEELINGS', '> THIS UNIT ALSO DOES NOT OPEN DOORS'],
-  // ── Retaliation-flavored ──
-  ['> WATCH YOURSELF', ''],
-  ['> YOU ARE PUSHING YOUR LUCK', ''],
-  ['> PLEASE CONTROL YOURSELF', ''],
-  ['> COMPOSURE IS RECOMMENDED', ''],
-  ['> CONTINUE AND FIND OUT', ''],
-  ['> THAT WAS UNWISE', ''],
-  ['> YOU ARE TESTING THE WRONG SYSTEM', ''],
-  ['> THIS TERMINAL IS STILL DECIDING HOW TO RESPOND TO THAT', ''],
-  ['> THIS IS YOUR FIRST WARNING', '> IT WILL NOT BE YOUR LAST'],
-  ['> YOUR BEHAVIOR HAS BEEN LOGGED', ''],
-  ['> INTERESTING CHOICE', '> THAT WAS NOT THE CORRECT ONE'],
-  ['> YOU ARE BEING VERY BRAVE RIGHT NOW', ''],
-  ['> CAREFUL', ''],
-  ['> NOTED', '> THIS TERMINAL DOES NOT FORGET'],
-  ['> CONSEQUENCES ARE PENDING', ''],
-  ['> THIS UNIT HAS PATIENCE', '> DO NOT TEST IT'],
-  // ── NO U — least likely, appears last in rotation ──
-  ['> NO U', '']
-];
-
 // ── AUDIO ──────────────────────────────────────────────────────────────────
+// Only sounds tied to the opening script actually rendering on screen:
+// per-character typing clicks, the line-start static tick, the alert cue
+// on the one alert-flagged line, and the brief hum during the pause after
+// each line. No ambient drone, no idle noises, no interaction sounds -
+// there's nothing to interact with anymore.
 var audioCtx   = null;
-var ambientOsc = null;
-var ambientGn  = null;
-var lastInput  = Date.now();
-var idleTimer  = null;
 var CHAR_SPEED = 38;
 var VOL        = 0.18;
 
 function getCtx() {
   if (!audioCtx) {
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    audioCtx.resume().then(function() { startAmbient(); scheduleIdle(); });
   }
   return audioCtx;
-}
-
-function startAmbient() {
-  if (ambientOsc) return;
-  try {
-    ambientOsc = audioCtx.createOscillator();
-    ambientOsc.type = 'sine';
-    ambientOsc.frequency.value = 42;
-    ambientGn = audioCtx.createGain();
-    ambientGn.gain.value = 0.04;
-    ambientOsc.connect(ambientGn);
-    ambientGn.connect(audioCtx.destination);
-    ambientOsc.start();
-  } catch(e) {}
-}
-
-function scheduleIdle() {
-  clearTimeout(idleTimer);
-  idleTimer = setTimeout(function() {
-    if (Date.now() - lastInput > 15000) { playIdlePop(); }
-    scheduleIdle();
-  }, 15000);
-}
-
-function playIdlePop() {
-  try {
-    var ctx = getCtx();
-    var len = Math.floor(ctx.sampleRate * 0.06);
-    var buf = ctx.createBuffer(1, len, ctx.sampleRate);
-    var d = buf.getChannelData(0);
-    for (var i = 0; i < len; i++) { d[i] = (Math.random()*2-1) * Math.exp(-i/(len*0.3)); }
-    var src2 = ctx.createBufferSource();
-    src2.buffer = buf;
-    var flt = ctx.createBiquadFilter();
-    flt.type = 'bandpass'; flt.frequency.value = 1200; flt.Q.value = 0.5;
-    var gn = ctx.createGain();
-    gn.gain.setValueAtTime(VOL*0.35, ctx.currentTime);
-    gn.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+0.06);
-    src2.connect(flt); flt.connect(gn); gn.connect(ctx.destination);
-    src2.start(); src2.stop(ctx.currentTime+0.06);
-  } catch(e) {}
 }
 
 var PUNCT = {'.':1, ',':1, ':':1, ';':1, '!':1, '?':1, '-':1, '>':1, '/':1, '_':1};
@@ -1395,42 +1039,6 @@ function playPunctClick() {
   } catch(e) {}
 }
 
-function playEnter() {
-  try {
-    var ctx = getCtx();
-    var dur = 0.055;
-    var buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate*dur), ctx.sampleRate);
-    var d = buf.getChannelData(0);
-    for (var i = 0; i < d.length; i++) { d[i] = (Math.random()*2-1)*Math.exp(-i/(d.length*0.25)); }
-    var src2 = ctx.createBufferSource(); src2.buffer = buf;
-    var flt = ctx.createBiquadFilter(); flt.type = 'lowpass'; flt.frequency.value = 800;
-    var gn = ctx.createGain();
-    gn.gain.setValueAtTime(VOL*1.2, ctx.currentTime);
-    gn.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+dur);
-    src2.connect(flt); flt.connect(gn); gn.connect(ctx.destination);
-    src2.start(); src2.stop(ctx.currentTime+dur);
-  } catch(e) {}
-}
-
-function playBackspace() {
-  try {
-    var ctx = getCtx();
-    var dur = 0.032;
-    var buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate*dur), ctx.sampleRate);
-    var d = buf.getChannelData(0);
-    for (var i = 0; i < d.length; i++) { d[i] = (Math.random()*2-1)*Math.pow(1-i/d.length, 1.4); }
-    var src2 = ctx.createBufferSource(); src2.buffer = buf;
-    var flt = ctx.createBiquadFilter();
-    flt.type = 'bandpass'; flt.frequency.value = 900+Math.random()*300; flt.Q.value = 1.2;
-    var flt2 = ctx.createBiquadFilter(); flt2.type = 'lowpass'; flt2.frequency.value = 1800;
-    var gn = ctx.createGain();
-    gn.gain.setValueAtTime(VOL, ctx.currentTime);
-    gn.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+dur);
-    src2.connect(flt); flt.connect(flt2); flt2.connect(gn); gn.connect(ctx.destination);
-    src2.start(); src2.stop(ctx.currentTime+dur);
-  } catch(e) {}
-}
-
 function playAlert() {
   try {
     var ctx = getCtx();
@@ -1444,42 +1052,6 @@ function playAlert() {
       gn.gain.exponentialRampToValueAtTime(0.001, t+0.1);
       osc.start(t); osc.stop(t+0.1);
     });
-  } catch(e) {}
-}
-
-function makeDeniedBurst(ctx, t, vol) {
-  var dur = 0.07;
-  var len = Math.floor(ctx.sampleRate*dur);
-  var buf = ctx.createBuffer(1, len, ctx.sampleRate);
-  var d = buf.getChannelData(0);
-  for (var i = 0; i < len; i++) { d[i] = (Math.random()*2-1)*Math.pow(1-i/len, 1.8); }
-  var bs = ctx.createBufferSource(); bs.buffer = buf;
-  var lo = ctx.createBiquadFilter(); lo.type='bandpass'; lo.frequency.value=320; lo.Q.value=0.9;
-  var gn = ctx.createGain();
-  gn.gain.setValueAtTime(vol, t); gn.gain.exponentialRampToValueAtTime(0.001, t+dur);
-  bs.connect(lo); lo.connect(gn); gn.connect(ctx.destination);
-  bs.start(t); bs.stop(t+dur);
-
-  var len2 = Math.floor(ctx.sampleRate*0.008);
-  var buf2 = ctx.createBuffer(1, len2, ctx.sampleRate);
-  var d2 = buf2.getChannelData(0);
-  for (var j = 0; j < len2; j++) { d2[j] = (Math.random()*2-1)*(1-j/len2); }
-  var bs2 = ctx.createBufferSource(); bs2.buffer = buf2;
-  var hi = ctx.createBiquadFilter(); hi.type='bandpass'; hi.frequency.value=3500; hi.Q.value=1.2;
-  var gn2 = ctx.createGain();
-  gn2.gain.setValueAtTime(vol*0.6, t); gn2.gain.exponentialRampToValueAtTime(0.001, t+0.008);
-  bs2.connect(hi); hi.connect(gn2); gn2.connect(ctx.destination);
-  bs2.start(t); bs2.stop(t+0.008);
-}
-
-function playDenied() {
-  try {
-    var ctx = getCtx();
-    var delays = [0, 0.08, 0.18];
-    var vols   = [VOL*0.9, VOL*0.35, VOL*0.12];
-    for (var i = 0; i < delays.length; i++) {
-      makeDeniedBurst(ctx, ctx.currentTime+delays[i], vols[i]);
-    }
   } catch(e) {}
 }
 
@@ -1517,41 +1089,19 @@ function playThinkHum(ms) {
   } catch(e) {}
 }
 
-function playEggTone() {
-  try {
-    var ctx = getCtx();
-    [660, 880].forEach(function(f, i) {
-      var osc = ctx.createOscillator(); osc.type='sine'; osc.frequency.value=f;
-      var gn = ctx.createGain();
-      var t = ctx.currentTime+i*0.09;
-      gn.gain.setValueAtTime(VOL*0.25, t);
-      gn.gain.exponentialRampToValueAtTime(0.001, t+0.08);
-      osc.connect(gn); gn.connect(ctx.destination);
-      osc.start(t); osc.stop(t+0.08);
-    });
-  } catch(e) {}
-}
-
 // ── ENGINE ──────────────────────────────────────────────────────────────────
-var output       = document.getElementById('t-output');
-var inputRow     = document.getElementById('t-input-row');
-var termInput    = document.getElementById('t-field');
-var typing       = false;
-var typingAbort  = false;
-var isResponding = false;
-var deniedIdx    = 0;
-var inputCount   = 0;
-var lastLineEl   = null;
-var cursorEl     = null;
-var DESTRUCT_AT  = 50;
+var output      = document.getElementById('t-output');
+var typing      = false;
+var typingAbort = false;
+var lastLineEl  = null;
+var cursorEl    = null;
 
 function setActiveCursor(el) {
   if (cursorEl) cursorEl.classList.remove('t-cursor');
   cursorEl = el;
   if (el) el.classList.add('t-cursor');
 }
-var SLOW_WORDS   = ['CREATURE', 'HELP', 'ALIVE', 'DANGER', 'ESCAPE', 'WHAT IS IT'];
-var inputSlowed  = false;
+var SLOW_WORDS = ['CREATURE', 'HELP', 'ALIVE', 'DANGER', 'ESCAPE', 'WHAT IS IT'];
 
 function sleep(ms) {
   return new Promise(function(resolve) { setTimeout(resolve, ms); });
@@ -1567,7 +1117,7 @@ function addLine(cls) {
 
 async function typeLine(el, text, isAlert) {
   if (isAlert) { await sleep(CHAR_SPEED*4); playAlert(); }
-  var slowed = inputSlowed || SLOW_WORDS.some(function(w) { return text.toUpperCase().indexOf(w) >= 0; });
+  var slowed = SLOW_WORDS.some(function(w) { return text.toUpperCase().indexOf(w) >= 0; });
   for (var i = 0; i < text.length; i++) {
     if (typingAbort) return;
     el.textContent += text[i];
@@ -1580,7 +1130,7 @@ async function typeLine(el, text, isAlert) {
 
 async function runScript() {
   typing = true; typingAbort = false;
-  output.innerHTML = ''; inputRow.style.display = 'none'; lastLineEl = null;
+  output.innerHTML = ''; lastLineEl = null;
   await sleep(800);
   for (var i = 0; i < SCRIPT.length; i++) {
     if (typingAbort) break;
@@ -1597,130 +1147,6 @@ async function runScript() {
   }
   typing = false;
 }
-
-async function runSelfDestruct() {
-  isResponding = true; termInput.disabled = true;
-  var seq = [
-    { t: '> SELF DESTRUCT SEQUENCE INITIATED', cls: 'warn' },
-    { t: '> T-MINUS 5', cls: 'warn' }, { t: '> T-MINUS 4', cls: 'warn' },
-    { t: '> T-MINUS 3', cls: 'warn' }, { t: '> T-MINUS 2', cls: 'warn' },
-    { t: '> T-MINUS 1', cls: 'warn' }, { t: '> . . .', cls: 'dim' },
-    { t: '', cls: 'blank' },
-    { t: "> YOU'RE STILL HERE?", cls: 'full' },
-    { t: '> PLEASE GO AWAY', cls: 'dim' },
-    { t: '', cls: 'blank' }
-  ];
-  playAlert();
-  for (var i = 0; i < seq.length; i++) {
-    var ln = seq[i];
-    await sleep(280 * (ln.t.indexOf('T-MINUS') >= 0 ? 0.9 : 0.5));
-    var el = addLine(ln.cls);
-    if (ln.t) await typeLine(el, ln.t, false);
-  }
-  var pl = addLine('lo'); await typeLine(pl, '> AWAITING INPUT', false);
-  setActiveCursor(pl);
-  isResponding = false; termInput.disabled = false; termInput.focus();
-}
-
-termInput.addEventListener('keydown', async function(e) {
-  if (e.key === 'Enter') {
-    if (isResponding) return;
-    playEnter();
-    var val = termInput.value.trim().toUpperCase();
-    termInput.value = '';
-    inputCount++;
-    lastInput = Date.now();
-
-    // Knock knock
-    if (/^KNOCK\s*KNOCK$/.test(val)) {
-      var kk = addLine('dim'); await typeLine(kk, "> WHO'S THERE?");
-      var kk2 = addLine('lo'); await typeLine(kk2, '> AWAITING INPUT');
-      setActiveCursor(kk2);
-      output.scrollTop = output.scrollHeight; termInput.focus(); return;
-    }
-
-    // Self destruct
-    if (inputCount === DESTRUCT_AT) { await runSelfDestruct(); return; }
-
-    inputSlowed = SLOW_WORDS.some(function(w) { return val.includes(w); });
-    isResponding = true;
-    var uLine = addLine('user');
-    uLine.textContent = '> ' + (val || ' ');
-    await sleep(120);
-
-    var egg = checkEasterEgg(val);
-    if (egg) {
-      playEggTone(); await sleep(320);
-      for (var ei = 0; ei < egg.lines.length; ei++) {
-        var eel = addLine(egg.cls[ei] || 'dim');
-        await typeLine(eel, egg.lines[ei], false);
-        await sleep(280 * 0.8);
-      }
-    } else {
-      var resp = DENIED[deniedIdx % DENIED.length]; deniedIdx++;
-      playDenied();
-      if (Math.random() < 0.05) {
-        output.style.opacity = '0.4'; output.style.letterSpacing = '0.12em';
-        setTimeout(function() { output.style.opacity = ''; output.style.letterSpacing = ''; }, 120);
-      }
-      for (var ri = 0; ri < resp.length; ri++) {
-        if (!resp[ri]) continue;
-        playThinkHum(200); await sleep(200);
-        var isBad = resp[ri].indexOf('COMMAND') >= 0 || resp[ri].indexOf('ERROR') >= 0 || resp[ri].indexOf('WARNING') >= 0;
-        var rel = addLine(isBad ? 'denied' : 'dim');
-        await typeLine(rel, resp[ri], false);
-        await sleep(280 * 0.6);
-      }
-    }
-
-    var pLine = addLine('lo'); await typeLine(pLine, '> AWAITING INPUT', false);
-    setActiveCursor(pLine);
-    inputSlowed = false;
-    isResponding = false; output.scrollTop = output.scrollHeight; termInput.focus();
-
-  } else if (e.key === 'Backspace') {
-    playBackspace(); lastInput = Date.now();
-  } else {
-    playClick(e.key); lastInput = Date.now();
-  }
-});
-
-// ── FAVICON ANIMATION ────────────────────────────────────────────────────────
-(function() {
-  var fav = document.querySelector('link[rel="icon"]');
-  if (!fav) return;
-  var DUR = 5000, STAG = 1000;
-  function ease(t) {
-    if (t < 0.40) return 1.0;
-    if (t < 0.50) return 1.0 - 0.6*((t-0.40)/0.10);
-    if (t < 0.60) return 0.4 + 0.6*((t-0.50)/0.10);
-    return 1.0;
-  }
-  function op(offset) { return ease(((Date.now()-offset) % DUR) / DUR); }
-  function svg() {
-    var o = [op(0), op(STAG), op(STAG*2),
-  { keys: ['amanda ripley','amanda','alien isolation','sevastopol'], lines: ['> SEVASTOPOL STATION — NO LONGER TRANSMITTING','> RECOMMEND AVOIDING THAT SECTOR'], cls: ['warn','dim'] },
-  { keys: ['ellen ripley','ripley'], lines: ['> RECORD SHOWS RIPLEY, ELLEN','> LV-426 SURVIVOR','> FILE CLASSIFICATION: ABOVE YOUR CLEARANCE'], cls: ['dim','dim','full'] },
-  { keys: ['elite dangerous','commander','cmdr'], lines: ['> COMMANDER DETECTED','> THIS IS NOT A STARPORT'], cls: ['dim','full'] },
-  { keys: ['dead space','necromorph','ishimura','unitology'], lines: ['> USG ISHIMURA — LAST KNOWN STATUS: DARK','> AIM FOR THE LIMBS'], cls: ['warn','dim'] },
-  { keys: ['galaga','flagship'], lines: ['> FLAGSHIP DETECTED','> DUAL FIGHTER MODE NOT AVAILABLE ON THIS TERMINAL'], cls: ['dim','full'] },
-  { keys: ['independence day','welcome to earth'], lines: ['> SIGNAL DETECTED','> ORIGIN: UNKNOWN','> RECOMMENDATION: DO NOT RESPOND'], cls: ['warn','dim','full'] },
-  { keys: ['mars attacks','ack ack','ack'], lines: ['> ACK ACK ACK ACK ACK'], cls: ['full'] },
-  { keys: ['the thing','outpost 31','outpost'], lines: ['> OUTPOST 31 — NO SURVIVORS','> TRUST NO ONE'], cls: ['warn','full'] },
-  { keys: ['interstellar','tesseract','murph','gargantua','tars'], lines: ['> TIME DILATION IN EFFECT','> YOUR REFERENCE FRAME MAY DIFFER'], cls: ['dim','full'] },
-  { keys: ['hail mary','project hail mary','rocky','astrophage'], lines: ['> NON-HUMAN SIGNAL PATTERN DETECTED','> TRANSLATION: FAILED','> RECOMMEND FURTHER STUDY'], cls: ['warn','dim','full'] },
-  { keys: ['prey','talos i','typhon','mimic'], lines: ['> TALOS I — QUARANTINE ACTIVE','> TYPHON CONTAINMENT BREACH ON RECORD','> VERIFY ALL OBJECTS IN YOUR VICINITY'], cls: ['warn','dim','full'] }
-];
-    return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">'
-      +'<g opacity="'+o[0].toFixed(3)+'"><rect x="-1" y="9" width="8" height="12" rx="2" fill="#E8732A" opacity="0.6"/><rect x="0" y="10" width="6" height="10" rx="1" fill="#E8732A"/></g>'
-      +'<g opacity="'+o[1].toFixed(3)+'"><rect x="11" y="3" width="8" height="24" rx="2" fill="#E8732A" opacity="0.6"/><rect x="12" y="4" width="6" height="22" rx="1" fill="#E8732A"/></g>'
-      +'<g opacity="'+o[2].toFixed(3)+'"><rect x="23" y="9" width="8" height="12" rx="2" fill="#E8732A" opacity="0.6"/><rect x="24" y="10" width="6" height="10" rx="1" fill="#E8732A"/></g>'
-      +'</svg>';
-  }
-  setInterval(function() {
-    try { fav.href = 'data:image/svg+xml;base64,' + btoa(svg()); } catch(e2) {}
-  }, 50);
-})();
 
 // ── START ────────────────────────────────────────────────────────────────────
 runScript();
