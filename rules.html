@@ -1397,11 +1397,11 @@
             <tr><td>Quiet Move</td><td>Base Speed −2</td><td>0 per Move</td><td>1 Action</td></tr>
             <tr><td>Run</td><td>Base Speed +4</td><td>+3 (once per phase)</td><td>1 Action</td></tr>
             <tr><td>Vent Movement</td><td>Base Speed</td><td>+2 per Move</td><td>Per Move used</td></tr>
-            <tr><td>Flee Move</td><td>Full Speed</td><td>0</td><td>Granted — does not use a Move</td></tr>
+            <tr><td>Flee Move (×2)</td><td>Up to Speed, each</td><td>0</td><td>Granted — does not use a normal Move</td></tr>
           </tbody>
         </table>
       </div>
-      <div class="callout success"><strong>// Flee Move</strong>A free bonus Move granted after a successful Creature encounter (see <a href="#weapons">// 15 WEAPONS - MELEE WEAPONS</a> and <a href="#combat">// 14 COMBAT - FULL ENCOUNTER SEQUENCE</a>) — not drawn from the player's normal Move allotment. Full speed, generates 0 noise, and the creature does not pursue.</div>
+      <div class="callout success"><strong>// Flee Move</strong>Two free bonus Moves granted after a successful Creature encounter (see <a href="#weapons">// 15 WEAPONS - MELEE WEAPONS</a> and <a href="#combat">// 14 COMBAT - FULL ENCOUNTER SEQUENCE</a>) — not drawn from the player's normal Move allotment. Mirrors the Move 1 / Move 2 structure of a normal turn (see <a href="#turn">// 08 TURN STRUCTURE</a>): each Move is up to the player's Speed, generates 0 noise, and the creature does not pursue. Lets a player move out of the room, Seal the Door with the Reaction, then use the remaining Move to position themselves better than just standing on the other side of the door.</div>
       <div class="callout info"><strong>// Declaring Run or Quiet Move</strong>Recommended at the start of the turn before any Move, so all movement benefits from the modification. May also be declared as Action 1 after Move 1 — only Move 2 onward is affected. Move 1 is not retroactively modified. Run and Quiet Move cannot both be declared in the same turn.</div>
       <div class="callout warning"><strong>// Run — Once Per Player Phase</strong>The +4 Speed bonus applies once per phase only. A player cannot Run twice. +3 noise is generated once for the phase — not per Move. If the player is also Encumbered, noise stacks: +2 (Encumbered) + +3 (Run) = +5 total for that phase.</div>
       <div class="callout info"><strong>// Quiet Move</strong>Nullifies all Move noise from the point of declaration forward. Speed is reduced by 2 for the entire phase. Cannot be combined with Run. Overrides Encumbered noise generation — a player who is Encumbered and declares Quiet Move generates 0 Move noise.</div>
@@ -1457,7 +1457,6 @@
       <h3>Reaction</h3>
       <p>A Reaction is functionally the same as a regular Action — it just isn't taken during the normal turn structure (see <a href="#turn">// 08 TURN STRUCTURE</a>). Reactions are only available after a Creature encounter, granted by a successful Melee Weapon use (see <a href="#weapons">// 15 WEAPONS - MELEE WEAPONS</a>). They give the player a chance to put themselves in a better position relative to the Creature before play continues.</p>
       <ul class="rules-list">
-        <li><strong>Attack (Ranged or Melee):</strong> Take another Attack / Defense Roll. See <a href="#combat">// 14 COMBAT - ATTACK / DEFENSE ROLL</a>.</li>
         <li><strong>Seal Door:</strong> Block the Creature's path. See Seal Door in the Actions table above.</li>
         <li><strong>Hide:</strong> Enter a locker, vent, or other hiding location. See Hiding above.</li>
       </ul>
@@ -1574,12 +1573,12 @@
             <tr><td>2</td><td>Attack / Defense Roll: weapon dice pool, up to 3 rolls, keep Hazard/Biohazard/Wild, Void removes die.</td></tr>
             <tr><td>3</td><td>Damage: 5 base − Brace faces − Defense faces − Armor. Floors at 0.</td></tr>
             <tr><td>4</td><td>Pushback: 1 space per face, capped at pool size + Ready bonus.</td></tr>
-            <tr><td>5</td><td>Melee check: flip token (or destroy). Grant 1 Flee Move and 1 Reaction.</td></tr>
+            <tr><td>5</td><td>Melee check: flip token (or destroy). Grant 2 Flee Moves and 1 Reaction.</td></tr>
             <tr><td>6</td><td>Player Flee: all players, all encounter types. Full speed, 0 noise, creature does not pursue.</td></tr>
           </tbody>
         </table>
       </div>
-      <div class="callout success"><strong>// Melee Bonus</strong>Melee weapon users receive a bonus Flee Move and a Reaction on top of the standard flee — rewarding players who choose to fight back. See <a href="#actions">// 12 ACTIONS - REACTION</a>.</div>
+      <div class="callout success"><strong>// Melee Bonus</strong>Melee weapon users receive two bonus Flee Moves and a Reaction on top of the standard flee — rewarding players who choose to fight back. See <a href="#actions">// 12 ACTIONS - REACTION</a>.</div>
     </section>
     <!-- 15 WEAPONS -->
     <section class="section" id="weapons">
@@ -1589,7 +1588,7 @@
       </div>
 
       <h3>Melee Weapons</h3>
-      <p>Melee Weapons get 2 uses and are tracked by flipping the token to the opposite side. Both sides perform identically. Destroyed after second use. Successful Creature encounters grant 1 Flee Move and 1 Reaction. See <a href="#actions">// 12 ACTIONS - MOVEMENT VARIANTS</a> and <a href="#actions">// 12 ACTIONS - REACTION</a>.</p>
+      <p>Melee Weapons get 2 uses and are tracked by flipping the token to the opposite side. Both sides perform identically. Destroyed after second use. Successful Creature encounters grant 2 Flee Moves and 1 Reaction. See <a href="#actions">// 12 ACTIONS - MOVEMENT VARIANTS</a> and <a href="#actions">// 12 ACTIONS - REACTION</a>.</p>
       <div class="tbl-wrap">
         <table>
           <thead><tr><th>Weapon</th><th>Size</th><th>Dice</th><th>Special</th></tr></thead>
