@@ -198,6 +198,9 @@
     right: var(--layout-nav-right);
     width: var(--layout-nav-width);
     overflow-y: auto;
+    /* Re-permits vertical touch panning inside nav even while
+       body.drawer-open sets touch-action:none on the page behind it. */
+    touch-action: pan-y;
     padding: 40px 24px 40px 16px;
     border-right: 1px solid var(--border);
     scrollbar-width: none;
@@ -665,7 +668,7 @@
      itself should scroll. position:fixed (set via JS, see drawer script)
      rather than plain overflow:hidden, since iOS Safari still allows
      touch-scrolling a "hidden" body underneath a fixed drawer. */
-  body.drawer-open { overflow: hidden; }
+  body.drawer-open { overflow: hidden; touch-action: none; }
 
   /* ── RESPONSIVE ── */
   @media (max-width: 768px) {
@@ -1228,31 +1231,20 @@
   const nav = document.getElementById('siteNav');
   if (!toggle || !backdrop || !nav) return;
 
-  let lockedScrollY = 0;
-
+  // Locks the page in place while the drawer is open without ever moving
+  // body's own position - CSS (overflow:hidden + touch-action:none on
+  // body.drawer-open, touch-action:pan-y on nav to opt back in) does the
+  // actual locking. An earlier version faked this by pinning body with
+  // position:fixed at -scrollY and restoring it on close, but that could
+  // visibly misalign by a section or two on some mobile browsers. This
+  // way there's no scroll position to capture or restore - the page
+  // simply never moves, so it can't drift.
   function openDrawer(){
-    lockedScrollY = window.scrollY;
-    document.body.style.position = 'fixed';
-    document.body.style.top = -lockedScrollY + 'px';
-    document.body.style.left = '0';
-    document.body.style.right = '0';
     document.body.classList.add('drawer-open');
     toggle.setAttribute('aria-expanded', 'true');
   }
   function closeDrawer(){
     document.body.classList.remove('drawer-open');
-    document.body.style.position = '';
-    document.body.style.top = '';
-    document.body.style.left = '';
-    document.body.style.right = '';
-    // Bypass the page's smooth-scroll (html{scroll-behavior:smooth}) for this
-    // restore - otherwise the page visibly jumps to the top and animates
-    // back down to lockedScrollY instead of just staying put.
-    var root = document.documentElement;
-    var prevBehavior = root.style.scrollBehavior;
-    root.style.scrollBehavior = 'auto';
-    window.scrollTo(0, lockedScrollY);
-    root.style.scrollBehavior = prevBehavior;
     toggle.setAttribute('aria-expanded', 'false');
   }
 
