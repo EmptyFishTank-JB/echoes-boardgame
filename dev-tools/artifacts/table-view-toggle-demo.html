@@ -10,6 +10,7 @@
 <style>
   :root {
     --bg: #0a0c0f;
+    --bg-solid: #0a0c0f;
     --surface: #111318;
     --surface2: #1a1d24;
     --border: #2a2d35;
@@ -150,65 +151,85 @@
   .view-toggle:hover { color: var(--accent); border-color: var(--accent); }
   .view-toggle svg { width: 16px; height: 16px; display: block; }
 
+  /* ── COLUMN TABLE — matches rules.html's real table styling exactly
+     (table/thead/tbody/td rules below are copied from there), with the
+     two new details layered on via .tbl-wrap above: rounded corners +
+     the grey border. ── */
   table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 13.5px;
+    font-size: 13px;
   }
+  thead tr { background: var(--accent); }
   thead th {
-    font-family: var(--mono);
-    font-size: 11px;
-    letter-spacing: 0.1em;
+    font-family: var(--head);
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: var(--text-dim);
+    color: var(--bg-solid);
+    padding: 10px 14px;
     text-align: left;
-    padding: 10px 14px;
-    border-bottom: 1px solid var(--border);
   }
-  tbody td {
+  tbody tr:nth-child(odd) { background: var(--surface); }
+  tbody tr:nth-child(even) { background: var(--surface2); }
+  tbody tr:hover { background: rgba(232,115,42,0.08); }
+  td {
     padding: 10px 14px;
-    border-bottom: 1px solid rgba(255,255,255,0.04);
+    color: var(--text);
+    border-bottom: 1px solid var(--border);
     vertical-align: top;
   }
   tbody tr:last-child td { border-bottom: none; }
-  tbody td:first-child { color: var(--text-bright); font-weight: 600; white-space: nowrap; }
+  td:first-child {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--accent);
+    white-space: nowrap;
+  }
+  td strong { color: var(--text-bright); }
 
   /* ── STACKED / DICTIONARY-ENTRY VIEW ──
      data-label on each non-first <td> is populated by JS from the
      matching <th> text at load time - the real markup in rules.html
      would need zero per-cell edits to adopt this, just the wrapper +
-     toggle button plus this same init script. */
+     toggle button plus this same init script.
+
+     Title bar reuses the real thead's own look (accent fill, dark
+     text) instead of introducing a new color language. Info lines
+     reuse the real tbody's odd/even surface-shade alternation, just
+     per line instead of per row, at tighter padding than the column
+     table's own 10px 14px. */
   .tbl-wrap[data-mode="stacked"] table,
   .tbl-wrap[data-mode="stacked"] tbody,
   .tbl-wrap[data-mode="stacked"] tr,
   .tbl-wrap[data-mode="stacked"] td { display: block; width: auto; }
   .tbl-wrap[data-mode="stacked"] thead { display: none; }
-  .tbl-wrap[data-mode="stacked"] tr {
-    padding: 14px 14px 12px;
-    border-bottom: 1px solid var(--border);
-  }
+  .tbl-wrap[data-mode="stacked"] tr { border-bottom: 1px solid var(--border); }
   .tbl-wrap[data-mode="stacked"] tr:last-child { border-bottom: none; }
-  .tbl-wrap[data-mode="stacked"] td {
-    padding: 0;
-    border-bottom: none;
-    white-space: normal;
-  }
+  .tbl-wrap[data-mode="stacked"] td { white-space: normal; vertical-align: top; }
   .tbl-wrap[data-mode="stacked"] td:first-child {
+    background: var(--accent);
+    color: var(--bg-solid);
     font-family: var(--head);
     font-weight: 700;
-    font-size: 15px;
-    color: var(--accent);
-    margin-bottom: 6px;
+    font-size: 12.5px;
+    letter-spacing: 0.04em;
+    padding: 6px 14px;
+    border-bottom: none;
   }
   .tbl-wrap[data-mode="stacked"] td:not(:first-child) {
-    font-size: 13px;
+    font-size: 12.5px;
     color: var(--text);
-    padding: 3px 0 3px 2px;
+    padding: 4px 14px;
+    border-bottom: none;
   }
+  .tbl-wrap[data-mode="stacked"] td:not(:first-child):nth-child(even) { background: var(--surface); }
+  .tbl-wrap[data-mode="stacked"] td:not(:first-child):nth-child(odd)  { background: var(--surface2); }
   .tbl-wrap[data-mode="stacked"] td:not(:first-child)::before {
     content: attr(data-label) ": ";
     font-family: var(--mono);
-    font-size: 10.5px;
+    font-size: 10px;
     letter-spacing: 0.06em;
     text-transform: uppercase;
     color: var(--text-dim);
@@ -216,19 +237,28 @@
 
   /* ── AUTO BREAKPOINT ──
      Below this width, tables switch to stacked automatically unless a
-     toggle has already set an explicit data-mode on that .tbl-wrap. */
+     toggle has already set an explicit data-mode on that .tbl-wrap.
+     Mirrors the [data-mode="stacked"] block above exactly. */
   @media (max-width: 640px) {
     .tbl-wrap[data-mode="auto"] table,
     .tbl-wrap[data-mode="auto"] tbody,
     .tbl-wrap[data-mode="auto"] tr,
     .tbl-wrap[data-mode="auto"] td { display: block; width: auto; }
     .tbl-wrap[data-mode="auto"] thead { display: none; }
-    .tbl-wrap[data-mode="auto"] tr { padding: 14px 14px 12px; border-bottom: 1px solid var(--border); }
+    .tbl-wrap[data-mode="auto"] tr { border-bottom: 1px solid var(--border); }
     .tbl-wrap[data-mode="auto"] tr:last-child { border-bottom: none; }
-    .tbl-wrap[data-mode="auto"] td { padding: 0; border-bottom: none; white-space: normal; }
-    .tbl-wrap[data-mode="auto"] td:first-child { font-family: var(--head); font-weight: 700; font-size: 15px; color: var(--accent); margin-bottom: 6px; }
-    .tbl-wrap[data-mode="auto"] td:not(:first-child) { font-size: 13px; color: var(--text); padding: 3px 0 3px 2px; }
-    .tbl-wrap[data-mode="auto"] td:not(:first-child)::before { content: attr(data-label) ": "; font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-dim); }
+    .tbl-wrap[data-mode="auto"] td { white-space: normal; vertical-align: top; }
+    .tbl-wrap[data-mode="auto"] td:first-child {
+      background: var(--accent); color: var(--bg-solid); font-family: var(--head);
+      font-weight: 700; font-size: 12.5px; letter-spacing: 0.04em; padding: 6px 14px; border-bottom: none;
+    }
+    .tbl-wrap[data-mode="auto"] td:not(:first-child) { font-size: 12.5px; color: var(--text); padding: 4px 14px; border-bottom: none; }
+    .tbl-wrap[data-mode="auto"] td:not(:first-child):nth-child(even) { background: var(--surface); }
+    .tbl-wrap[data-mode="auto"] td:not(:first-child):nth-child(odd)  { background: var(--surface2); }
+    .tbl-wrap[data-mode="auto"] td:not(:first-child)::before {
+      content: attr(data-label) ": "; font-family: var(--mono); font-size: 10px;
+      letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-dim);
+    }
   }
 
   footer {
