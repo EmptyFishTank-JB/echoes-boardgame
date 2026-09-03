@@ -129,14 +129,16 @@
     border-radius: 8px;
     background: var(--surface);
   }
-  /* Reads as the table's own header row - centered, full width, with a
-     grey separator line before the real header/first entry below it. */
+  /* Reads as the table's own header row - centered, full width, with an
+     orange separator line before the real header/first entry below it.
+     The header zone (this + thead) is orange-outlined; the data rows
+     below use grey border lines instead - see thead th / tbody below. */
   .tbl-toolbar {
     display: flex;
     justify-content: center;
     align-items: center;
     padding: 10px 0;
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1px solid var(--accent);
   }
   .view-toggle {
     display: flex;
@@ -159,6 +161,9 @@
     border-collapse: collapse;
     font-size: 13.5px;
   }
+  /* Header text stays the prototype's own dim Share Tech Mono look
+     (not the real site's orange-filled thead) - only the border under
+     it goes orange, matching the toolbar above it. */
   thead th {
     font-family: var(--mono);
     font-size: 11px;
@@ -167,15 +172,24 @@
     color: var(--text-dim);
     text-align: left;
     padding: 10px 14px;
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1px solid var(--accent);
   }
+  /* Zebra-striped data rows + accent mono first column, matching the
+     real rules.html table. */
+  tbody tr:nth-child(odd) { background: var(--surface); }
+  tbody tr:nth-child(even) { background: var(--surface2); }
   tbody td {
     padding: 10px 14px;
-    border-bottom: 1px solid rgba(255,255,255,0.04);
+    border-bottom: 1px solid var(--border);
     vertical-align: top;
   }
   tbody tr:last-child td { border-bottom: none; }
-  tbody td:first-child { color: var(--text-bright); font-weight: 600; white-space: nowrap; }
+  tbody td:first-child {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--accent);
+    white-space: nowrap;
+  }
 
   /* ── STACKED / DICTIONARY-ENTRY VIEW ──
      data-label on each non-first <td> is populated by JS from the
@@ -187,6 +201,11 @@
   .tbl-wrap[data-mode="stacked"] tr,
   .tbl-wrap[data-mode="stacked"] td { display: block; width: auto; }
   .tbl-wrap[data-mode="stacked"] thead { display: none; }
+  /* Whole-card alternating fill, matching the real table's own
+     odd/even row striping - one shade per entry, same as the column
+     view's zebra rows, rather than striping per line. */
+  .tbl-wrap[data-mode="stacked"] tbody tr:nth-child(odd) { background: var(--surface); }
+  .tbl-wrap[data-mode="stacked"] tbody tr:nth-child(even) { background: var(--surface2); }
   .tbl-wrap[data-mode="stacked"] tr {
     padding: 14px 14px 12px;
     border-bottom: 1px solid var(--border);
@@ -227,6 +246,8 @@
     .tbl-wrap[data-mode="auto"] tr,
     .tbl-wrap[data-mode="auto"] td { display: block; width: auto; }
     .tbl-wrap[data-mode="auto"] thead { display: none; }
+    .tbl-wrap[data-mode="auto"] tbody tr:nth-child(odd) { background: var(--surface); }
+    .tbl-wrap[data-mode="auto"] tbody tr:nth-child(even) { background: var(--surface2); }
     .tbl-wrap[data-mode="auto"] tr { padding: 14px 14px 12px; border-bottom: 1px solid var(--border); }
     .tbl-wrap[data-mode="auto"] tr:last-child { border-bottom: none; }
     .tbl-wrap[data-mode="auto"] td { padding: 0; border-bottom: none; white-space: normal; }
