@@ -196,7 +196,8 @@
   table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 13.5px;
+    font-family: var(--body);
+    font-size: 13px;
   }
   /* Header text stays the prototype's own dim Share Tech Mono look
      (not the real site's orange-filled thead) - only the border under
@@ -219,6 +220,9 @@
     padding: 10px 14px;
     border-bottom: 1px solid var(--border);
     vertical-align: top;
+    font-family: var(--body);
+    font-size: 13px;
+    color: var(--text);
   }
   tbody tr:last-child td { border-bottom: none; }
   tbody td:first-child {
@@ -262,6 +266,7 @@
     margin-bottom: 3px;
   }
   .tbl-wrap[data-mode="stacked"] td:not(:first-child) {
+    font-family: var(--body);
     font-size: 13px;
     color: var(--text);
     padding: 1px 0 1px 2px;
@@ -269,7 +274,7 @@
   .tbl-wrap[data-mode="stacked"] td:not(:first-child)::before {
     content: attr(data-label) ": ";
     font-family: var(--mono);
-    font-size: 10.5px;
+    font-size: 11px;
     letter-spacing: 0.06em;
     text-transform: uppercase;
     color: var(--text-dim);
@@ -290,8 +295,8 @@
     .tbl-wrap[data-mode="auto"] tr:last-child { border-bottom: none; }
     .tbl-wrap[data-mode="auto"] td { padding: 0; border-bottom: none; white-space: normal; }
     .tbl-wrap[data-mode="auto"] td:first-child { font-family: var(--head); font-weight: 700; font-size: 15px; color: var(--accent); margin-bottom: 3px; }
-    .tbl-wrap[data-mode="auto"] td:not(:first-child) { font-size: 13px; color: var(--text); padding: 1px 0 1px 2px; }
-    .tbl-wrap[data-mode="auto"] td:not(:first-child)::before { content: attr(data-label) ": "; font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-dim); }
+    .tbl-wrap[data-mode="auto"] td:not(:first-child) { font-family: var(--body); font-size: 13px; color: var(--text); padding: 1px 0 1px 2px; }
+    .tbl-wrap[data-mode="auto"] td:not(:first-child)::before { content: attr(data-label) ": "; font-family: var(--mono); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-dim); }
   }
 
   footer {
