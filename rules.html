@@ -2042,7 +2042,14 @@
     document.body.style.top = '';
     document.body.style.left = '';
     document.body.style.right = '';
+    // Bypass the page's smooth-scroll (html{scroll-behavior:smooth}) for this
+    // restore — otherwise the page visibly jumps to the top and animates
+    // back down to lockedScrollY instead of just staying put.
+    var root = document.documentElement;
+    var prevBehavior = root.style.scrollBehavior;
+    root.style.scrollBehavior = 'auto';
     window.scrollTo(0, lockedScrollY);
+    root.style.scrollBehavior = prevBehavior;
     toggle.setAttribute('aria-expanded', 'false');
   }
 
@@ -2085,6 +2092,13 @@
 
   function update(){
     ticking = false;
+    // While the mobile nav drawer is open, body is pinned with
+    // position:fixed (see drawer script above) which collapses
+    // document.documentElement.scrollHeight down to ~innerHeight - that
+    // makes the atBottom check below false-positive and wrongly highlights
+    // the last section (Open Items). Skip recalculating entirely until the
+    // drawer closes and the real scroll position is restored.
+    if (document.body.classList.contains('drawer-open')) return;
     // Near the bottom of the page the last section(s) may never cross
     // OFFSET (there isn't enough scrollable room left) - just force the
     // last section current once we're effectively at the page bottom.
