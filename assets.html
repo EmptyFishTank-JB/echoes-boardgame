@@ -194,10 +194,10 @@
   nav {
     position: fixed;
     top: 0;
+    bottom: 0;
     left: var(--layout-nav-left);
     right: var(--layout-nav-right);
     width: var(--layout-nav-width);
-    height: 100vh;
     overflow-y: auto;
     padding: 40px 24px 40px 16px;
     border-right: 1px solid var(--border);
@@ -645,7 +645,7 @@
     transform: translateX(-50%);
     top: auto;
     z-index: 210;
-    width: 21px; height: 21px;
+    width: 42px; height: 42px;
     align-items: center; justify-content: center;
     gap: 4px;
     background: rgba(10,12,15,0.92);
@@ -655,7 +655,7 @@
     padding: 0;
   }
   .drawer-toggle:hover { border-color: var(--accent); }
-  .drawer-toggle .signal-icon { margin-bottom: 0; transform: scale(0.5); }
+  .drawer-toggle .signal-icon { margin-bottom: 0; transform: scale(1); }
   .drawer-backdrop {
     display: none;
     position: fixed; inset: 0;
@@ -666,6 +666,11 @@
     transition: opacity 0.25s ease;
   }
   body.drawer-open .drawer-backdrop { display: block; opacity: 1; }
+  /* Locks the page in place while the drawer is open - only the nav column
+     itself should scroll. position:fixed (set via JS, see drawer script)
+     rather than plain overflow:hidden, since iOS Safari still allows
+     touch-scrolling a "hidden" body underneath a fixed drawer. */
+  body.drawer-open { overflow: hidden; }
 
   /* ── RESPONSIVE ── */
   @media (max-width: 768px) {
@@ -674,7 +679,7 @@
     .drawer-toggle { display: flex; }
     nav {
       left: 0; right: auto;
-      width: 82vw; max-width: 320px;
+      width: 57vw; max-width: 224px;
       transform: translateX(-100%);
       transition: transform 0.25s ease;
       z-index: 200;
@@ -1160,12 +1165,31 @@ runScript();
   const nav = document.getElementById('siteNav');
   if (!toggle || !backdrop || !nav) return;
 
+  let lockedScrollY = 0;
+
   function openDrawer(){
+    lockedScrollY = window.scrollY;
+    document.body.style.position = 'fixed';
+    document.body.style.top = -lockedScrollY + 'px';
+    document.body.style.left = '0';
+    document.body.style.right = '0';
     document.body.classList.add('drawer-open');
     toggle.setAttribute('aria-expanded', 'true');
   }
   function closeDrawer(){
     document.body.classList.remove('drawer-open');
+    document.body.style.position = '';
+    document.body.style.top = '';
+    document.body.style.left = '';
+    document.body.style.right = '';
+    // Bypass the page's smooth-scroll (html{scroll-behavior:smooth}) for this
+    // restore - otherwise the page visibly jumps to the top and animates
+    // back down to lockedScrollY instead of just staying put.
+    var root = document.documentElement;
+    var prevBehavior = root.style.scrollBehavior;
+    root.style.scrollBehavior = 'auto';
+    window.scrollTo(0, lockedScrollY);
+    root.style.scrollBehavior = prevBehavior;
     toggle.setAttribute('aria-expanded', 'false');
   }
 
