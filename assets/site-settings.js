@@ -148,6 +148,21 @@
   // one duplicates the title into colored layers) - this is a true
   // whole-page pixel-level effect, which is what makes it work on
   // arbitrary content.
+  //
+  // Applied to #scanlines/main/nav/footer individually rather than to
+  // <body> as a whole: both `filter` and `transform` on an element make
+  // it the containing block for any position:fixed descendants (same
+  // rule that makes `transform` do this on its own) - with body itself
+  // filtered+transformed, footer and nav (both position:fixed) would
+  // suddenly resolve their fixed offsets against body's own box instead
+  // of the viewport. Since body is exactly as tall as the whole
+  // document, footer's `bottom:0` would jump to the bottom of the
+  // entire page rather than the visible viewport - it visibly vanished
+  // off-screen for the pulse's duration, snapping back once the class
+  // was removed. Targeting the individual elements sidesteps that
+  // entirely (none of them have fixed-position descendants of their
+  // own) while still glitching everything visible, since it's the same
+  // filter/animation applied at the same instant to each.
   var FX_STYLE_ID = 'echo-fx-style';
   function ensureFxStyle(){
     if (document.getElementById(FX_STYLE_ID)) return;
@@ -165,7 +180,10 @@
       '0%{background-position:0 0;}25%{background-position:-30px 15px;}' +
       '50%{background-position:15px -15px;}75%{background-position:-15px 30px;}' +
       '100%{background-position:0 0;}}' +
-      'html.echo-glitch-pulse body{filter:url(#echo-fx-glitch-filter);animation:echoGlitchJitter 0.12s steps(2) 1;}' +
+      'html.echo-glitch-pulse #scanlines,' +
+      'html.echo-glitch-pulse main,' +
+      'html.echo-glitch-pulse nav,' +
+      'html.echo-glitch-pulse footer{filter:url(#echo-fx-glitch-filter);animation:echoGlitchJitter 0.12s steps(2) 1;}' +
       '@keyframes echoGlitchJitter{' +
       '0%{transform:translateX(0);}30%{transform:translateX(-3px);}' +
       '60%{transform:translateX(2px);}100%{transform:translateX(0);}}';
