@@ -370,54 +370,185 @@
     background: rgba(192,57,43,0.05);
   }
 
-  /* ── TABLES ── */
+  /* ── TABLES ──
+     Prototyped in dev-tools/artifacts/table-view-toggle-demo.html - see
+     that file's comments for the full design reasoning. */
   .tbl-wrap {
-    overflow-x: auto;
+    position: relative;
+    /* No overflow-x here - .tbl-scroll below is the actual scroll
+       container, so the custom scrollbar (.hbar-track) can live in
+       this box and poke out past its bottom border without being
+       clipped by the scrolling element's own overflow. */
     margin: 16px 0 24px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface);
   }
+  /* The real scroll container. Rounds only its own bottom corners so
+     the table's last row still clips to match .tbl-wrap's shape.
+     Native scrollbar hidden - .hbar-track/.hbar-thumb are the themed
+     replacement. */
+  .tbl-scroll {
+    overflow-x: auto;
+    border-radius: 0 0 8px 8px;
+    scrollbar-width: none;
+  }
+  .tbl-scroll::-webkit-scrollbar { display: none; }
+
+  /* Custom horizontal scroll indicator: a plain orange line poking out
+     just below .tbl-wrap's own bottom border, sliding to reflect the
+     visible portion of a horizontally-scrolled table. No arrows, no
+     visible track, not interactive. Hidden by JS (see
+     assets/table-view-toggle.js) when a table isn't wide enough to
+     scroll. */
+  .hbar-track {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 100%;
+    margin-top: 3px;
+    height: 3px;
+    pointer-events: none;
+  }
+  .hbar-thumb {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+  }
+  /* Reads as the table's own header row - centered, full width, with
+     an orange separator line before the real header/first entry below
+     it. The header zone (this + thead) is orange-outlined; the data
+     rows below use grey border lines instead. */
+  .tbl-toolbar {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--accent);
+  }
+  .view-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    cursor: pointer;
+    color: var(--text-dim);
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .view-toggle:hover { color: var(--accent); border-color: var(--accent); }
+  .view-toggle svg { width: 16px; height: 16px; display: block; }
 
   table {
     width: 100%;
     border-collapse: collapse;
+    font-family: var(--body);
     font-size: 13px;
   }
-
-  thead tr {
-    background: var(--accent);
-  }
-
+  /* Header text is dim Share Tech Mono, not an orange-filled thead -
+     only the border under it goes orange, matching the toolbar above
+     it. */
   thead th {
-    font-family: var(--head);
-    font-weight: 700;
-    font-size: 12px;
-    letter-spacing: 0.12em;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: var(--bg-solid);
-    padding: 10px 14px;
+    color: var(--text-dim);
     text-align: left;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--accent);
   }
-
   tbody tr:nth-child(odd) { background: var(--surface); }
   tbody tr:nth-child(even) { background: var(--surface2); }
-
   tbody tr:hover { background: rgba(232,115,42,0.08); }
-
   td {
     padding: 10px 14px;
-    color: var(--text);
     border-bottom: 1px solid var(--border);
     vertical-align: top;
+    font-family: var(--body);
+    font-size: 13px;
+    color: var(--text);
   }
-
+  tbody tr:last-child td { border-bottom: none; }
   td:first-child {
-    font-family: var(--mono);
-    font-size: 12px;
+    font-family: var(--head);
+    font-weight: 700;
+    font-size: 15px;
     color: var(--accent);
     white-space: nowrap;
   }
-
   td strong {
     color: var(--text-bright);
+  }
+
+  /* ── STACKED / DICTIONARY-ENTRY VIEW ──
+     data-label on each non-first <td> is populated by JS from the
+     matching <th> text at load time - no per-cell markup edits needed
+     anywhere below. */
+  .tbl-wrap[data-mode="stacked"] table,
+  .tbl-wrap[data-mode="stacked"] tbody,
+  .tbl-wrap[data-mode="stacked"] tr,
+  .tbl-wrap[data-mode="stacked"] td { display: block; width: auto; }
+  .tbl-wrap[data-mode="stacked"] thead { display: none; }
+  /* Whole-card alternating fill, matching the column view's own
+     odd/even row striping - one shade per entry. */
+  .tbl-wrap[data-mode="stacked"] tbody tr:nth-child(odd) { background: var(--surface); }
+  .tbl-wrap[data-mode="stacked"] tbody tr:nth-child(even) { background: var(--surface2); }
+  .tbl-wrap[data-mode="stacked"] tr {
+    padding: 14px 14px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .tbl-wrap[data-mode="stacked"] tr:last-child { border-bottom: none; }
+  .tbl-wrap[data-mode="stacked"] td {
+    padding: 0;
+    border-bottom: none;
+    white-space: normal;
+  }
+  .tbl-wrap[data-mode="stacked"] td:first-child {
+    font-family: var(--head);
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--accent);
+    margin-bottom: 3px;
+  }
+  .tbl-wrap[data-mode="stacked"] td:not(:first-child) {
+    font-family: var(--body);
+    font-size: 13px;
+    color: var(--text);
+    padding: 1px 0 1px 2px;
+  }
+  .tbl-wrap[data-mode="stacked"] td:not(:first-child)::before {
+    content: attr(data-label) ": ";
+    font-family: var(--mono);
+    font-weight: bold;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+
+  /* ── AUTO BREAKPOINT ──
+     Below this width, tables switch to stacked automatically unless a
+     toggle has already set an explicit data-mode on that .tbl-wrap. */
+  @media (max-width: 640px) {
+    .tbl-wrap[data-mode="auto"] table,
+    .tbl-wrap[data-mode="auto"] tbody,
+    .tbl-wrap[data-mode="auto"] tr,
+    .tbl-wrap[data-mode="auto"] td { display: block; width: auto; }
+    .tbl-wrap[data-mode="auto"] thead { display: none; }
+    .tbl-wrap[data-mode="auto"] tbody tr:nth-child(odd) { background: var(--surface); }
+    .tbl-wrap[data-mode="auto"] tbody tr:nth-child(even) { background: var(--surface2); }
+    .tbl-wrap[data-mode="auto"] tr { padding: 14px 14px 12px; border-bottom: 1px solid var(--border); }
+    .tbl-wrap[data-mode="auto"] tr:last-child { border-bottom: none; }
+    .tbl-wrap[data-mode="auto"] td { padding: 0; border-bottom: none; white-space: normal; }
+    .tbl-wrap[data-mode="auto"] td:first-child { font-family: var(--head); font-weight: 700; font-size: 15px; color: var(--accent); margin-bottom: 3px; }
+    .tbl-wrap[data-mode="auto"] td:not(:first-child) { font-family: var(--body); font-size: 13px; color: var(--text); padding: 1px 0 1px 2px; }
+    .tbl-wrap[data-mode="auto"] td:not(:first-child)::before { content: attr(data-label) ": "; font-family: var(--mono); font-weight: bold; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-dim); }
   }
 
   /* ── CALLOUT BOXES ── */
@@ -927,8 +1058,10 @@
       </ul>
 
       <h3>Quick Reference</h3>
-      <div class="tbl-wrap">
-        <table>
+      <div class="tbl-wrap" data-mode="auto">
+        <div class="tbl-toolbar"><button class="view-toggle" aria-label="Toggle table view"></button></div>
+        <div class="tbl-scroll">
+          <table>
           <thead><tr><th>#</th><th>Name</th><th>Type</th><th>Rolls</th><th>Win</th><th>Fail Noise</th><th>Play</th></tr></thead>
           <tbody>
             <tr><td>01</td><td><strong>Pressure Leak</strong></td><td>Risk Selection</td><td>3 Rolls</td><td>Wager + Tier reward</td><td>Varies by Tier</td><td><a href="#pressure-leak">Details ↓</a></td></tr>
@@ -939,6 +1072,8 @@
             <tr><td>06</td><td><strong>Core Stabilization</strong></td><td>Balance Control</td><td>3 Rolls</td><td>0: tripled. &plusmn;1: doubled. &plusmn;2: returned.</td><td>+1 Noise per point past &plusmn;3</td><td><a href="#core-stabilization">Details ↓</a></td></tr>
           </tbody>
         </table>
+        </div>
+        <div class="hbar-track"><div class="hbar-thumb"></div></div>
       </div>
     </section>
 
@@ -958,7 +1093,9 @@
         <p class="flavor">The hull groans. A seal somewhere in this section has given way and atmosphere is bleeding into the void. You have seconds to choose how hard you push the repair — and how much you're willing to risk.</p>
         <p>Before any dice are rolled, choose one of six color-coded Tiers, from Green (safest) to Red (the Jackpot). Your Tier sets a ceiling on the Champion Die — the highest value it may show and still count. To win a roll, the Champion Die must beat or match the Opposing Die <strong>and</strong> land at or under your chosen ceiling. Lower Tiers are far less likely to hit, but pay out much bigger on a win. You commit to your Tier before rolling and can't change it once the dice are in hand.</p>
         <h4>Tiers</h4>
-        <div class="tbl-wrap">
+        <div class="tbl-wrap" data-mode="auto">
+        <div class="tbl-toolbar"><button class="view-toggle" aria-label="Toggle table view"></button></div>
+        <div class="tbl-scroll">
           <table>
             <thead><tr><th>Tier</th><th>Color</th><th>Ceiling</th><th>Win Odds</th><th>Bonus on Win</th><th>Noise on Fail</th></tr></thead>
             <tbody>
@@ -971,6 +1108,8 @@
             </tbody>
           </table>
         </div>
+        <div class="hbar-track"><div class="hbar-thumb"></div></div>
+      </div>
         <div class="callout info"><strong>// Note</strong>Ties go to the Champion. You get up to 3 rolls to satisfy your Tier's conditions — the mini-game ends the moment you do, or the instant your 3rd roll fails to.</div>
         <a class="play-link" href="mini-games/pressure-leak.html"><svg class="icon-play" viewBox="0 0 10 12" width="9" height="11" fill="currentColor" aria-hidden="true" focusable="false"><path d="M0 0L10 6L0 12Z"/></svg> Play</a>
       </div>
@@ -993,7 +1132,9 @@
         <p>Six fuses, numbered 1 through 6, need to be shut within 3 Pulses. Every roll can shut fuses in three ways at once: by each die's individual face value, by the sum of both dice (only valid if 6 or lower), and by the difference between them. A roll of 2 and 5, for example, offers fuses [2], [5], and [3] — the sum of 7 is invalid since fuses only go to 6.</p>
         <h4>System Surge — Doubles</h4>
         <p>Rolling doubles shuts the matching fuse as normal, then lets you pick one additional open fuse of your choice to shut on top of it.</p>
-        <div class="tbl-wrap">
+        <div class="tbl-wrap" data-mode="auto">
+        <div class="tbl-toolbar"><button class="view-toggle" aria-label="Toggle table view"></button></div>
+        <div class="tbl-scroll">
           <table>
             <thead><tr><th>Outcome</th><th>Condition</th><th>Consequence</th></tr></thead>
             <tbody>
@@ -1002,6 +1143,8 @@
             </tbody>
           </table>
         </div>
+        <div class="hbar-track"><div class="hbar-thumb"></div></div>
+      </div>
         <a class="play-link" href="mini-games/pull-the-fuse.html"><svg class="icon-play" viewBox="0 0 10 12" width="9" height="11" fill="currentColor" aria-hidden="true" focusable="false"><path d="M0 0L10 6L0 12Z"/></svg> Play</a>
       </div>
     </section>
@@ -1021,7 +1164,9 @@
         </div>
         <p class="flavor">The targeting system flickers. A grid of coordinates scrolls across the display. You have one shot to lock in the right position before the window closes.</p>
         <p>A 3×3 grid is formed from Blue Die ranges (rows, bottom to top: 1–2 / 3–4 / 5–6) and Red Die ranges (columns, left to right: 1–2 / 3–4 / 5–6). Place your wager token on one cell before rolling — this can't be changed once placed. Both dice are rolled together: the Blue Die picks the row, the Red Die picks the column.</p>
-        <div class="tbl-wrap">
+        <div class="tbl-wrap" data-mode="auto">
+        <div class="tbl-toolbar"><button class="view-toggle" aria-label="Toggle table view"></button></div>
+        <div class="tbl-scroll">
           <table>
             <thead><tr><th>Outcome</th><th>Condition</th><th>Consequence</th></tr></thead>
             <tbody>
@@ -1031,6 +1176,8 @@
             </tbody>
           </table>
         </div>
+        <div class="hbar-track"><div class="hbar-thumb"></div></div>
+      </div>
         <a class="play-link" href="mini-games/dead-reckoning.html"><svg class="icon-play" viewBox="0 0 10 12" width="9" height="11" fill="currentColor" aria-hidden="true" focusable="false"><path d="M0 0L10 6L0 12Z"/></svg> Play</a>
       </div>
     </section>
@@ -1050,7 +1197,9 @@
         </div>
         <p class="flavor">The reactor coolant is venting. Warning indicators trip one after another across the panel in a chain you can barely keep up with. Every second you spend stabilizing makes the next problem worse. At some point, you have to decide: enough, or one more push?</p>
         <p>Roll both dice and add the sum to a running total, up to 3 Pulses. After each Pulse you may voluntarily stop, or keep pushing. You must declare your intent to stop before rolling the next Pulse — no retroactive partial wins.</p>
-        <div class="tbl-wrap">
+        <div class="tbl-wrap" data-mode="auto">
+        <div class="tbl-toolbar"><button class="view-toggle" aria-label="Toggle table view"></button></div>
+        <div class="tbl-scroll">
           <table>
             <thead><tr><th>Outcome</th><th>Condition</th><th>Consequence</th></tr></thead>
             <tbody>
@@ -1061,6 +1210,8 @@
             </tbody>
           </table>
         </div>
+        <div class="hbar-track"><div class="hbar-thumb"></div></div>
+      </div>
         <div class="callout warning"><strong>// The Live Wire</strong>Rolling a 1 destabilizes the system immediately, regardless of the mini-game's outcome. It's not just a fail penalty — a 1 costs you Noise even on a winning run.</div>
         <a class="play-link" href="mini-games/cascade-failure.html"><svg class="icon-play" viewBox="0 0 10 12" width="9" height="11" fill="currentColor" aria-hidden="true" focusable="false"><path d="M0 0L10 6L0 12Z"/></svg> Play</a>
       </div>
@@ -1081,7 +1232,9 @@
         </div>
         <p class="flavor">Static. Then something beneath it — a pattern, a rhythm, almost like a voice. The frequency is fragmenting. You lock in the coordinates and try to hold the signal long enough to confirm it. Whatever is transmitting out there, it knows you're listening.</p>
         <p>An initial free roll establishes two Signal Values — one per die, and they can be a duplicate pair, like [3, 3]. These are locked for the mini-game. You then get up to 3 Pulses to roll both dice and match them against the remaining unconfirmed Signal Values. If a die matches an unconfirmed value, that value is confirmed and stays confirmed — progress carries between Pulses. A duplicate signal like [3, 3] needs two separate 3s to fully confirm, whether that's both in one Pulse or one at a time across two.</p>
-        <div class="tbl-wrap">
+        <div class="tbl-wrap" data-mode="auto">
+        <div class="tbl-toolbar"><button class="view-toggle" aria-label="Toggle table view"></button></div>
+        <div class="tbl-scroll">
           <table>
             <thead><tr><th>Outcome</th><th>Condition</th><th>Consequence</th></tr></thead>
             <tbody>
@@ -1090,6 +1243,8 @@
             </tbody>
           </table>
         </div>
+        <div class="hbar-track"><div class="hbar-thumb"></div></div>
+      </div>
         <a class="play-link" href="mini-games/dead-signal.html"><svg class="icon-play" viewBox="0 0 10 12" width="9" height="11" fill="currentColor" aria-hidden="true" focusable="false"><path d="M0 0L10 6L0 12Z"/></svg> Play</a>
       </div>
     </section>
@@ -1109,7 +1264,9 @@
         </div>
         <p class="flavor">The gravity tether is out of alignment, violently swinging the ship's center of mass. Ride out three pulses of correction and hope the tether settles near true neutral before the stress tears the bulkhead apart.</p>
         <p>Roll both dice each Pulse. The net of Blue minus Red applies to a running total automatically — there's no choice involved, just the dice. After 3 Pulses, however close to zero you land determines the outcome.</p>
-        <div class="tbl-wrap">
+        <div class="tbl-wrap" data-mode="auto">
+        <div class="tbl-toolbar"><button class="view-toggle" aria-label="Toggle table view"></button></div>
+        <div class="tbl-scroll">
           <table>
             <thead><tr><th>Outcome</th><th>Condition</th><th>Consequence</th></tr></thead>
             <tbody>
@@ -1121,6 +1278,8 @@
             </tbody>
           </table>
         </div>
+        <div class="hbar-track"><div class="hbar-thumb"></div></div>
+      </div>
         <div class="callout warning"><strong>// No Choice, Just Dice</strong>Unlike Cascade Failure, there's no decision to stop early — all 3 Pulses always resolve. The dice alone determine where the tether settles.</div>
         <a class="play-link" href="mini-games/core-stabilization.html"><svg class="icon-play" viewBox="0 0 10 12" width="9" height="11" fill="currentColor" aria-hidden="true" focusable="false"><path d="M0 0L10 6L0 12Z"/></svg> Play</a>
       </div>
@@ -1360,5 +1519,6 @@
     });
 })();
 </script>
+<script src="assets/table-view-toggle.js"></script>
 </body>
 </html>
