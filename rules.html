@@ -402,22 +402,206 @@
     background: rgba(192,57,43,0.05);
   }
 
-  /* ── TABLES ── */
+  /* ── TABLES ──
+     Prototyped in dev-tools/artifacts/table-view-toggle-demo.html - see
+     that file's comments for the full design reasoning. Every table
+     gets this column/stacked toggle + themed scrollbar treatment
+     EXCEPT .actions-tbl (Section 12's Actions table), which keeps its
+     old fixed-layout, always-wraps design - a 2-column table with rich
+     per-cell markup that's already built to never need horizontal
+     scroll or a stacked view. See the .actions-tbl overrides at the
+     bottom of this block. */
   .tbl-wrap {
-    overflow-x: auto;
+    position: relative;
+    /* No overflow-x here - .tbl-scroll below is the actual scroll
+       container, so the custom scrollbar (.hbar-track) can live in
+       this box and poke out past its bottom border without being
+       clipped by the scrolling element's own overflow. */
     margin: 16px 0 24px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface);
   }
+  /* The real scroll container. Rounds only its own bottom corners so
+     the table's last row still clips to match .tbl-wrap's shape.
+     Native scrollbar hidden - .hbar-track/.hbar-thumb are the themed
+     replacement. */
+  .tbl-scroll {
+    overflow-x: auto;
+    border-radius: 0 0 8px 8px;
+    scrollbar-width: none;
+  }
+  .tbl-scroll::-webkit-scrollbar { display: none; }
+
+  /* Custom horizontal scroll indicator: a plain orange line poking out
+     just below .tbl-wrap's own bottom border, sliding to reflect the
+     visible portion of a horizontally-scrolled table. No arrows, no
+     visible track, not interactive. Hidden by JS (see
+     assets/table-view-toggle.js) when a table isn't wide enough to
+     scroll. */
+  .hbar-track {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 100%;
+    margin-top: 3px;
+    height: 3px;
+    pointer-events: none;
+  }
+  .hbar-thumb {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+  }
+  /* Reads as the table's own header row - centered, full width, with
+     an orange separator line before the real header/first entry below
+     it. The header zone (this + thead) is orange-outlined; the data
+     rows below use grey border lines instead. */
+  .tbl-toolbar {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--accent);
+  }
+  .view-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    cursor: pointer;
+    color: var(--text-dim);
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .view-toggle:hover { color: var(--accent); border-color: var(--accent); }
+  .view-toggle svg { width: 16px; height: 16px; display: block; }
 
   table {
     width: 100%;
     border-collapse: collapse;
+    font-family: var(--body);
     font-size: 13px;
   }
+  /* Header text is dim Share Tech Mono, not an orange-filled thead -
+     only the border under it goes orange, matching the toolbar above
+     it. */
+  thead th {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    text-align: left;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--accent);
+  }
+  tbody tr:nth-child(odd) { background: var(--surface); }
+  tbody tr:nth-child(even) { background: var(--surface2); }
+  tbody tr:hover { background: rgba(232,115,42,0.08); }
+  td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+    font-family: var(--body);
+    font-size: 13px;
+    color: var(--text);
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  td:first-child {
+    font-family: var(--head);
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--accent);
+    white-space: nowrap;
+  }
+  td strong {
+    color: var(--text-bright);
+  }
 
-  /* Fixed layout so the Noise column holds a set width regardless of
+  /* ── STACKED / DICTIONARY-ENTRY VIEW ──
+     data-label on each non-first <td> is populated by JS from the
+     matching <th> text at load time - no per-cell markup edits needed
+     anywhere below. */
+  .tbl-wrap[data-mode="stacked"] table,
+  .tbl-wrap[data-mode="stacked"] tbody,
+  .tbl-wrap[data-mode="stacked"] tr,
+  .tbl-wrap[data-mode="stacked"] td { display: block; width: auto; }
+  .tbl-wrap[data-mode="stacked"] thead { display: none; }
+  /* Whole-card alternating fill, matching the column view's own
+     odd/even row striping - one shade per entry. */
+  .tbl-wrap[data-mode="stacked"] tbody tr:nth-child(odd) { background: var(--surface); }
+  .tbl-wrap[data-mode="stacked"] tbody tr:nth-child(even) { background: var(--surface2); }
+  .tbl-wrap[data-mode="stacked"] tr {
+    padding: 14px 14px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .tbl-wrap[data-mode="stacked"] tr:last-child { border-bottom: none; }
+  .tbl-wrap[data-mode="stacked"] td {
+    padding: 0;
+    border-bottom: none;
+    white-space: normal;
+  }
+  .tbl-wrap[data-mode="stacked"] td:first-child {
+    font-family: var(--head);
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--accent);
+    margin-bottom: 3px;
+  }
+  .tbl-wrap[data-mode="stacked"] td:not(:first-child) {
+    font-family: var(--body);
+    font-size: 13px;
+    color: var(--text);
+    padding: 1px 0 1px 2px;
+  }
+  .tbl-wrap[data-mode="stacked"] td:not(:first-child)::before {
+    content: attr(data-label) ": ";
+    font-family: var(--mono);
+    font-weight: bold;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+
+  /* ── AUTO BREAKPOINT ──
+     Below this width, tables switch to stacked automatically unless a
+     toggle has already set an explicit data-mode on that .tbl-wrap. */
+  @media (max-width: 640px) {
+    .tbl-wrap[data-mode="auto"] table,
+    .tbl-wrap[data-mode="auto"] tbody,
+    .tbl-wrap[data-mode="auto"] tr,
+    .tbl-wrap[data-mode="auto"] td { display: block; width: auto; }
+    .tbl-wrap[data-mode="auto"] thead { display: none; }
+    .tbl-wrap[data-mode="auto"] tbody tr:nth-child(odd) { background: var(--surface); }
+    .tbl-wrap[data-mode="auto"] tbody tr:nth-child(even) { background: var(--surface2); }
+    .tbl-wrap[data-mode="auto"] tr { padding: 14px 14px 12px; border-bottom: 1px solid var(--border); }
+    .tbl-wrap[data-mode="auto"] tr:last-child { border-bottom: none; }
+    .tbl-wrap[data-mode="auto"] td { padding: 0; border-bottom: none; white-space: normal; }
+    .tbl-wrap[data-mode="auto"] td:first-child { font-family: var(--head); font-weight: 700; font-size: 15px; color: var(--accent); margin-bottom: 3px; }
+    .tbl-wrap[data-mode="auto"] td:not(:first-child) { font-family: var(--body); font-size: 13px; color: var(--text); padding: 1px 0 1px 2px; }
+    .tbl-wrap[data-mode="auto"] td:not(:first-child)::before { content: attr(data-label) ": "; font-family: var(--mono); font-weight: bold; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-dim); }
+  }
+
+  /* ── ACTIONS TABLE — opted out of the toggle/stacked treatment above ──
+     Fixed layout so the Noise column holds a set width regardless of
      content length (including longer values like "Card's stated noise
      +3") — otherwise the Action column's long descriptions push Noise
-     off-screen and force horizontal scroll within .tbl-wrap. */
+     off-screen and force horizontal scroll. Rich per-cell markup
+     (accent name + dim description) needs its own font reset since it
+     sits inside a plain (non-.tbl-scroll) .tbl-wrap and would otherwise
+     inherit the new td:first-child title styling above. */
+  /* No .tbl-scroll wrapper for this one, so .tbl-wrap itself needs to
+     do its own corner-clipping (normally .tbl-scroll's job) or its
+     table's square last-row corners poke past the wrap's rounded
+     border. */
+  .tbl-wrap:has(.actions-tbl) { overflow: hidden; }
   .actions-tbl {
     table-layout: fixed;
   }
@@ -426,45 +610,10 @@
     width: 110px;
   }
   .actions-tbl td:first-child {
-    white-space: normal;
-  }
-
-  thead tr {
-    background: var(--accent);
-  }
-
-  thead th {
-    font-family: var(--head);
-    font-weight: 700;
-    font-size: 12px;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--bg-solid);
-    padding: 10px 14px;
-    text-align: left;
-  }
-
-  tbody tr:nth-child(odd) { background: var(--surface); }
-  tbody tr:nth-child(even) { background: var(--surface2); }
-
-  tbody tr:hover { background: rgba(232,115,42,0.08); }
-
-  td {
-    padding: 10px 14px;
-    color: var(--text);
-    border-bottom: 1px solid var(--border);
-    vertical-align: top;
-  }
-
-  td:first-child {
     font-family: var(--mono);
+    font-weight: 400;
     font-size: 12px;
-    color: var(--accent);
-    white-space: nowrap;
-  }
-
-  td strong {
-    color: var(--text-bright);
+    white-space: normal;
   }
 
   /* ── CALLOUT BOXES ── */
@@ -955,8 +1104,10 @@
       </div>
 
       <h3>Mission Objectives</h3>
-      <div class="tbl-wrap">
-        <table>
+      <div class="tbl-wrap" data-mode="auto">
+        <div class="tbl-toolbar"><button class="view-toggle" aria-label="Toggle table view"></button></div>
+        <div class="tbl-scroll">
+          <table>
           <thead><tr><th>Priority</th><th>Objective</th><th>Details</th></tr></thead>
           <tbody>
             <tr><td>PRIMARY</td><td><strong>Recover Resources</strong></td><td>Scavenge, loot, and gather what the crew needs. Resources fuel crafting, repair, and survival.</td></tr>
@@ -966,6 +1117,8 @@
             <tr><td>OPTIONAL</td><td><strong>Deal With The Creature</strong></td><td>Eject or permanently neutralize the Creature. High risk. Endgame mechanic TBD.</td></tr>
           </tbody>
         </table>
+        </div>
+        <div class="hbar-track"><div class="hbar-thumb"></div></div>
       </div>
 
       <div class="stat-grid">
@@ -996,8 +1149,10 @@
       </div>
       <p>Everything that ships in the box. Nothing below is final — categories are known from the rules as written, but exact counts depend on manufacturing and playtesting.</p>
       <div class="callout info"><strong>// Pending</strong>Full component list, exact counts, and box layout still TBD.</div>
-      <div class="tbl-wrap">
-        <table>
+      <div class="tbl-wrap" data-mode="auto">
+        <div class="tbl-toolbar"><button class="view-toggle" aria-label="Toggle table view"></button></div>
+        <div class="tbl-scroll">
+          <table>
           <thead><tr><th>Contents</th><th>Count</th><th>Information</th></tr></thead>
           <tbody>
             <tr><td>Board</td><td>1</td><td>30&times;36" game board, 1&times;1 space grid</td></tr>
@@ -1023,6 +1178,8 @@
             <tr><td>Character Miniatures / Standees</td><td>5</td><td>&mdash;</td></tr>
           </tbody>
         </table>
+        </div>
+        <div class="hbar-track"><div class="hbar-thumb"></div></div>
       </div>
     </section>
     <!-- 03 SETUP -->
@@ -1069,8 +1226,10 @@
       <p>5–6 playable characters. Each with distinct specialization and 1–2 passive abilities. Simple, situational, balanced — no character is strictly better than another. Design philosophy: Fate of the Nostromo approach.</p>
 
       <h3>Specialization Roles</h3>
-      <div class="tbl-wrap">
-        <table>
+      <div class="tbl-wrap" data-mode="auto">
+        <div class="tbl-toolbar"><button class="view-toggle" aria-label="Toggle table view"></button></div>
+        <div class="tbl-scroll">
+          <table>
           <thead><tr><th>Role</th><th>Primary System</th><th>Status</th></tr></thead>
           <tbody>
             <tr><td>Combat Specialist</td><td>Weapons, Attack / Defense Roll, Creature Encounters</td><td>Abilities confirmed</td></tr>
@@ -1081,6 +1240,8 @@
             <tr><td>Survivor / Scavenger</td><td>Resources, Inventory, Adaptability</td><td>Pending</td></tr>
           </tbody>
         </table>
+        </div>
+        <div class="hbar-track"><div class="hbar-thumb"></div></div>
       </div>
 
       <h3>Combat Specialist Abilities</h3>
@@ -1098,8 +1259,10 @@
       <p>The crew does not know what they are dealing with. They call it the Creature because they have no better word. It moves wrong. It appears where it should not. Weapons damage it but do not stop it. It is drawn to activity, to noise, to signal.</p>
 
       <h3>Creature States</h3>
-      <div class="tbl-wrap">
-        <table>
+      <div class="tbl-wrap" data-mode="auto">
+        <div class="tbl-toolbar"><button class="view-toggle" aria-label="Toggle table view"></button></div>
+        <div class="tbl-scroll">
+          <table>
           <thead><tr><th>State</th><th>Description</th></tr></thead>
           <tbody>
             <tr><td>DORMANT</td><td>Not yet on board. Failed noise checks generate Threat Tokens only. Cannot activate until introduced.</td></tr>
@@ -1108,6 +1271,8 @@
             <tr><td>VENTED</td><td>Retreated into ship infrastructure. Temporarily off board. Re-emerges via specific Echo cards.</td></tr>
           </tbody>
         </table>
+        </div>
+        <div class="hbar-track"><div class="hbar-thumb"></div></div>
       </div>
 
       <h3>Noise</h3>
@@ -1115,8 +1280,10 @@
 
       <h3>Noise Check &amp; Activation</h3>
       <div class="callout warning"><strong>// Mechanic</strong>At end of each player phase, roll D12 Noise Die vs that player's own accumulated Noise Level.</div>
-      <div class="tbl-wrap">
-        <table>
+      <div class="tbl-wrap" data-mode="auto">
+        <div class="tbl-toolbar"><button class="view-toggle" aria-label="Toggle table view"></button></div>
+        <div class="tbl-scroll">
+          <table>
           <thead><tr><th>Result</th><th>Outcome</th><th>Creature Behavior</th></tr></thead>
           <tbody>
             <tr><td>Roll > Noise</td><td><strong>PASS</strong></td><td>Creature moves HALF speed toward last noise location. Always moving — never fully still.</td></tr>
@@ -1125,6 +1292,8 @@
             <tr><td>Fail · 9–12</td><td><strong>Immediate Vent</strong></td><td>Instant vent jump, no movement cost. Emerges at vent nearest noise source. Full speed toward noise.</td></tr>
           </tbody>
         </table>
+        </div>
+        <div class="hbar-track"><div class="hbar-thumb"></div></div>
       </div>
 
       <h3>Activation Tier Note</h3>
@@ -1204,8 +1373,10 @@
 
       <h3 id="board-room-families-candidate-roster">Room Families — Candidate Roster</h3>
       <p>Final family selection and room counts pending curation. Full room listings in separate Room Roster document.</p>
-      <div class="tbl-wrap">
-        <table>
+      <div class="tbl-wrap" data-mode="auto">
+        <div class="tbl-toolbar"><button class="view-toggle" aria-label="Toggle table view"></button></div>
+        <div class="tbl-scroll">
+          <table>
           <thead><tr><th>Family</th><th>Type</th><th>Cap</th><th>Primary Resource</th></tr></thead>
           <tbody>
             <tr><td>Operations Center</td><td>FIXED</td><td>1</td><td>Data — all family terminals</td></tr>
@@ -1224,6 +1395,8 @@
             <tr><td>Dormitories</td><td>Tile</td><td>TBD</td><td>Scrap + Lore</td></tr>
           </tbody>
         </table>
+        </div>
+        <div class="hbar-track"><div class="hbar-thumb"></div></div>
       </div>
     </section>
     <!-- 08 TURN STRUCTURE -->
@@ -1237,8 +1410,10 @@
 
       <h3>Player Phase</h3>
       <div class="callout info"><strong>// Free-Form Turn</strong>Each player has 2 Moves and 2 Actions per turn. They may be taken in any order with one restriction — see callout below.</div>
-      <div class="tbl-wrap">
-        <table>
+      <div class="tbl-wrap" data-mode="auto">
+        <div class="tbl-toolbar"><button class="view-toggle" aria-label="Toggle table view"></button></div>
+        <div class="tbl-scroll">
+          <table>
           <thead><tr><th>Component</th><th>Description</th><th>Notes</th></tr></thead>
           <tbody>
             <tr><td><strong>Move 1 / Move 2</strong></td><td>Move up to Speed in any direction</td><td>Entering an unexplored room → draw Echo Card. Moves may be taken before or after Actions in any order.</td></tr>
@@ -1247,6 +1422,8 @@
             <tr><td><strong>Track Noise</strong></td><td>Update Noise Meter</td><td>Before Creature Phase begins.</td></tr>
           </tbody>
         </table>
+        </div>
+        <div class="hbar-track"><div class="hbar-thumb"></div></div>
       </div>
       <div class="callout warning"><strong>// No Move After Action 2</strong>The player cannot take a Move after their second Action — with one exception: if Action 2 is <strong>Run</strong> or <strong>Quiet Move</strong>, one Move is permitted after. No other exception.</div>
 
@@ -1274,8 +1451,10 @@
       </div>
 
       <h3>D12 System Dice (5 dice)</h3>
-      <div class="tbl-wrap">
-        <table>
+      <div class="tbl-wrap" data-mode="auto">
+        <div class="tbl-toolbar"><button class="view-toggle" aria-label="Toggle table view"></button></div>
+        <div class="tbl-scroll">
+          <table>
           <thead><tr><th>Face</th><th>Icon</th><th>×</th><th>Function</th></tr></thead>
           <tbody>
             <tr><td>TECH</td><td>Computer/Monitor</td><td>2</td><td>Technology skill checks. Terminal interactions, hacking, data retrieval.</td></tr>
@@ -1289,6 +1468,8 @@
             <tr><td>VOID</td><td>X Mark</td><td>1</td><td>Permanently removes that die from current roll sequence.</td></tr>
           </tbody>
         </table>
+        </div>
+        <div class="hbar-track"><div class="hbar-thumb"></div></div>
       </div>
       <p><strong>D6 Coordinate Dice (2):</strong> Designated Blue Die and Red Die. Used exclusively for Echo Event mini-games.</p>
       <p><strong>D12 Noise Die (1):</strong> Used exclusively for the Noise Check at end of each player phase.</p>
@@ -1312,8 +1493,10 @@
       <div class="callout warning"><strong>// Optional Clear Roll</strong>Once all required faces are satisfied, check the remaining dice — any that are not kept. If Noise or Noise Spike faces are showing among them, the player may choose to re-roll those specific dice using any remaining rolls. The goal is to land on a non-noise face and remove that noise from the final count. This is a genuine gamble: the re-roll may land on another Noise or Noise Spike, keeping or worsening the penalty. If no noise faces are showing after requirements are met, there is nothing to clear — no further rolls are available or needed. The optional clear roll is only possible when: (1) requirements are already satisfied, and (2) noise faces are still showing on non-kept dice.</div>
 
       <h3>Roll Resolution — Example</h3>
-      <div class="tbl-wrap">
-        <table>
+      <div class="tbl-wrap" data-mode="auto">
+        <div class="tbl-toolbar"><button class="view-toggle" aria-label="Toggle table view"></button></div>
+        <div class="tbl-scroll">
+          <table>
           <thead><tr><th>Roll</th><th>Result</th><th>Action</th></tr></thead>
           <tbody>
             <tr><td>Roll 1</td><td>1 of 3 required faces + 1 Noise + 3 others</td><td>Keep the 1 required face. Re-roll remaining 4 dice.</td></tr>
@@ -1321,6 +1504,8 @@
             <tr><td>Roll 3 (optional)</td><td>1 Noise Spike + 1 non-noise face</td><td>Final roll. 1 Noise Spike counts toward noise meter. Non-noise face ignored.</td></tr>
           </tbody>
         </table>
+        </div>
+        <div class="hbar-track"><div class="hbar-thumb"></div></div>
       </div>
       <p style="font-size:12px; color:var(--text-dim); margin-top:6px;">If the player had stopped at Roll 2, both Noise faces would have counted. By taking Roll 3, they cleared one but converted the other to a Noise Spike — a genuine gamble.</p>
     </section>
@@ -1333,8 +1518,10 @@
       <p>The unified narrative engine. ~120 cards (planned) handling room discovery, loot, events, objectives, mini-games, and data retrieval. Every draw carries potential to change board state, generate resources, trigger objectives, or interrupt play.</p>
 
       <h3>Deck Composition (~120 Cards Planned)</h3>
-      <div class="tbl-wrap">
-        <table>
+      <div class="tbl-wrap" data-mode="auto">
+        <div class="tbl-toolbar"><button class="view-toggle" aria-label="Toggle table view"></button></div>
+        <div class="tbl-scroll">
+          <table>
           <thead><tr><th>Card Type</th><th>Count</th><th>Function</th></tr></thead>
           <tbody>
             <tr><td>Room Cards</td><td>~70–80</td><td>Primary discovery loop. Room type, lore, resource icons, events, tasks, terminal indicators. Some are marked <strong>Objective</strong> — see below.</td></tr>
@@ -1342,6 +1529,8 @@
             <tr><td>CONTACT Card</td><td>1</td><td>Unique. Triggers creature introduction when drawn at Operations Center terminal.</td></tr>
           </tbody>
         </table>
+        </div>
+        <div class="hbar-track"><div class="hbar-thumb"></div></div>
       </div>
       <div class="callout info"><strong>// Pending</strong>Blueprints are not their own card type — they're static unlocks on the Objective Board (see <a href="#objective-board">// 19 OBJECTIVE BOARD</a>) — so the ~15–20% set aside for them needs reallocating across the remaining Echo Deck card types.</div>
 
@@ -1388,8 +1577,10 @@
       </ul>
 
       <h3>The Six Echo Events</h3>
-      <div class="tbl-wrap">
-        <table>
+      <div class="tbl-wrap" data-mode="auto">
+        <div class="tbl-toolbar"><button class="view-toggle" aria-label="Toggle table view"></button></div>
+        <div class="tbl-scroll">
+          <table>
           <thead><tr><th>#</th><th>Name</th><th>Type</th><th>Rolls</th><th>Win</th><th>Fail Noise</th><th>Play</th></tr></thead>
           <tbody>
             <tr><td>01</td><td><strong>Pressure Leak</strong></td><td>Risk Selection</td><td>3 Rolls</td><td>Wager + Tier reward</td><td>Varies by Tier</td><td><a href="mini-games/pressure-leak.html" style="color:var(--accent);"><svg class="icon-play" viewBox="0 0 10 12" width="9" height="11" fill="currentColor" aria-hidden="true" focusable="false"><path d="M0 0L10 6L0 12Z"/></svg> Play</a></td></tr>
@@ -1400,6 +1591,8 @@
             <tr><td>06</td><td><strong>Core Stabilization</strong></td><td>Balance Control</td><td>3 Rolls</td><td>0: tripled. &plusmn;1: doubled. &plusmn;2: returned.</td><td>+1 per point past &plusmn;3</td><td><a href="mini-games/core-stabilization.html" style="color:var(--accent);"><svg class="icon-play" viewBox="0 0 10 12" width="9" height="11" fill="currentColor" aria-hidden="true" focusable="false"><path d="M0 0L10 6L0 12Z"/></svg> Play</a></td></tr>
           </tbody>
         </table>
+        </div>
+        <div class="hbar-track"><div class="hbar-thumb"></div></div>
       </div>
       <div class="callout info"><strong>// Reference</strong>Full mini-game rules documented in separate Echo Event Mini-Games Rulebook. Playable versions link out from the Play column as they're built.</div>
 
@@ -1419,8 +1612,10 @@
       <div class="callout info"><strong>// Note</strong>Noise generated here accumulates on the active player's own Noise Tracker (each player has their own — it is not shared) and is checked each Creature Phase — see <a href="#creature">// 06 THE CREATURE &amp; NOISE</a> for how it's tracked and resolved, and <a href="#turn">// 08 TURN STRUCTURE</a> for where that check falls in a turn.</div>
 
       <h3 id="actions-movement-variants">Movement Variants</h3>
-      <div class="tbl-wrap">
-        <table>
+      <div class="tbl-wrap" data-mode="auto">
+        <div class="tbl-toolbar"><button class="view-toggle" aria-label="Toggle table view"></button></div>
+        <div class="tbl-scroll">
+          <table>
           <thead><tr><th>Type</th><th>Speed</th><th>Noise</th><th>Cost</th></tr></thead>
           <tbody>
             <tr><td>Normal Move</td><td>Base Speed</td><td>+1 per Move</td><td>Per Move used</td></tr>
@@ -1431,6 +1626,8 @@
             <tr><td>Flee Move (×2)</td><td>Up to Speed, each</td><td>0</td><td>Granted — does not use a normal Move</td></tr>
           </tbody>
         </table>
+        </div>
+        <div class="hbar-track"><div class="hbar-thumb"></div></div>
       </div>
       <div class="callout success"><strong>// Flee Move</strong>Two free bonus Moves granted, alongside a Reaction (see <a href="#actions-reaction">// 12 ACTIONS - REACTION</a>), after successfully defending against a Creature attack — melee or ranged, see <a href="#combat-attack-defense-roll">// 14 COMBAT - ATTACK / DEFENSE ROLL</a>. Not drawn from the player's normal Move allotment. Mirrors the Move 1 / Move 2 structure of a normal turn (see <a href="#turn">// 08 TURN STRUCTURE</a>): each Move is up to the player's Speed, generates 0 noise, and the creature does not pursue. Lets a player move out of the room, Seal the Door with the Reaction, then use the remaining Move to position themselves better than just standing on the other side of the door.</div>
       <div class="callout info"><strong>// Declaring Run or Quiet Move</strong>Recommended at the start of the turn before any Move, so all movement benefits from the modification. May also be declared as Action 1 after Move 1 — only Move 2 onward is affected. Move 1 is not retroactively modified. Run and Quiet Move cannot both be declared in the same turn.</div>
@@ -1502,8 +1699,10 @@
       </div>
 
       <h3>Recovery</h3>
-      <div class="tbl-wrap">
-        <table>
+      <div class="tbl-wrap" data-mode="auto">
+        <div class="tbl-toolbar"><button class="view-toggle" aria-label="Toggle table view"></button></div>
+        <div class="tbl-scroll">
+          <table>
           <thead><tr><th>Method</th><th>Cost</th><th>Requirement</th><th>Restored</th></tr></thead>
           <tbody>
             <tr><td>Resting</td><td>1 action</td><td>None</td><td>+1 Health. +0 noise.</td></tr>
@@ -1511,6 +1710,8 @@
             <tr><td>Medical Room</td><td>1 action</td><td>In Medical/Lab room</td><td>+8 Health. +3 noise (machinery).</td></tr>
           </tbody>
         </table>
+        </div>
+        <div class="hbar-track"><div class="hbar-thumb"></div></div>
       </div>
       <p>At zero health: player eliminated. Inventory drops at death location. Surviving crew may attempt recovery.</p>
     </section>
@@ -1562,8 +1763,10 @@
         A live roller for this exact sequence: pick your weapon, toggle Ready/Brace, enter Makeshift Armor, then roll up to 3 times — Hazard/Biohazard/Wild faces lock in automatically and Void removes the die. End Roll computes damage and pushback for you.
         <div><a href="rollers/d12-roller-combat.html" class="callout-btn">&#9654; Open the Attack / Defense Roller</a></div>
       </div>
-      <div class="tbl-wrap">
-        <table>
+      <div class="tbl-wrap" data-mode="auto">
+        <div class="tbl-toolbar"><button class="view-toggle" aria-label="Toggle table view"></button></div>
+        <div class="tbl-scroll">
+          <table>
           <thead><tr><th>Weapon</th><th>Dice Pool</th><th>Max Pushback</th></tr></thead>
           <tbody>
             <tr><td>Unarmed</td><td>1 die</td><td>1 space</td></tr>
@@ -1573,6 +1776,8 @@
             <tr><td>4-slot (Flamethrower)</td><td>5 dice (max)</td><td>5 spaces</td></tr>
           </tbody>
         </table>
+        </div>
+        <div class="hbar-track"><div class="hbar-thumb"></div></div>
       </div>
       <ul class="rules-list">
         <li>Up to 3 rolls. Keep Hazard, Biohazard, and Wild faces between rolls.</li>
@@ -1594,8 +1799,10 @@
       <div class="callout info"><strong>// Token Flipping</strong>Not a separate tracking token — the item's own token is physically flipped over to mark its own remaining uses. Fresh side up means the item is unused; flipping it over after the first use shows one use remaining; the second use destroys the item. Each side is visually marked with its remaining-uses number in the lower-right corner over a colored grid — the fresh side shows a "2" on a blue grid (2 uses left), the flipped side shows a "1" on a red grid (1 use left). Melee weapons use this system — see <a href="#weapons-melee-weapons">// 15 WEAPONS - MELEE WEAPONS</a>.</div>
 
       <h3 id="combat-full-encounter-sequence">Full Encounter Sequence</h3>
-      <div class="tbl-wrap">
-        <table>
+      <div class="tbl-wrap" data-mode="auto">
+        <div class="tbl-toolbar"><button class="view-toggle" aria-label="Toggle table view"></button></div>
+        <div class="tbl-scroll">
+          <table>
           <thead><tr><th>Step</th><th>Action</th></tr></thead>
           <tbody>
             <tr><td>1</td><td>Apply Brace faces (if Brace taken). Note Ready bonus.</td></tr>
@@ -1606,6 +1813,8 @@
             <tr><td>6</td><td>Player Flee: all players, all encounter types. Full speed, 0 noise, creature does not pursue.</td></tr>
           </tbody>
         </table>
+        </div>
+        <div class="hbar-track"><div class="hbar-thumb"></div></div>
       </div>
       <div class="callout success"><strong>// Successful Defense</strong>Any player who successfully defends against a Creature attack — melee or ranged — receives two bonus Flee Moves and a Reaction on top of the standard flee, rewarding players who choose to fight back rather than just fleeing. See <a href="#actions-movement-variants">// 12 ACTIONS - MOVEMENT VARIANTS</a> and <a href="#actions-reaction">// 12 ACTIONS - REACTION</a>.</div>
     </section>
@@ -1618,8 +1827,10 @@
 
       <h3 id="weapons-melee-weapons">Melee Weapons</h3>
       <p>Melee Weapons get 2 uses and are tracked by flipping the token to the opposite side. Both sides perform identically. Destroyed after second use. See <a href="#combat-attack-defense-roll">// 14 COMBAT - ATTACK / DEFENSE ROLL</a> for what a successful defense grants.</p>
-      <div class="tbl-wrap">
-        <table>
+      <div class="tbl-wrap" data-mode="auto">
+        <div class="tbl-toolbar"><button class="view-toggle" aria-label="Toggle table view"></button></div>
+        <div class="tbl-scroll">
+          <table>
           <thead><tr><th>Weapon</th><th>Size</th><th>Dice</th><th>Special</th></tr></thead>
           <tbody>
             <tr><td>Army Knife</td><td>1×1</td><td>2</td><td>Light melee. Emergency backup.</td></tr>
@@ -1627,12 +1838,16 @@
             <tr><td>Axe</td><td>1×2</td><td>3</td><td>Heavier melee. Stronger defense.</td></tr>
           </tbody>
         </table>
+        </div>
+        <div class="hbar-track"><div class="hbar-thumb"></div></div>
       </div>
 
       <h3>Ranged Weapons</h3>
       <p>Requires 1 Universal Ammo token per shot. No range limit except Flamethrower.</p>
-      <div class="tbl-wrap">
-        <table>
+      <div class="tbl-wrap" data-mode="auto">
+        <div class="tbl-toolbar"><button class="view-toggle" aria-label="Toggle table view"></button></div>
+        <div class="tbl-scroll">
+          <table>
           <thead><tr><th>Weapon</th><th>Size</th><th>Dice</th><th>Special</th></tr></thead>
           <tbody>
             <tr><td>Pistol</td><td>1×1</td><td>2</td><td>Reliable sidearm. Low inventory cost.</td></tr>
@@ -1641,6 +1856,8 @@
             <tr><td>Flamethrower</td><td>4-slot</td><td>5 (max)</td><td>Maximum threat. Range limited to 5 spaces. Dominates inventory.</td></tr>
           </tbody>
         </table>
+        </div>
+        <div class="hbar-track"><div class="hbar-thumb"></div></div>
       </div>
     </section>
     <!-- 16 INVENTORY & EQUIPMENT -->
@@ -1677,14 +1894,18 @@
       <div class="callout info"><strong>// Optional — Space Cubes</strong>A physical difficulty variant, playable or not by choice: each player starts with 5 small cubes occupying backpack slots as visual placeholders for their remaining safe capacity. When a cube's slot is needed for a real item, that cube moves out to a side track instead — a glance at the track shows exactly how encumbered the player is without counting slots.</div>
 
       <h3 id="inventory-fuel-cells">Fuel Cells</h3>
-      <div class="tbl-wrap">
-        <table>
+      <div class="tbl-wrap" data-mode="auto">
+        <div class="tbl-toolbar"><button class="view-toggle" aria-label="Toggle table view"></button></div>
+        <div class="tbl-scroll">
+          <table>
           <thead><tr><th>Type</th><th>Size</th><th>Grid Spaces</th><th>Source</th></tr></thead>
           <tbody>
             <tr><td>Manufactured Fuel Cell</td><td>2×2</td><td>4 spaces</td><td>Crafted once its blueprint is unlocked. Prerequisite: Makeshift Fuel Cell blueprint must be fully completed first.</td></tr>
             <tr><td>Makeshift Fuel Cell</td><td>1×2</td><td>2 spaces</td><td>Crafted once its blueprint is unlocked. Requires twice as many trips to refuel.</td></tr>
           </tbody>
         </table>
+        </div>
+        <div class="hbar-track"><div class="hbar-thumb"></div></div>
       </div>
       <div class="callout info"><strong>// Pending</strong>Fuel Cells are the one explicit prerequisite chain among the Blueprints (Makeshift → Manufactured) — unlike every other blueprint, which unlocks in parallel. Additional pacing mechanics are still needed so the crew can't unlock both Fuel Cell blueprints and rush straight into the Escape Phase — exact mechanic TBD.</div>
       <div class="callout info"><strong>// Fuel Cell Notes</strong>Both Fuel Cell types occupy reserved backpack slots, leaving remaining compartments available. The Manufactured Fuel Cell (2×2) uses 4 reserved slots; the Makeshift Fuel Cell (1×2) uses 2. Whatever's already in those slots must be relocated or dropped to make room — carrying a Fuel Cell requires no other special state. If the carrier dies, the Fuel Cell drops at the death location and must be recovered by surviving crew. Exact slot assignments subject to change.</div>
@@ -1695,8 +1916,10 @@
         <span class="section-num">// 17</span>
         <h2 class="section-title">Resources</h2>
       </div>
-      <div class="tbl-wrap">
-        <table>
+      <div class="tbl-wrap" data-mode="auto">
+        <div class="tbl-toolbar"><button class="view-toggle" aria-label="Toggle table view"></button></div>
+        <div class="tbl-scroll">
+          <table>
           <thead><tr><th>Resource</th><th>Found In</th><th>Acquisition</th></tr></thead>
           <tbody>
             <tr><td>SCRAP</td><td>EVERYWHERE — same locations as Salvage, Components &amp; Data</td><td>Direct pickup. Universal resource.</td></tr>
@@ -1705,6 +1928,8 @@
             <tr><td>DATA</td><td>Terminals and data points only</td><td>Two-step: Echo card → place Data Token → navigate → extract at terminal or data point.</td></tr>
           </tbody>
         </table>
+        </div>
+        <div class="hbar-track"><div class="hbar-thumb"></div></div>
       </div>
 
       <h3 id="resources-data-retrieval-loop">Data Retrieval Loop</h3>
@@ -1725,8 +1950,10 @@
 
       <h3>Item Categories</h3>
       <p>No crafting tiers — items are organized by category instead. Category has no effect on resource cost; it's purely organizational.</p>
-      <div class="tbl-wrap">
-        <table>
+      <div class="tbl-wrap" data-mode="auto">
+        <div class="tbl-toolbar"><button class="view-toggle" aria-label="Toggle table view"></button></div>
+        <div class="tbl-scroll">
+          <table>
           <thead><tr><th>Category</th><th>Items</th></tr></thead>
           <tbody>
             <tr><td>Melee Weapons</td><td>Army Knife, Stun Baton, Axe</td></tr>
@@ -1736,12 +1963,16 @@
             <tr><td>Utility Items</td><td>Fuel Cells, and other items not yet part of the game</td></tr>
           </tbody>
         </table>
+        </div>
+        <div class="hbar-track"><div class="hbar-thumb"></div></div>
       </div>
 
       <h3>Item List &amp; Crafting Recipes</h3>
       <p>Every item in the game is craftable except Universal Ammo, which is found only. Costs below are a preliminary pass — expect adjustment through playtesting.</p>
-      <div class="tbl-wrap">
-        <table>
+      <div class="tbl-wrap" data-mode="auto">
+        <div class="tbl-toolbar"><button class="view-toggle" aria-label="Toggle table view"></button></div>
+        <div class="tbl-scroll">
+          <table>
           <thead><tr><th>Item</th><th>Category</th><th>Recipe</th></tr></thead>
           <tbody>
             <tr><td>Army Knife</td><td>Melee Weapon</td><td>1 Salvage + 1 Scrap</td></tr>
@@ -1760,6 +1991,8 @@
             <tr><td>Universal Ammo</td><td>—</td><td><span style="color:var(--text-dim);">Found only — not crafted. See Ammo Crate Restock, <a href="#actions">// 12 ACTIONS</a>.</span></td></tr>
           </tbody>
         </table>
+        </div>
+        <div class="hbar-track"><div class="hbar-thumb"></div></div>
       </div>
     </section>
     <!-- 19 OBJECTIVE BOARD -->
@@ -1825,8 +2058,10 @@
         <h2 class="section-title">Glossary</h2>
       </div>
       <p>Recurring terms defined where they first appear in the rules, collected here for quick lookup. Will grow as design continues.</p>
-      <div class="tbl-wrap">
-        <table>
+      <div class="tbl-wrap" data-mode="auto">
+        <div class="tbl-toolbar"><button class="view-toggle" aria-label="Toggle table view"></button></div>
+        <div class="tbl-scroll">
+          <table>
           <thead><tr><th>Term</th><th>Definition</th><th>See</th></tr></thead>
           <tbody>
             <tr><td><strong>Noise</strong></td><td>Cumulative meter tracked per player each turn. Resets at the start of each player's turn. Compared against a D12 roll each Creature Phase.</td><td><a href="#actions">// 12 ACTIONS</a></td></tr>
@@ -1852,6 +2087,8 @@
             <tr><td><strong>Pending Objective Queue</strong></td><td>The Objective Board's queue of drawn-but-not-yet-completed objective tasks.</td><td><a href="#objective-board">// 19 OBJECTIVE BOARD</a></td></tr>
           </tbody>
         </table>
+        </div>
+        <div class="hbar-track"><div class="hbar-thumb"></div></div>
       </div>
     </section>
     <!-- 22 OPEN ITEMS -->
@@ -2243,5 +2480,6 @@
     });
 })();
 </script>
+<script src="assets/table-view-toggle.js"></script>
 </body>
 </html>
