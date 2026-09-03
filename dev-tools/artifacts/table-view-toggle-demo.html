@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Table View Toggle — Prototype</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='4' y='6' width='24' height='4' rx='1' fill='%23E8732A'/%3E%3Crect x='4' y='14' width='24' height='4' rx='1' fill='%23E8732A' opacity='0.6'/%3E%3Crect x='4' y='22' width='24' height='4' rx='1' fill='%23E8732A'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@300;400;600;700;900&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0c0f;
+    --surface: #111318;
+    --surface2: #1a1d24;
+    --border: #2a2d35;
+    --accent: #E8732A;
+    --accent2: #4A90D9;
+    --text: #c8cdd8;
+    --text-dim: #6b7080;
+    --text-bright: #eef0f5;
+    --success: #1e7a3e;
+    --mono: 'Share Tech Mono', monospace;
+    --head: 'Barlow Condensed', sans-serif;
+    --body: 'Barlow', sans-serif;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--body);
+    font-size: 15px;
+    line-height: 1.6;
+    padding: 32px 20px 120px;
+  }
+  .wrap { max-width: 760px; margin: 0 auto; }
+
+  h1 {
+    font-family: var(--head);
+    font-weight: 900;
+    letter-spacing: 0.02em;
+    font-size: clamp(28px, 5vw, 40px);
+    color: var(--text-bright);
+    margin-bottom: 6px;
+  }
+  .sub {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 24px;
+  }
+  .lede {
+    color: var(--text-dim);
+    font-size: 14px;
+    max-width: 62ch;
+    margin-bottom: 32px;
+  }
+  .lede strong { color: var(--text); }
+
+  /* ── DEVICE-WIDTH PREVIEW CONTROL ──
+     Lets you test the auto-switch breakpoint without resizing the real
+     browser window. Sets a max-width on .device-frame; not part of what
+     would ship to the real site. */
+  .preview-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 28px;
+    padding: 14px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  .preview-controls .label {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-right: 4px;
+  }
+  .preview-btn {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    color: var(--text-dim);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 7px 12px;
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .preview-btn:hover { color: var(--text); border-color: var(--text-dim); }
+  .preview-btn.active { color: var(--accent); border-color: var(--accent); }
+  .preview-width {
+    margin-left: auto;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+
+  .device-frame {
+    margin: 0 auto;
+    max-width: 100%;
+    transition: max-width 0.2s ease;
+    border-left: 1px dashed var(--border);
+    border-right: 1px dashed var(--border);
+    padding: 0 20px;
+  }
+
+  h2 {
+    font-family: var(--head);
+    font-weight: 700;
+    font-size: 20px;
+    color: var(--text-bright);
+    margin: 36px 0 4px;
+  }
+  h2 .num { color: var(--accent); font-family: var(--mono); font-size: 13px; margin-right: 8px; }
+  .table-note { font-size: 12.5px; color: var(--text-dim); margin-bottom: 12px; }
+
+  /* ── TABLE WRAP + TOGGLE BUTTON ── */
+  .tbl-wrap {
+    position: relative;
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface);
+  }
+  .tbl-toolbar {
+    display: flex;
+    justify-content: flex-end;
+    padding: 8px 8px 0;
+  }
+  .view-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    cursor: pointer;
+    color: var(--text-dim);
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .view-toggle:hover { color: var(--accent); border-color: var(--accent); }
+  .view-toggle svg { width: 16px; height: 16px; display: block; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+  }
+  thead th {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    text-align: left;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  tbody td {
+    padding: 10px 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    vertical-align: top;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody td:first-child { color: var(--text-bright); font-weight: 600; white-space: nowrap; }
+
+  /* ── STACKED / DICTIONARY-ENTRY VIEW ──
+     data-label on each non-first <td> is populated by JS from the
+     matching <th> text at load time - the real markup in rules.html
+     would need zero per-cell edits to adopt this, just the wrapper +
+     toggle button plus this same init script. */
+  .tbl-wrap[data-mode="stacked"] table,
+  .tbl-wrap[data-mode="stacked"] tbody,
+  .tbl-wrap[data-mode="stacked"] tr,
+  .tbl-wrap[data-mode="stacked"] td { display: block; width: auto; }
+  .tbl-wrap[data-mode="stacked"] thead { display: none; }
+  .tbl-wrap[data-mode="stacked"] tr {
+    padding: 14px 14px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .tbl-wrap[data-mode="stacked"] tr:last-child { border-bottom: none; }
+  .tbl-wrap[data-mode="stacked"] td {
+    padding: 0;
+    border-bottom: none;
+    white-space: normal;
+  }
+  .tbl-wrap[data-mode="stacked"] td:first-child {
+    font-family: var(--head);
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+  .tbl-wrap[data-mode="stacked"] td:not(:first-child) {
+    font-size: 13px;
+    color: var(--text);
+    padding: 3px 0 3px 2px;
+  }
+  .tbl-wrap[data-mode="stacked"] td:not(:first-child)::before {
+    content: attr(data-label) ": ";
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+
+  /* ── AUTO BREAKPOINT ──
+     Below this width, tables switch to stacked automatically unless a
+     toggle has already set an explicit data-mode on that .tbl-wrap. */
+  @media (max-width: 640px) {
+    .tbl-wrap[data-mode="auto"] table,
+    .tbl-wrap[data-mode="auto"] tbody,
+    .tbl-wrap[data-mode="auto"] tr,
+    .tbl-wrap[data-mode="auto"] td { display: block; width: auto; }
+    .tbl-wrap[data-mode="auto"] thead { display: none; }
+    .tbl-wrap[data-mode="auto"] tr { padding: 14px 14px 12px; border-bottom: 1px solid var(--border); }
+    .tbl-wrap[data-mode="auto"] tr:last-child { border-bottom: none; }
+    .tbl-wrap[data-mode="auto"] td { padding: 0; border-bottom: none; white-space: normal; }
+    .tbl-wrap[data-mode="auto"] td:first-child { font-family: var(--head); font-weight: 700; font-size: 15px; color: var(--accent); margin-bottom: 6px; }
+    .tbl-wrap[data-mode="auto"] td:not(:first-child) { font-size: 13px; color: var(--text); padding: 3px 0 3px 2px; }
+    .tbl-wrap[data-mode="auto"] td:not(:first-child)::before { content: attr(data-label) ": "; font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-dim); }
+  }
+
+  footer {
+    max-width: 760px;
+    margin: 60px auto 0;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--text-dim);
+    letter-spacing: 0.06em;
+    border-top: 1px solid var(--border);
+    padding-top: 16px;
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <h1>Table View Toggle</h1>
+  <div class="sub">// prototype — not wired into the real site yet</div>
+  <p class="lede">
+    Two demo tables below, pulled straight from Section 09 Dice Engine and Section 14
+    Combat. Each has its own toggle button — <strong>[|||]</strong> for the normal
+    column table, <strong>[≡]</strong> for the stacked dictionary-entry view. Below
+    640px wide, tables switch to stacked automatically unless you've already toggled
+    that specific table manually.
+  </p>
+
+  <div class="preview-controls">
+    <span class="label">Preview width</span>
+    <button class="preview-btn" data-w="375">Mobile 375</button>
+    <button class="preview-btn" data-w="768">Tablet 768</button>
+    <button class="preview-btn active" data-w="none">Full</button>
+    <span class="preview-width" id="widthReadout"></span>
+  </div>
+
+  <div class="device-frame" id="deviceFrame">
+
+    <h2><span class="num">// 09</span>D12 System Dice (5 dice)</h2>
+    <p class="table-note">Four columns, nine rows — the densest table on the page. Best stress test.</p>
+    <div class="tbl-wrap" data-mode="auto" id="tbl-dice">
+      <div class="tbl-toolbar"><button class="view-toggle" aria-label="Toggle table view"></button></div>
+      <table>
+        <thead><tr><th>Face</th><th>Icon</th><th>×</th><th>Function</th></tr></thead>
+        <tbody>
+          <tr><td>TECH</td><td>Computer/Monitor</td><td>2</td><td>Technology skill checks. Terminal interactions, hacking, data retrieval.</td></tr>
+          <tr><td>TOOLS</td><td>Wrench</td><td>2</td><td>Physical/mechanical skill checks. Crafting, repairs, construction.</td></tr>
+          <tr><td>DNA</td><td>DNA Strand</td><td>2</td><td>Biological/medical skill checks. Healing, biological hazards.</td></tr>
+          <tr><td>HAZARD</td><td>Triangle !</td><td>1</td><td>Combat face. Counts as defense/attack success.</td></tr>
+          <tr><td>BIOHAZARD</td><td>Biohazard Symbol</td><td>1</td><td>Counts identically to Hazard in Brace and Attack / Defense Rolls. Also a valid D12 requirement face on specific cards.</td></tr>
+          <tr><td>WILD</td><td>Star Burst</td><td>1</td><td>Counts as any required face for current roll.</td></tr>
+          <tr><td>NOISE</td><td>Speaker</td><td>1</td><td>Adds noise to tracker when rolled during skill checks.</td></tr>
+          <tr><td>NOISE SPIKE</td><td>Spiked Speaker</td><td>1</td><td>Stronger noise addition during skill checks.</td></tr>
+          <tr><td>VOID</td><td>X Mark</td><td>1</td><td>Permanently removes that die from current roll sequence.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2><span class="num">// 14</span>Attack / Defense Roll</h2>
+    <p class="table-note">Three columns, five rows — shorter cell content, cleaner contrast case.</p>
+    <div class="tbl-wrap" data-mode="auto" id="tbl-combat">
+      <div class="tbl-toolbar"><button class="view-toggle" aria-label="Toggle table view"></button></div>
+      <table>
+        <thead><tr><th>Weapon</th><th>Dice Pool</th><th>Max Pushback</th></tr></thead>
+        <tbody>
+          <tr><td>Unarmed</td><td>1 die</td><td>1 space</td></tr>
+          <tr><td>1×1 (Pistol, Knife, etc.)</td><td>2 dice</td><td>2 spaces</td></tr>
+          <tr><td>1×2 (Rifle, Axe, etc.)</td><td>3 dice</td><td>3 spaces</td></tr>
+          <tr><td>1×3 (Shotgun)</td><td>4 dice</td><td>4 spaces</td></tr>
+          <tr><td>4-slot (Flamethrower)</td><td>5 dice (max)</td><td>5 spaces</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+<footer>ECHOES // dev-tools artifact — not linked from the public site</footer>
+
+<script>
+(function(){
+  var ICON_COLUMNS =
+    '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">' +
+    '<line x1="4" y1="2" x2="4" y2="14"/><line x1="8" y1="2" x2="8" y2="14"/><line x1="12" y1="2" x2="12" y2="14"/>' +
+    '</svg>';
+  var ICON_STACKED =
+    '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">' +
+    '<line x1="2" y1="4" x2="14" y2="4"/><line x1="2" y1="8" x2="14" y2="8"/><line x1="2" y1="12" x2="14" y2="12"/>' +
+    '</svg>';
+
+  // Auto-populate data-label on every non-first <td> from that column's
+  // <th> text - the real site tables would need this same init script
+  // and nothing else added to their markup.
+  function labelCells(wrap){
+    var headers = Array.prototype.map.call(wrap.querySelectorAll('thead th'), function(th){ return th.textContent.trim(); });
+    wrap.querySelectorAll('tbody tr').forEach(function(tr){
+      Array.prototype.forEach.call(tr.children, function(td, i){
+        if (i === 0) return;
+        td.setAttribute('data-label', headers[i] || '');
+      });
+    });
+  }
+
+  function currentMode(wrap){
+    // "auto" resolves to whatever the CSS breakpoint currently renders;
+    // the toggle's icon should reflect what's ACTUALLY showing right now.
+    var mode = wrap.getAttribute('data-mode');
+    if (mode !== 'auto') return mode;
+    return window.matchMedia('(max-width: 640px)').matches ? 'stacked' : 'table';
+  }
+
+  function syncIcon(wrap, btn){
+    var showing = currentMode(wrap);
+    btn.innerHTML = showing === 'stacked' ? ICON_STACKED : ICON_COLUMNS;
+    btn.title = showing === 'stacked'
+      ? 'Showing stacked view — click for column table'
+      : 'Showing column table — click for stacked view';
+  }
+
+  document.querySelectorAll('.tbl-wrap').forEach(function(wrap){
+    labelCells(wrap);
+    var btn = wrap.querySelector('.view-toggle');
+    syncIcon(wrap, btn);
+    btn.addEventListener('click', function(){
+      var next = currentMode(wrap) === 'stacked' ? 'table' : 'stacked';
+      wrap.setAttribute('data-mode', next);
+      syncIcon(wrap, btn);
+    });
+    window.addEventListener('resize', function(){ syncIcon(wrap, btn); });
+  });
+
+  // Device-width preview control
+  var frame = document.getElementById('deviceFrame');
+  var readout = document.getElementById('widthReadout');
+  document.querySelectorAll('.preview-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      document.querySelectorAll('.preview-btn').forEach(function(b){ b.classList.remove('active'); });
+      btn.classList.add('active');
+      var w = btn.dataset.w;
+      frame.style.maxWidth = w === 'none' ? '100%' : w + 'px';
+      readout.textContent = w === 'none' ? '' : w + 'px frame';
+      document.querySelectorAll('.tbl-wrap').forEach(function(wrap){
+        var b = wrap.querySelector('.view-toggle');
+        syncIcon(wrap, b);
+      });
+    });
+  });
+})();
+</script>
+
+</body>
+</html>
