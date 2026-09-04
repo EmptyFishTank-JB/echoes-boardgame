@@ -129,17 +129,12 @@
        in this box and poke out past its bottom border without being
        clipped by the scrolling element's own overflow. */
     border: 1px solid var(--border);
-    border-radius: 8px;
     background: var(--surface);
   }
-  /* The real scroll container. Rounds only its own bottom corners so
-     the table's last row still clips to match .tbl-wrap's shape (the
-     corner-rounding job overflow-x:auto used to do on .tbl-wrap
-     itself). Native scrollbar hidden - .hbar-track/.hbar-thumb below
-     are the themed replacement. */
+  /* The real scroll container. Native scrollbar hidden - .hbar-track/
+     .hbar-thumb below are the themed replacement. */
   .tbl-scroll {
     overflow-x: auto;
-    border-radius: 0 0 8px 8px;
     scrollbar-width: none;
   }
   .tbl-scroll::-webkit-scrollbar { display: none; }
@@ -166,23 +161,16 @@
     background: var(--accent);
     border-radius: 2px;
   }
-  /* Reads as the table's own header row - centered, full width, with an
-     orange separator line before the real header/first entry below it.
-     The header zone (this + thead) is orange-outlined; the data rows
-     below use grey border lines instead - see thead th / tbody below. */
-  .tbl-toolbar {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 10px 0;
-    border-bottom: 1px solid var(--accent);
-  }
+  /* Sits inline at the end of the table's own nearby heading rather
+     than as a separate header row inside the table. */
   .view-toggle {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 30px;
-    height: 30px;
+    vertical-align: middle;
+    margin-left: 10px;
+    width: 22px;
+    height: 22px;
     background: var(--surface2);
     border: 1px solid var(--border);
     border-radius: 6px;
@@ -191,7 +179,7 @@
     transition: color 0.15s, border-color 0.15s;
   }
   .view-toggle:hover { color: var(--accent); border-color: var(--accent); }
-  .view-toggle svg { width: 16px; height: 16px; display: block; }
+  .view-toggle svg { width: 13px; height: 13px; display: block; }
 
   table {
     width: 100%;
@@ -200,8 +188,8 @@
     font-size: 13px;
   }
   /* Header text stays the prototype's own dim Share Tech Mono look
-     (not the real site's orange-filled thead) - only the border under
-     it goes orange, matching the toolbar above it. */
+     (not the real site's orange-filled thead) - just an orange border
+     underneath. */
   thead th {
     font-family: var(--mono);
     font-size: 11px;
@@ -228,7 +216,7 @@
   tbody td:first-child {
     font-family: var(--head);
     font-weight: 700;
-    font-size: 15px;
+    font-size: 13px;
     color: var(--accent);
     white-space: nowrap;
   }
@@ -261,7 +249,7 @@
   .tbl-wrap[data-mode="stacked"] td:first-child {
     font-family: var(--head);
     font-weight: 700;
-    font-size: 15px;
+    font-size: 13px;
     color: var(--accent);
     margin-bottom: 3px;
   }
@@ -295,7 +283,7 @@
     .tbl-wrap[data-mode="auto"] tr { padding: 14px 14px 12px; border-bottom: 1px solid var(--border); }
     .tbl-wrap[data-mode="auto"] tr:last-child { border-bottom: none; }
     .tbl-wrap[data-mode="auto"] td { padding: 0; border-bottom: none; white-space: normal; }
-    .tbl-wrap[data-mode="auto"] td:first-child { font-family: var(--head); font-weight: 700; font-size: 15px; color: var(--accent); margin-bottom: 3px; }
+    .tbl-wrap[data-mode="auto"] td:first-child { font-family: var(--head); font-weight: 700; font-size: 13px; color: var(--accent); margin-bottom: 3px; }
     .tbl-wrap[data-mode="auto"] td:not(:first-child) { font-family: var(--body); font-size: 13px; color: var(--text); padding: 1px 0 1px 2px; }
     .tbl-wrap[data-mode="auto"] td:not(:first-child)::before { content: attr(data-label) ": "; font-family: var(--mono); font-weight: bold; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-dim); }
   }
@@ -335,10 +323,9 @@
 
   <div class="device-frame" id="deviceFrame">
 
-    <h2><span class="num">// 09</span>D12 System Dice (5 dice)</h2>
+    <h2><span class="num">// 09</span>D12 System Dice (5 dice)<button class="view-toggle" aria-label="Toggle table view"></button></h2>
     <p class="table-note">Four columns, nine rows — the densest table on the page. Best stress test.</p>
     <div class="tbl-wrap" data-mode="auto" id="tbl-dice">
-      <div class="tbl-toolbar"><button class="view-toggle" aria-label="Toggle table view"></button></div>
       <div class="tbl-scroll">
         <table>
           <thead><tr><th>Face</th><th>Icon</th><th>×</th><th>Function</th></tr></thead>
@@ -358,10 +345,9 @@
       <div class="hbar-track"><div class="hbar-thumb"></div></div>
     </div>
 
-    <h2><span class="num">// 14</span>Attack / Defense Roll</h2>
+    <h2><span class="num">// 14</span>Attack / Defense Roll<button class="view-toggle" aria-label="Toggle table view"></button></h2>
     <p class="table-note">Three columns, five rows — shorter cell content, cleaner contrast case.</p>
     <div class="tbl-wrap" data-mode="auto" id="tbl-combat">
-      <div class="tbl-toolbar"><button class="view-toggle" aria-label="Toggle table view"></button></div>
       <div class="tbl-scroll">
         <table>
           <thead><tr><th>Weapon</th><th>Dice Pool</th><th>Max Pushback</th></tr></thead>
@@ -444,10 +430,27 @@
     thumb.style.left = leftPct + '%';
   }
 
-  document.querySelectorAll('.tbl-wrap').forEach(function(wrap){
-    labelCells(wrap);
-    var btn = wrap.querySelector('.view-toggle');
+  // The button lives inline in the table's heading, not inside
+  // .tbl-wrap - pair each button with the next .tbl-wrap that follows
+  // it in document order (a single combined selector returns both
+  // types already in document order). Pairs are kept around so the
+  // device-width preview control below can resync without re-deriving
+  // the pairing.
+  var pairs = [];
+  var pendingBtn = null;
+  document.querySelectorAll('.view-toggle, .tbl-wrap').forEach(function(el){
+    if (el.classList.contains('view-toggle')) {
+      pendingBtn = el;
+      return;
+    }
+    var wrap = el;
+    var btn = pendingBtn;
+    pendingBtn = null;
     var scroller = wrap.querySelector('.tbl-scroll');
+    if (!btn || !scroller) return;
+
+    pairs.push({ wrap: wrap, btn: btn });
+    labelCells(wrap);
     syncIcon(wrap, btn);
     syncHbar(wrap);
     btn.addEventListener('click', function(){
@@ -456,7 +459,7 @@
       syncIcon(wrap, btn);
       syncHbar(wrap);
     });
-    if (scroller) scroller.addEventListener('scroll', function(){ syncHbar(wrap); }, { passive: true });
+    scroller.addEventListener('scroll', function(){ syncHbar(wrap); }, { passive: true });
     window.addEventListener('resize', function(){ syncIcon(wrap, btn); syncHbar(wrap); });
   });
 
@@ -470,14 +473,10 @@
       var w = btn.dataset.w;
       frame.style.maxWidth = w === 'none' ? '100%' : w + 'px';
       readout.textContent = w === 'none' ? '' : w + 'px frame';
-      document.querySelectorAll('.tbl-wrap').forEach(function(wrap){
-        var b = wrap.querySelector('.view-toggle');
-        syncIcon(wrap, b);
-        syncHbar(wrap);
-      });
+      pairs.forEach(function(p){ syncIcon(p.wrap, p.btn); syncHbar(p.wrap); });
       // .device-frame animates max-width over 0.2s - resync once it settles.
       setTimeout(function(){
-        document.querySelectorAll('.tbl-wrap').forEach(syncHbar);
+        pairs.forEach(function(p){ syncHbar(p.wrap); });
       }, 220);
     });
   });

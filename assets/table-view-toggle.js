@@ -77,10 +77,23 @@
   }
 
   function init(){
-    document.querySelectorAll('.tbl-wrap').forEach(function(wrap){
-      var btn = wrap.querySelector('.view-toggle');
+    // The button lives inline in the table's nearby heading (h3, or a
+    // small standalone h4 for the few tables with no natural heading
+    // above them), not inside .tbl-wrap itself - so pair each button
+    // with the next .tbl-wrap that follows it in document order,
+    // rather than searching inside the wrap for it. A single combined
+    // selector returns both types already in document order.
+    var pendingBtn = null;
+    document.querySelectorAll('.view-toggle, .tbl-wrap').forEach(function(el){
+      if (el.classList.contains('view-toggle')) {
+        pendingBtn = el;
+        return;
+      }
+      var wrap = el;
+      var btn = pendingBtn;
+      pendingBtn = null;
       var scroller = wrap.querySelector('.tbl-scroll');
-      if (!btn || !scroller) return; // opted-out table (e.g. Actions) - leave alone
+      if (!btn || !scroller) return; // no button immediately before it - leave alone
 
       labelCells(wrap);
       syncIcon(wrap, btn);

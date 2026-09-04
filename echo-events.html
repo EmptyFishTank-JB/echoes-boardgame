@@ -381,16 +381,12 @@
        clipped by the scrolling element's own overflow. */
     margin: 16px 0 24px;
     border: 1px solid var(--border);
-    border-radius: 8px;
     background: var(--surface);
   }
-  /* The real scroll container. Rounds only its own bottom corners so
-     the table's last row still clips to match .tbl-wrap's shape.
-     Native scrollbar hidden - .hbar-track/.hbar-thumb are the themed
-     replacement. */
+  /* The real scroll container. Native scrollbar hidden - .hbar-track/
+     .hbar-thumb are the themed replacement. */
   .tbl-scroll {
     overflow-x: auto;
-    border-radius: 0 0 8px 8px;
     scrollbar-width: none;
   }
   .tbl-scroll::-webkit-scrollbar { display: none; }
@@ -417,23 +413,16 @@
     background: var(--accent);
     border-radius: 2px;
   }
-  /* Reads as the table's own header row - centered, full width, with
-     an orange separator line before the real header/first entry below
-     it. The header zone (this + thead) is orange-outlined; the data
-     rows below use grey border lines instead. */
-  .tbl-toolbar {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 10px 0;
-    border-bottom: 1px solid var(--accent);
-  }
+  /* Sits inline at the end of the table's own nearby heading rather
+     than as a separate header row inside the table. */
   .view-toggle {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 30px;
-    height: 30px;
+    vertical-align: middle;
+    margin-left: 10px;
+    width: 22px;
+    height: 22px;
     background: var(--surface2);
     border: 1px solid var(--border);
     border-radius: 6px;
@@ -442,7 +431,7 @@
     transition: color 0.15s, border-color 0.15s;
   }
   .view-toggle:hover { color: var(--accent); border-color: var(--accent); }
-  .view-toggle svg { width: 16px; height: 16px; display: block; }
+  .view-toggle svg { width: 13px; height: 13px; display: block; }
 
   table {
     width: 100%;
@@ -451,8 +440,7 @@
     font-size: 13px;
   }
   /* Header text is dim Share Tech Mono, not an orange-filled thead -
-     only the border under it goes orange, matching the toolbar above
-     it. */
+     just an orange border underneath. */
   thead th {
     font-family: var(--mono);
     font-size: 11px;
@@ -478,7 +466,7 @@
   td:first-child {
     font-family: var(--head);
     font-weight: 700;
-    font-size: 15px;
+    font-size: 13px;
     color: var(--accent);
     white-space: nowrap;
   }
@@ -512,7 +500,7 @@
   .tbl-wrap[data-mode="stacked"] td:first-child {
     font-family: var(--head);
     font-weight: 700;
-    font-size: 15px;
+    font-size: 13px;
     color: var(--accent);
     margin-bottom: 3px;
   }
@@ -546,7 +534,7 @@
     .tbl-wrap[data-mode="auto"] tr { padding: 14px 14px 12px; border-bottom: 1px solid var(--border); }
     .tbl-wrap[data-mode="auto"] tr:last-child { border-bottom: none; }
     .tbl-wrap[data-mode="auto"] td { padding: 0; border-bottom: none; white-space: normal; }
-    .tbl-wrap[data-mode="auto"] td:first-child { font-family: var(--head); font-weight: 700; font-size: 15px; color: var(--accent); margin-bottom: 3px; }
+    .tbl-wrap[data-mode="auto"] td:first-child { font-family: var(--head); font-weight: 700; font-size: 13px; color: var(--accent); margin-bottom: 3px; }
     .tbl-wrap[data-mode="auto"] td:not(:first-child) { font-family: var(--body); font-size: 13px; color: var(--text); padding: 1px 0 1px 2px; }
     .tbl-wrap[data-mode="auto"] td:not(:first-child)::before { content: attr(data-label) ": "; font-family: var(--mono); font-weight: bold; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-dim); }
   }
@@ -1057,9 +1045,8 @@
         <li><strong>Fail:</strong> The resource is permanently lost. A Noise penalty is applied, specific to each mini-game.</li>
       </ul>
 
-      <h3>Quick Reference</h3>
+      <h3>Quick Reference<button class="view-toggle" aria-label="Toggle table view"></button></h3>
       <div class="tbl-wrap" data-mode="auto">
-        <div class="tbl-toolbar"><button class="view-toggle" aria-label="Toggle table view"></button></div>
         <div class="tbl-scroll">
           <table>
           <thead><tr><th>#</th><th>Name</th><th>Type</th><th>Rolls</th><th>Win</th><th>Fail Noise</th><th>Play</th></tr></thead>
@@ -1092,9 +1079,8 @@
         </div>
         <p class="flavor">The hull groans. A seal somewhere in this section has given way and atmosphere is bleeding into the void. You have seconds to choose how hard you push the repair — and how much you're willing to risk.</p>
         <p>Before any dice are rolled, choose one of six color-coded Tiers, from Green (safest) to Red (the Jackpot). Your Tier sets a ceiling on the Champion Die — the highest value it may show and still count. To win a roll, the Champion Die must beat or match the Opposing Die <strong>and</strong> land at or under your chosen ceiling. Lower Tiers are far less likely to hit, but pay out much bigger on a win. You commit to your Tier before rolling and can't change it once the dice are in hand.</p>
-        <h4>Tiers</h4>
+        <h4>Tiers<button class="view-toggle" aria-label="Toggle table view"></button></h4>
         <div class="tbl-wrap" data-mode="auto">
-        <div class="tbl-toolbar"><button class="view-toggle" aria-label="Toggle table view"></button></div>
         <div class="tbl-scroll">
           <table>
             <thead><tr><th>Tier</th><th>Color</th><th>Ceiling</th><th>Win Odds</th><th>Bonus on Win</th><th>Noise on Fail</th></tr></thead>
@@ -1130,10 +1116,9 @@
         </div>
         <p class="flavor">Sparks cascade across the junction box. Six fuses, all live, and the whole grid threatening to blow. You have three chances to shut them down before the surge tears through the bulkhead.</p>
         <p>Six fuses, numbered 1 through 6, need to be shut within 3 Pulses. Every roll can shut fuses in three ways at once: by each die's individual face value, by the sum of both dice (only valid if 6 or lower), and by the difference between them. A roll of 2 and 5, for example, offers fuses [2], [5], and [3] — the sum of 7 is invalid since fuses only go to 6.</p>
-        <h4>System Surge — Doubles</h4>
+        <h4>System Surge — Doubles<button class="view-toggle" aria-label="Toggle table view"></button></h4>
         <p>Rolling doubles shuts the matching fuse as normal, then lets you pick one additional open fuse of your choice to shut on top of it.</p>
         <div class="tbl-wrap" data-mode="auto">
-        <div class="tbl-toolbar"><button class="view-toggle" aria-label="Toggle table view"></button></div>
         <div class="tbl-scroll">
           <table>
             <thead><tr><th>Outcome</th><th>Condition</th><th>Consequence</th></tr></thead>
@@ -1156,7 +1141,7 @@
       </div>
       <div class="game-card">
         <div class="game-card-header">
-          <h3 style="margin:0;">Coordinate Bet</h3>
+          <h3 style="margin:0;">Coordinate Bet<button class="view-toggle" aria-label="Toggle table view"></button></h3>
         </div>
         <div class="game-card-tags">
           <span class="game-tag">2× D6 — Blue (Row) &amp; Red (Column)</span>
@@ -1165,7 +1150,6 @@
         <p class="flavor">The targeting system flickers. A grid of coordinates scrolls across the display. You have one shot to lock in the right position before the window closes.</p>
         <p>A 3×3 grid is formed from Blue Die ranges (rows, bottom to top: 1–2 / 3–4 / 5–6) and Red Die ranges (columns, left to right: 1–2 / 3–4 / 5–6). Place your wager token on one cell before rolling — this can't be changed once placed. Both dice are rolled together: the Blue Die picks the row, the Red Die picks the column.</p>
         <div class="tbl-wrap" data-mode="auto">
-        <div class="tbl-toolbar"><button class="view-toggle" aria-label="Toggle table view"></button></div>
         <div class="tbl-scroll">
           <table>
             <thead><tr><th>Outcome</th><th>Condition</th><th>Consequence</th></tr></thead>
@@ -1189,7 +1173,7 @@
       </div>
       <div class="game-card">
         <div class="game-card-header">
-          <h3 style="margin:0;">Push Your Luck</h3>
+          <h3 style="margin:0;">Push Your Luck<button class="view-toggle" aria-label="Toggle table view"></button></h3>
         </div>
         <div class="game-card-tags">
           <span class="game-tag">2× D6 rolled together</span>
@@ -1198,7 +1182,6 @@
         <p class="flavor">The reactor coolant is venting. Warning indicators trip one after another across the panel in a chain you can barely keep up with. Every second you spend stabilizing makes the next problem worse. At some point, you have to decide: enough, or one more push?</p>
         <p>Roll both dice and add the sum to a running total, up to 3 Pulses. After each Pulse you may voluntarily stop, or keep pushing. You must declare your intent to stop before rolling the next Pulse — no retroactive partial wins.</p>
         <div class="tbl-wrap" data-mode="auto">
-        <div class="tbl-toolbar"><button class="view-toggle" aria-label="Toggle table view"></button></div>
         <div class="tbl-scroll">
           <table>
             <thead><tr><th>Outcome</th><th>Condition</th><th>Consequence</th></tr></thead>
@@ -1224,7 +1207,7 @@
       </div>
       <div class="game-card">
         <div class="game-card-header">
-          <h3 style="margin:0;">Sequential Match</h3>
+          <h3 style="margin:0;">Sequential Match<button class="view-toggle" aria-label="Toggle table view"></button></h3>
         </div>
         <div class="game-card-tags">
           <span class="game-tag">2× D6 rolled together</span>
@@ -1233,7 +1216,6 @@
         <p class="flavor">Static. Then something beneath it — a pattern, a rhythm, almost like a voice. The frequency is fragmenting. You lock in the coordinates and try to hold the signal long enough to confirm it. Whatever is transmitting out there, it knows you're listening.</p>
         <p>An initial free roll establishes two Signal Values — one per die, and they can be a duplicate pair, like [3, 3]. These are locked for the mini-game. You then get up to 3 Pulses to roll both dice and match them against the remaining unconfirmed Signal Values. If a die matches an unconfirmed value, that value is confirmed and stays confirmed — progress carries between Pulses. A duplicate signal like [3, 3] needs two separate 3s to fully confirm, whether that's both in one Pulse or one at a time across two.</p>
         <div class="tbl-wrap" data-mode="auto">
-        <div class="tbl-toolbar"><button class="view-toggle" aria-label="Toggle table view"></button></div>
         <div class="tbl-scroll">
           <table>
             <thead><tr><th>Outcome</th><th>Condition</th><th>Consequence</th></tr></thead>
@@ -1256,7 +1238,7 @@
       </div>
       <div class="game-card">
         <div class="game-card-header">
-          <h3 style="margin:0;">Balance Control</h3>
+          <h3 style="margin:0;">Balance Control<button class="view-toggle" aria-label="Toggle table view"></button></h3>
         </div>
         <div class="game-card-tags">
           <span class="game-tag">2× D6 rolled together</span>
@@ -1265,7 +1247,6 @@
         <p class="flavor">The gravity tether is out of alignment, violently swinging the ship's center of mass. Ride out three pulses of correction and hope the tether settles near true neutral before the stress tears the bulkhead apart.</p>
         <p>Roll both dice each Pulse. The net of Blue minus Red applies to a running total automatically — there's no choice involved, just the dice. After 3 Pulses, however close to zero you land determines the outcome.</p>
         <div class="tbl-wrap" data-mode="auto">
-        <div class="tbl-toolbar"><button class="view-toggle" aria-label="Toggle table view"></button></div>
         <div class="tbl-scroll">
           <table>
             <thead><tr><th>Outcome</th><th>Condition</th><th>Consequence</th></tr></thead>
