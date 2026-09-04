@@ -1066,7 +1066,7 @@
 
 
     <div class="nav-label" style="margin-top:8px;">// Sections</div>
-    <a href="#overview">01 · Overview</a>
+    <a href="#overview">01 · Game Overview</a>
     <a href="#components">02 · Components</a>
     <a href="#setup">03 · Setup</a>
     <a href="#scaling">04 · Player Count Scaling</a>
@@ -1076,12 +1076,12 @@
     <a href="#turn">08 · Turn Structure</a>
     <a href="#dice">09 · Dice Engine</a>
     <a href="#echo-deck">10 · Echo Deck</a>
-    <a href="#mini-games">11 · Echo Events</a>
+    <a href="#mini-games">11 · Echo Event Mini-Games</a>
     <a href="#actions">12 · Actions</a>
-    <a href="#health">13 · Health</a>
+    <a href="#health">13 · Health &amp; Recovery</a>
     <a href="#combat">14 · Combat</a>
     <a href="#weapons">15 · Weapons</a>
-    <a href="#inventory">16 · Inventory</a>
+    <a href="#inventory">16 · Inventory &amp; Equipment</a>
     <a href="#resources">17 · Resources</a>
     <a href="#crafting">18 · Crafting</a>
     <a href="#objective-board">19 · Objective Board</a>
@@ -1213,7 +1213,7 @@
         <span class="section-num">// 04</span>
         <h2 class="section-title">Player Count Scaling</h2>
       </div>
-      <p>The game supports 1&ndash;5 players, cooperative (see <a href="#overview">// 01 OVERVIEW</a>). Nothing in the rules as written yet adjusts for crew size &mdash; this section tracks what should scale and how.</p>
+      <p>The game supports 1&ndash;5 players, cooperative (see <a href="#overview">// 01 GAME OVERVIEW</a>). Nothing in the rules as written yet adjusts for crew size &mdash; this section tracks what should scale and how.</p>
       <div class="callout info"><strong>// Pending</strong>None of the items below are confirmed. Listed as candidates for scaling, based on what currently exists as a fixed value regardless of player count.</div>
       <ul class="rules-list">
         <li><strong>Creature aggression / noise thresholds</strong> &mdash; does a smaller crew mean an easier or harder Noise Check curve? See <a href="#creature">// 06 THE CREATURE &amp; NOISE</a>.</li>
@@ -2001,7 +2001,7 @@
       <ul class="rules-list">
         <li><strong>Parallel by Default:</strong> Blueprints are independent — the crew can populate and work any blueprint's chain in any order they choose. No global order across them.</li>
         <li><strong>Free Placement:</strong> An objective drawn from a Room Card may be slotted into an eligible chain immediately, at no extra action cost — same action as the draw.</li>
-        <li><strong>Explicit Prerequisites:</strong> A blueprint may name one specific prerequisite blueprint that must be fully completed before its own chain can be populated. This is a property of that one blueprint, not a rule about the Blueprints as a whole — see <a href="#inventory-fuel-cells">// 16 INVENTORY - FUEL CELLS</a> for the current example.</li>
+        <li><strong>Explicit Prerequisites:</strong> A blueprint may name one specific prerequisite blueprint that must be fully completed before its own chain can be populated. This is a property of that one blueprint, not a rule about the Blueprints as a whole — see <a href="#inventory-fuel-cells">// 16 INVENTORY &amp; EQUIPMENT - FUEL CELLS</a> for the current example.</li>
         <li><strong>Ahead of Completion:</strong> On any blueprint without a prerequisite, population can run ahead of completion — every objective slot can be filled before that blueprint's own tasks are even started.</li>
         <li><strong>One Card, One Chain:</strong> Once an objective is slotted, it's locked to that chain — it can never be reapplied elsewhere.</li>
       </ul>
@@ -2037,7 +2037,7 @@
         <li><strong>Fuel Grid:</strong> 2×10 grid at the Dock. 20 total spaces. Need 16 filled.</li>
         <li><strong>Manufactured Fuel Cell:</strong> 2×2 (4 spaces). Crafted once its blueprint is unlocked.</li>
         <li><strong>Makeshift Fuel Cell:</strong> 1×2 (2 spaces). Crafted once its blueprint is unlocked. Twice the trips to refuel.</li>
-        <li><strong>Carrier Rule:</strong> Fuel Cells are backpack items, not a special carried state — they just occupy reserved Fuel Cell slots (see <a href="#inventory">// 16 INVENTORY</a>). Whatever's currently in those slots must be relocated or dropped to make room. No weapon/armor drop, no bodyguard requirement.</li>
+        <li><strong>Carrier Rule:</strong> Fuel Cells are backpack items, not a special carried state — they just occupy reserved Fuel Cell slots (see <a href="#inventory">// 16 INVENTORY &amp; EQUIPMENT</a>). Whatever's currently in those slots must be relocated or dropped to make room. No weapon/armor drop, no bodyguard requirement.</li>
         <li><strong>Death Drop:</strong> Carrier death drops cell at exact location. Recovery mission required.</li>
         <li><strong>Final Encounter:</strong> Endgame creature resolution mechanic. TBD.</li>
       </ul>
@@ -2062,7 +2062,7 @@
             <tr><td><strong>CONTACT Card</strong></td><td>Drawn at the Operations Center's main terminal. Names the room family the Creature will be introduced into.</td><td><a href="#creature">// 06 THE CREATURE &amp; NOISE</a></td></tr>
             <tr><td><strong>Line of Sight (LoS) Rush</strong></td><td>If the Creature gets line of sight on any player during its movement, it immediately rushes that player, expending remaining movement. Triggers on first contact, not only at the end of the move.</td><td><a href="#creature">// 06 THE CREATURE &amp; NOISE</a></td></tr>
             <tr><td><strong>Echo Card</strong></td><td>The primary draw-deck card type. Populates rooms and terminals with room family content, objectives, lore, and events/hazards.</td><td><a href="#echo-deck">// 10 ECHO DECK</a></td></tr>
-            <tr><td><strong>Echo Event / Mini-Game</strong></td><td>An interrupt mini-game triggered by certain Echo Card draws. Resolved with the D6 Coordinate Dice, a separate pool from the D12 System Dice.</td><td><a href="#mini-games">// 11 ECHO EVENTS</a></td></tr>
+            <tr><td><strong>Echo Event / Mini-Game</strong></td><td>An interrupt mini-game triggered by certain Echo Card draws. Resolved with the D6 Coordinate Dice, a separate pool from the D12 System Dice.</td><td><a href="#mini-games">// 11 ECHO EVENT MINI-GAMES</a></td></tr>
             <tr><td><strong>D12 System Dice</strong></td><td>The 5-die pool used for all standard checks &mdash; card events, hazards, and skill checks.</td><td><a href="#dice">// 09 DICE ENGINE</a></td></tr>
             <tr><td><strong>D6 Coordinate Dice</strong></td><td>The Blue and Red die pair used exclusively for Echo Event mini-games. Never mixed with the D12 System Dice.</td><td><a href="#dice">// 09 DICE ENGINE</a></td></tr>
             <tr><td><strong>Roll Resolution</strong></td><td>The standard dice-check structure all D12 System Dice checks follow, modeled after Ship, Captain, Crew.</td><td><a href="#dice">// 09 DICE ENGINE</a></td></tr>
@@ -2071,7 +2071,7 @@
             <tr><td><strong>Pushback</strong></td><td>Spaces the Creature is forced back per Attack / Defense Roll face rolled, capped at the weapon's dice pool size (plus any bonus).</td><td><a href="#combat">// 14 COMBAT</a></td></tr>
             <tr><td><strong>Run</strong></td><td>A declared movement modifier: +4 Speed, +3 Noise once per phase. Cannot combine with Quiet Move.</td><td><a href="#turn">// 08 TURN STRUCTURE</a></td></tr>
             <tr><td><strong>Quiet Move</strong></td><td>A declared movement modifier: Speed &minus;2, nullifies all Move noise for the phase (including Encumbered noise). Cannot combine with Run.</td><td><a href="#turn">// 08 TURN STRUCTURE</a></td></tr>
-            <tr><td><strong>Encumbered</strong></td><td>Status when backpack fill reaches 80% of capacity. Increases movement noise to +2 per Move.</td><td><a href="#inventory">// 16 INVENTORY</a></td></tr>
+            <tr><td><strong>Encumbered</strong></td><td>Status when backpack fill reaches 80% of capacity. Increases movement noise to +2 per Move.</td><td><a href="#inventory">// 16 INVENTORY &amp; EQUIPMENT</a></td></tr>
             <tr><td><strong>Data Token</strong></td><td>Placed at a terminal or data point by certain Echo Card draws. Claimed later via the separate Data Extraction action.</td><td><a href="#resources">// 17 RESOURCES</a></td></tr>
             <tr><td><strong>Fuel Grid</strong></td><td>The 2&times;10 (20-space) grid at the Dock. 16 of 20 spaces must be filled with Fuel Cells to enable escape.</td><td><a href="#escape">// 20 ESCAPE PHASE</a></td></tr>
             <tr><td><strong>Objective Board</strong></td><td>Hosts the Blueprints and the Pending Objective Queue.</td><td><a href="#objective-board">// 19 OBJECTIVE BOARD</a></td></tr>
