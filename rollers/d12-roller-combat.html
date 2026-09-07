@@ -313,6 +313,9 @@
     border: 1px solid var(--border);
   }
   .btn.secondary:hover:not(:disabled) { color: var(--text); border-color: var(--text-dim); }
+  .btn.secondary.danger {
+    background: rgba(255,77,94,0.12); color: var(--red); border-color: var(--red);
+  }
   .btn-row { display: flex; gap: 10px; align-items: stretch; margin-bottom: 10px; }
   .btn-row .btn { flex: 1; }
 
@@ -695,6 +698,7 @@
   }
   bracePips.forEach(p => {
     p.addEventListener('click', () => {
+      SFX.select();
       braceValue = Number(p.dataset.val);
       syncBrace();
     });
@@ -710,6 +714,7 @@
     readyIcon.src = readyOn ? '../assets/icons/ready-on.svg' : '../assets/icons/ready-off.svg';
   }
   readyToggle.addEventListener('click', () => {
+    SFX.select();
     readyOn = !readyOn;
     syncReady();
   });
@@ -832,6 +837,7 @@
       'Damage: 5 base &minus; <strong>' + braceFaces + '</strong> Brace &minus; <strong>' + defenseFaces + '</strong> Defense &minus; <strong>' + armor + '</strong> Armor = <strong>' + damage + '</strong> (floors at 0).<br>' +
       'Pushback: ' + defenseFaces + ' face' + (defenseFaces === 1 ? '' : 's') + ', capped at ' + pushbackCap + ' = ' + cappedFaces + (readyBonus ? ' + 1 Ready' : '') + ' = <strong>' + pushback + '</strong> space' + (pushback === 1 ? '' : 's') + '.';
     resultBanner.classList.remove('hidden');
+    SFX.select();
 
     log('<span class="tag">End Roll</span> &mdash; Pool ' + currentPool() + ' &mdash; <strong>' + damage + ' damage</strong>, <strong>' + pushback + ' pushback</strong>');
 
@@ -848,6 +854,7 @@
     buildDice();
     endRollBtn.disabled = true;
     updateRollBtn();
+    SFX.select();
   }
 
   function log(html){
@@ -859,10 +866,70 @@
     }
   }
 
-  wireEqGrid(eqCells, () => { if (!rollActive) buildDice(); });
-  rollBtn.addEventListener('click', roll);
-  endRollBtn.addEventListener('click', endRoll);
-  resetBtn.addEventListener('click', reset);
+  /* ── CONFIRM-TO-ARM ──
+     End Roll and New Encounter both need a second click before they
+     act (matching d12-roller.html's Reset/End Check pattern): the
+     first click swaps the label to "Confirm ...?" and reddens the
+     button, the second click within 3.5s performs the action. Either
+     button clicking disarms the other's pending confirm. */
+  let endRollPending = false;
+  let endRollPendingTimer = null;
+  let resetPending = false;
+  let resetPendingTimer = null;
+
+  function disarmEndRollConfirm(){
+    if (!endRollPending) return;
+    endRollPending = false;
+    clearTimeout(endRollPendingTimer);
+    endRollBtn.textContent = 'End Roll';
+    endRollBtn.classList.remove('danger');
+  }
+  function armEndRollConfirm(){
+    endRollPending = true;
+    endRollBtn.textContent = 'Confirm End?';
+    endRollBtn.classList.add('danger');
+    clearTimeout(endRollPendingTimer);
+    endRollPendingTimer = setTimeout(disarmEndRollConfirm, 3500);
+  }
+  function disarmResetConfirm(){
+    if (!resetPending) return;
+    resetPending = false;
+    clearTimeout(resetPendingTimer);
+    resetBtn.textContent = 'New Encounter';
+    resetBtn.classList.remove('danger');
+  }
+  function armResetConfirm(){
+    resetPending = true;
+    resetBtn.textContent = 'Confirm Reset?';
+    resetBtn.classList.add('danger');
+    clearTimeout(resetPendingTimer);
+    resetPendingTimer = setTimeout(disarmResetConfirm, 3500);
+  }
+
+  wireEqGrid(eqCells, () => { SFX.select(); if (!rollActive) buildDice(); });
+  rollBtn.addEventListener('click', () => {
+    disarmEndRollConfirm();
+    disarmResetConfirm();
+    roll();
+  });
+  endRollBtn.addEventListener('click', () => {
+    disarmResetConfirm();
+    if (!endRollPending){
+      armEndRollConfirm();
+      return;
+    }
+    disarmEndRollConfirm();
+    endRoll();
+  });
+  resetBtn.addEventListener('click', () => {
+    disarmEndRollConfirm();
+    if (!resetPending){
+      armResetConfirm();
+      return;
+    }
+    disarmResetConfirm();
+    reset();
+  });
 
   syncBrace();
   buildDice();

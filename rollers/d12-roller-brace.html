@@ -207,6 +207,11 @@
   }
   .result-detail strong { color: var(--text); }
   .hidden { display: none !important; }
+  /* Reserve the result banner's box even while "hidden" (visibility,
+     not display:none) so History doesn't jump up the moment a new
+     roll starts and the previous result is dismissed. Content text is
+     never cleared on hide, only re-shown, so the box height stays put. */
+  .result-banner.hidden { display: block !important; visibility: hidden; }
 
   .rules-mini {
     font-family: 'Share Tech Mono', monospace;
