@@ -193,6 +193,7 @@
   .pent-pip {
     width: 27px; height: 28px;
     position: relative;
+    display: flex; align-items: center; justify-content: center;
     border: none; padding: 0; background: transparent; cursor: pointer;
     flex-shrink: 0;
   }
@@ -212,32 +213,20 @@
   .pent-pip:hover::before { filter: brightness(1.15); }
   .pent-pip img {
     position: relative;
-    width: 46%; height: 46%;
-    display: block;
-    margin: 18% auto 0;
+    width: 60%; height: 60%;
+    margin-top: 10%;
   }
   .pent-pip.lit::before { background: linear-gradient(150deg, #e9fff5, #baf5da); }
   .pent-pip.lit::after { background: linear-gradient(to top, var(--good) 0px, var(--good) 3px, transparent 3px, transparent 100%); }
 
   /* ── BRACE ACTION ──
-     X 1 2 3 4 5. X is red-lit by default (0 faces). Clicking a
-     pentagon lights it and every pentagon to its left green; clicking
-     X clears back to 0. Un-lit pentagons dim the same way a Void die
-     dims, minus the X overlay - the literal X glyph lives in its own
-     circular pip instead. */
+     X 1 2 3 4 5. X is red-lit by default (0 faces) and shows the Void
+     die's X graphic. Clicking a pentagon lights it and every pentagon
+     to its left green; clicking X clears back to 0 and dims the
+     others the same way a Void die dims. */
   .brace-row { display: flex; align-items: center; gap: 8px; }
-  .brace-x {
-    width: 26px; height: 26px;
-    border-radius: 50%;
-    border: 1px solid var(--border);
-    background: rgba(5,7,9,0.6);
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 13px; font-weight: 700;
-    color: var(--text-dim);
-    cursor: pointer; transition: 0.15s;
-    flex-shrink: 0;
-  }
-  .brace-x.lit { color: var(--red); border-color: var(--red); background: rgba(255,77,94,0.12); }
+  .brace-x-pent::after { background: linear-gradient(to top, var(--red) 0px, var(--red) 3px, transparent 3px, transparent 100%); }
+  .brace-x-pent.dim::after { background: linear-gradient(to top, rgba(0,0,0,0.3) 0px, rgba(0,0,0,0.3) 3px, transparent 3px, transparent 100%); }
 
   /* ── READY ACTION ──
      Single pentagon toggle standing in for the old checkbox. Off (red)
@@ -520,7 +509,9 @@
       <div class="eq-grid armor" id="armorGrid"></div>
       <label class="field-label brace-label">Brace Action</label>
       <div class="brace-row" id="braceRow">
-        <button type="button" class="brace-x lit" data-val="0" aria-label="Clear brace faces">X</button>
+        <button type="button" class="pent-pip brace-x-pent" data-val="0" aria-label="Clear brace faces">
+          <img src="../assets/icons/ready-off.svg" alt="">
+        </button>
         <button type="button" class="pent-pip brace-num" data-val="1" aria-label="1 brace face"></button>
         <button type="button" class="pent-pip brace-num" data-val="2" aria-label="2 brace faces"></button>
         <button type="button" class="pent-pip brace-num" data-val="3" aria-label="3 brace faces"></button>
@@ -697,7 +688,11 @@
   function syncBrace(){
     bracePips.forEach(p => {
       const v = Number(p.dataset.val);
-      p.classList.toggle('lit', v === 0 ? braceValue === 0 : v <= braceValue);
+      if (v === 0){
+        p.classList.toggle('dim', braceValue !== 0);
+      } else {
+        p.classList.toggle('lit', v <= braceValue);
+      }
     });
   }
   bracePips.forEach(p => {
