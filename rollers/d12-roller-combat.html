@@ -153,13 +153,14 @@
      the tabletop Equipment Grid's 2×4 = 8 slot layout (see rules.html
      // 16 INVENTORY & EQUIPMENT). Filled-cell count drives the dice
      pool / armor mitigation math directly - no per-cell item identity. */
-  .eq-section { margin-bottom: 20px; }
+  .eq-section { margin-bottom: 20px; text-align: center; }
   .eq-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     grid-template-rows: repeat(2, 1fr);
     gap: 6px;
     max-width: 356px;
+    margin: 0 auto;
   }
   .eq-cell {
     aspect-ratio: 1;
@@ -836,12 +837,13 @@
     const readyBonus = readyOn ? 1 : 0;
 
     const damage = Math.max(0, 5 - braceFaces - defenseFaces - armor);
-    const pushback = Math.min(defenseFaces, pushbackCap + readyBonus);
+    const cappedFaces = Math.min(defenseFaces, pushbackCap);
+    const pushback = cappedFaces + readyBonus;
 
     resultBig.textContent = damage + ' DAMAGE · ' + pushback + ' PUSHBACK';
     resultDetail.innerHTML =
       'Damage: 5 base &minus; <strong>' + braceFaces + '</strong> Brace &minus; <strong>' + defenseFaces + '</strong> Defense &minus; <strong>' + armor + '</strong> Armor = <strong>' + damage + '</strong> (floors at 0).<br>' +
-      'Pushback: ' + defenseFaces + ' face' + (defenseFaces === 1 ? '' : 's') + ', capped at ' + pushbackCap + (readyBonus ? ' + 1 Ready' : '') + ' = <strong>' + pushback + '</strong> space' + (pushback === 1 ? '' : 's') + '.';
+      'Pushback: ' + defenseFaces + ' face' + (defenseFaces === 1 ? '' : 's') + ', capped at ' + pushbackCap + ' = ' + cappedFaces + (readyBonus ? ' + 1 Ready' : '') + ' = <strong>' + pushback + '</strong> space' + (pushback === 1 ? '' : 's') + '.';
     resultBanner.classList.remove('hidden');
 
     log('<span class="tag">End Roll</span> &mdash; Pool ' + currentPool() + ' &mdash; <strong>' + damage + ' damage</strong>, <strong>' + pushback + ' pushback</strong>');
