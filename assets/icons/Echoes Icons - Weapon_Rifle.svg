@@ -64,20 +64,7 @@
        enabled="true"
        visible="true" />
   </sodipodi:namedview>
-  <rect
-     width="4"
-     height="12"
-     x="0"
-     y="-12"
-     fill="none"
-     opacity="1"
-     stroke-opacity="1"
-     stroke-width="0.2"
-     fill-opacity="1"
-     stroke="#000000"
-     id="rect1-1"
-     style="stroke-linecap:square;stroke-linejoin:bevel"
-     transform="rotate(90)" />
+  
   <polyline
      points="6.5 12.5 7 12 6.5 11.5"
      fill="none"
@@ -89,7 +76,7 @@
      stroke-opacity="1"
      fill-opacity="1"
      id="polyline4-1"
-     style="stroke-linecap:square;stroke-linejoin:bevel"
+     style="stroke-linecap:square;stroke-linejoin:miter"
      transform="rotate(90,9.9999995,5.9999995)" />
   <line
      x2="0.99999905"
@@ -102,7 +89,7 @@
      stroke-opacity="1"
      stroke-linecap="butt"
      id="line9-5"
-     style="stroke-linecap:square;stroke-linejoin:bevel" />
+     style="stroke-linecap:square;stroke-linejoin:miter" />
   <line
      x2="7.9114838"
      stroke="#000000"
@@ -114,7 +101,7 @@
      stroke-opacity="1"
      stroke-linecap="butt"
      id="line10-2"
-     style="stroke-linecap:square;stroke-linejoin:bevel" />
+     style="stroke-linecap:square;stroke-linejoin:miter" />
   <line
      x2="4.036706"
      stroke="#000000"
@@ -126,7 +113,7 @@
      stroke-opacity="1"
      stroke-linecap="butt"
      id="line17-7"
-     style="stroke-width:0.2;stroke-linecap:square;stroke-linejoin:bevel;stroke-dasharray:none" />
+     style="stroke-width:0.2;stroke-linecap:square;stroke-linejoin:miter;stroke-dasharray:none" />
   <line
      x2="1.1109648"
      stroke="#000000"
@@ -138,5 +125,5 @@
      stroke-opacity="1"
      stroke-linecap="butt"
      id="line18-6"
-     style="stroke-linecap:square;stroke-linejoin:bevel" />
+     style="stroke-linecap:square;stroke-linejoin:miter" />
 </svg>

@@ -71,7 +71,7 @@
      stroke-linecap="round"
      stroke-linejoin="round"
      id="path1"
-     style="stroke-linecap:butt;stroke-linejoin:bevel" />
+     style="stroke-linecap:butt;stroke-linejoin:miter" />
   <polygon
      points="16,12 12,12 12,16 8,16 8,4 12,4 12,8 16,8 "
      fill-opacity="0"
@@ -81,7 +81,7 @@
      stroke-opacity="1"
      stroke-width="0.2"
      id="polygon1"
-     style="opacity:1;fill:none;fill-opacity:0;stroke:#000000;stroke-linecap:butt;stroke-linejoin:bevel;stroke-opacity:1"
+     style="opacity:1;fill:none;fill-opacity:0;stroke:#000000;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
      transform="rotate(90,12,4)" />
   <rect
      width="3"
@@ -95,7 +95,7 @@
      fill-opacity="1"
      stroke="#000000"
      id="rect2"
-     style="stroke-linecap:butt;stroke-linejoin:bevel"
+     style="stroke-linecap:butt;stroke-linejoin:miter"
      transform="rotate(90)" />
   <line
      x2="0.46875"
@@ -108,7 +108,7 @@
      stroke-opacity="1"
      stroke-linecap="butt"
      id="line11"
-     style="stroke-linecap:butt;stroke-linejoin:bevel" />
+     style="stroke-linecap:butt;stroke-linejoin:miter" />
   <line
      x2="3.96875"
      stroke="#000000"
@@ -120,7 +120,7 @@
      stroke-opacity="1"
      stroke-linecap="butt"
      id="line12"
-     style="stroke-linecap:butt;stroke-linejoin:bevel" />
+     style="stroke-linecap:butt;stroke-linejoin:miter" />
   <line
      x2="5.96875"
      stroke="#000000"
@@ -132,7 +132,7 @@
      stroke-opacity="1"
      stroke-linecap="butt"
      id="line15"
-     style="stroke-linecap:butt;stroke-linejoin:bevel" />
+     style="stroke-linecap:butt;stroke-linejoin:miter" />
   <line
      x2="0.96875"
      stroke="#000000"
@@ -144,5 +144,5 @@
      stroke-opacity="1"
      stroke-linecap="butt"
      id="line16"
-     style="stroke-linecap:butt;stroke-linejoin:bevel" />
+     style="stroke-linecap:butt;stroke-linejoin:miter" />
 </svg>

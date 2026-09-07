@@ -75,7 +75,7 @@
      stroke-opacity="1"
      fill-opacity="1"
      id="polyline20"
-     style="stroke-linecap:square;stroke-linejoin:bevel" />
+     style="stroke-linecap:square;stroke-linejoin:miter" />
   <circle
      cx="1"
      cy="2"
@@ -86,13 +86,7 @@
      stroke-width="0.2"
      stroke="#000000"
      id="circle20"
-     style="stroke-linecap:square;stroke-linejoin:bevel"
+     style="stroke-linecap:square;stroke-linejoin:miter"
      r="0.5" />
-  <rect
-     style="fill:none;stroke:#000000;stroke-width:0.2;stroke-linecap:square;stroke-linejoin:bevel;stroke-miterlimit:1;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal"
-     id="rect20"
-     width="4"
-     height="4"
-     x="0"
-     y="0" />
+  
 </svg>

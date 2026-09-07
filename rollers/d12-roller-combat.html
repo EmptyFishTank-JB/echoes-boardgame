@@ -177,10 +177,13 @@
     opacity: 0;
     transition: opacity 0.15s;
   }
-  .eq-cell.filled { border-style: solid; }
+  .eq-cell.filled {
+    border-style: solid;
+    background: linear-gradient(150deg, #f4f6f9, #d9dee6);
+  }
   .eq-cell.filled img { opacity: 1; }
-  .eq-grid.weapon .eq-cell.filled { border-color: var(--orange); background: rgba(232,115,42,0.1); }
-  .eq-grid.armor .eq-cell.filled { border-color: var(--accent); background: rgba(79,195,247,0.1); }
+  .eq-grid.weapon .eq-cell.filled { border-color: var(--orange); }
+  .eq-grid.armor .eq-cell.filled { border-color: var(--accent); }
   .eq-grid.locked { pointer-events: none; opacity: 0.55; }
 
   /* ── PENTAGON PIPS (shared base) ──

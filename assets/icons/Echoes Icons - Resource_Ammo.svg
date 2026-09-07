@@ -75,7 +75,7 @@
      stroke-opacity="1"
      fill-opacity="1"
      id="polyline6"
-     style="stroke-linecap:square;stroke-linejoin:bevel"
+     style="stroke-linecap:square;stroke-linejoin:miter"
      transform="translate(-3.9999999,-0.25)" />
   <polyline
      points="7 1.5 7 3.5 5 3.5 5 1.5"
@@ -88,7 +88,7 @@
      stroke-opacity="1"
      fill-opacity="1"
      id="polyline7"
-     style="stroke-linecap:square;stroke-linejoin:bevel"
+     style="stroke-linecap:square;stroke-linejoin:miter"
      transform="translate(-3.9999999,-0.25)" />
   <line
      x2="2"
@@ -101,12 +101,6 @@
      stroke-opacity="1"
      stroke-linecap="butt"
      id="line20"
-     style="stroke-linecap:square;stroke-linejoin:bevel" />
-  <rect
-     style="fill:none;stroke:#000000;stroke-width:0.2;stroke-linecap:square;stroke-linejoin:bevel;stroke-miterlimit:1;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal"
-     id="rect20-8-5"
-     width="4"
-     height="4"
-     x="0"
-     y="0" />
+     style="stroke-linecap:square;stroke-linejoin:miter" />
+  
 </svg>

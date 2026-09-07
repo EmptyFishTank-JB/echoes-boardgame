@@ -64,19 +64,7 @@
        enabled="true"
        visible="true" />
   </sodipodi:namedview>
-  <rect
-     width="4"
-     height="4"
-     x="0"
-     y="0"
-     fill="none"
-     opacity="1"
-     stroke-opacity="1"
-     stroke-width="0.2"
-     fill-opacity="1"
-     stroke="#000000"
-     id="rect3"
-     style="stroke-linecap:square;stroke-linejoin:bevel" />
+  
   <line
      x2="1"
      stroke="#000000"
@@ -88,7 +76,7 @@
      stroke-opacity="1"
      stroke-linecap="butt"
      id="line7"
-     style="stroke-linecap:square;stroke-linejoin:bevel" />
+     style="stroke-linecap:square;stroke-linejoin:miter" />
   <line
      x2="1"
      stroke="#000000"
@@ -100,7 +88,7 @@
      stroke-opacity="1"
      stroke-linecap="butt"
      id="line8"
-     style="stroke-linecap:square;stroke-linejoin:bevel" />
+     style="stroke-linecap:square;stroke-linejoin:miter" />
   <line
      x2="3.5"
      stroke="#000000"
@@ -112,5 +100,5 @@
      stroke-opacity="1"
      stroke-linecap="butt"
      id="line19"
-     style="stroke-linecap:square;stroke-linejoin:bevel" />
+     style="stroke-linecap:square;stroke-linejoin:miter" />
 </svg>
