@@ -153,8 +153,80 @@
     color: var(--text);
     cursor: pointer;
   }
-  .brace-input { margin-top: 10px; }
-  .brace-input.hidden { display: none; }
+  .brace-label { margin-top: 12px; }
+
+  /* ── EQUIPMENT GRIDS ──
+     8-cell (2×4) click-to-fill grids for Weapon and Armor, matching
+     the tabletop Equipment Grid's 2×4 = 8 slot layout (see rules.html
+     // 16 INVENTORY & EQUIPMENT). Filled-cell count drives the dice
+     pool / armor mitigation math directly - no per-cell item identity. */
+  .eq-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 6px;
+  }
+  .eq-cell {
+    aspect-ratio: 1;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(5,7,9,0.6);
+    border: 1px dashed var(--border);
+    border-radius: 3px;
+    padding: 5px;
+    cursor: pointer;
+    transition: 0.15s;
+  }
+  .eq-cell:hover { border-color: var(--text-dim); }
+  .eq-cell img {
+    width: 100%; height: 100%;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+  .eq-cell.filled { border-style: solid; }
+  .eq-cell.filled img { opacity: 1; }
+  .eq-grid.weapon .eq-cell.filled { border-color: var(--orange); background: rgba(232,115,42,0.1); }
+  .eq-grid.armor .eq-cell.filled { border-color: var(--accent); background: rgba(79,195,247,0.1); }
+  .eq-grid.locked { pointer-events: none; opacity: 0.55; }
+
+  /* ── BRACE ACTION ──
+     X 1 2 3 4 5. X is red-lit by default (0 faces). Clicking a
+     pentagon lights it and every pentagon to its left green; clicking
+     X clears back to 0. Un-lit pentagons dim the same way a Void die
+     dims, minus the X overlay - the literal X glyph lives in its own
+     circular pip instead. */
+  .brace-row { display: flex; align-items: center; gap: 8px; }
+  .brace-x {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: rgba(5,7,9,0.6);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px; font-weight: 700;
+    color: var(--text-dim);
+    cursor: pointer; transition: 0.15s;
+  }
+  .brace-x.lit { color: var(--red); border-color: var(--red); background: rgba(255,77,94,0.12); }
+  .brace-num {
+    width: 26px; height: 30px;
+    position: relative;
+    border: none; padding: 0; background: transparent; cursor: pointer;
+  }
+  .brace-num::before {
+    content: "";
+    position: absolute; inset: 0;
+    clip-path: url(#pentagonClipSmall);
+    background: linear-gradient(150deg, #7a7b7d, #6d6f73);
+    transition: background 0.15s;
+  }
+  .brace-num::after {
+    content: "";
+    position: absolute; inset: 0;
+    clip-path: url(#pentagonClipSmall);
+    background: linear-gradient(to top, rgba(0,0,0,0.3) 0px, rgba(0,0,0,0.3) 3px, transparent 3px, transparent 100%);
+  }
+  .brace-num:hover::before { filter: brightness(1.15); }
+  .brace-num.lit::before { background: linear-gradient(150deg, #e9fff5, #baf5da); }
+  .brace-num.lit::after { background: linear-gradient(to top, var(--good) 0px, var(--good) 3px, transparent 3px, transparent 100%); }
 
   .dice-stage {
     display: flex; align-items: flex-start; justify-content: center;
@@ -371,6 +443,11 @@
     <clipPath id="pentagonClip" clipPathUnits="userSpaceOnUse">
       <path d="M 7.95 36.71 L 48.05 6.07 Q 56.00 0.00 63.95 6.07 L 104.05 36.71 Q 112.00 42.78 109.15 52.37 L 94.25 102.42 Q 91.39 112.00 81.39 112.00 L 30.61 112.00 Q 20.61 112.00 17.75 102.42 L 2.85 52.37 Q 0.00 42.78 7.95 36.71 Z" />
     </clipPath>
+    <!-- Same pentagon, normalized to 0-1 (objectBoundingBox) so it can clip
+         any box size - used by the small Brace pips. -->
+    <clipPath id="pentagonClipSmall" clipPathUnits="objectBoundingBox">
+      <path d="M 0.070982 0.327768 L 0.428996 0.054196 Q 0.5 0 0.571004 0.054196 L 0.929018 0.327768 Q 1 0.381964 0.974554 0.467589 L 0.841518 0.914464 Q 0.815982 1 0.726696 1 L 0.273304 1 Q 0.184018 1 0.158482 0.914464 L 0.025446 0.467589 Q 0 0.381964 0.070982 0.327768 Z" />
+    </clipPath>
   </defs>
 </svg>
 
@@ -410,23 +487,24 @@
 
   <div class="setup-grid">
     <div>
-      <label class="field-label" for="weaponSelect">Weapon</label>
-      <select id="weaponSelect"></select>
+      <label class="field-label">Weapon</label>
+      <div class="eq-grid weapon" id="weaponGrid"></div>
       <div class="toggle-field">
         <input type="checkbox" id="readyToggle">
         <label for="readyToggle">Ready Action</label>
       </div>
     </div>
     <div>
-      <label class="field-label" for="armorInput">Makeshift Armor (slots)</label>
-      <input type="number" id="armorInput" min="0" step="1" value="0">
-      <div class="toggle-field">
-        <input type="checkbox" id="braceToggle">
-        <label for="braceToggle">Brace Action</label>
-      </div>
-      <div class="brace-input hidden" id="braceInputWrap">
-        <label class="field-label" for="braceInput">Brace faces rolled (0&ndash;5)</label>
-        <input type="number" id="braceInput" min="0" max="5" step="1" value="0">
+      <label class="field-label">Armor</label>
+      <div class="eq-grid armor" id="armorGrid"></div>
+      <label class="field-label brace-label">Brace Action</label>
+      <div class="brace-row" id="braceRow">
+        <button type="button" class="brace-x lit" data-val="0" aria-label="Clear brace faces">X</button>
+        <button type="button" class="brace-num" data-val="1" aria-label="1 brace face"></button>
+        <button type="button" class="brace-num" data-val="2" aria-label="2 brace faces"></button>
+        <button type="button" class="brace-num" data-val="3" aria-label="3 brace faces"></button>
+        <button type="button" class="brace-num" data-val="4" aria-label="4 brace faces"></button>
+        <button type="button" class="brace-num" data-val="5" aria-label="5 brace faces"></button>
       </div>
     </div>
   </div>
@@ -533,20 +611,11 @@
   const MAX_TICKS = 8;
   const HISTORY_LIMIT = 10;
 
-  const WEAPONS = [
-    { name: 'Unarmed',                 pool: 1, pushback: 1 },
-    { name: '1×1 (Pistol, Knife, etc.)', pool: 2, pushback: 2 },
-    { name: '1×2 (Rifle, Axe, etc.)',    pool: 3, pushback: 3 },
-    { name: '1×3 (Shotgun)',             pool: 4, pushback: 4 },
-    { name: '4-slot (Flamethrower)',     pool: 5, pushback: 5 }
-  ];
+  const EQ_SLOTS = 8;
 
-  const weaponSelect = document.getElementById('weaponSelect');
-  const armorInput = document.getElementById('armorInput');
+  const weaponGrid = document.getElementById('weaponGrid');
+  const armorGrid = document.getElementById('armorGrid');
   const readyToggle = document.getElementById('readyToggle');
-  const braceToggle = document.getElementById('braceToggle');
-  const braceInputWrap = document.getElementById('braceInputWrap');
-  const braceInput = document.getElementById('braceInput');
   const poolValueEl = document.getElementById('poolValue');
   const rollCountValueEl = document.getElementById('rollCountValue');
   const diceStage = document.getElementById('diceStage');
@@ -558,11 +627,63 @@
   const resultDetail = document.getElementById('resultDetail');
   const logEl = document.getElementById('log');
 
-  WEAPONS.forEach((w, i) => {
-    const opt = document.createElement('option');
-    opt.value = i;
-    opt.textContent = w.name + ' — ' + w.pool + (w.pool === 1 ? ' die' : ' dice');
-    weaponSelect.appendChild(opt);
+  /* ── EQUIPMENT GRIDS ──
+     Each grid is 8 free-standing toggle cells (2×4, matching the
+     tabletop Equipment Grid). No per-cell item identity - just a
+     filled/empty count that drives dice pool / armor mitigation. */
+  function buildEqGrid(container, iconSrc){
+    container.innerHTML = '';
+    const cells = [];
+    for (let i = 0; i < EQ_SLOTS; i++){
+      const cell = document.createElement('button');
+      cell.type = 'button';
+      cell.className = 'eq-cell';
+      const img = document.createElement('img');
+      img.src = iconSrc;
+      img.alt = '';
+      cell.appendChild(img);
+      container.appendChild(cell);
+      cells.push(cell);
+    }
+    return cells;
+  }
+  function wireEqGrid(cells, onChange){
+    cells.forEach(cell => {
+      cell.addEventListener('click', () => {
+        cell.classList.toggle('filled');
+        onChange();
+      });
+    });
+  }
+  function filledCount(cells){
+    return cells.filter(c => c.classList.contains('filled')).length;
+  }
+
+  const weaponCells = buildEqGrid(weaponGrid, '../assets/icons/weapon-token.svg');
+  const armorCells = buildEqGrid(armorGrid, '../assets/icons/armor-token.svg');
+
+  // Dice pool: 1 (Unarmed) up to 5 (max), +1 die per filled weapon slot.
+  function currentPool(){ return Math.min(filledCount(weaponCells) + 1, 5); }
+  function currentPushback(){ return currentPool(); }
+  function currentArmor(){ return filledCount(armorCells); }
+
+  /* ── BRACE ACTION ──
+     X 1 2 3 4 5. Clicking a pentagon sets the brace value to its
+     number and lights every pentagon at or to its left; clicking X
+     clears back to 0. */
+  const bracePips = Array.from(document.querySelectorAll('#braceRow [data-val]'));
+  let braceValue = 0;
+  function syncBrace(){
+    bracePips.forEach(p => {
+      const v = Number(p.dataset.val);
+      p.classList.toggle('lit', v === 0 ? braceValue === 0 : v <= braceValue);
+    });
+  }
+  bracePips.forEach(p => {
+    p.addEventListener('click', () => {
+      braceValue = Number(p.dataset.val);
+      syncBrace();
+    });
   });
 
   let dice = [];
@@ -573,14 +694,10 @@
     return FACES[Math.floor(Math.random() * FACES.length)];
   }
 
-  function currentWeapon(){
-    return WEAPONS[Number(weaponSelect.value)];
-  }
-
   function buildDice(){
     diceStage.innerHTML = '';
     dice = [];
-    const pool = currentWeapon().pool;
+    const pool = currentPool();
     for (let i = 0; i < pool; i++){
       const wrap = document.createElement('div');
       wrap.className = 'die-wrap unrolled';
@@ -613,7 +730,7 @@
     const active = dice.filter(d => !d.kept && !d.dead);
     if (rollsUsed >= MAX_ROLLS || active.length === 0) return;
     rollActive = true;
-    weaponSelect.disabled = true;
+    weaponGrid.classList.add('locked');
     rollBtn.disabled = true;
     endRollBtn.disabled = true;
     resultBanner.classList.add('hidden');
@@ -672,22 +789,22 @@
   }
 
   function endRoll(){
-    const weapon = currentWeapon();
+    const pushbackCap = currentPushback();
     const defenseFaces = dice.filter(d => d.kept).length;
-    const braceFaces = braceToggle.checked ? Math.max(0, Math.min(5, Number(braceInput.value) || 0)) : 0;
-    const armor = Math.max(0, Number(armorInput.value) || 0);
+    const braceFaces = braceValue;
+    const armor = currentArmor();
     const readyBonus = readyToggle.checked ? 1 : 0;
 
     const damage = Math.max(0, 5 - braceFaces - defenseFaces - armor);
-    const pushback = Math.min(defenseFaces, weapon.pushback + readyBonus);
+    const pushback = Math.min(defenseFaces, pushbackCap + readyBonus);
 
     resultBig.textContent = damage + ' DAMAGE · ' + pushback + ' PUSHBACK';
     resultDetail.innerHTML =
       'Damage: 5 base &minus; <strong>' + braceFaces + '</strong> Brace &minus; <strong>' + defenseFaces + '</strong> Defense &minus; <strong>' + armor + '</strong> Armor = <strong>' + damage + '</strong> (floors at 0).<br>' +
-      'Pushback: ' + defenseFaces + ' face' + (defenseFaces === 1 ? '' : 's') + ', capped at ' + weapon.pushback + (readyBonus ? ' + 1 Ready' : '') + ' = <strong>' + pushback + '</strong> space' + (pushback === 1 ? '' : 's') + '.';
+      'Pushback: ' + defenseFaces + ' face' + (defenseFaces === 1 ? '' : 's') + ', capped at ' + pushbackCap + (readyBonus ? ' + 1 Ready' : '') + ' = <strong>' + pushback + '</strong> space' + (pushback === 1 ? '' : 's') + '.';
     resultBanner.classList.remove('hidden');
 
-    log('<span class="tag">End Roll</span> &mdash; ' + weapon.name + ' &mdash; <strong>' + damage + ' damage</strong>, <strong>' + pushback + ' pushback</strong>');
+    log('<span class="tag">End Roll</span> &mdash; Pool ' + currentPool() + ' &mdash; <strong>' + damage + ' damage</strong>, <strong>' + pushback + ' pushback</strong>');
 
     rollBtn.disabled = true;
     endRollBtn.disabled = true;
@@ -697,7 +814,7 @@
     rollsUsed = 0;
     rollActive = false;
     rollCountValueEl.textContent = '0/' + MAX_ROLLS;
-    weaponSelect.disabled = false;
+    weaponGrid.classList.remove('locked');
     resultBanner.classList.add('hidden');
     buildDice();
     endRollBtn.disabled = true;
@@ -713,14 +830,13 @@
     }
   }
 
-  braceToggle.addEventListener('change', () => {
-    braceInputWrap.classList.toggle('hidden', !braceToggle.checked);
-  });
-  weaponSelect.addEventListener('change', () => { if (!rollActive) buildDice(); });
+  wireEqGrid(weaponCells, () => { if (!rollActive) buildDice(); });
+  wireEqGrid(armorCells, () => {});
   rollBtn.addEventListener('click', roll);
   endRollBtn.addEventListener('click', endRoll);
   resetBtn.addEventListener('click', reset);
 
+  syncBrace();
   buildDice();
   updateRollBtn();
 })();
