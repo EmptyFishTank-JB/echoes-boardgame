@@ -117,34 +117,22 @@
     gap: 14px;
     margin-bottom: 20px;
   }
-  .field-label {
-    display: block;
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase;
-    color: var(--text-dim); margin-bottom: 6px;
-  }
-  select, input[type="number"] {
-    width: 100%;
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 13px;
-    color: var(--text);
-    background: rgba(5,7,9,0.6);
-    border: 1px solid var(--border);
-    border-radius: 3px;
-    padding: 9px 10px;
-  }
-  select:focus, input[type="number"]:focus {
-    outline: none; border-color: var(--accent);
-  }
   .ready-field, .brace-field {
     display: flex; align-items: center; gap: 10px;
   }
-  .ready-field label, .brace-field label {
+  .eq-section label, .ready-field label, .brace-field label {
     font-family: 'Share Tech Mono', monospace;
     font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase;
     color: var(--text);
-    margin-bottom: 0;
   }
+  .eq-section label { display: block; margin-bottom: 8px; }
+  .eq-legend {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px; letter-spacing: 0.06em;
+    color: var(--text-dim);
+    margin-top: 10px;
+  }
+  .eq-legend strong { color: var(--text); font-weight: 700; }
 
   /* ── EQUIPMENT GRIDS ──
      8-cell (2×4) click-to-fill grids for Weapon and Armor, matching
@@ -493,8 +481,9 @@
   </div>
 
   <div class="eq-section">
-    <label class="field-label">Equipment</label>
+    <label>Equipment</label>
     <div class="eq-grid" id="eqGrid"></div>
+    <div class="eq-legend">Click a slot: empty &rarr; <strong>weapon</strong> &rarr; <strong>armor</strong> &rarr; empty</div>
   </div>
 
   <div class="setup-grid">
