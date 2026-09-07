@@ -108,9 +108,8 @@
   }
 
   /* ── SETUP FORM ──
-     Fixed 2-column grid, one buff toggle paired directly under the
-     field it modifies (Weapon → Ready, Armor → Brace) so nothing
-     drifts into wide empty tracks the way an auto-fit grid could. */
+     Fixed 2-column grid holding the two action toggles (Ready, Brace)
+     side by side, below the single Equipment grid. */
   .setup-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -139,27 +138,28 @@
   select:focus, input[type="number"]:focus {
     outline: none; border-color: var(--accent);
   }
-  .ready-field {
+  .ready-field, .brace-field {
     display: flex; align-items: center; gap: 10px;
-    margin-top: 12px;
   }
-  .ready-field label {
+  .ready-field label, .brace-field label {
     font-family: 'Share Tech Mono', monospace;
     font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase;
     color: var(--text);
+    margin-bottom: 0;
   }
-  .brace-label { margin-top: 12px; }
 
   /* ── EQUIPMENT GRIDS ──
      8-cell (2×4) click-to-fill grids for Weapon and Armor, matching
      the tabletop Equipment Grid's 2×4 = 8 slot layout (see rules.html
      // 16 INVENTORY & EQUIPMENT). Filled-cell count drives the dice
      pool / armor mitigation math directly - no per-cell item identity. */
+  .eq-section { margin-bottom: 20px; }
   .eq-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     grid-template-rows: repeat(2, 1fr);
     gap: 6px;
+    max-width: 356px;
   }
   .eq-cell {
     aspect-ratio: 1;
@@ -182,8 +182,8 @@
     background: linear-gradient(150deg, #f4f6f9, #d9dee6);
   }
   .eq-cell.filled img { opacity: 1; }
-  .eq-grid.weapon .eq-cell.filled { border-color: var(--orange); }
-  .eq-grid.armor .eq-cell.filled { border-color: var(--accent); }
+  .eq-cell.weapon.filled { border-color: var(--orange); }
+  .eq-cell.armor.filled { border-color: var(--accent); }
   .eq-grid.locked { pointer-events: none; opacity: 0.55; }
 
   /* ── PENTAGON PIPS (shared base) ──
@@ -493,21 +493,20 @@
     <div><strong>Pushback:</strong> 1 space per kept face, capped at weapon's max (+1 if Ready).</div>
   </div>
 
+  <div class="eq-section">
+    <label class="field-label">Equipment</label>
+    <div class="eq-grid" id="eqGrid"></div>
+  </div>
+
   <div class="setup-grid">
-    <div>
-      <label class="field-label">Weapon</label>
-      <div class="eq-grid weapon" id="weaponGrid"></div>
-      <div class="ready-field">
-        <button type="button" class="pent-pip ready-pip" id="readyToggle" aria-label="Toggle Ready Action">
-          <img src="../assets/icons/ready-off.svg" alt="">
-        </button>
-        <label>Ready Action</label>
-      </div>
+    <div class="ready-field">
+      <button type="button" class="pent-pip ready-pip" id="readyToggle" aria-label="Toggle Ready Action">
+        <img src="../assets/icons/ready-off.svg" alt="">
+      </button>
+      <label>Ready Action</label>
     </div>
-    <div>
-      <label class="field-label">Armor</label>
-      <div class="eq-grid armor" id="armorGrid"></div>
-      <label class="field-label brace-label">Brace Action</label>
+    <div class="brace-field">
+      <label>Brace Action</label>
       <div class="brace-row" id="braceRow">
         <button type="button" class="pent-pip brace-x-pent" data-val="0" aria-label="Clear brace faces">
           <img src="../assets/icons/ready-off.svg" alt="">
@@ -625,8 +624,7 @@
 
   const EQ_SLOTS = 8;
 
-  const weaponGrid = document.getElementById('weaponGrid');
-  const armorGrid = document.getElementById('armorGrid');
+  const eqGrid = document.getElementById('eqGrid');
   const readyToggle = document.getElementById('readyToggle');
   const poolValueEl = document.getElementById('poolValue');
   const rollCountValueEl = document.getElementById('rollCountValue');
@@ -639,19 +637,24 @@
   const resultDetail = document.getElementById('resultDetail');
   const logEl = document.getElementById('log');
 
-  /* ── EQUIPMENT GRIDS ──
-     Each grid is 8 free-standing toggle cells (2×4, matching the
-     tabletop Equipment Grid). No per-cell item identity - just a
-     filled/empty count that drives dice pool / armor mitigation. */
-  function buildEqGrid(container, iconSrc){
+  /* ── EQUIPMENT GRID ──
+     One shared 8-cell (2×4) grid, matching the tabletop Equipment
+     Grid where weapons and armor occupy the same pool of slots. Each
+     cell cycles empty -> weapon -> armor -> empty on click, so a
+     player can't populate more than 8 total between the two - filling
+     one directly eats into the other's available slots. */
+  const EQ_CYCLE = ['empty', 'weapon', 'armor'];
+  const EQ_ICON = { weapon: '../assets/icons/weapon-token.svg', armor: '../assets/icons/armor-token.svg' };
+
+  function buildEqGrid(container){
     container.innerHTML = '';
     const cells = [];
     for (let i = 0; i < EQ_SLOTS; i++){
       const cell = document.createElement('button');
       cell.type = 'button';
       cell.className = 'eq-cell';
+      cell.dataset.state = 'empty';
       const img = document.createElement('img');
-      img.src = iconSrc;
       img.alt = '';
       cell.appendChild(img);
       container.appendChild(cell);
@@ -659,25 +662,32 @@
     }
     return cells;
   }
+  function cycleCell(cell){
+    const next = EQ_CYCLE[(EQ_CYCLE.indexOf(cell.dataset.state) + 1) % EQ_CYCLE.length];
+    cell.dataset.state = next;
+    cell.classList.toggle('filled', next !== 'empty');
+    cell.classList.toggle('weapon', next === 'weapon');
+    cell.classList.toggle('armor', next === 'armor');
+    cell.querySelector('img').src = EQ_ICON[next] || '';
+  }
   function wireEqGrid(cells, onChange){
     cells.forEach(cell => {
       cell.addEventListener('click', () => {
-        cell.classList.toggle('filled');
+        cycleCell(cell);
         onChange();
       });
     });
   }
-  function filledCount(cells){
-    return cells.filter(c => c.classList.contains('filled')).length;
+  function countState(cells, state){
+    return cells.filter(c => c.dataset.state === state).length;
   }
 
-  const weaponCells = buildEqGrid(weaponGrid, '../assets/icons/weapon-token.svg');
-  const armorCells = buildEqGrid(armorGrid, '../assets/icons/armor-token.svg');
+  const eqCells = buildEqGrid(eqGrid);
 
-  // Dice pool: 1 (Unarmed) up to 5 (max), +1 die per filled weapon slot.
-  function currentPool(){ return Math.min(filledCount(weaponCells) + 1, 5); }
+  // Dice pool: 1 (Unarmed) up to 5 (max), +1 die per weapon-filled slot.
+  function currentPool(){ return Math.min(countState(eqCells, 'weapon') + 1, 5); }
   function currentPushback(){ return currentPool(); }
-  function currentArmor(){ return filledCount(armorCells); }
+  function currentArmor(){ return countState(eqCells, 'armor'); }
 
   /* ── BRACE ACTION ──
      X 1 2 3 4 5. Clicking a pentagon sets the brace value to its
@@ -760,7 +770,7 @@
     const active = dice.filter(d => !d.kept && !d.dead);
     if (rollsUsed >= MAX_ROLLS || active.length === 0) return;
     rollActive = true;
-    weaponGrid.classList.add('locked');
+    eqGrid.classList.add('locked');
     rollBtn.disabled = true;
     endRollBtn.disabled = true;
     resultBanner.classList.add('hidden');
@@ -844,7 +854,7 @@
     rollsUsed = 0;
     rollActive = false;
     rollCountValueEl.textContent = '0/' + MAX_ROLLS;
-    weaponGrid.classList.remove('locked');
+    eqGrid.classList.remove('locked');
     resultBanner.classList.add('hidden');
     buildDice();
     endRollBtn.disabled = true;
@@ -860,8 +870,7 @@
     }
   }
 
-  wireEqGrid(weaponCells, () => { if (!rollActive) buildDice(); });
-  wireEqGrid(armorCells, () => {});
+  wireEqGrid(eqCells, () => { if (!rollActive) buildDice(); });
   rollBtn.addEventListener('click', roll);
   endRollBtn.addEventListener('click', endRoll);
   resetBtn.addEventListener('click', reset);
