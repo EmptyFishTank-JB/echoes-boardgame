@@ -108,16 +108,14 @@
   }
 
   /* ── SETUP FORM ──
-     Fixed 2-column grid holding the two action toggles (Ready, Brace)
-     side by side, below the single Equipment grid. */
+     The two action toggles (Ready, Brace), stacked and centered below
+     the single Equipment grid. */
   .setup-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 18px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
     margin-bottom: 20px;
-  }
-  @media (max-width: 520px) {
-    .setup-grid { grid-template-columns: 1fr; }
   }
   .field-label {
     display: block;
