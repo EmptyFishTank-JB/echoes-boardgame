@@ -139,19 +139,14 @@
   select:focus, input[type="number"]:focus {
     outline: none; border-color: var(--accent);
   }
-  .toggle-field {
+  .ready-field {
     display: flex; align-items: center; gap: 10px;
     margin-top: 12px;
   }
-  .toggle-field input[type="checkbox"] {
-    width: 16px; height: 16px; accent-color: var(--accent);
-    flex-shrink: 0;
-  }
-  .toggle-field label {
+  .ready-field label {
     font-family: 'Share Tech Mono', monospace;
     font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase;
     color: var(--text);
-    cursor: pointer;
   }
   .brace-label { margin-top: 12px; }
 
@@ -188,6 +183,39 @@
   .eq-grid.armor .eq-cell.filled { border-color: var(--accent); background: rgba(79,195,247,0.1); }
   .eq-grid.locked { pointer-events: none; opacity: 0.55; }
 
+  /* ── PENTAGON PIPS (shared base) ──
+     Small clickable pentagons reusing the die-face pentagon shape via
+     the scalable pentagonClipSmall clip-path. Used by both the Brace
+     row and the Ready Action toggle. */
+  .pent-pip {
+    width: 27px; height: 28px;
+    position: relative;
+    border: none; padding: 0; background: transparent; cursor: pointer;
+    flex-shrink: 0;
+  }
+  .pent-pip::before {
+    content: "";
+    position: absolute; inset: 0;
+    clip-path: url(#pentagonClipSmall);
+    background: linear-gradient(150deg, #7a7b7d, #6d6f73);
+    transition: background 0.15s;
+  }
+  .pent-pip::after {
+    content: "";
+    position: absolute; inset: 0;
+    clip-path: url(#pentagonClipSmall);
+    background: linear-gradient(to top, rgba(0,0,0,0.3) 0px, rgba(0,0,0,0.3) 3px, transparent 3px, transparent 100%);
+  }
+  .pent-pip:hover::before { filter: brightness(1.15); }
+  .pent-pip img {
+    position: relative;
+    width: 46%; height: 46%;
+    display: block;
+    margin: 18% auto 0;
+  }
+  .pent-pip.lit::before { background: linear-gradient(150deg, #e9fff5, #baf5da); }
+  .pent-pip.lit::after { background: linear-gradient(to top, var(--good) 0px, var(--good) 3px, transparent 3px, transparent 100%); }
+
   /* ── BRACE ACTION ──
      X 1 2 3 4 5. X is red-lit by default (0 faces). Clicking a
      pentagon lights it and every pentagon to its left green; clicking
@@ -204,29 +232,17 @@
     font-size: 13px; font-weight: 700;
     color: var(--text-dim);
     cursor: pointer; transition: 0.15s;
+    flex-shrink: 0;
   }
   .brace-x.lit { color: var(--red); border-color: var(--red); background: rgba(255,77,94,0.12); }
-  .brace-num {
-    width: 26px; height: 30px;
-    position: relative;
-    border: none; padding: 0; background: transparent; cursor: pointer;
-  }
-  .brace-num::before {
-    content: "";
-    position: absolute; inset: 0;
-    clip-path: url(#pentagonClipSmall);
-    background: linear-gradient(150deg, #7a7b7d, #6d6f73);
-    transition: background 0.15s;
-  }
-  .brace-num::after {
-    content: "";
-    position: absolute; inset: 0;
-    clip-path: url(#pentagonClipSmall);
-    background: linear-gradient(to top, rgba(0,0,0,0.3) 0px, rgba(0,0,0,0.3) 3px, transparent 3px, transparent 100%);
-  }
-  .brace-num:hover::before { filter: brightness(1.15); }
-  .brace-num.lit::before { background: linear-gradient(150deg, #e9fff5, #baf5da); }
-  .brace-num.lit::after { background: linear-gradient(to top, var(--good) 0px, var(--good) 3px, transparent 3px, transparent 100%); }
+
+  /* ── READY ACTION ──
+     Single pentagon toggle standing in for the old checkbox. Off (red)
+     shows the Void die's X graphic; on (green) shows a checkmark in
+     the newer Echoes icon-set style. */
+  .ready-field { display: flex; align-items: center; gap: 10px; }
+  .ready-pip::after { background: linear-gradient(to top, var(--red) 0px, var(--red) 3px, transparent 3px, transparent 100%); }
+  .ready-pip.lit::after { background: linear-gradient(to top, var(--good) 0px, var(--good) 3px, transparent 3px, transparent 100%); }
 
   .dice-stage {
     display: flex; align-items: flex-start; justify-content: center;
@@ -489,9 +505,11 @@
     <div>
       <label class="field-label">Weapon</label>
       <div class="eq-grid weapon" id="weaponGrid"></div>
-      <div class="toggle-field">
-        <input type="checkbox" id="readyToggle">
-        <label for="readyToggle">Ready Action</label>
+      <div class="ready-field">
+        <button type="button" class="pent-pip ready-pip" id="readyToggle" aria-label="Toggle Ready Action">
+          <img src="../assets/icons/ready-off.svg" alt="">
+        </button>
+        <label>Ready Action</label>
       </div>
     </div>
     <div>
@@ -500,11 +518,11 @@
       <label class="field-label brace-label">Brace Action</label>
       <div class="brace-row" id="braceRow">
         <button type="button" class="brace-x lit" data-val="0" aria-label="Clear brace faces">X</button>
-        <button type="button" class="brace-num" data-val="1" aria-label="1 brace face"></button>
-        <button type="button" class="brace-num" data-val="2" aria-label="2 brace faces"></button>
-        <button type="button" class="brace-num" data-val="3" aria-label="3 brace faces"></button>
-        <button type="button" class="brace-num" data-val="4" aria-label="4 brace faces"></button>
-        <button type="button" class="brace-num" data-val="5" aria-label="5 brace faces"></button>
+        <button type="button" class="pent-pip brace-num" data-val="1" aria-label="1 brace face"></button>
+        <button type="button" class="pent-pip brace-num" data-val="2" aria-label="2 brace faces"></button>
+        <button type="button" class="pent-pip brace-num" data-val="3" aria-label="3 brace faces"></button>
+        <button type="button" class="pent-pip brace-num" data-val="4" aria-label="4 brace faces"></button>
+        <button type="button" class="pent-pip brace-num" data-val="5" aria-label="5 brace faces"></button>
       </div>
     </div>
   </div>
@@ -686,6 +704,20 @@
     });
   });
 
+  /* ── READY ACTION ──
+     Single pentagon toggle: off shows the Void die's X, on shows a
+     checkmark and lights green. */
+  const readyIcon = readyToggle.querySelector('img');
+  let readyOn = false;
+  function syncReady(){
+    readyToggle.classList.toggle('lit', readyOn);
+    readyIcon.src = readyOn ? '../assets/icons/ready-on.svg' : '../assets/icons/ready-off.svg';
+  }
+  readyToggle.addEventListener('click', () => {
+    readyOn = !readyOn;
+    syncReady();
+  });
+
   let dice = [];
   let rollsUsed = 0;
   let rollActive = false; // true once the first roll of the current encounter has happened
@@ -793,7 +825,7 @@
     const defenseFaces = dice.filter(d => d.kept).length;
     const braceFaces = braceValue;
     const armor = currentArmor();
-    const readyBonus = readyToggle.checked ? 1 : 0;
+    const readyBonus = readyOn ? 1 : 0;
 
     const damage = Math.max(0, 5 - braceFaces - defenseFaces - armor);
     const pushback = Math.min(defenseFaces, pushbackCap + readyBonus);
