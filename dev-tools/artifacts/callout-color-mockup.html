@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Callout Color Mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@300;400;600;700;900&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0c0f;
+    --surface: #111318;
+    --border: #2a2d35;
+    --accent: #E8732A;
+    --accent2: #4A90D9;
+    --text: #c8cdd8;
+    --text-dim: #6b7080;
+    --text-bright: #eef0f5;
+    --danger: #c0392b;
+    --success: #1e7a3e;
+    --hazard: #e8c623;
+    --mono: 'Share Tech Mono', monospace;
+    --head: 'Barlow Condensed', sans-serif;
+    --body: 'Barlow', sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--body);
+    margin: 0;
+    padding: 40px 20px 80px;
+  }
+  .wrap { max-width: 760px; margin: 0 auto; }
+  h1 {
+    font-family: var(--head);
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--text-bright);
+    font-size: 28px;
+    margin: 0 0 6px;
+  }
+  .sub {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-bottom: 36px;
+    line-height: 1.6;
+  }
+  h2 {
+    font-family: var(--head);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--accent2);
+    font-size: 15px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 8px;
+    margin: 48px 0 18px;
+  }
+  h2 .tag {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    text-transform: none;
+    letter-spacing: 0;
+    margin-left: 8px;
+  }
+
+  /* ── base callout (matches rules.html exactly) ── */
+  .callout {
+    padding: 16px 20px;
+    margin: 14px 0;
+    border-left: 3px solid;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+  .callout strong {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 6px;
+  }
+
+  .callout.info { border-color: var(--accent2); background: rgba(74,144,217,0.06); }
+  .callout.info strong { color: var(--accent2); }
+
+  .callout.danger { border-color: var(--danger); background: rgba(192,57,43,0.06); }
+  .callout.danger strong { color: var(--danger); }
+
+  .callout.success { border-color: var(--success); background: rgba(30,122,62,0.06); }
+  .callout.success strong { color: var(--success); }
+
+  .callout.muted { border-color: var(--text-dim); background: rgba(107,112,128,0.06); }
+  .callout.muted strong { color: var(--text-dim); }
+
+  /* ── warning, current: solid orange ── */
+  .callout.warning-orange { border-color: var(--accent); background: rgba(232,115,42,0.06); }
+  .callout.warning-orange strong { color: var(--accent); }
+
+  /* ── warning, proposed: yellow / black diagonal hazard stripe ── */
+  .callout.warning-hazard {
+    position: relative;
+    border-left: none;
+    padding-left: 26px;
+    background: rgba(232,198,35,0.06);
+  }
+  .callout.warning-hazard::before {
+    content: "";
+    position: absolute; left: 0; top: 0; bottom: 0; width: 10px;
+    background: repeating-linear-gradient(
+      45deg,
+      #17140a 0px, #17140a 6px,
+      var(--hazard) 6px, var(--hazard) 12px
+    );
+  }
+  .callout.warning-hazard strong { color: var(--hazard); }
+
+  .row-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin: 22px 0 4px;
+  }
+
+  /* fake accent-colored site chrome, to test whether orange callouts
+     compete visually with the site's actual orange UI elements */
+  .fake-nav {
+    display: flex; gap: 18px; align-items: center;
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--text-dim);
+    padding-bottom: 10px; margin-bottom: 18px;
+    border-bottom: 1px solid var(--border);
+  }
+  .fake-nav .current { color: var(--accent); }
+  .fake-nav .sep { color: rgba(238,240,245,0.2); }
+  .fake-h2 {
+    font-family: var(--head); font-weight: 900; text-transform: uppercase;
+    color: var(--accent); font-size: 13px; letter-spacing: 0.1em;
+    margin-bottom: 10px;
+  }
+  .fake-h2 .num { color: var(--text-dim); font-family: var(--mono); font-weight: 400; margin-right: 8px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Callout Color Mockup</h1>
+  <div class="sub">// Comparing the current 5-color callout system against swapping solid-orange "warning" for a black/yellow diagonal hazard stripe, with orange freed up for the site's other accent uses.</div>
+
+  <h2>Current Palette <span class="tag">// info · warning(orange) · danger · success · muted</span></h2>
+
+  <div class="callout info"><strong>// Info</strong>Neutral clarification or a live-roller pointer — the default, no particular stakes attached.</div>
+  <div class="callout warning-orange"><strong>// Warning</strong>A real cost or consequence the player needs to not miss — e.g. Objective Backlog, Queue Cap.</div>
+  <div class="callout danger"><strong>// Danger</strong>Genuine hazard-level content — e.g. player elimination at zero Health, the Operations Center alarm.</div>
+  <div class="callout success"><strong>// Success</strong>Something positive — a reward the player earns, or a clean terminology definition.</div>
+  <div class="callout muted"><strong>// Pending</strong>A genuinely open design question, not yet decided.</div>
+
+  <h2>Proposed <span class="tag">// warning now uses a black/yellow hazard stripe, orange retired from callouts</span></h2>
+
+  <div class="callout info"><strong>// Info</strong>Neutral clarification or a live-roller pointer — unchanged, still blue.</div>
+  <div class="callout warning-hazard"><strong>// Warning</strong>A real cost or consequence the player needs to not miss — now a hazard-stripe left edge instead of solid orange.</div>
+  <div class="callout danger"><strong>// Danger</strong>Genuine hazard-level content — unchanged, still red.</div>
+  <div class="callout success"><strong>// Success</strong>Something positive — unchanged, still green.</div>
+  <div class="callout muted"><strong>// Pending</strong>A genuinely open design question — unchanged, still grey.</div>
+
+  <h2>All Five, Proposed Set, Back to Back</h2>
+  <div class="callout muted"><strong>// Pending</strong>Pending Objective Queue cap (if any) and the Workbench mechanic itself are still to be determined.</div>
+  <div class="callout info"><strong>// Note</strong>Card events and hazards use the D12 System Dice pool. Echo Event Mini-Games use the D6 Coordinate Dice. These are separate systems — do not mix them.</div>
+  <div class="callout warning-hazard"><strong>// Queue Cap</strong>The Pending Objective Queue is capped at 8, matching Objective Backlog Aggression's top tier. At a full queue, the 9th and any further objective goes to the Echo Deck discard/recycle pile instead of joining the queue, and the player who drew it takes +1 Noise on their own tracker.</div>
+  <div class="callout danger"><strong>// Danger</strong>At zero Health, the player is eliminated. Inventory drops at the death location — surviving crew may attempt recovery.</div>
+  <div class="callout success"><strong>// Hidden / Exposed</strong>Official terms for the player's hiding status — the same way Encumbered names an existing backpack-fill condition, Hidden and Exposed simply name the two states a player toggles between here.</div>
+
+  <h2>Orange In Context <span class="tag">// does removing it from callouts still leave it feeling "reserved" elsewhere?</span></h2>
+  <div class="fake-nav">
+    <span>DICE ENGINE</span><span class="sep">//</span><span>NOISE DIE</span><span class="sep">//</span><span class="current">ATTACK / DEFENSE</span>
+  </div>
+  <div class="fake-h2"><span class="num">// 14</span>COMBAT</div>
+  <p style="font-size:13px;color:var(--text-dim);line-height:1.6;">Site nav links, section headers, table accent borders, and buttons all already carry the orange accent color throughout the page — sample shown above. Retiring it from callouts specifically would leave it exclusively meaning "this is the site's identity color," rather than sharing double duty with "this is a warning."</div>
+
+</div>
+</body>
+</html>
