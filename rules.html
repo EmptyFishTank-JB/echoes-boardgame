@@ -28,6 +28,7 @@
     --text-dim: #6b7080;
     --text-bright: #eef0f5;
     --danger: #c0392b;
+    --hazard: #b8901f;
     --success: #1e7a3e;
     --link: #E8732A;
     --mono: 'Share Tech Mono', monospace;
@@ -636,10 +637,23 @@
     color: var(--text);
   }
 
+  /* Warning: black/yellow diagonal hazard stripe instead of a solid
+     border, so orange is freed up to mean only "site accent color"
+     everywhere else on the page. */
   .callout.warning {
-    border-color: var(--accent);
-    background: rgba(232,115,42,0.06);
+    position: relative;
+    padding-left: 20px;
+    background: rgba(184,144,31,0.07);
     color: var(--text);
+  }
+  .callout.warning::before {
+    content: "";
+    position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+    background: repeating-linear-gradient(
+      45deg,
+      #17140a 0px, #17140a 6px,
+      var(--hazard) 6px, var(--hazard) 12px
+    );
   }
 
   .callout.danger {
@@ -660,20 +674,32 @@
     color: var(--text);
   }
 
-  .callout strong {
+  /* Label: a dim "// Category" eyebrow line, then the callout's real
+     title with more weight right below it - mirrors the roller pages'
+     .eyebrow -> h1 pattern. */
+  .callout-eyebrow {
+    display: block;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    opacity: 0.7;
+    margin-bottom: 2px;
+  }
+  .callout-title {
+    display: block;
     font-family: var(--mono);
     font-size: 11px;
     letter-spacing: 0.15em;
     text-transform: uppercase;
-    display: block;
     margin-bottom: 6px;
   }
 
-  .callout.info strong { color: var(--accent2); }
-  .callout.warning strong { color: var(--accent); }
-  .callout.danger strong { color: var(--danger); }
-  .callout.success strong { color: var(--success); }
-  .callout.muted strong { color: var(--text-dim); }
+  .callout.info .callout-eyebrow, .callout.info .callout-title { color: var(--accent2); }
+  .callout.warning .callout-eyebrow, .callout.warning .callout-title { color: var(--hazard); }
+  .callout.danger .callout-eyebrow, .callout.danger .callout-title { color: var(--danger); }
+  .callout.success .callout-eyebrow, .callout.success .callout-title { color: var(--success); }
+  .callout.muted .callout-eyebrow, .callout.muted .callout-title { color: var(--text-dim); }
 
   .icon-play { display: inline-block; vertical-align: -1px; margin-right: 5px; }
 
@@ -1160,7 +1186,7 @@
         <h2 class="section-title">Components</h2>
       </div>
       <p>Everything that ships in the box. Nothing below is final — categories are known from the rules as written, but exact counts depend on manufacturing and playtesting.</p>
-      <div class="callout muted"><strong>// Pending</strong>Full component list, exact counts, and box layout still TBD.</div>
+      <div class="callout muted"><span class="callout-eyebrow">// Pending</span><strong class="callout-title">Component List</strong>Full component list, exact counts, and box layout still TBD.</div>
       <h4>Component List<button class="view-toggle" aria-label="Toggle table view"></button></h4>
       <div class="tbl-wrap" data-mode="auto">
         <div class="tbl-scroll">
@@ -1211,7 +1237,7 @@
         <li><strong>Place the Objective Board</strong> and any starting Blueprint slots. See <a href="#objective-board">// 19 OBJECTIVE BOARD</a>.</li>
         <li><strong>Determine turn order.</strong> Players choose who goes first and the order everyone takes their turn in. Fixed for the rest of the game — no rotating or changing later.</li>
       </ol>
-      <div class="callout muted"><strong>// Pending</strong>Starting loadouts and the fog-of-war placement procedure are still undecided. This section fills in as those are confirmed.</div>
+      <div class="callout muted"><span class="callout-eyebrow">// Pending</span><strong class="callout-title">Starting Loadouts</strong>Starting loadouts and the fog-of-war placement procedure are still undecided. This section fills in as those are confirmed.</div>
     </section>
     <!-- 04 PLAYER COUNT SCALING -->
     <section class="section" id="scaling">
@@ -1220,7 +1246,7 @@
         <h2 class="section-title">Player Count Scaling</h2>
       </div>
       <p>The game supports 1&ndash;5 players, cooperative (see <a href="#overview">// 01 GAME OVERVIEW</a>). Nothing in the rules as written yet adjusts for crew size &mdash; this section tracks what should scale and how.</p>
-      <div class="callout muted"><strong>// Pending</strong>None of the items below are confirmed. Listed as candidates for scaling, based on what currently exists as a fixed value regardless of player count.</div>
+      <div class="callout muted"><span class="callout-eyebrow">// Pending</span><strong class="callout-title">Scaling Candidates</strong>None of the items below are confirmed. Listed as candidates for scaling, based on what currently exists as a fixed value regardless of player count.</div>
       <ul class="rules-list">
         <li><strong>Creature aggression / noise thresholds</strong> &mdash; does a smaller crew mean an easier or harder Noise Check curve? See <a href="#creature">// 06 THE CREATURE &amp; NOISE</a>.</li>
         <li><strong>Fog-of-war room count</strong> &mdash; currently ~15&ndash;20 undiscovered rooms regardless of crew size. See <a href="#board">// 07 BOARD &amp; ROOMS</a>.</li>
@@ -1309,7 +1335,7 @@
       <p>The activation tier (1–4, 5–8, 9–12) is determined by the number rolled on the D12 Noise Die — not by the noise level itself. High noise increases the probability of failure and expands dangerous possible outcomes, but does not guarantee any specific tier. The dice determine the outcome. The noise level determines the odds.</p>
 
       <div class="callout info">
-        <strong>// Noise Check — Live Roller</strong>
+        <span class="callout-eyebrow">// Info</span><strong class="callout-title">Noise Check — Live Roller</strong>
         A live D12 Noise Die roller. Set the current Noise Level, roll, and see the pass/fail result and which activation tier it triggers.
         <div><a href="rollers/d12-roller-noise.html" class="callout-btn">&#9654; Open the Noise Die Roller</a></div>
       </div>
@@ -1442,7 +1468,7 @@
         </div>
         <div class="hbar-track"><div class="hbar-thumb"></div></div>
       </div>
-      <div class="callout warning"><strong>// No Move After Action 2</strong>The player cannot take a Move after their second Action — with one exception: if Action 2 is <strong>Run</strong> or <strong>Quiet Move</strong>, one Move is permitted after. No other exception.</div>
+      <div class="callout warning"><span class="callout-eyebrow">// Warning</span><strong class="callout-title">No Move After Action 2</strong>The player cannot take a Move after their second Action — with one exception: if Action 2 is <strong>Run</strong> or <strong>Quiet Move</strong>, one Move is permitted after. No other exception.</div>
 
       <h3>Creature Phase</h3>
       <p>Triggered once, immediately after the active player's Player Phase ends.</p>
@@ -1462,7 +1488,7 @@
       </div>
 
       <div class="callout info">
-        <strong>// Dice Engine — Live Roller</strong>
+        <span class="callout-eyebrow">// Info</span><strong class="callout-title">Dice Engine — Live Roller</strong>
         A live 5x D12 skill-check roller implementing the Roll Resolution rules below — required-face selection, keep/re-roll, VOID, WILD, the final-roll-only Noise rule, and an End Check button that scores success or failure against the faces you set.
         <div><a href="rollers/d12-roller.html" class="callout-btn">&#9654; Open the D12 Roller</a></div>
       </div>
@@ -1506,7 +1532,7 @@
         <li>Noise and Noise Spike faces count toward the noise meter <strong>only from the player's final roll</strong> — whichever roll they end on, whether that is roll 1, 2, or 3.</li>
         <li>Noise faces from earlier rolls that are subsequently re-rolled do <strong>not</strong> carry over.</li>
       </ul>
-      <div class="callout info"><strong>// Optional Clear Roll</strong>Once all required faces are satisfied, check the remaining dice — any that are not kept. If Noise or Noise Spike faces are showing among them, the player may choose to re-roll those specific dice using any remaining rolls. The goal is to land on a non-noise face and remove that noise from the final count. This is a genuine gamble: the re-roll may land on another Noise or Noise Spike, keeping or worsening the penalty. If no noise faces are showing after requirements are met, there is nothing to clear — no further rolls are available or needed. The optional clear roll is only possible when: (1) requirements are already satisfied, and (2) noise faces are still showing on non-kept dice.</div>
+      <div class="callout info"><span class="callout-eyebrow">// Info</span><strong class="callout-title">Optional Clear Roll</strong>Once all required faces are satisfied, check the remaining dice — any that are not kept. If Noise or Noise Spike faces are showing among them, the player may choose to re-roll those specific dice using any remaining rolls. The goal is to land on a non-noise face and remove that noise from the final count. This is a genuine gamble: the re-roll may land on another Noise or Noise Spike, keeping or worsening the penalty. If no noise faces are showing after requirements are met, there is nothing to clear — no further rolls are available or needed. The optional clear roll is only possible when: (1) requirements are already satisfied, and (2) noise faces are still showing on non-kept dice.</div>
 
       <h3>Roll Resolution — Example<button class="view-toggle" aria-label="Toggle table view"></button></h3>
       <div class="tbl-wrap" data-mode="auto">
@@ -1561,7 +1587,7 @@
 
       <h3>Card Events &amp; Hazards</h3>
       <p>Some Echo Cards trigger events or hazards requiring a D12 dice roll to resolve. Each card specifies the required face(s) and quantity needed. All resolutions follow the standard <strong>Roll Resolution</strong> rules — see <a href="#dice">// 09 DICE ENGINE</a>.</p>
-      <div class="callout info"><strong>// Note</strong>Card events and hazards use the D12 System Dice pool. Echo Event Mini-Games use the D6 Coordinate Dice. These are separate systems — do not mix them.</div>
+      <div class="callout info"><span class="callout-eyebrow">// Info</span><strong class="callout-title">Two Separate Dice Systems</strong>Card events and hazards use the D12 System Dice pool. Echo Event Mini-Games use the D6 Coordinate Dice. These are separate systems — do not mix them.</div>
 
       <h3 id="echo-deck-operations-center-terminals">Operations Center Terminals</h3>
       <p>One dedicated terminal per room family, all housed at the Operations Center. Each terminal represents a kind of "remote access" to its room family — a way to draw from that family's cards without physically visiting a room of that type.</p>
@@ -1570,7 +1596,7 @@
         <li><strong>Per terminal:</strong> Availability is checked per terminal, per room family — not for the Operations Center as a whole. Some terminals can be active while others sit inactive, depending on what's currently on the board.</li>
         <li><strong>High risk by design:</strong> Every room family's terminal is available in the same room, which is why interacting with them is high-noise — it stops players from camping the Operations Center and farming a single family instead of exploring the board.</li>
       </ul>
-      <div class="callout danger"><strong>// Danger</strong>Operations Center terminals generate significantly higher noise than standard terminals. Failed interaction triggers an alarm — immediate noise spike of the card's stated noise value +3, plus a noise check before turn ends.</div>
+      <div class="callout danger"><span class="callout-eyebrow">// Danger</span><strong class="callout-title">Operations Center Alarm</strong>Operations Center terminals generate significantly higher noise than standard terminals. Failed interaction triggers an alarm — immediate noise spike of the card's stated noise value +3, plus a noise check before turn ends.</div>
     </section>
     <!-- 11 MINI-GAMES -->
     <section class="section" id="mini-games">
@@ -1607,7 +1633,7 @@
         <div class="hbar-track"><div class="hbar-thumb"></div></div>
       </div>
       <div class="callout info">
-        <strong>// Echo Events — Full Writeup</strong>
+        <span class="callout-eyebrow">// Info</span><strong class="callout-title">Echo Events — Full Writeup</strong>
         Full mini-game rules — overview, wager specifics, win/fail detail — live on the Echo Events page. Playable versions link out from the Play column above as they're built.
         <div><a href="echo-events.html" class="callout-btn">&#9654; Open Echo Events</a></div>
       </div>
@@ -1619,7 +1645,7 @@
         <h2 class="section-title">Actions</h2>
       </div>
       <p>What a player can do with their Moves and Actions each turn, and the Noise each one generates. All values are added per instance unless stated otherwise.</p>
-      <div class="callout info"><strong>// Note</strong>Noise generated here accumulates on the active player's own Noise Tracker (each player has their own — it is not shared) and is checked each Creature Phase — see <a href="#creature">// 06 THE CREATURE &amp; NOISE</a> for how it's tracked and resolved, and <a href="#turn">// 08 TURN STRUCTURE</a> for where that check falls in a turn.</div>
+      <div class="callout info"><span class="callout-eyebrow">// Info</span><strong class="callout-title">Noise Tracker Is Per-Player</strong>Noise generated here accumulates on the active player's own Noise Tracker (each player has their own — it is not shared) and is checked each Creature Phase — see <a href="#creature">// 06 THE CREATURE &amp; NOISE</a> for how it's tracked and resolved, and <a href="#turn">// 08 TURN STRUCTURE</a> for where that check falls in a turn.</div>
 
       <h3 id="actions-movement-variants">Movement Variants<button class="view-toggle" aria-label="Toggle table view"></button></h3>
       <div class="tbl-wrap" data-mode="auto">
@@ -1638,11 +1664,11 @@
         </div>
         <div class="hbar-track"><div class="hbar-thumb"></div></div>
       </div>
-      <div class="callout success"><strong>// Flee Move</strong>Two free bonus Moves granted, alongside a Reaction (see <a href="#actions-reaction">// 12 ACTIONS - REACTION</a>), after successfully defending against a Creature attack — melee or ranged, see <a href="#combat-attack-defense-roll">// 14 COMBAT - ATTACK / DEFENSE ROLL</a>. Not drawn from the player's normal Move allotment. Mirrors the Move 1 / Move 2 structure of a normal turn (see <a href="#turn">// 08 TURN STRUCTURE</a>): each Move is up to the player's Speed, generates 0 noise, and the creature does not pursue. Lets a player move out of the room, Seal the Door with the Reaction, then use the remaining Move to position themselves better than just standing on the other side of the door.</div>
-      <div class="callout info"><strong>// Declaring Run or Quiet Move</strong>Recommended at the start of the turn before any Move, so all movement benefits from the modification. May also be declared as Action 1 after Move 1 — only Move 2 onward is affected. Move 1 is not retroactively modified. Run and Quiet Move cannot both be declared in the same turn.</div>
-      <div class="callout warning"><strong>// Run — Once Per Player Phase</strong>The +4 Speed bonus applies once per phase only. A player cannot Run twice. +3 noise is generated once for the phase — not per Move. If the player is also Encumbered, noise stacks: +2 (Encumbered) + +3 (Run) = +5 total for that phase.</div>
-      <div class="callout info"><strong>// Quiet Move</strong>Nullifies all Move noise from the point of declaration forward. Speed is reduced by 2 for the entire phase. Cannot be combined with Run. Overrides Encumbered noise generation — a player who is Encumbered and declares Quiet Move generates 0 Move noise.</div>
-      <div class="callout info"><strong>// Movement Noise — Per Move, Not Per Space</strong>Noise is generated per Move action taken, not per space moved. Moving full speed or a single space within the same Move generates equal noise.</div>
+      <div class="callout success"><span class="callout-eyebrow">// Success</span><strong class="callout-title">Flee Move</strong>Two free bonus Moves granted, alongside a Reaction (see <a href="#actions-reaction">// 12 ACTIONS - REACTION</a>), after successfully defending against a Creature attack — melee or ranged, see <a href="#combat-attack-defense-roll">// 14 COMBAT - ATTACK / DEFENSE ROLL</a>. Not drawn from the player's normal Move allotment. Mirrors the Move 1 / Move 2 structure of a normal turn (see <a href="#turn">// 08 TURN STRUCTURE</a>): each Move is up to the player's Speed, generates 0 noise, and the creature does not pursue. Lets a player move out of the room, Seal the Door with the Reaction, then use the remaining Move to position themselves better than just standing on the other side of the door.</div>
+      <div class="callout info"><span class="callout-eyebrow">// Info</span><strong class="callout-title">Declaring Run or Quiet Move</strong>Recommended at the start of the turn before any Move, so all movement benefits from the modification. May also be declared as Action 1 after Move 1 — only Move 2 onward is affected. Move 1 is not retroactively modified. Run and Quiet Move cannot both be declared in the same turn.</div>
+      <div class="callout warning"><span class="callout-eyebrow">// Warning</span><strong class="callout-title">Run — Once Per Player Phase</strong>The +4 Speed bonus applies once per phase only. A player cannot Run twice. +3 noise is generated once for the phase — not per Move. If the player is also Encumbered, noise stacks: +2 (Encumbered) + +3 (Run) = +5 total for that phase.</div>
+      <div class="callout info"><span class="callout-eyebrow">// Info</span><strong class="callout-title">Quiet Move</strong>Nullifies all Move noise from the point of declaration forward. Speed is reduced by 2 for the entire phase. Cannot be combined with Run. Overrides Encumbered noise generation — a player who is Encumbered and declares Quiet Move generates 0 Move noise.</div>
+      <div class="callout info"><span class="callout-eyebrow">// Info</span><strong class="callout-title">Movement Noise — Per Move, Not Per Space</strong>Noise is generated per Move action taken, not per space moved. Moving full speed or a single space within the same Move generates equal noise.</div>
 
       <h3>Actions<button class="view-toggle" aria-label="Toggle table view"></button></h3>
       <div class="tbl-wrap" data-mode="auto">
@@ -1679,7 +1705,7 @@
 
       <h3 id="actions-hiding">Hiding</h3>
       <div class="callout success">
-        <strong>// Hidden / Exposed</strong> Official terms for the player's hiding status — the same way Encumbered names an existing backpack-fill condition, Hidden and Exposed simply name the two states a player toggles between here. Entering/Exiting a hiding location (see Actions table above) flips the state.
+        <span class="callout-eyebrow">// Success</span><strong class="callout-title">Hidden / Exposed</strong> Official terms for the player's hiding status — the same way Encumbered names an existing backpack-fill condition, Hidden and Exposed simply name the two states a player toggles between here. Entering/Exiting a hiding location (see Actions table above) flips the state.
         <div style="margin-top:10px;"><strong>Hidden</strong>A player is Hidden while inside a locker, vent, or other hiding location; otherwise they are Exposed. Hidden is not the same as safe — the Creature may still find a Hidden player on a failed detection check, and on that failure may enter the ventilation system to reach them. Full detection mechanic TBD.</div>
         <div style="margin-top:10px;"><strong>Exposed</strong>A player is Exposed whenever they are not Hidden — moving through the board normally, visible to the Creature if it has line of sight.</div>
       </div>
@@ -1728,7 +1754,7 @@
         </div>
         <div class="hbar-track"><div class="hbar-thumb"></div></div>
       </div>
-      <div class="callout danger"><strong>// Danger</strong>At zero Health, the player is eliminated. Inventory drops at the death location — surviving crew may attempt recovery.</div>
+      <div class="callout danger"><span class="callout-eyebrow">// Danger</span><strong class="callout-title">Player Elimination</strong>At zero Health, the player is eliminated. Inventory drops at the death location — surviving crew may attempt recovery.</div>
     </section>
     <!-- 14 COMBAT -->
     <section class="section" id="combat">
@@ -1766,7 +1792,7 @@
         <li>Stacks with Armor and Attack / Defense Roll.</li>
       </ul>
       <div class="callout info">
-        <strong>// Brace — Live Roller</strong>
+        <span class="callout-eyebrow">// Info</span><strong class="callout-title">Brace — Live Roller</strong>
         A live roller for Brace: roll all 5 D12 System Dice once and it tallies the Hazard/Biohazard/Wild faces for you into the damage reduction.
         <div><a href="rollers/d12-roller-brace.html" class="callout-btn">&#9654; Open the Brace Roller</a></div>
       </div>
@@ -1774,7 +1800,7 @@
       <h3 id="combat-attack-defense-roll">Attack / Defense Roll<button class="view-toggle" aria-label="Toggle table view"></button></h3>
       <p>The same roll whether the player is defending against the creature's attack or choosing to proactively attack it — the dice pool, rolls, and math below apply either way.</p>
       <div class="callout info">
-        <strong>// Attack / Defense — Live Roller</strong>
+        <span class="callout-eyebrow">// Info</span><strong class="callout-title">Attack / Defense — Live Roller</strong>
         A live roller for this exact sequence: pick your weapon, toggle Ready/Brace, enter Makeshift Armor, then roll up to 3 times — Hazard/Biohazard/Wild faces lock in automatically and Void removes the die. End Roll computes damage and pushback for you.
         <div><a href="rollers/d12-roller-combat.html" class="callout-btn">&#9654; Open the Attack / Defense Roller</a></div>
       </div>
@@ -1810,7 +1836,7 @@
         <li>Applied after all rolls resolved.</li>
         <li>Craftable — see <a href="#crafting">// 18 CRAFTING</a> for recipes.</li>
       </ul>
-      <div class="callout info"><strong>// Token Flipping</strong>Not a separate tracking token — the item's own token is physically flipped over to mark its own remaining uses. Fresh side up means the item is unused; flipping it over after the first use shows one use remaining; the second use destroys the item. Each side is visually marked with its remaining-uses number in the lower-right corner over a colored grid — the fresh side shows a "2" on a blue grid (2 uses left), the flipped side shows a "1" on a red grid (1 use left). Melee weapons use this system — see <a href="#weapons-melee-weapons">// 15 WEAPONS - MELEE WEAPONS</a>.</div>
+      <div class="callout info"><span class="callout-eyebrow">// Info</span><strong class="callout-title">Token Flipping</strong>Not a separate tracking token — the item's own token is physically flipped over to mark its own remaining uses. Fresh side up means the item is unused; flipping it over after the first use shows one use remaining; the second use destroys the item. Each side is visually marked with its remaining-uses number in the lower-right corner over a colored grid — the fresh side shows a "2" on a blue grid (2 uses left), the flipped side shows a "1" on a red grid (1 use left). Melee weapons use this system — see <a href="#weapons-melee-weapons">// 15 WEAPONS - MELEE WEAPONS</a>.</div>
 
       <h3 id="combat-full-encounter-sequence">Full Encounter Sequence<button class="view-toggle" aria-label="Toggle table view"></button></h3>
       <div class="tbl-wrap" data-mode="auto">
@@ -1829,7 +1855,7 @@
         </div>
         <div class="hbar-track"><div class="hbar-thumb"></div></div>
       </div>
-      <div class="callout success"><strong>// Successful Defense</strong>Any player who successfully defends against a Creature attack — melee or ranged — receives two bonus Flee Moves and a Reaction on top of the standard flee, rewarding players who choose to fight back rather than just fleeing. See <a href="#actions-movement-variants">// 12 ACTIONS - MOVEMENT VARIANTS</a> and <a href="#actions-reaction">// 12 ACTIONS - REACTION</a>.</div>
+      <div class="callout success"><span class="callout-eyebrow">// Success</span><strong class="callout-title">Successful Defense</strong>Any player who successfully defends against a Creature attack — melee or ranged — receives two bonus Flee Moves and a Reaction on top of the standard flee, rewarding players who choose to fight back rather than just fleeing. See <a href="#actions-movement-variants">// 12 ACTIONS - MOVEMENT VARIANTS</a> and <a href="#actions-reaction">// 12 ACTIONS - REACTION</a>.</div>
     </section>
     <!-- 15 WEAPONS -->
     <section class="section" id="weapons">
@@ -1902,7 +1928,7 @@
         <li><strong>Reserved Slots:</strong> Can hold any item when empty. Designated item takes priority when needed — other items must relocate or be dropped.</li>
         <li>Backpack boards are interchangeable between playthroughs.</li>
       </ul>
-      <div class="callout info"><strong>// Optional — Space Cubes</strong>A physical difficulty variant, playable or not by choice: each player starts with 5 small cubes occupying backpack slots as visual placeholders for their remaining safe capacity. When a cube's slot is needed for a real item, that cube moves out to a side track instead — a glance at the track shows exactly how encumbered the player is without counting slots.</div>
+      <div class="callout info"><span class="callout-eyebrow">// Info</span><strong class="callout-title">Optional — Space Cubes</strong>A physical difficulty variant, playable or not by choice: each player starts with 5 small cubes occupying backpack slots as visual placeholders for their remaining safe capacity. When a cube's slot is needed for a real item, that cube moves out to a side track instead — a glance at the track shows exactly how encumbered the player is without counting slots.</div>
 
       <h3 id="inventory-fuel-cells">Fuel Cells<button class="view-toggle" aria-label="Toggle table view"></button></h3>
       <div class="tbl-wrap" data-mode="auto">
@@ -1917,7 +1943,7 @@
         </div>
         <div class="hbar-track"><div class="hbar-thumb"></div></div>
       </div>
-      <div class="callout info"><strong>// Note</strong>Fuel Cells are the one explicit prerequisite chain among the Blueprints (Makeshift → Manufactured) — unlike every other blueprint, which unlocks in parallel.</div>
+      <div class="callout info"><span class="callout-eyebrow">// Info</span><strong class="callout-title">Fuel Cell Prerequisite Chain</strong>Fuel Cells are the one explicit prerequisite chain among the Blueprints (Makeshift → Manufactured) — unlike every other blueprint, which unlocks in parallel.</div>
       <h4 id="inventory-fuel-cells-found-fuel-cells">Found Fuel Cells</h4>
       <p>Completed objectives bank into a shared crew pool, spendable at the players' discretion toward "finding" a Fuel Cell instead of crafting one. Spending the bank places the Cell on the board via card pull; a player must then travel there and spend an action to claim it. The relevant blueprint must already be unlocked before objectives can be banked toward that Cell, same as crafting requires.</p>
       <ul class="rules-list">
@@ -1926,7 +1952,7 @@
         <li><strong>Crafting Unaffected:</strong> Crafting cost is unchanged throughout — found and crafted are independent, parallel paths to the same item.</li>
         <li><strong>Board Cap:</strong> On-board unclaimed Found Cells are capped at 2 per type (4 total) — banked objectives can't be spent past that cap until an existing Found Cell is claimed.</li>
       </ul>
-      <div class="callout info"><strong>// Fuel Cell Notes</strong>Both Fuel Cell types occupy reserved backpack slots, leaving remaining compartments available. The Manufactured Fuel Cell (2×2) uses 4 reserved slots; the Makeshift Fuel Cell (1×2) uses 2. Whatever's already in those slots must be relocated or dropped to make room — carrying a Fuel Cell requires no other special state. If the carrier dies, the Fuel Cell drops at the death location and must be recovered by surviving crew. Exact slot assignments subject to change.</div>
+      <div class="callout info"><span class="callout-eyebrow">// Info</span><strong class="callout-title">Fuel Cell Notes</strong>Both Fuel Cell types occupy reserved backpack slots, leaving remaining compartments available. The Manufactured Fuel Cell (2×2) uses 4 reserved slots; the Makeshift Fuel Cell (1×2) uses 2. Whatever's already in those slots must be relocated or dropped to make room — carrying a Fuel Cell requires no other special state. If the carrier dies, the Fuel Cell drops at the death location and must be recovered by surviving crew. Exact slot assignments subject to change.</div>
     </section>
     <!-- 17 RESOURCES -->
     <section class="section" id="resources">
@@ -2046,14 +2072,14 @@
         <li><strong>Workbench Cost:</strong> Go to [family] room, interact with workbench, spend a specific resource cost — e.g. 2 Scrap + 1 Salvage.</li>
         <li><strong>Delivery:</strong> Carry specific item(s) to a [family] room and place them at the location the task specifies.</li>
       </ul>
-      <div class="callout info"><strong>// Note</strong>These are illustrative examples, not an exhaustive task-type list — final task templates are part of card design.</div>
+      <div class="callout info"><span class="callout-eyebrow">// Info</span><strong class="callout-title">Illustrative Examples Only</strong>These are illustrative examples, not an exhaustive task-type list — final task templates are part of card design.</div>
 
       <h3>Pending Objective Queue</h3>
       <p>An objective the crew doesn't slot immediately joins the back of the Pending Objective Queue. Pending objectives are pulled from the front of the queue only — players cannot cherry-pick a specific one out of order.</p>
 
-      <div class="callout warning"><strong>// Objective Backlog</strong>Leaving objectives unresolved has a real cost: at 5+ objectives in the Pending Objective Queue, Creature aggression begins ramping. See <a href="#creature-objective-backlog-aggression">// 06 THE CREATURE &amp; NOISE - OBJECTIVE BACKLOG AGGRESSION</a> for the tiers.</div>
-      <div class="callout warning"><strong>// Queue Cap</strong>The Pending Objective Queue is capped at 8, matching Objective Backlog Aggression's top tier. At a full queue, the 9th and any further objective goes to the Echo Deck discard/recycle pile instead of joining the queue, and the player who drew it takes +1 Noise on their own tracker.</div>
-      <div class="callout muted"><strong>// Pending</strong>The Workbench mechanic itself is still to be determined.</div>
+      <div class="callout warning"><span class="callout-eyebrow">// Warning</span><strong class="callout-title">Objective Backlog</strong>Leaving objectives unresolved has a real cost: at 5+ objectives in the Pending Objective Queue, Creature aggression begins ramping. See <a href="#creature-objective-backlog-aggression">// 06 THE CREATURE &amp; NOISE - OBJECTIVE BACKLOG AGGRESSION</a> for the tiers.</div>
+      <div class="callout warning"><span class="callout-eyebrow">// Warning</span><strong class="callout-title">Queue Cap</strong>The Pending Objective Queue is capped at 8, matching Objective Backlog Aggression's top tier. At a full queue, the 9th and any further objective goes to the Echo Deck discard/recycle pile instead of joining the queue, and the player who drew it takes +1 Noise on their own tracker.</div>
+      <div class="callout muted"><span class="callout-eyebrow">// Pending</span><strong class="callout-title">Workbench Mechanic</strong>The Workbench mechanic itself is still to be determined.</div>
     </section>
     <!-- 20 ESCAPE -->
     <section class="section" id="escape">
