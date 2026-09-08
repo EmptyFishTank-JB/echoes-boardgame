@@ -1310,6 +1310,14 @@
       <h3>Line of Sight Rush</h3>
       <p>During creature movement, if the creature enters line of sight of any player at any point along its path, it rushes that player immediately — expending remaining movement. Non-discriminating: attacks any player in its path. Triggers on the first LoS contact during movement, not only at the end of the move.</p>
 
+      <h3>Objective Backlog Aggression</h3>
+      <p>The Creature grows more dangerous the longer the crew lets objectives sit unresolved in the Pending Objective Queue (see <a href="#objective-board">// 19 OBJECTIVE BOARD</a>). At 5 objectives queued, the ramp is armed but has no effect yet. From 6 onward, aggression scales with the queue's current size — effects apply while the queue stays at or above that count, and fall away if it drops back below:</p>
+      <ul class="rules-list">
+        <li><strong>6+:</strong> Creature Speed +2.</li>
+        <li><strong>7+:</strong> Previous, plus Creature Damage +2 (5 &rarr; 7, see <a href="#combat">// 14 COMBAT</a>).</li>
+        <li><strong>8+:</strong> Previous, plus +3 to each player's Noise Meter and +3 to their Noise Check roll (the D12 Noise Die's rolled value) &mdash; both sides of the check get worse at once, making failure and its more severe tiers far more likely.</li>
+      </ul>
+
       <h3>Introduction Sequence</h3>
       <ul class="rules-list">
         <li><strong>Dormant Phase:</strong> Failed noise checks produce Threat Tokens. Toggle cards inert.</li>
@@ -1899,7 +1907,14 @@
         </div>
         <div class="hbar-track"><div class="hbar-thumb"></div></div>
       </div>
-      <div class="callout info"><strong>// Pending</strong>Fuel Cells are the one explicit prerequisite chain among the Blueprints (Makeshift → Manufactured) — unlike every other blueprint, which unlocks in parallel. Additional pacing mechanics are still needed so the crew can't unlock both Fuel Cell blueprints and rush straight into the Escape Phase — exact mechanic TBD.</div>
+      <div class="callout info"><strong>// Pending</strong>Fuel Cells are the one explicit prerequisite chain among the Blueprints (Makeshift → Manufactured) — unlike every other blueprint, which unlocks in parallel.</div>
+      <div class="callout info"><strong>// Found Fuel Cells</strong>Completed objectives bank into a shared crew pool, spendable at the players' discretion toward "finding" a Fuel Cell instead of crafting one. Spending the bank places the Cell on the board via card pull; a player must then travel there and spend an action to claim it. The relevant blueprint must already be unlocked before objectives can be banked toward that Cell, same as crafting requires.
+        <ul class="rules-list">
+          <li><strong>Makeshift:</strong> blueprint unlock ~3&ndash;4 chained objectives. Found cost: 6 banked objectives &mdash; drops to 4 once the Manufactured blueprint is also unlocked.</li>
+          <li><strong>Manufactured:</strong> blueprint unlock ~3&ndash;4 chained objectives (plus the Makeshift-first prerequisite above). Found cost: 6 banked objectives, always.</li>
+        </ul>
+        Crafting cost is unchanged throughout &mdash; found and crafted are independent, parallel paths to the same item. On-board unclaimed Found Cells are capped at 2 per type (4 total) &mdash; banked objectives can't be spent past that cap until an existing Found Cell is claimed.
+      </div>
       <div class="callout info"><strong>// Fuel Cell Notes</strong>Both Fuel Cell types occupy reserved backpack slots, leaving remaining compartments available. The Manufactured Fuel Cell (2×2) uses 4 reserved slots; the Makeshift Fuel Cell (1×2) uses 2. Whatever's already in those slots must be relocated or dropped to make room — carrying a Fuel Cell requires no other special state. If the carrier dies, the Fuel Cell drops at the death location and must be recovered by surviving crew. Exact slot assignments subject to change.</div>
     </section>
     <!-- 17 RESOURCES -->
@@ -2003,6 +2018,7 @@
         <li><strong>Explicit Prerequisites:</strong> A blueprint may name one specific prerequisite blueprint that must be fully completed before its own chain can be populated. This is a property of that one blueprint, not a rule about the Blueprints as a whole — see <a href="#inventory-fuel-cells">// 16 INVENTORY &amp; EQUIPMENT - FUEL CELLS</a> for the current example.</li>
         <li><strong>Ahead of Completion:</strong> On any blueprint without a prerequisite, population can run ahead of completion — every objective slot can be filled before that blueprint's own tasks are even started.</li>
         <li><strong>One Card, One Chain:</strong> Once an objective is slotted, it's locked to that chain — it can never be reapplied elsewhere.</li>
+        <li><strong>No Extra Penalty:</strong> A blueprint that never gets fully populated has no consequence beyond simply not being available to craft — leaving a chain incomplete doesn't punish the crew any further.</li>
       </ul>
 
       <h3>Chain Resolution (In Order, Bottom-Up)</h3>
@@ -2024,7 +2040,8 @@
       <h3>Pending Objective Queue</h3>
       <p>An objective the crew doesn't slot immediately joins the back of the Pending Objective Queue. Pending objectives are pulled from the front of the queue only — players cannot cherry-pick a specific one out of order.</p>
 
-      <div class="callout info"><strong>// Pending</strong>Pending Objective Queue cap (if any), consequences for a blueprint that never gets fully populated, and the Workbench mechanic itself are still to be determined.</div>
+      <div class="callout warning"><strong>// Objective Backlog</strong>Leaving objectives unresolved has a real cost: at 5+ objectives in the Pending Objective Queue, Creature aggression begins ramping. See <a href="#creature">// 06 THE CREATURE &amp; NOISE</a> &ndash; Objective Backlog Aggression for the tiers.</div>
+      <div class="callout info"><strong>// Pending</strong>Pending Objective Queue cap (if any) and the Workbench mechanic itself are still to be determined.</div>
     </section>
     <!-- 20 ESCAPE -->
     <section class="section" id="escape">
@@ -2113,9 +2130,11 @@
       <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Objective Board — official term locked</div><div class="item-note">Hosts the Blueprints and Pending Objective Queue.</div></div></div>
       <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Expansion blueprints will be card-based</div><div class="item-note">The base game's Blueprint slots are fixed. Expansion content instead uses standalone Blueprint Cards, each printing its own unlock requirements. Integration details (how they mix into or alongside the Echo Deck) still TBD.</div></div></div>
       <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Blueprints unlock in parallel, Fuel Cells are the exception</div><div class="item-note">No global tier order across the Blueprints — every blueprint except Fuel Cells can be worked in any order. Manufactured Fuel Cell explicitly requires the Makeshift Fuel Cell blueprint completed first.</div></div></div>
-      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Pending Objective Queue cap</div><div class="item-note">Whether a max queue size is needed, and consequences for a blueprint chain that never gets fully populated.</div></div></div>
+      <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Unresolved blueprints carry no extra penalty</div><div class="item-note">A blueprint that never gets fully populated simply stays unavailable to craft — no further consequence to the crew.</div></div></div>
+      <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Objective Backlog Aggression</div><div class="item-note">Pending Objective Queue size scales Creature aggression: armed at 5 (no effect), then 6+ Speed +2, 7+ also Damage +2, 8+ also +3 Noise Meter and +3 Noise Check roll per player. Effects apply only while the queue stays at or above that count. See // 06 THE CREATURE &amp; NOISE.</div></div></div>
+      <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Found Fuel Cells</div><div class="item-note">Completed objectives bank into a shared pool the crew can spend toward placing a Fuel Cell on the board (via card pull) instead of crafting one — a player still has to travel to it and spend an action to claim it. Makeshift costs 6 banked objectives (4 once Manufactured is unlocked); Manufactured always costs 6. Unclaimed Found Cells on board are capped at 2 per type. See // 16 INVENTORY &amp; EQUIPMENT - FUEL CELLS.</div></div></div>
+      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Pending Objective Queue cap</div><div class="item-note">Whether a max queue size is needed.</div></div></div>
       <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Workbench mechanic</div><div class="item-note">New task-resolution location alongside rooms and terminals. Low cost to add or cut — exact rules TBD.</div></div></div>
-      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Fuel Cell blueprint pacing</div><div class="item-note">Need a mechanic to stop the crew from unlocking both Fuel Cell blueprints and rushing straight into the Escape Phase. Exact approach TBD.</div></div></div>
       <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Blueprint Card deck share reallocation</div><div class="item-note">Blueprints are static unlocks, not cards — the ~15–20% set aside for them needs redistributing across the remaining Echo Deck card types.</div></div></div>
 
       <h4>Creature, Noise &amp; Cards</h4>
