@@ -263,18 +263,26 @@
     font-family: 'Share Tech Mono', monospace; font-size: 10px;
     letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-dim);
     margin-top: 22px;
+    text-align: center;
   }
   .history-note { color: rgba(238,240,245,0.25); text-transform: none; letter-spacing: 0; }
 
+  /* margin-top leaves headroom above the resting card position so the
+     leftmost/active card's upward slide (see .hist-card below) never
+     overlaps the label text above it. margin: ... auto centers the row
+     - its width is set per-render in JS to exactly fit the current
+     card count, so it grows outward on both sides as more cards are
+     pulled while card 0 (the most recent) stays the leftmost card. */
   .history-row {
     position: relative;
     height: 128px;
-    margin-top: 14px;
+    margin: 32px auto 0;
   }
   .history-empty {
     font-family: 'Share Tech Mono', monospace;
     font-size: 11px; color: var(--text-dim);
     padding-top: 8px;
+    text-align: center;
   }
   .hist-card {
     position: absolute;
@@ -726,6 +734,7 @@
 
   function renderHistory(){
     if (!history.length) {
+      historyRow.style.width = '';
       historyRow.innerHTML = '<div class="history-empty">No cards pulled yet.</div>';
       return;
     }
