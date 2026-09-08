@@ -1310,7 +1310,7 @@
       <h3>Line of Sight Rush</h3>
       <p>During creature movement, if the creature enters line of sight of any player at any point along its path, it rushes that player immediately — expending remaining movement. Non-discriminating: attacks any player in its path. Triggers on the first LoS contact during movement, not only at the end of the move.</p>
 
-      <h3>Objective Backlog Aggression</h3>
+      <h3 id="creature-objective-backlog-aggression">Objective Backlog Aggression</h3>
       <p>The Creature grows more dangerous the longer the crew lets objectives sit unresolved in the Pending Objective Queue (see <a href="#objective-board">// 19 OBJECTIVE BOARD</a>). At 5 objectives queued, the ramp is armed but has no effect yet. From 6 onward, aggression scales with the queue's current size — effects apply while the queue stays at or above that count, and fall away if it drops back below:</p>
       <ul class="rules-list">
         <li><strong>6+:</strong> Creature Speed +2.</li>
@@ -1529,7 +1529,7 @@
           <table>
           <thead><tr><th>Card Type</th><th>Count</th><th>Function</th></tr></thead>
           <tbody>
-            <tr><td>Room Cards</td><td>~70–80</td><td>Primary discovery loop. Room type, lore, resource icons, events, tasks, terminal indicators. Some are marked <strong>Objective</strong> — see below.</td></tr>
+            <tr><td>Room Cards</td><td>~100</td><td>Primary discovery loop. Room type, lore, resource icons, events, tasks, terminal indicators. Some are marked <strong>Objective</strong> — see below. Absorbs the former Blueprint card share, reallocated here since Blueprints became static Objective Board unlocks.</td></tr>
             <tr><td>Echo Event Mini-Games</td><td>~12 (6×2) &mdash; ~10%</td><td>Interrupt mechanic. Must resolve before original draw continues.</td></tr>
             <tr><td>CONTACT Card</td><td>1</td><td>Unique. Triggers creature introduction when drawn at Operations Center terminal.</td></tr>
           </tbody>
@@ -1537,7 +1537,7 @@
         </div>
         <div class="hbar-track"><div class="hbar-thumb"></div></div>
       </div>
-      <div class="callout info"><strong>// Pending</strong>Blueprints are not their own card type — they're static unlocks on the Objective Board (see <a href="#objective-board">// 19 OBJECTIVE BOARD</a>) — so the ~15–20% set aside for them needs reallocating across the remaining Echo Deck card types.</div>
+      <div class="callout info"><strong>// Note</strong>Blueprints are not their own card type — they're static unlocks on the Objective Board (see <a href="#objective-board">// 19 OBJECTIVE BOARD</a>). The ~15&ndash;20% once set aside for them now goes entirely to Room Cards, reflected in the count above.</div>
 
       <h3>Room Card Tasks &amp; Objectives</h3>
       <p>Not every Room Card carries a task, and not every task is an objective. Cards marked <strong>Objective</strong> feed the Objective Board (<a href="#objective-board">// 19 OBJECTIVE BOARD</a>) — their tasks are resolved in order, tied to that card's room family, and completed at whatever the task specifies (a room of that family, a terminal, or a workbench). Cards with a task that <em>isn't</em> marked Objective resolve immediately on draw and never touch the board.</p>
@@ -1651,7 +1651,7 @@
             <tr><td><span style="color:var(--accent);">Interact with Terminal</span><br><span style="color:var(--text-dim);font-size:12px;">Draw Echo Card. Standard noise level.</span></td><td>+1</td></tr>
             <tr><td><span style="color:var(--accent);">Quiet Terminal Interaction</span><br><span style="color:var(--text-dim);font-size:12px;">Requires Tech skill or item. Silent access.</span></td><td>0</td></tr>
             <tr><td><span style="color:var(--accent);">Data Extraction</span><br><span style="color:var(--text-dim);font-size:12px;">Claim a Data Token already placed at an adjacent terminal or data point. Separate action from the Echo card draw that placed the token there. See <a href="#resources-data-retrieval-loop">// 17 RESOURCES - DATA RETRIEVAL LOOP</a>.</span></td><td>+1</td></tr>
-            <tr><td><span style="color:var(--accent);">Seal Door</span><br><span style="color:var(--text-dim);font-size:12px;">Blocks creature until end of next player's creature phase, then opens. Requires crew coordination to lure creature away.</span></td><td>+1</td></tr>
+            <tr><td><span style="color:var(--accent);">Seal Door</span><br><span style="color:var(--text-dim);font-size:12px;">Player must be adjacent to the door on the side they're sealing it from. Blocks the Creature's path until the end of the next player's Creature Phase, then opens automatically. Requires crew coordination to lure creature away.</span></td><td>+1</td></tr>
             <tr><td><span style="color:var(--accent);">Enter / Exit Locker</span><br><span style="color:var(--text-dim);font-size:12px;">Each transition costs one action and generates noise. See <a href="#actions-hiding">// 12 ACTIONS - HIDING</a> for full rules.</span></td><td>+1 each</td></tr>
             <tr><td><span style="color:var(--accent);">Vent Entry / Exit</span><br><span style="color:var(--text-dim);font-size:12px;">Each transition costs one action. Higher noise than lockers.</span></td><td>+2 each</td></tr>
             <tr><td><span style="color:var(--accent);">Rest</span><br><span style="color:var(--text-dim);font-size:12px;">Recover +1 Health. No noise generated.</span></td><td>+0</td></tr>
@@ -2040,8 +2040,9 @@
       <h3>Pending Objective Queue</h3>
       <p>An objective the crew doesn't slot immediately joins the back of the Pending Objective Queue. Pending objectives are pulled from the front of the queue only — players cannot cherry-pick a specific one out of order.</p>
 
-      <div class="callout warning"><strong>// Objective Backlog</strong>Leaving objectives unresolved has a real cost: at 5+ objectives in the Pending Objective Queue, Creature aggression begins ramping. See <a href="#creature">// 06 THE CREATURE &amp; NOISE</a> &ndash; Objective Backlog Aggression for the tiers.</div>
-      <div class="callout info"><strong>// Pending</strong>Pending Objective Queue cap (if any) and the Workbench mechanic itself are still to be determined.</div>
+      <div class="callout warning"><strong>// Objective Backlog</strong>Leaving objectives unresolved has a real cost: at 5+ objectives in the Pending Objective Queue, Creature aggression begins ramping. See <a href="#creature-objective-backlog-aggression">// 06 THE CREATURE &amp; NOISE &ndash; Objective Backlog Aggression</a> for the tiers.</div>
+      <div class="callout warning"><strong>// Queue Cap</strong>The Pending Objective Queue is capped at 8. Since Objective Backlog Aggression already tops out at its 8+ tier, the cap and the worst aggression tier land on the same number by design.</div>
+      <div class="callout info"><strong>// Pending</strong>The Workbench mechanic itself is still to be determined.</div>
     </section>
     <!-- 20 ESCAPE -->
     <section class="section" id="escape">
@@ -2133,9 +2134,9 @@
       <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Unresolved blueprints carry no extra penalty</div><div class="item-note">A blueprint that never gets fully populated simply stays unavailable to craft — no further consequence to the crew.</div></div></div>
       <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Objective Backlog Aggression</div><div class="item-note">Pending Objective Queue size scales Creature aggression: armed at 5 (no effect), then 6+ Speed +2, 7+ also Damage +2, 8+ also +3 Noise Meter and +3 Noise Check roll per player. Effects apply only while the queue stays at or above that count. See // 06 THE CREATURE &amp; NOISE.</div></div></div>
       <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Found Fuel Cells</div><div class="item-note">Completed objectives bank into a shared pool the crew can spend toward placing a Fuel Cell on the board (via card pull) instead of crafting one — a player still has to travel to it and spend an action to claim it. Makeshift costs 6 banked objectives (4 once Manufactured is unlocked); Manufactured always costs 6. Unclaimed Found Cells on board are capped at 2 per type. See // 16 INVENTORY &amp; EQUIPMENT - FUEL CELLS.</div></div></div>
-      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Pending Objective Queue cap</div><div class="item-note">Whether a max queue size is needed.</div></div></div>
+      <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Pending Objective Queue capped at 8</div><div class="item-note">Matches Objective Backlog Aggression's top tier (8+). What happens when a new objective would join an already-full queue is still undecided.</div></div></div>
       <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Workbench mechanic</div><div class="item-note">New task-resolution location alongside rooms and terminals. Low cost to add or cut — exact rules TBD.</div></div></div>
-      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Blueprint Card deck share reallocation</div><div class="item-note">Blueprints are static unlocks, not cards — the ~15–20% set aside for them needs redistributing across the remaining Echo Deck card types.</div></div></div>
+      <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Blueprint Card deck share reallocation &mdash; all to Room Cards</div><div class="item-note">The ~15–20% once set aside for Blueprint cards now goes entirely to Room Cards, bringing // 10 THE ECHO DECK's Deck Composition table in line with the ~100 Room Family Cards already listed in // 02 COMPONENTS.</div></div></div>
 
       <h4>Creature, Noise &amp; Cards</h4>
       <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Creature powers down crew ship at Operations Center</div><div class="item-note">Triggered when crew reaches Operations Center. Crew unaware until escape attempt.</div></div></div>
@@ -2156,7 +2157,7 @@
       <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Hiding detection roll mechanic</div><div class="item-note">General detection roll system for all hiding types. Locker-specific trigger documented separately. Full mechanic TBD.</div></div></div>
       <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Vent hiding rules</div><div class="item-note">Noise marker position effect on vent hiding viability.</div></div></div>
       <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Two additional hiding locations</div><div class="item-note">Debris piles, crawlspaces, alcoves — rules TBD.</div></div></div>
-      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Seal Door — full mechanic documentation</div><div class="item-note">Blocks creature until end of next player's creature phase. Crew coordination required.</div></div></div>
+      <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Seal Door — full mechanic documentation</div><div class="item-note">Player must be adjacent to the door on the side they're sealing it from. Blocks the Creature's path until the end of the next player's Creature Phase, then opens automatically. Requires crew coordination to lure the Creature away. See // 12 ACTIONS.</div></div></div>
 
       <h4>Escape Phase &amp; Endgame</h4>
       <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Escape Phase final creature encounter</div><div class="item-note">Endgame creature resolution mechanic.</div></div></div>
