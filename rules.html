@@ -1671,7 +1671,11 @@
       </div>
 
       <h3 id="actions-hiding">Hiding</h3>
-      <div class="callout success"><strong>// Hidden / Exposed</strong>Official terms for the player's hiding status — the same way Encumbered names an existing backpack-fill condition, Hidden and Exposed simply name the two states a player toggles between here. A player is <strong>Hidden</strong> while inside a locker, vent, or other hiding location; otherwise they are <strong>Exposed</strong>. No new mechanic — Entering/Exiting a hiding location (see Actions table above) flips the state.</div>
+      <div class="callout success">
+        <strong>// Hidden / Exposed</strong> Official terms for the player's hiding status — the same way Encumbered names an existing backpack-fill condition, Hidden and Exposed simply name the two states a player toggles between here. Entering/Exiting a hiding location (see Actions table above) flips the state.
+        <div style="margin-top:10px;"><strong>Hidden</strong><br>A player is Hidden while inside a locker, vent, or other hiding location; otherwise they are Exposed. Hidden is not the same as safe — the Creature may still find a Hidden player on a failed detection check, and on that failure may enter the ventilation system to reach them. Full detection mechanic TBD.</div>
+        <div style="margin-top:10px;"><strong>Exposed</strong><br>A player is Exposed whenever they are not Hidden — moving through the board normally, visible to the Creature if it has line of sight.</div>
+      </div>
       <h4>Locker Hiding</h4>
       <ul class="rules-list">
         <li><strong>Enter:</strong> 1 action. Must be adjacent to locker. +1 noise.</li>
@@ -2153,7 +2157,7 @@
 
       <h4>Hiding &amp; Defense</h4>
       <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Locker detection roll mechanic</div><div class="item-note">Triggers when creature physically reaches player's locker. Roll system TBD.</div></div></div>
-      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Hiding detection roll mechanic</div><div class="item-note">General detection roll system for all hiding types. Locker-specific trigger documented separately. Full mechanic TBD.</div></div></div>
+      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Hiding detection roll mechanic</div><div class="item-note">General detection roll system for all hiding types. Locker-specific trigger documented separately. On a failed check, the Creature may enter the ventilation system to reach a Hidden player — official term and full mechanic still TBD, likely to live in // 06 THE CREATURE &amp; NOISE.</div></div></div>
       <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Vent hiding rules</div><div class="item-note">Noise marker position effect on vent hiding viability.</div></div></div>
       <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Two additional hiding locations</div><div class="item-note">Debris piles, crawlspaces, alcoves — rules TBD.</div></div></div>
       <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Seal Door — full mechanic documentation</div><div class="item-note">Player must be adjacent to the door on the side they're sealing it from. Blocks the Creature's path until the end of the next player's Creature Phase, then opens automatically. Requires crew coordination to lure the Creature away. See // 12 ACTIONS.</div></div></div>
