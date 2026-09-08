@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+CiAgPHJlY3QgeD0iNSIgeT0iNiIgd2lkdGg9IjYiIGhlaWdodD0iMTAiIHJ4PSIxIiBmaWxsPSIjZTg3MzJhIiBvcGFjaXR5PSIwLjkiLz4KICA8cmVjdCB4PSIxMyIgeT0iMiIgd2lkdGg9IjYiIGhlaWdodD0iMTQiIHJ4PSIxIiBmaWxsPSIjZTg3MzJhIi8+CiAgPHJlY3QgeD0iMjEiIHk9IjYiIHdpZHRoPSI2IiBoZWlnaHQ9IjEwIiByeD0iMSIgZmlsbD0iI2U4NzMyYSIgb3BhY2l0eT0iMC45Ii8+CiAgPHJlY3QgeD0iMSIgeT0iMTciIHdpZHRoPSIxMyIgaGVpZ2h0PSIxMyIgcng9IjIuNSIgZmlsbD0iI2Q4MWYyZiIvPgogIDxjaXJjbGUgY3g9IjQuMyIgY3k9IjIwLjMiIHI9IjEuMyIgZmlsbD0iI2ZmZiIvPgogIDxjaXJjbGUgY3g9IjcuNSIgY3k9IjIzLjUiIHI9IjEuMyIgZmlsbD0iI2ZmZiIvPgogIDxjaXJjbGUgY3g9IjEwLjciIGN5PSIyNi43IiByPSIxLjMiIGZpbGw9IiNmZmYiLz4KICA8cmVjdCB4PSIxOCIgeT0iMTciIHdpZHRoPSIxMyIgaGVpZ2h0PSIxMyIgcng9IjIuNSIgZmlsbD0iIzFjOGZjNyIvPgogIDxjaXJjbGUgY3g9IjI3LjciIGN5PSIyMC4zIiByPSIxLjMiIGZpbGw9IiNmZmYiLz4KICA8Y2lyY2xlIGN4PSIyMS4zIiBjeT0iMjYuNyIgcj0iMS4zIiBmaWxsPSIjZmZmIi8+Cjwvc3ZnPgo=">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ECHOES // Echo Deck Card Puller</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --text:       #eef0f5;
+    --text-dim:   rgba(238,240,245,0.45);
+    --accent:     #4fc3f7;
+    --orange:     #e8732a;
+    --border:     rgba(238,240,245,0.12);
+    --red:        #ff4d5e;
+    --blue:       #4fc3f7;
+    --good:       #4fe0a1;
+    --violet:     #b98aff;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scrollbar-gutter: stable; }
+  html, body {
+    width: 100%; min-height: 100%;
+    background: #050709;
+    font-family: 'Barlow Condensed', sans-serif;
+    color: var(--text);
+  }
+  body {
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 0%, rgba(79,195,247,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse 70% 50% at 50% 100%, rgba(232,115,42,0.06) 0%, transparent 60%),
+      linear-gradient(160deg, #030508 0%, #070b12 45%, #05080d 100%);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 28px 20px 60px;
+  }
+  body::before {
+    content: "";
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background: repeating-linear-gradient(0deg,
+      rgba(255,255,255,0.05) 0px, rgba(255,255,255,0.05) 1px,
+      transparent 1px, transparent 4px);
+    mix-blend-mode: overlay;
+  }
+
+  nav {
+    width: 100%; max-width: 760px;
+    display: flex; align-items: center; justify-content: center;
+    gap: 22px; flex-wrap: wrap;
+    padding: 4px 4px 22px;
+    z-index: 1;
+  }
+  nav a {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--text-dim); text-decoration: none;
+  }
+  nav a:hover { color: var(--text); }
+  nav .sep {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: rgba(238,240,245,0.2);
+    letter-spacing: 0;
+    user-select: none;
+  }
+
+  header.title-block {
+    z-index: 1;
+    text-align: center;
+    margin-bottom: 22px;
+  }
+  .eyebrow {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px; letter-spacing: 0.28em; text-transform: uppercase;
+    color: var(--accent); opacity: 0.8; margin-bottom: 8px;
+  }
+  h1 {
+    font-weight: 900; letter-spacing: 0.04em; text-transform: uppercase;
+    font-size: clamp(28px, 5vw, 44px);
+    line-height: 0.95;
+  }
+  .subtitle {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px; color: var(--text-dim); letter-spacing: 0.05em;
+    margin-top: 10px; max-width: 560px; line-height: 1.7;
+  }
+
+  .panel {
+    z-index: 1;
+    width: 100%; max-width: 760px;
+    background: rgba(15,18,24,0.72);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    backdrop-filter: blur(6px);
+    padding: 28px;
+    position: relative;
+  }
+  .panel::before {
+    content: "";
+    position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, var(--orange), var(--accent));
+    opacity: 0.7;
+  }
+
+  .status-row {
+    display: flex; align-items: center; justify-content: center;
+    gap: 8px; flex-wrap: wrap;
+    font-family: 'Share Tech Mono', monospace; font-size: 11px;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 18px;
+  }
+  .status-value { color: var(--text); }
+
+  /* ── MAIN STAGE ── the just-pulled / selected card, full detail ── */
+  .stage {
+    display: flex; justify-content: center;
+    margin-bottom: 22px;
+    min-height: 300px;
+  }
+  .stage-empty {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px; color: var(--text-dim);
+    align-self: center;
+    text-align: center;
+  }
+
+  .card {
+    width: clamp(200px, 34vw, 260px);
+    aspect-ratio: 5 / 7;
+    border-radius: 10px;
+    position: relative;
+    overflow: hidden;
+  }
+  .card-front {
+    width: 100%; height: 100%;
+    border: 1px solid var(--card-accent, var(--accent));
+    border-radius: 10px;
+    background: rgba(10,13,18,0.9);
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.4), 0 18px 40px rgba(0,0,0,0.55);
+    padding: 16px 15px 12px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+  .card-front::before {
+    content: "";
+    position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: var(--card-accent, var(--accent));
+    opacity: 0.85;
+  }
+  .card-eyebrow {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9.5px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--card-accent, var(--accent));
+    margin-bottom: 6px;
+  }
+  .card-badges {
+    display: flex; flex-wrap: wrap; gap: 5px;
+    margin-bottom: 8px;
+  }
+  .card-badge {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 8.5px; letter-spacing: 0.14em; text-transform: uppercase;
+    padding: 2px 6px; border-radius: 3px;
+    border: 1px solid currentColor;
+  }
+  .card-badge.objective { color: var(--orange); }
+  .card-badge.hazard { color: var(--red); }
+  .card-badge.task { color: var(--accent); }
+  .card-badge.terminal { color: var(--text-dim); }
+  .card-badge.unique { color: var(--red); }
+  .card-title {
+    font-weight: 900; letter-spacing: 0.01em; text-transform: uppercase;
+    font-size: clamp(15px, 3vw, 19px);
+    line-height: 1.05;
+    margin-bottom: 8px;
+  }
+  .card-resource {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 10px;
+  }
+  .card-resource strong { color: var(--text); font-weight: 400; }
+  .card-lore {
+    font-size: 12.5px; font-style: italic; color: rgba(238,240,245,0.7);
+    line-height: 1.5;
+    margin-bottom: 10px;
+  }
+  .card-task {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10.5px; line-height: 1.6; color: var(--text-dim);
+    border-top: 1px solid var(--border);
+    padding-top: 8px;
+    margin-top: 10px;
+  }
+  .card-task strong { color: var(--text); }
+  .card-play {
+    display: inline-block;
+    margin-top: 8px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--card-accent, var(--accent));
+    text-decoration: none;
+  }
+  .card-play:hover { opacity: 0.75; }
+  .card-code {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 8.5px; letter-spacing: 0.12em;
+    color: rgba(238,240,245,0.28);
+    margin-top: auto;
+    padding-top: 10px;
+    text-align: right;
+  }
+
+  .cat-room    { --card-accent: var(--accent); }
+  .cat-event   { --card-accent: var(--violet); }
+  .cat-contact { --card-accent: var(--red); }
+
+  /* pull-up entrance for the main-stage card */
+  .card-enter {
+    animation: cardPullUp 0.42s cubic-bezier(0.2, 0.8, 0.3, 1);
+  }
+  @keyframes cardPullUp {
+    0%   { transform: translateY(46px) scale(0.92); opacity: 0; }
+    100% { transform: translateY(0) scale(1); opacity: 1; }
+  }
+
+  /* ── PULL BUTTON ── */
+  .btn-row { display: flex; justify-content: center; gap: 12px; margin-bottom: 4px; }
+  .btn {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: #05080d; background: var(--accent);
+    border: none; border-radius: 4px;
+    padding: 12px 26px;
+    cursor: pointer;
+    transition: opacity 0.15s, transform 0.1s;
+  }
+  .btn:hover { opacity: 0.88; }
+  .btn:active { transform: scale(0.97); }
+  .btn.secondary {
+    color: var(--text-dim); background: transparent;
+    border: 1px solid var(--border);
+  }
+  .btn.secondary:hover { color: var(--text); border-color: rgba(238,240,245,0.3); }
+
+  /* ── HISTORY ROW ── back-side cards, fanned left to right, most
+     recent draw leftmost/frontmost. Each card sits ~50% to the right
+     of the previous one and behind it in z-order, so only its right
+     half peeks out - a hand-of-cards spread rather than a stacked
+     pile. Hovering lifts a card straight up out of the row so its
+     full back is visible without disturbing the others; clicking it
+     re-displays that card on the main stage, front-up, as if it had
+     just been pulled - it does not change draw order or consume a
+     new card from the deck. */
+  .history-label {
+    font-family: 'Share Tech Mono', monospace; font-size: 10px;
+    letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-dim);
+    margin-top: 22px;
+  }
+  .history-note { color: rgba(238,240,245,0.25); text-transform: none; letter-spacing: 0; }
+
+  .history-row {
+    position: relative;
+    height: 128px;
+    margin-top: 14px;
+  }
+  .history-empty {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px; color: var(--text-dim);
+    padding-top: 8px;
+  }
+  .hist-card {
+    position: absolute;
+    top: 0;
+    width: 66px;
+    aspect-ratio: 5 / 7;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background-image: url('../-bg.jpg');
+    background-size: cover;
+    background-position: center;
+    box-shadow: 0 8px 18px rgba(0,0,0,0.5);
+    cursor: pointer;
+    transition: transform 0.18s ease;
+  }
+  .hist-card:hover, .hist-card:focus-visible {
+    transform: translateY(-50%);
+    z-index: 999 !important;
+    outline: none;
+  }
+
+  .rules-mini {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px; line-height: 1.9; color: var(--text-dim);
+    border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+    padding: 14px 0; margin: 22px 0 0;
+  }
+  .rules-mini strong { color: var(--text); }
+
+  .roller-nav {
+    width: 100%; max-width: 760px;
+    display: flex; align-items: center; justify-content: center;
+    gap: 22px; flex-wrap: wrap;
+    padding: 0 4px 22px;
+    z-index: 1;
+  }
+  .roller-nav a {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--text-dim); text-decoration: none;
+    transition: color 0.2s;
+  }
+  .roller-nav a:hover { color: var(--text); }
+  .roller-nav a.current { color: var(--accent); }
+  .roller-nav .sep {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: rgba(238,240,245,0.2);
+    letter-spacing: 0;
+    user-select: none;
+  }
+
+  .signal-icon {
+    display: flex; gap: 4px; align-items: center; justify-content: center;
+    width: fit-content;
+    margin: 10px auto 0;
+  }
+  .signal-bar {
+    width: 5px; background: var(--accent); border-radius: 2px;
+    animation: signalPulse 2s ease-in-out infinite;
+  }
+  .signal-bar:nth-child(1) { height: 8px; animation-delay: 0.2s; }
+  .signal-bar:nth-child(2) { height: 17px; animation-delay: 0s; }
+  .signal-bar:nth-child(3) { height: 8px; animation-delay: 0.4s; }
+  @keyframes signalPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  footer {
+    z-index: 1;
+    margin-top: 26px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    text-align: center;
+  }
+  footer span {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    color: rgba(238,240,245,0.25);
+    text-transform: uppercase;
+  }
+  footer span.accent { color: rgba(79,195,247,0.5); }
+  .footer-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: center;
+    column-gap: 10px;
+    row-gap: 2px;
+  }
+  .footer-meta .meta-item span { color: rgba(238,240,245,0.4); }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="../index.html">&larr; Echoes</a>
+  <span class="sep">//</span>
+  <a href="../rules.html">Rules &amp; Design</a>
+  <span class="sep">//</span>
+  <a href="../echo-events.html">Echo Events</a>
+  <span class="sep">//</span>
+  <a href="../assets.html">Assets</a>
+</nav>
+
+<nav class="roller-nav">
+  <a href="card-puller.html" class="current">Echo Deck</a>
+</nav>
+
+<header class="title-block">
+  <div class="eyebrow">// Echo Deck</div>
+  <h1>Card Puller</h1>
+  <p class="subtitle">A live prototype for the Echo Deck's draw loop and physical card layout. Card content below is placeholder &mdash; the real ~120-card deck is still in design. See <a href="../rules.html#echo-deck" style="color:var(--accent);">Rules &amp; Design // 10 The Echo Deck</a>.</p>
+</header>
+
+<div class="panel">
+
+  <div class="rules-mini">
+    <div><strong>Deck:</strong> shuffled on load and reshuffled automatically once exhausted, mirroring a real draw pile.</div>
+    <div><strong>History:</strong> last 8 draws, most recent leftmost. Click a history card to bring it back to the stage.</div>
+  </div>
+
+  <div class="status-row">
+    <span>Cards Remaining</span><span class="status-value" id="deckCount">&mdash;</span>
+  </div>
+
+  <div class="stage" id="stage">
+    <div class="stage-empty">Pull a card to begin.</div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn" id="pullBtn">Pull Card</button>
+    <button class="btn secondary" id="shuffleBtn">Reshuffle Deck</button>
+  </div>
+
+  <div class="history-label">History <span class="history-note">(last 8)</span></div>
+  <div class="history-row" id="historyRow">
+    <div class="history-empty">No cards pulled yet.</div>
+  </div>
+
+</div>
+
+<footer>
+  <span class="footer-line">ECHOES &middot; &copy; 2026 EmptyFishTank-JB &middot; In Development</span>
+  <span class="footer-meta">
+    <span class="meta-item">Updated <span id="updatedInfo">&mdash;</span></span>
+    <span class="meta-item">Commit <span id="commitInfo">&mdash;</span></span>
+    <span class="meta-item">STARDATE <span id="stardate">&mdash;</span></span>
+  </span>
+  <span class="accent">// All content subject to change</span>
+  <div class="signal-icon">
+    <div class="signal-bar"></div>
+    <div class="signal-bar"></div>
+    <div class="signal-bar"></div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  // ── PLACEHOLDER CARD DATA ──
+  // The real Echo Deck (~120 cards) isn't designed yet - see rules.html's
+  // Open Items log ("Echo Card template / format"). This is a small
+  // hand-written sample spanning the three known card types (Room Card,
+  // Echo Event, CONTACT) so the pull/history interaction and card layout
+  // can be judged with real-looking content. Swap or extend freely.
+  var CARDS = [
+    {
+      id: 'medical-bay', cat: 'room', category: 'Room Card',
+      title: 'Medical Bay', resource: 'Salvage + Components',
+      lore: 'Sedatives spilled across the floor, still tacky underfoot. Someone left in a hurry.'
+    },
+    {
+      id: 'engineering', cat: 'room', category: 'Room Card',
+      title: 'Engineering / Maintenance', resource: 'Components',
+      lore: 'The relay hums even with the lights out.',
+      badges: [{ label: 'Objective', cls: 'objective' }],
+      task: 'Objective: Restore auxiliary power to Deck 3.'
+    },
+    {
+      id: 'research-lab', cat: 'room', category: 'Room Card',
+      title: 'Research / Laboratory', resource: 'Data',
+      lore: 'The samples were still labeled when the power failed.',
+      badges: [{ label: 'Event / Hazard', cls: 'hazard' }],
+      task: 'Draw triggers a Biohazard check &mdash; 2 Biohazard faces required.'
+    },
+    {
+      id: 'cargo-storage', cat: 'room', category: 'Room Card',
+      title: 'Cargo / Storage', resource: 'Salvage',
+      lore: "Crates stacked to the ceiling, half of them already torn open."
+    },
+    {
+      id: 'security', cat: 'room', category: 'Room Card',
+      title: 'Security', resource: 'Components + Salvage',
+      lore: "The cameras still record. No one's watching.",
+      badges: [{ label: 'Task', cls: 'task' }],
+      task: 'Task: Pass a Tech check to unlock the weapons locker.'
+    },
+    {
+      id: 'crew-quarters', cat: 'room', category: 'Room Card',
+      title: 'Crew Quarters', resource: 'Scrap + Lore',
+      lore: "A photograph, face-down on the nightstand."
+    },
+    {
+      id: 'core-stabilization', cat: 'event', category: 'Echo Event',
+      title: 'Core Stabilization', resource: 'Balance Control', resourceLabel: 'Type',
+      lore: 'Triggers the Core Stabilization mini-game on draw. Resolved with the D6 Coordinate Dice, separate from the D12 System Dice.',
+      playHref: '../mini-games/core-stabilization.html', playLabel: '&#9654; Open Mini-Game'
+    },
+    {
+      id: 'dead-signal', cat: 'event', category: 'Echo Event',
+      title: 'Dead Signal', resource: 'Sequential Match', resourceLabel: 'Type',
+      lore: 'Triggers the Dead Signal mini-game on draw. Resolved with the D6 Coordinate Dice, separate from the D12 System Dice.',
+      playHref: '../mini-games/dead-signal.html', playLabel: '&#9654; Open Mini-Game'
+    },
+    {
+      id: 'contact', cat: 'contact', category: 'Contact',
+      title: 'CONTACT', resource: null,
+      lore: 'Names the room family the Creature will be introduced into. Drawn only at the Operations Center’s main terminal.',
+      badges: [{ label: 'Unique', cls: 'unique' }]
+    }
+  ];
+
+  var CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no O/0/I/1 confusion
+  function hashSeed(str){
+    var h = 2166136261;
+    for (var i = 0; i < str.length; i++) {
+      h ^= str.charCodeAt(i);
+      h = (h * 16777619) >>> 0;
+    }
+    return h || 1;
+  }
+  function seededCode(seedStr, len){
+    len = len || 20;
+    var s = hashSeed(seedStr);
+    function rnd(){
+      s ^= s << 13; s ^= s >>> 17; s ^= s << 5; s >>>= 0;
+      return s / 4294967296;
+    }
+    var out = '';
+    for (var i = 0; i < len; i++) out += CODE_CHARS[Math.floor(rnd() * CODE_CHARS.length)];
+    return out;
+  }
+  CARDS.forEach(function(c){ c.code = seededCode(c.id); });
+
+  var stage = document.getElementById('stage');
+  var historyRow = document.getElementById('historyRow');
+  var deckCountEl = document.getElementById('deckCount');
+  var pullBtn = document.getElementById('pullBtn');
+  var shuffleBtn = document.getElementById('shuffleBtn');
+
+  var deck = [];
+  var history = []; // array of card indices, most recent first
+  var HISTORY_MAX = 8;
+  var HIST_CARD_W = 66;
+  var HIST_OFFSET = HIST_CARD_W * 0.5;
+
+  function shuffle(arr){
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+  function refillDeck(){
+    deck = shuffle(CARDS.map(function(_, i){ return i; }));
+    updateDeckCount();
+  }
+  function updateDeckCount(){
+    deckCountEl.textContent = deck.length + ' / ' + CARDS.length;
+  }
+
+  function cardFrontHTML(card){
+    var badges = (card.badges || []).map(function(b){
+      return '<span class="card-badge ' + b.cls + '">' + b.label + '</span>';
+    }).join('');
+    var resource = card.resource
+      ? '<div class="card-resource">' + (card.resourceLabel || 'Resource') + ': <strong>' + card.resource + '</strong></div>' : '';
+    var task = card.task
+      ? '<div class="card-task">' + card.task + '</div>' : '';
+    var play = card.playHref
+      ? '<a class="card-play" href="' + card.playHref + '">' + card.playLabel + '</a>' : '';
+    return (
+      '<div class="card-front">' +
+        '<div class="card-eyebrow">// ' + card.category + '</div>' +
+        (badges ? '<div class="card-badges">' + badges + '</div>' : '') +
+        '<div class="card-title">' + card.title + '</div>' +
+        resource +
+        '<div class="card-lore">' + card.lore + '</div>' +
+        play +
+        task +
+        '<div class="card-code">' + card.code + '</div>' +
+      '</div>'
+    );
+  }
+
+  function showMain(idx){
+    var card = CARDS[idx];
+    stage.innerHTML = '<div class="card cat-' + card.cat + ' card-enter">' + cardFrontHTML(card) + '</div>';
+  }
+
+  function renderHistory(){
+    if (!history.length) {
+      historyRow.innerHTML = '<div class="history-empty">No cards pulled yet.</div>';
+      return;
+    }
+    var n = history.length;
+    historyRow.style.width = (HIST_CARD_W + (n - 1) * HIST_OFFSET) + 'px';
+    historyRow.innerHTML = history.map(function(idx, i){
+      return '<div class="hist-card" tabindex="0" role="button" aria-label="' + CARDS[idx].title +
+        '" style="left:' + (i * HIST_OFFSET) + 'px; z-index:' + (n - i) + ';" data-idx="' + idx + '"></div>';
+    }).join('');
+    Array.prototype.forEach.call(historyRow.querySelectorAll('.hist-card'), function(el){
+      function activate(){ showMain(parseInt(el.getAttribute('data-idx'), 10)); }
+      el.addEventListener('click', activate);
+      el.addEventListener('keydown', function(e){ if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); activate(); } });
+    });
+  }
+
+  function pullCard(){
+    if (!deck.length) refillDeck();
+    var idx = deck.pop();
+    updateDeckCount();
+    showMain(idx);
+    history.unshift(idx);
+    if (history.length > HISTORY_MAX) history.length = HISTORY_MAX;
+    renderHistory();
+  }
+
+  pullBtn.addEventListener('click', pullCard);
+  shuffleBtn.addEventListener('click', function(){
+    refillDeck();
+    history = [];
+    renderHistory();
+    stage.innerHTML = '<div class="stage-empty">Deck reshuffled. Pull a card to begin.</div>';
+  });
+
+  refillDeck();
+})();
+</script>
+
+<script>
+(function(){
+  var stardateEl = document.getElementById('stardate');
+  if (!stardateEl) return;
+  function pad(n, len){ n = String(n); while (n.length < len) n = '0' + n; return n; }
+  function chicagoParts(date){
+    var fmt = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'America/Chicago',
+      year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: '2-digit', minute: '2-digit', hour12: false
+    });
+    var parts = {};
+    fmt.formatToParts(date).forEach(function(p){ if (p.type !== 'literal') parts[p.type] = p.value; });
+    if (parts.hour === '24') parts.hour = '00';
+    return parts;
+  }
+  function dayOfYear(year, month, day){
+    var y = parseInt(year, 10);
+    var start = Date.UTC(y, 0, 1);
+    var current = Date.UTC(y, parseInt(month, 10) - 1, parseInt(day, 10));
+    return Math.floor((current - start) / 86400000) + 1;
+  }
+  function updateStardate(){
+    var parts = chicagoParts(new Date());
+    var day = dayOfYear(parts.year, parts.month, parts.day);
+    stardateEl.textContent = parts.year + '.' + pad(day, 3) + '.' + parts.hour + parts.minute;
+  }
+  updateStardate();
+  setInterval(updateStardate, 1000);
+})();
+</script>
+
+<script>
+(function(){
+  var elCommit = document.getElementById('commitInfo');
+  var elUpdated = document.getElementById('updatedInfo');
+  if (!elCommit && !elUpdated) return;
+  function formatCentral(isoDate){
+    var d = new Date(isoDate);
+    var dateFmt = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Chicago', year:'numeric', month:'2-digit', day:'2-digit' });
+    var timeFmt = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Chicago', hour:'2-digit', minute:'2-digit', hour12:false });
+    var tzFmt = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Chicago', timeZoneName: 'short' });
+    var dateStr = dateFmt.format(d);
+    var hh = timeFmt.formatToParts(d).find(function(p){ return p.type === 'hour'; }).value;
+    if (hh === '24') hh = '00';
+    var mm = timeFmt.formatToParts(d).find(function(p){ return p.type === 'minute'; }).value;
+    var tzName = tzFmt.formatToParts(d).find(function(p){ return p.type === 'timeZoneName'; }).value;
+    return dateStr + ' ' + hh + ':' + mm + ' ' + tzName;
+  }
+  fetch('https://api.github.com/repos/EmptyFishTank-JB/echoes-boardgame/commits?path=echo-deck/card-puller.html&per_page=1')
+    .then(function(r){ if (!r.ok) throw new Error('bad response'); return r.json(); })
+    .then(function(data){
+      if (!data || !data.length) throw new Error('no commits');
+      var c = data[0];
+      var sha = c.sha.slice(0, 7);
+      var date = c.commit && c.commit.committer && c.commit.committer.date;
+      if (elCommit) elCommit.textContent = sha;
+      if (elUpdated) elUpdated.textContent = date ? formatCentral(date) : 'unknown';
+    })
+    .catch(function(){
+      if (elCommit) elCommit.textContent = 'unavailable';
+      if (elUpdated) elUpdated.textContent = 'unavailable';
+    });
+})();
+</script>
+
+</body>
+</html>
