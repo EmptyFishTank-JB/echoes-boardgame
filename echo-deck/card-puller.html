@@ -253,11 +253,12 @@
      recent draw leftmost/frontmost. Each card sits ~50% to the right
      of the previous one and behind it in z-order, so only its right
      half peeks out - a hand-of-cards spread rather than a stacked
-     pile. Hovering lifts a card straight up out of the row so its
-     full back is visible without disturbing the others; clicking it
-     re-displays that card on the main stage, front-up, as if it had
-     just been pulled - it does not change draw order or consume a
-     new card from the deck. */
+     pile. Hovering (or being the card currently shown on the stage)
+     slides a card up 1/5 of its height - a pure position slide, with
+     no z-index change, so it still sits behind the card to its left.
+     Clicking a history card re-displays it on the main stage, front-up,
+     as if it had just been pulled - it does not change draw order or
+     consume a new card from the deck. */
   .history-label {
     font-family: 'Share Tech Mono', monospace; font-size: 10px;
     letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-dim);
@@ -289,9 +290,12 @@
     cursor: pointer;
     transition: transform 0.18s ease;
   }
-  .hist-card:hover, .hist-card:focus-visible {
-    transform: translateY(-50%);
-    z-index: 999 !important;
+  /* Slide only - no z-index boost, so a hovered/active card still sits
+     behind the card to its left (natural stacking order is unchanged).
+     Both hover and the persistent "currently on stage" state use the
+     same 1/5-height lift. */
+  .hist-card:hover, .hist-card:focus-visible, .hist-card.is-active {
+    transform: translateY(-20%);
     outline: none;
   }
 
@@ -444,47 +448,176 @@
   // Echo Event, CONTACT) so the pull/history interaction and card layout
   // can be judged with real-looking content. Swap or extend freely.
   var CARDS = [
+    // Room Cards - 23, spanning the 11 "Tile" type room families from
+    // rules.html // 07 Board & Rooms (FIXED-type families like
+    // Operations Center aren't populated via card draw, so they're
+    // left out of this pool).
     {
-      id: 'medical-bay', cat: 'room', category: 'Room Card',
+      id: 'medical-bay-1', cat: 'room', category: 'Room Card',
       title: 'Medical Bay', resource: 'Salvage + Components',
       lore: 'Sedatives spilled across the floor, still tacky underfoot. Someone left in a hurry.'
     },
     {
-      id: 'engineering', cat: 'room', category: 'Room Card',
+      id: 'medical-bay-2', cat: 'room', category: 'Room Card',
+      title: 'Medical Bay &mdash; Supply Locker', resource: 'Salvage + Components',
+      lore: "The medkit's seal is broken. Half the contents are gone.",
+      badges: [{ label: 'Task', cls: 'task' }],
+      task: 'Task: Pass a DNA check to identify salvageable meds.'
+    },
+    {
+      id: 'engineering-1', cat: 'room', category: 'Room Card',
       title: 'Engineering / Maintenance', resource: 'Components',
       lore: 'The relay hums even with the lights out.',
       badges: [{ label: 'Objective', cls: 'objective' }],
       task: 'Objective: Restore auxiliary power to Deck 3.'
     },
     {
-      id: 'research-lab', cat: 'room', category: 'Room Card',
+      id: 'engineering-2', cat: 'room', category: 'Room Card',
+      title: 'Engineering &mdash; Coolant Line', resource: 'Components',
+      lore: 'Steam hisses from a cracked line. Someone patched it with tape.',
+      badges: [{ label: 'Task', cls: 'task' }],
+      task: 'Task: Pay 1 Components to seal the leak.'
+    },
+    {
+      id: 'research-lab-1', cat: 'room', category: 'Room Card',
       title: 'Research / Laboratory', resource: 'Data',
       lore: 'The samples were still labeled when the power failed.',
       badges: [{ label: 'Event / Hazard', cls: 'hazard' }],
       task: 'Draw triggers a Biohazard check &mdash; 2 Biohazard faces required.'
     },
     {
-      id: 'cargo-storage', cat: 'room', category: 'Room Card',
-      title: 'Cargo / Storage', resource: 'Salvage',
-      lore: "Crates stacked to the ceiling, half of them already torn open."
+      id: 'research-lab-2', cat: 'room', category: 'Room Card',
+      title: 'Research Lab &mdash; Terminal Array', resource: 'Data',
+      lore: 'Rows of monitors, all dark but one.'
     },
     {
-      id: 'security', cat: 'room', category: 'Room Card',
+      id: 'research-lab-3', cat: 'room', category: 'Room Card',
+      title: 'Research Lab &mdash; Specimen Vault', resource: 'Data',
+      lore: 'Something scratched the inside of the glass.',
+      badges: [{ label: 'Objective', cls: 'objective' }],
+      task: 'Objective: Recover the specimen log from the vault.'
+    },
+    {
+      id: 'cargo-storage-1', cat: 'room', category: 'Room Card',
+      title: 'Cargo / Storage', resource: 'Salvage',
+      lore: 'Crates stacked to the ceiling, half of them already torn open.'
+    },
+    {
+      id: 'cargo-storage-2', cat: 'room', category: 'Room Card',
+      title: 'Cargo &mdash; Manifest Desk', resource: 'Salvage',
+      lore: 'The manifest lists more crew than the roster does.',
+      badges: [{ label: 'Task', cls: 'task' }],
+      task: 'Task: Pay 1 Scrap to pry open a sealed container.'
+    },
+    {
+      id: 'crew-quarters-1', cat: 'room', category: 'Room Card',
+      title: 'Crew Quarters', resource: 'Scrap + Lore',
+      lore: 'A photograph, face-down on the nightstand.'
+    },
+    {
+      id: 'crew-quarters-2', cat: 'room', category: 'Room Card',
+      title: 'Crew Quarters &mdash; Locker Row', resource: 'Scrap + Lore',
+      lore: 'One locker is welded shut from the inside.'
+    },
+    {
+      id: 'security-1', cat: 'room', category: 'Room Card',
       title: 'Security', resource: 'Components + Salvage',
       lore: "The cameras still record. No one's watching.",
       badges: [{ label: 'Task', cls: 'task' }],
       task: 'Task: Pass a Tech check to unlock the weapons locker.'
     },
     {
-      id: 'crew-quarters', cat: 'room', category: 'Room Card',
-      title: 'Crew Quarters', resource: 'Scrap + Lore',
-      lore: "A photograph, face-down on the nightstand."
+      id: 'security-2', cat: 'room', category: 'Room Card',
+      title: 'Security &mdash; Checkpoint', resource: 'Components + Salvage',
+      lore: 'A barricade, hastily built, just as hastily abandoned.',
+      badges: [{ label: 'Objective', cls: 'objective' }],
+      task: 'Objective: Clear the checkpoint barricade.'
     },
     {
-      id: 'core-stabilization', cat: 'event', category: 'Echo Event',
-      title: 'Core Stabilization', resource: 'Balance Control', resourceLabel: 'Type',
-      lore: 'Triggers the Core Stabilization mini-game on draw. Resolved with the D6 Coordinate Dice, separate from the D12 System Dice.',
-      playHref: '../mini-games/core-stabilization.html', playLabel: '&#9654; Open Mini-Game'
+      id: 'reactor-1', cat: 'room', category: 'Room Card',
+      title: 'Reactor Core', resource: 'Components + Data',
+      lore: 'The gauge needle sits deep in the red.',
+      badges: [{ label: 'Event / Hazard', cls: 'hazard' }],
+      task: 'Draw triggers a Tools check &mdash; 1 Tools face required to stabilize.'
+    },
+    {
+      id: 'reactor-2', cat: 'room', category: 'Room Card',
+      title: 'Reactor &mdash; Control Room', resource: 'Components + Data',
+      lore: 'Every warning light is lit at once.'
+    },
+    {
+      id: 'hydroponics-1', cat: 'room', category: 'Room Card',
+      title: 'Hydroponics / Life Support', resource: 'Food + Medical',
+      lore: 'The plants are all dead, but the irrigation still runs.'
+    },
+    {
+      id: 'hydroponics-2', cat: 'room', category: 'Room Card',
+      title: 'Hydroponics &mdash; Filtration Room', resource: 'Food + Medical',
+      lore: 'The air recyclers click, then stall, then click again.',
+      badges: [{ label: 'Task', cls: 'task' }],
+      task: 'Task: Pay 1 Components to clear the filter.'
+    },
+    {
+      id: 'garage-workshop-1', cat: 'room', category: 'Room Card',
+      title: 'Garage / Workshop', resource: 'Components + Salvage',
+      lore: 'A vehicle up on the lift, one wheel missing.'
+    },
+    {
+      id: 'garage-workshop-2', cat: 'room', category: 'Room Card',
+      title: 'Garage &mdash; Parts Bin', resource: 'Components + Salvage',
+      lore: 'Everything useful was already picked over.',
+      badges: [{ label: 'Task', cls: 'task' }],
+      task: 'Task: Pass a Tools check to find a usable part.'
+    },
+    {
+      id: 'communications-1', cat: 'room', category: 'Room Card',
+      title: 'Communications', resource: 'Data',
+      lore: 'Static, low and constant, from every speaker.',
+      badges: [{ label: 'Objective', cls: 'objective' }],
+      task: 'Objective: Restore the long-range antenna array.'
+    },
+    {
+      id: 'communications-2', cat: 'room', category: 'Room Card',
+      title: 'Communications &mdash; Relay Closet', resource: 'Data',
+      lore: 'Cables everywhere, none of them labeled.'
+    },
+    {
+      id: 'dormitories-1', cat: 'room', category: 'Room Card',
+      title: 'Dormitories', resource: 'Scrap + Lore',
+      lore: 'Bunks still made. No one came back to unmake them.'
+    },
+    {
+      id: 'dormitories-2', cat: 'room', category: 'Room Card',
+      title: 'Dormitories &mdash; Common Area', resource: 'Scrap + Lore',
+      lore: 'A half-finished card game, cards still fanned on the table.',
+      badges: [{ label: 'Task', cls: 'task' }],
+      task: 'Task: Pay 1 Scrap to search the room for supplies.'
+    },
+    // Echo Event Cards - one of each of the Six Echo Events (rules.html
+    // // 11 Echo Event Mini-Games / echo-events.html).
+    {
+      id: 'pressure-leak', cat: 'event', category: 'Echo Event',
+      title: 'Pressure Leak', resource: 'Risk Selection', resourceLabel: 'Type',
+      lore: 'Triggers the Pressure Leak mini-game on draw. Resolved with the D6 Coordinate Dice, separate from the D12 System Dice.',
+      playHref: '../mini-games/pressure-leak.html', playLabel: '&#9654; Open Mini-Game'
+    },
+    {
+      id: 'pull-the-fuse', cat: 'event', category: 'Echo Event',
+      title: 'Pull the Fuse', resource: 'Puzzle Solving', resourceLabel: 'Type',
+      lore: 'Triggers the Pull the Fuse mini-game on draw. Resolved with the D6 Coordinate Dice, separate from the D12 System Dice.',
+      playHref: '../mini-games/pull-the-fuse.html', playLabel: '&#9654; Open Mini-Game'
+    },
+    {
+      id: 'dead-reckoning', cat: 'event', category: 'Echo Event',
+      title: 'Dead Reckoning', resource: 'Coordinate Bet', resourceLabel: 'Type',
+      lore: 'Triggers the Dead Reckoning mini-game on draw. Resolved with the D6 Coordinate Dice, separate from the D12 System Dice.',
+      playHref: '../mini-games/dead-reckoning.html', playLabel: '&#9654; Open Mini-Game'
+    },
+    {
+      id: 'cascade-failure', cat: 'event', category: 'Echo Event',
+      title: 'Cascade Failure', resource: 'Push Your Luck', resourceLabel: 'Type',
+      lore: 'Triggers the Cascade Failure mini-game on draw. Resolved with the D6 Coordinate Dice, separate from the D12 System Dice.',
+      playHref: '../mini-games/cascade-failure.html', playLabel: '&#9654; Open Mini-Game'
     },
     {
       id: 'dead-signal', cat: 'event', category: 'Echo Event',
@@ -492,6 +625,13 @@
       lore: 'Triggers the Dead Signal mini-game on draw. Resolved with the D6 Coordinate Dice, separate from the D12 System Dice.',
       playHref: '../mini-games/dead-signal.html', playLabel: '&#9654; Open Mini-Game'
     },
+    {
+      id: 'core-stabilization', cat: 'event', category: 'Echo Event',
+      title: 'Core Stabilization', resource: 'Balance Control', resourceLabel: 'Type',
+      lore: 'Triggers the Core Stabilization mini-game on draw. Resolved with the D6 Coordinate Dice, separate from the D12 System Dice.',
+      playHref: '../mini-games/core-stabilization.html', playLabel: '&#9654; Open Mini-Game'
+    },
+    // CONTACT Card - unique.
     {
       id: 'contact', cat: 'contact', category: 'Contact',
       title: 'CONTACT', resource: null,
@@ -529,10 +669,15 @@
   var shuffleBtn = document.getElementById('shuffleBtn');
 
   var deck = [];
-  var history = []; // array of card indices, most recent first
+  // Each entry is {cardIdx, seq} - seq is a unique draw sequence number so
+  // the "currently on stage" card can be tracked by identity even as new
+  // pulls shift everything else's position in the array.
+  var history = [];
   var HISTORY_MAX = 8;
   var HIST_CARD_W = 66;
   var HIST_OFFSET = HIST_CARD_W * 0.5;
+  var nextSeq = 1;
+  var activeSeq = null;
 
   function shuffle(arr){
     var a = arr.slice();
@@ -559,7 +704,7 @@
     var task = card.task
       ? '<div class="card-task">' + card.task + '</div>' : '';
     var play = card.playHref
-      ? '<a class="card-play" href="' + card.playHref + '">' + card.playLabel + '</a>' : '';
+      ? '<a class="card-play" href="' + card.playHref + '" target="_blank" rel="noopener noreferrer">' + card.playLabel + '</a>' : '';
     return (
       '<div class="card-front">' +
         '<div class="card-eyebrow">// ' + card.category + '</div>' +
@@ -586,12 +731,17 @@
     }
     var n = history.length;
     historyRow.style.width = (HIST_CARD_W + (n - 1) * HIST_OFFSET) + 'px';
-    historyRow.innerHTML = history.map(function(idx, i){
-      return '<div class="hist-card" tabindex="0" role="button" aria-label="' + CARDS[idx].title +
-        '" style="left:' + (i * HIST_OFFSET) + 'px; z-index:' + (n - i) + ';" data-idx="' + idx + '"></div>';
+    historyRow.innerHTML = history.map(function(entry, i){
+      var isActive = entry.seq === activeSeq;
+      return '<div class="hist-card' + (isActive ? ' is-active' : '') + '" tabindex="0" role="button" aria-label="' + CARDS[entry.cardIdx].title +
+        '" style="left:' + (i * HIST_OFFSET) + 'px; z-index:' + (n - i) + ';" data-idx="' + entry.cardIdx + '" data-seq="' + entry.seq + '"></div>';
     }).join('');
     Array.prototype.forEach.call(historyRow.querySelectorAll('.hist-card'), function(el){
-      function activate(){ showMain(parseInt(el.getAttribute('data-idx'), 10)); }
+      function activate(){
+        activeSeq = parseInt(el.getAttribute('data-seq'), 10);
+        showMain(parseInt(el.getAttribute('data-idx'), 10));
+        renderHistory();
+      }
       el.addEventListener('click', activate);
       el.addEventListener('keydown', function(e){ if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); activate(); } });
     });
@@ -602,7 +752,9 @@
     var idx = deck.pop();
     updateDeckCount();
     showMain(idx);
-    history.unshift(idx);
+    var seq = nextSeq++;
+    activeSeq = seq;
+    history.unshift({ cardIdx: idx, seq: seq });
     if (history.length > HISTORY_MAX) history.length = HISTORY_MAX;
     renderHistory();
   }
@@ -611,6 +763,7 @@
   shuffleBtn.addEventListener('click', function(){
     refillDeck();
     history = [];
+    activeSeq = null;
     renderHistory();
     stage.innerHTML = '<div class="stage-empty">Deck reshuffled. Pull a card to begin.</div>';
   });
