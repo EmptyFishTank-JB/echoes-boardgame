@@ -105,16 +105,15 @@
   .callout.warning-hazard {
     position: relative;
     border-left: none;
-    padding-left: 26px;
     background: rgba(232,198,35,0.06);
   }
   .callout.warning-hazard::before {
     content: "";
-    position: absolute; left: 0; top: 0; bottom: 0; width: 10px;
+    position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
     background: repeating-linear-gradient(
       45deg,
-      #17140a 0px, #17140a 6px,
-      var(--hazard) 6px, var(--hazard) 12px
+      #17140a 0px, #17140a 2px,
+      var(--hazard) 2px, var(--hazard) 4px
     );
   }
   .callout.warning-hazard strong { color: var(--hazard); }
