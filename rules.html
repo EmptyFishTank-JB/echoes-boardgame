@@ -270,7 +270,7 @@
      Examples:
        <a href="#combat-preparation-actions">// 14 COMBAT - PREPARATION ACTIONS</a>
        <a href="#resources-data-retrieval-loop">// 17 RESOURCES - DATA RETRIEVAL LOOP</a>
-       <a href="#dice">// 09 DICE ENGINE</a>   (whole-section reference, no subsection)
+       <a href="#dice">// 09 THE DICE ENGINE</a>   (whole-section reference, no subsection)
 
      - <NUM> is the section's two-digit number from the Pages TOC below.
      - <SECTION NAME> is that section's TOC name, in caps (ampersands
@@ -702,6 +702,18 @@
   .callout.success .callout-eyebrow, .callout.success .callout-title { color: var(--success); }
   .callout.muted .callout-eyebrow, .callout.muted .callout-title { color: var(--text-dim); }
 
+  /* Colored sub-headers inside a callout's body (e.g. Hidden/Exposed) -
+     distinct from the callout's own top-level eyebrow/title pair. */
+  .callout-subhead {
+    display: block;
+    margin-bottom: 2px;
+  }
+  .callout.info .callout-subhead { color: var(--accent2); }
+  .callout.warning .callout-subhead { color: var(--hazard); }
+  .callout.danger .callout-subhead { color: var(--danger); }
+  .callout.success .callout-subhead { color: var(--success); }
+  .callout.muted .callout-subhead { color: var(--text-dim); }
+
   .icon-play { display: inline-block; vertical-align: -1px; margin-right: 5px; }
 
   .callout-btn {
@@ -1107,7 +1119,7 @@
     <a href="#creature">06 · The Creature &amp; Noise</a>
     <a href="#board">07 · Board &amp; Rooms</a>
     <a href="#turn">08 · Turn Structure</a>
-    <a href="#dice">09 · Dice Engine</a>
+    <a href="#dice">09 · The Dice Engine</a>
     <a href="#echo-deck">10 · The Echo Deck</a>
     <a href="#mini-games">11 · Echo Event Mini-Games</a>
     <a href="#actions">12 · Actions</a>
@@ -1587,7 +1599,7 @@
       </ul>
 
       <h3>Card Events &amp; Hazards</h3>
-      <p>Some Echo Cards trigger events or hazards requiring a D12 dice roll to resolve. Each card specifies the required face(s) and quantity needed. All resolutions follow the standard <strong>Roll Resolution</strong> rules — see <a href="#dice">// 09 DICE ENGINE</a>.</p>
+      <p>Some Echo Cards trigger events or hazards requiring a D12 dice roll to resolve. Each card specifies the required face(s) and quantity needed. All resolutions follow the standard <strong>Roll Resolution</strong> rules — see <a href="#dice">// 09 THE DICE ENGINE</a>.</p>
       <div class="callout info"><span class="callout-eyebrow">// Info</span><strong class="callout-title">Two Separate Dice Systems</strong>Card events and hazards use the D12 System Dice pool. Echo Event Mini-Games use the D6 Coordinate Dice. These are separate systems — do not mix them.</div>
 
       <h3 id="echo-deck-operations-center-terminals">Operations Center Terminals</h3>
@@ -1705,10 +1717,10 @@
       </div>
 
       <h3 id="actions-hiding">Hiding</h3>
-      <div class="callout success">
-        <span class="callout-eyebrow">// Success</span><strong class="callout-title">Hidden / Exposed</strong> Official terms for the player's hiding status — the same way Encumbered names an existing backpack-fill condition, Hidden and Exposed simply name the two states a player toggles between here. Entering/Exiting a hiding location (see Actions table above) flips the state.
-        <div style="margin-top:10px;"><strong>Hidden</strong>A player is Hidden while inside a locker, vent, or other hiding location; otherwise they are Exposed. Hidden is not the same as safe — the Creature may still find a Hidden player on a failed detection check, and on that failure may enter the ventilation system to reach them. Full detection mechanic TBD.</div>
-        <div style="margin-top:10px;"><strong>Exposed</strong>A player is Exposed whenever they are not Hidden — moving through the board normally, visible to the Creature if it has line of sight.</div>
+      <div class="callout info">
+        <span class="callout-eyebrow">// Info</span><strong class="callout-title">Hidden / Exposed</strong> Official terms for the player's hiding status — the same way Encumbered names an existing backpack-fill condition, Hidden and Exposed simply name the two states a player toggles between here. Entering/Exiting a hiding location (see Actions table above) flips the state.
+        <div style="margin-top:10px;"><strong class="callout-subhead">Hidden</strong>A player is Hidden while inside a locker, vent, or other hiding location; otherwise they are Exposed. Hidden is not the same as safe — the Creature may still find a Hidden player on a failed detection check, and on that failure may enter the ventilation system to reach them. Full detection mechanic TBD.</div>
+        <div style="margin-top:10px;"><strong class="callout-subhead">Exposed</strong>A player is Exposed whenever they are not Hidden — moving through the board normally, visible to the Creature if it has line of sight.</div>
       </div>
       <h4>Locker Hiding</h4>
       <ul class="rules-list">
@@ -2118,10 +2130,10 @@
             <tr><td><strong>Line of Sight (LoS) Rush</strong></td><td>If the Creature gets line of sight on any player during its movement, it immediately rushes that player, expending remaining movement. Triggers on first contact, not only at the end of the move.</td><td><a href="#creature">// 06 THE CREATURE &amp; NOISE</a></td></tr>
             <tr><td><strong>Echo Card</strong></td><td>The primary draw-deck card type. Populates rooms and terminals with room family content, objectives, lore, and events/hazards.</td><td><a href="#echo-deck">// 10 THE ECHO DECK</a></td></tr>
             <tr><td><strong>Echo Event / Mini-Game</strong></td><td>An interrupt mini-game triggered by certain Echo Card draws. Resolved with the D6 Coordinate Dice, a separate pool from the D12 System Dice.</td><td><a href="#mini-games">// 11 ECHO EVENT MINI-GAMES</a></td></tr>
-            <tr><td><strong>D12 System Dice</strong></td><td>The 5-die pool used for all standard checks &mdash; card events, hazards, and skill checks.</td><td><a href="#dice">// 09 DICE ENGINE</a></td></tr>
-            <tr><td><strong>D6 Coordinate Dice</strong></td><td>The Blue and Red die pair used exclusively for Echo Event mini-games. Never mixed with the D12 System Dice.</td><td><a href="#dice">// 09 DICE ENGINE</a></td></tr>
-            <tr><td><strong>Roll Resolution</strong></td><td>The standard dice-check structure all D12 System Dice checks follow, modeled after Ship, Captain, Crew.</td><td><a href="#dice">// 09 DICE ENGINE</a></td></tr>
-            <tr><td><strong>Biohazard</strong></td><td>A valid D12 requirement face alongside Tech, DNA, and Tools. Appears on specific cards as defined by card design. Counts identically to Hazard in Brace and Attack / Defense Rolls.</td><td><a href="#dice">// 09 DICE ENGINE</a></td></tr>
+            <tr><td><strong>D12 System Dice</strong></td><td>The 5-die pool used for all standard checks &mdash; card events, hazards, and skill checks.</td><td><a href="#dice">// 09 THE DICE ENGINE</a></td></tr>
+            <tr><td><strong>D6 Coordinate Dice</strong></td><td>The Blue and Red die pair used exclusively for Echo Event mini-games. Never mixed with the D12 System Dice.</td><td><a href="#dice">// 09 THE DICE ENGINE</a></td></tr>
+            <tr><td><strong>Roll Resolution</strong></td><td>The standard dice-check structure all D12 System Dice checks follow, modeled after Ship, Captain, Crew.</td><td><a href="#dice">// 09 THE DICE ENGINE</a></td></tr>
+            <tr><td><strong>Biohazard</strong></td><td>A valid D12 requirement face alongside Tech, DNA, and Tools. Appears on specific cards as defined by card design. Counts identically to Hazard in Brace and Attack / Defense Rolls.</td><td><a href="#dice">// 09 THE DICE ENGINE</a></td></tr>
             <tr><td><strong>Attack / Defense Roll</strong></td><td>The dice-pool roll made to resist a Creature encounter or to proactively attack it, using the equipped weapon's dice pool.</td><td><a href="#combat">// 14 COMBAT</a></td></tr>
             <tr><td><strong>Pushback</strong></td><td>Spaces the Creature is forced back per Attack / Defense Roll face rolled, capped at the weapon's dice pool size (plus any bonus).</td><td><a href="#combat">// 14 COMBAT</a></td></tr>
             <tr><td><strong>Run</strong></td><td>A declared movement modifier: +4 Speed, +3 Noise once per phase. Cannot combine with Quiet Move.</td><td><a href="#turn">// 08 TURN STRUCTURE</a></td></tr>
