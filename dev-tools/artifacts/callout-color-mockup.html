@@ -144,6 +144,32 @@
     margin-bottom: 10px;
   }
   .fake-h2 .num { color: var(--text-dim); font-family: var(--mono); font-weight: 400; margin-right: 8px; }
+
+  /* ── label format B: category eyebrow, title on its own line below ──
+     Mirrors the roller pages' .eyebrow -> h1 pattern (small/dim tag,
+     then the real heading with more weight right under it). */
+  .callout-eyebrow {
+    display: block;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    opacity: 0.7;
+    margin-bottom: 2px;
+  }
+  .callout-title {
+    display: block;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .callout.info .callout-eyebrow, .callout.info .callout-title { color: var(--accent2); }
+  .callout.warning-hazard .callout-eyebrow, .callout.warning-hazard .callout-title { color: var(--hazard); }
+  .callout.danger .callout-eyebrow, .callout.danger .callout-title { color: var(--danger); }
+  .callout.success .callout-eyebrow, .callout.success .callout-title { color: var(--success); }
+  .callout.muted .callout-eyebrow, .callout.muted .callout-title { color: var(--text-dim); }
 </style>
 </head>
 <body>
@@ -180,6 +206,46 @@
   </div>
   <div class="fake-h2"><span class="num">// 14</span>COMBAT</div>
   <p style="font-size:13px;color:var(--text-dim);line-height:1.6;">Site nav links, section headers, table accent borders, and buttons all already carry the orange accent color throughout the page — sample shown above. Retiring it from callouts specifically would leave it exclusively meaning "this is the site's identity color," rather than sharing double duty with "this is a warning."</div>
+
+  <h2>Label Format — Option A <span class="tag">// "// CATEGORY — Title" on one line</span></h2>
+  <div class="callout info"><strong>// Info — Optional Clear Roll</strong>Once all required faces are satisfied, check the remaining dice — any that are not kept. If Noise or Noise Spike faces are showing, the player may re-roll those specific dice using any remaining rolls.</div>
+  <div class="callout warning-hazard"><strong>// Warning — Queue Cap</strong>The Pending Objective Queue is capped at 8, matching Objective Backlog Aggression's top tier. At a full queue, the 9th and any further objective goes to the discard/recycle pile instead.</div>
+  <div class="callout danger"><strong>// Danger — Player Elimination</strong>At zero Health, the player is eliminated. Inventory drops at the death location — surviving crew may attempt recovery.</div>
+  <div class="callout success"><strong>// Success — Hidden / Exposed</strong>Official terms for the player's hiding status — the same way Encumbered names an existing backpack-fill condition.</div>
+  <div class="callout muted"><strong>// Pending — Workbench Mechanic</strong>New task-resolution location alongside rooms and terminals. Low cost to add or cut — exact rules TBD.</div>
+  <div class="callout warning-hazard"><strong>// Warning — Movement Noise — Per Move, Not Per Space</strong>Noise is generated per Move action taken, not per space moved. Moving full speed or a single space within the same Move generates equal noise.</div>
+
+  <h2>Label Format — Option B <span class="tag">// category eyebrow, title on its own line (matches the roller pages' eyebrow → h1 pattern)</span></h2>
+  <div class="callout info">
+    <span class="callout-eyebrow">// Info</span>
+    <strong class="callout-title">Optional Clear Roll</strong>
+    Once all required faces are satisfied, check the remaining dice — any that are not kept. If Noise or Noise Spike faces are showing, the player may re-roll those specific dice using any remaining rolls.
+  </div>
+  <div class="callout warning-hazard">
+    <span class="callout-eyebrow">// Warning</span>
+    <strong class="callout-title">Queue Cap</strong>
+    The Pending Objective Queue is capped at 8, matching Objective Backlog Aggression's top tier. At a full queue, the 9th and any further objective goes to the discard/recycle pile instead.
+  </div>
+  <div class="callout danger">
+    <span class="callout-eyebrow">// Danger</span>
+    <strong class="callout-title">Player Elimination</strong>
+    At zero Health, the player is eliminated. Inventory drops at the death location — surviving crew may attempt recovery.
+  </div>
+  <div class="callout success">
+    <span class="callout-eyebrow">// Success</span>
+    <strong class="callout-title">Hidden / Exposed</strong>
+    Official terms for the player's hiding status — the same way Encumbered names an existing backpack-fill condition.
+  </div>
+  <div class="callout muted">
+    <span class="callout-eyebrow">// Pending</span>
+    <strong class="callout-title">Workbench Mechanic</strong>
+    New task-resolution location alongside rooms and terminals. Low cost to add or cut — exact rules TBD.
+  </div>
+  <div class="callout warning-hazard">
+    <span class="callout-eyebrow">// Warning</span>
+    <strong class="callout-title">Movement Noise — Per Move, Not Per Space</strong>
+    Noise is generated per Move action taken, not per space moved. Moving full speed or a single space within the same Move generates equal noise.
+  </div>
 
 </div>
 </body>
