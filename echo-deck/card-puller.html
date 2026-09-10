@@ -136,6 +136,14 @@
      Capped at 92vw so an uncalibrated or wildly miscalibrated value
      can't blow out the layout on a narrow viewport. */
   :root { --calib-px-per-in: 96; }
+  /* container-type turns .card into a query container, so everything
+     inside .card-front can be sized in cqw (1cqw = 1% of the card's own
+     width) instead of fixed px - text, icons, and spacing all scale
+     together with the card itself, whether that's the default 240px or
+     a calibrated true-size render. Each cqw value below is that
+     property's old fixed-px value converted at the default 240px width
+     (1cqw = 2.4px there), so the untouched, uncalibrated look is
+     unchanged - only now it actually scales. */
   .card {
     width: calc(var(--calib-px-per-in) * 2.5px);
     max-width: 92vw;
@@ -143,6 +151,7 @@
     border-radius: 10px;
     position: relative;
     overflow: hidden;
+    container-type: inline-size;
   }
   .card-front {
     width: 100%; height: 100%;
@@ -150,7 +159,7 @@
     border-radius: 10px;
     background: rgba(10,13,18,0.9);
     box-shadow: 0 0 0 1px rgba(0,0,0,0.4), 0 18px 40px rgba(0,0,0,0.55);
-    padding: 16px 15px 12px;
+    padding: 6.667cqw 6.25cqw 5cqw;
     display: flex;
     flex-direction: column;
     position: relative;
@@ -163,18 +172,18 @@
   }
   .card-eyebrow {
     font-family: 'Share Tech Mono', monospace;
-    font-size: 9.5px; letter-spacing: 0.2em; text-transform: uppercase;
+    font-size: 3.958cqw; letter-spacing: 0.2em; text-transform: uppercase;
     color: var(--card-accent, var(--accent));
-    margin-bottom: 6px;
+    margin-bottom: 2.5cqw;
   }
   .card-badges {
-    display: flex; flex-wrap: wrap; gap: 5px;
-    margin-bottom: 8px;
+    display: flex; flex-wrap: wrap; gap: 2.083cqw;
+    margin-bottom: 3.333cqw;
   }
   .card-badge {
     font-family: 'Share Tech Mono', monospace;
-    font-size: 8.5px; letter-spacing: 0.14em; text-transform: uppercase;
-    padding: 2px 6px; border-radius: 3px;
+    font-size: 3.542cqw; letter-spacing: 0.14em; text-transform: uppercase;
+    padding: 0.833cqw 2.5cqw; border-radius: 1.25cqw;
     border: 1px solid currentColor;
   }
   .card-badge.objective { color: var(--orange); }
@@ -184,50 +193,50 @@
   .card-badge.modifier { color: var(--violet); }
   .card-title {
     font-weight: 900; letter-spacing: 0.01em; text-transform: uppercase;
-    font-size: clamp(15px, 3vw, 19px);
+    font-size: 7.917cqw;
     line-height: 1.05;
-    margin-bottom: 8px;
+    margin-bottom: 3.333cqw;
   }
   .card-resource {
     font-family: 'Share Tech Mono', monospace;
-    font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;
+    font-size: 4.167cqw; letter-spacing: 0.08em; text-transform: uppercase;
     color: var(--text-dim);
-    margin-bottom: 10px;
+    margin-bottom: 4.167cqw;
   }
   .card-resource strong { color: var(--text); font-weight: 400; }
   .card-lore {
-    font-size: 12.5px; font-style: italic; color: rgba(238,240,245,0.7);
+    font-size: 5.208cqw; font-style: italic; color: rgba(238,240,245,0.7);
     line-height: 1.5;
-    margin-bottom: 10px;
+    margin-bottom: 4.167cqw;
   }
   .card-task {
     font-family: 'Share Tech Mono', monospace;
-    font-size: 10.5px; line-height: 1.6; color: var(--text-dim);
+    font-size: 4.375cqw; line-height: 1.6; color: var(--text-dim);
     border-top: 1px solid var(--border);
-    padding-top: 8px;
-    margin-top: 10px;
+    padding-top: 3.333cqw;
+    margin-top: 4.167cqw;
   }
   .card-task strong { color: var(--text); }
   .card-play {
     display: inline-block;
-    margin-top: 8px;
+    margin-top: 3.333cqw;
     font-family: 'Share Tech Mono', monospace;
-    font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase;
+    font-size: 4.375cqw; letter-spacing: 0.1em; text-transform: uppercase;
     color: var(--card-accent, var(--accent));
     text-decoration: none;
   }
   .card-play:hover { opacity: 0.75; }
   .card-code {
     font-family: 'Share Tech Mono', monospace;
-    font-size: 8.5px; letter-spacing: 0.12em;
+    font-size: 3.542cqw; letter-spacing: 0.12em;
     color: rgba(238,240,245,0.28);
     margin-top: auto; /* sticks to the bottom on cards with no search-icons row (Echo Events) */
-    padding-top: 8px;
+    padding-top: 3.333cqw;
     text-align: center;
   }
   /* Room Cards: the search-icons row (not this) owns the push-to-bottom
      margin, so the code just sits directly under it. */
-  .search-icons + .card-code { margin-top: 8px; }
+  .search-icons + .card-code { margin-top: 3.333cqw; }
 
   /* Resource Search Icons - printed near the bottom of a Room Card,
      separate from its main content (see rules.html // 10 The Echo Deck).
@@ -236,51 +245,51 @@
      icons (+ Noise, aligned with that row) on top, Resource icons
      below. */
   .search-icons {
-    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    display: flex; flex-direction: column; align-items: center; gap: 2.5cqw;
     border-top: 1px solid var(--border);
-    padding-top: 8px;
+    padding-top: 3.333cqw;
     margin-top: auto;
   }
-  .si-row { display: flex; align-items: center; justify-content: center; gap: 6px; }
-  .si-group { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; }
+  .si-row { display: flex; align-items: center; justify-content: center; gap: 2.5cqw; }
+  .si-group { display: flex; flex-wrap: wrap; justify-content: center; gap: 1.667cqw; }
 
   /* System Dice icons: the real D12 face art (see assets/d12-faces),
      recolored to currentColor. No border/container - just the glyph. */
   .si-die {
     display: inline-flex; align-items: center; justify-content: center;
-    width: 15px; height: 15px;
+    width: 6.25cqw; height: 6.25cqw;
     color: var(--accent);
     flex: none;
   }
   .si-die-glyph { width: 100%; height: 100%; }
   /* Colors are already remapped to currentColor at fetch time (see
      loadFaceGlyph), preserving each path's original fill:none vs
-     solid-fill mode. Only the stroke width needs a nudge here, in fixed
-     screen pixels rather than the glyph's own viewBox units, so thin
-     line art stays visible at this small a size. */
+     solid-fill mode. Stroke width stays a fixed screen px (not cqw) so
+     line art keeps a consistent, crisp weight rather than getting
+     thick at large true sizes or vanishing at small ones. */
   .si-die-glyph * {
     stroke-width: 1.2px !important;
     vector-effect: non-scaling-stroke;
   }
   .si-die-fallback {
     font-family: 'Share Tech Mono', monospace;
-    font-size: 7px; font-weight: 700; letter-spacing: 0;
+    font-size: 2.917cqw; font-weight: 700; letter-spacing: 0;
   }
 
   /* Resource icons are plain square chips for now - placeholder until
      real icon art exists, same as the System Dice icons did before. */
   .si-chip {
     display: flex; align-items: center; justify-content: center;
-    min-width: 20px; height: 20px; padding: 0 3px;
-    border-radius: 4px; border: 1px solid currentColor;
+    min-width: 8.333cqw; height: 8.333cqw; padding: 0 1.25cqw;
+    border-radius: 1.667cqw; border: 1px solid currentColor;
     font-family: 'Share Tech Mono', monospace;
-    font-size: 7px; font-weight: 700; letter-spacing: 0;
+    font-size: 2.917cqw; font-weight: 700; letter-spacing: 0;
   }
   .si-chip.resource { color: var(--good); }
   .si-noise {
-    display: flex; align-items: center; gap: 3px;
+    display: flex; align-items: center; gap: 1.25cqw;
     font-family: 'Share Tech Mono', monospace;
-    font-size: 10px; color: var(--orange);
+    font-size: 4.167cqw; color: var(--orange);
   }
 
   .cat-room    { --card-accent: var(--accent); }
@@ -529,8 +538,6 @@
   .ruler {
     position: relative;
     height: 30px;
-    border-left: 2px solid var(--text);
-    border-right: 2px solid var(--text);
   }
   .ruler::before {
     content: "";
@@ -556,6 +563,15 @@
     max-width: 100%;
     border: 2px solid var(--text);
     border-radius: calc(var(--calib-px-per-in) * 0.08px);
+    box-sizing: border-box; /* border sits inside the true-size box, so the OUTER edge is the real 3.370 x 2.125in - match a real card to that outer edge */
+    display: flex; align-items: center; justify-content: center;
+  }
+  .calib-card-outline-hint {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--text-dim);
+    text-align: center;
+    padding: 0 8px;
   }
 </style>
 </head>
@@ -637,7 +653,7 @@
     </div>
     <div>
       <div class="calib-ref-label">Debit / Credit Card (3.370 &times; 2.125in)</div>
-      <div class="calib-card-outline"></div>
+      <div class="calib-card-outline"><span class="calib-card-outline-hint">Match a real card to this outer edge</span></div>
     </div>
     <div>
       <div class="calib-ref-label">5 cm</div>
