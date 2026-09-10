@@ -170,9 +170,9 @@
   }
   .card-badge.objective { color: var(--orange); }
   .card-badge.hazard { color: var(--red); }
-  .card-badge.task { color: var(--accent); }
-  .card-badge.terminal { color: var(--text-dim); }
-  .card-badge.unique { color: var(--red); }
+  .card-badge.resolve { color: var(--accent); }
+  .card-badge.resource { color: var(--good); }
+  .card-badge.modifier { color: var(--violet); }
   .card-title {
     font-weight: 900; letter-spacing: 0.01em; text-transform: uppercase;
     font-size: clamp(15px, 3vw, 19px);
@@ -217,9 +217,34 @@
     text-align: right;
   }
 
+  /* Resource Search Icons - printed near the bottom of a Room Card,
+     separate from its main content (see rules.html // 10 The Echo Deck).
+     Only shown on Room Cards - Echo Events don't have them. */
+  .search-icons {
+    display: flex; align-items: center; flex-wrap: wrap; gap: 4px;
+    border-top: 1px solid var(--border);
+    padding-top: 8px;
+    margin-top: 10px;
+  }
+  .si-group { display: flex; flex-wrap: wrap; gap: 3px; }
+  .si-chip {
+    display: flex; align-items: center; justify-content: center;
+    min-width: 20px; height: 20px; padding: 0 3px;
+    border-radius: 4px; border: 1px solid currentColor;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 7px; font-weight: 700; letter-spacing: 0;
+  }
+  .si-chip.dice { color: var(--accent); }
+  .si-chip.resource { color: var(--good); }
+  .si-noise {
+    display: flex; align-items: center; gap: 3px;
+    margin-left: auto;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px; color: var(--orange);
+  }
+
   .cat-room    { --card-accent: var(--accent); }
   .cat-event   { --card-accent: var(--violet); }
-  .cat-contact { --card-accent: var(--red); }
 
   /* pull-up entrance for the main-stage card */
   .card-enter {
@@ -460,9 +485,21 @@
   // ── PLACEHOLDER CARD DATA ──
   // The real Echo Deck (~120 cards) isn't designed yet - see rules.html's
   // Open Items log ("Echo Card template / format"). This is a small
-  // hand-written sample spanning the three known card types (Room Card,
-  // Echo Event, CONTACT) so the pull/history interaction and card layout
-  // can be judged with real-looking content. Swap or extend freely.
+  // hand-written sample so the pull/history interaction and card layout
+  // can be judged with real-looking content. Room family names, lore, and
+  // task text are still placeholder - the anatomy (mainType, Resource
+  // Search Icons) matches rules.html // 10 The Echo Deck.
+  //
+  // Every Room Card's main content is exactly one of five mainType values,
+  // matching rules.html's Main Content Types table:
+  //   objective - task text, feeds the Objective Board
+  //   resolve   - task text, resolves immediately on draw
+  //   hazard    - task text, resolves immediately, a Creature movement trigger
+  //   resource  - grants a specific resource directly (grant: {type, qty})
+  //   modifier  - a Creature State Modifier (modifier: {name, effect})
+  // "resource" on the card itself is flavor only, matching the room
+  // family's primary resource from // 07 Board & Rooms - it's distinct
+  // from a mainType:'resource' card's actual grant.
   var CARDS = [
     // Room Cards - 23, spanning the 11 "Tile" type room families from
     // rules.html // 07 Board & Rooms (FIXED-type families like
@@ -471,143 +508,140 @@
     {
       id: 'medical-bay-1', cat: 'room', category: 'Room Card',
       title: 'Medical Bay', resource: 'Salvage + Components',
-      lore: 'Sedatives spilled across the floor, still tacky underfoot. Someone left in a hurry.'
+      lore: 'Sedatives spilled across the floor, still tacky underfoot. Someone left in a hurry.',
+      mainType: 'resource', grant: { type: 'Salvage', qty: 1 }
     },
     {
       id: 'medical-bay-2', cat: 'room', category: 'Room Card',
       title: 'Medical Bay &mdash; Supply Locker', resource: 'Salvage + Components',
       lore: "The medkit's seal is broken. Half the contents are gone.",
-      badges: [{ label: 'Task', cls: 'task' }],
-      task: 'Task: Pass a DNA check to identify salvageable meds.'
+      mainType: 'resolve', task: 'Pass a DNA check to identify salvageable meds.'
     },
     {
       id: 'engineering-1', cat: 'room', category: 'Room Card',
       title: 'Engineering / Maintenance', resource: 'Components',
       lore: 'The relay hums even with the lights out.',
-      badges: [{ label: 'Objective', cls: 'objective' }],
-      task: 'Objective: Restore auxiliary power to Deck 3.'
+      mainType: 'objective', task: 'Restore auxiliary power to Deck 3.'
     },
     {
       id: 'engineering-2', cat: 'room', category: 'Room Card',
       title: 'Engineering &mdash; Coolant Line', resource: 'Components',
       lore: 'Steam hisses from a cracked line. Someone patched it with tape.',
-      badges: [{ label: 'Task', cls: 'task' }],
-      task: 'Task: Pay 1 Components to seal the leak.'
+      mainType: 'resolve', task: 'Pay 1 Components to seal the leak.'
     },
     {
       id: 'research-lab-1', cat: 'room', category: 'Room Card',
       title: 'Research / Laboratory', resource: 'Data',
       lore: 'The samples were still labeled when the power failed.',
-      badges: [{ label: 'Event / Hazard', cls: 'hazard' }],
-      task: 'Draw triggers a Biohazard check &mdash; 2 Biohazard faces required.'
+      mainType: 'hazard', task: 'Draw triggers a Biohazard check &mdash; 2 Biohazard faces required.'
     },
     {
       id: 'research-lab-2', cat: 'room', category: 'Room Card',
       title: 'Research Lab &mdash; Terminal Array', resource: 'Data',
-      lore: 'Rows of monitors, all dark but one.'
+      lore: 'Rows of monitors, all dark but one.',
+      mainType: 'resource', grant: { type: 'Data', qty: 1 }
     },
     {
       id: 'research-lab-3', cat: 'room', category: 'Room Card',
       title: 'Research Lab &mdash; Specimen Vault', resource: 'Data',
       lore: 'Something scratched the inside of the glass.',
-      badges: [{ label: 'Objective', cls: 'objective' }],
-      task: 'Objective: Recover the specimen log from the vault.'
+      mainType: 'objective', task: 'Recover the specimen log from the vault.'
     },
     {
       id: 'cargo-storage-1', cat: 'room', category: 'Room Card',
       title: 'Cargo / Storage', resource: 'Salvage',
-      lore: 'Crates stacked to the ceiling, half of them already torn open.'
+      lore: 'Crates stacked to the ceiling, half of them already torn open.',
+      mainType: 'resource', grant: { type: 'Salvage', qty: 1 }
     },
     {
       id: 'cargo-storage-2', cat: 'room', category: 'Room Card',
       title: 'Cargo &mdash; Manifest Desk', resource: 'Salvage',
       lore: 'The manifest lists more crew than the roster does.',
-      badges: [{ label: 'Task', cls: 'task' }],
-      task: 'Task: Pay 1 Scrap to pry open a sealed container.'
+      mainType: 'resolve', task: 'Pay 1 Scrap to pry open a sealed container.'
     },
     {
       id: 'crew-quarters-1', cat: 'room', category: 'Room Card',
       title: 'Crew Quarters', resource: 'Scrap + Lore',
-      lore: 'A photograph, face-down on the nightstand.'
+      lore: 'A photograph, face-down on the nightstand.',
+      mainType: 'resource', grant: { type: 'Scrap', qty: 1 }
     },
     {
       id: 'crew-quarters-2', cat: 'room', category: 'Room Card',
       title: 'Crew Quarters &mdash; Locker Row', resource: 'Scrap + Lore',
-      lore: 'One locker is welded shut from the inside.'
+      lore: 'One locker is welded shut from the inside &mdash; the vent behind it is not.',
+      mainType: 'modifier', modifier: { name: 'Vented', effect: "Creature travels to and enters its nearest vent (off board). Re-emerges on the next Noise Check at the vent closest to the active player." }
     },
     {
       id: 'security-1', cat: 'room', category: 'Room Card',
       title: 'Security', resource: 'Components + Salvage',
       lore: "The cameras still record. No one's watching.",
-      badges: [{ label: 'Task', cls: 'task' }],
-      task: 'Task: Pass a Tech check to unlock the weapons locker.'
+      mainType: 'resolve', task: 'Pass a Tech check to unlock the weapons locker.'
     },
     {
       id: 'security-2', cat: 'room', category: 'Room Card',
       title: 'Security &mdash; Checkpoint', resource: 'Components + Salvage',
       lore: 'A barricade, hastily built, just as hastily abandoned.',
-      badges: [{ label: 'Objective', cls: 'objective' }],
-      task: 'Objective: Clear the checkpoint barricade.'
+      mainType: 'objective', task: 'Clear the checkpoint barricade.'
     },
     {
       id: 'reactor-1', cat: 'room', category: 'Room Card',
       title: 'Reactor Core', resource: 'Components + Data',
       lore: 'The gauge needle sits deep in the red.',
-      badges: [{ label: 'Event / Hazard', cls: 'hazard' }],
-      task: 'Draw triggers a Tools check &mdash; 1 Tools face required to stabilize.'
+      mainType: 'hazard', task: 'Draw triggers a Tools check &mdash; 1 Tools face required to stabilize.'
     },
     {
       id: 'reactor-2', cat: 'room', category: 'Room Card',
       title: 'Reactor &mdash; Control Room', resource: 'Components + Data',
-      lore: 'Every warning light is lit at once.'
+      lore: 'Every warning light is lit at once.',
+      mainType: 'modifier', modifier: { name: 'Active / Aggravated', effect: 'If off board, the Creature re-emerges at the vent nearest the active player. If already on board, it instead gains two Threat Tokens.' }
     },
     {
       id: 'hydroponics-1', cat: 'room', category: 'Room Card',
       title: 'Hydroponics / Life Support', resource: 'Food + Medical',
-      lore: 'The plants are all dead, but the irrigation still runs.'
+      lore: "The plants are all dead, but the irrigation still runs &mdash; something's using it.",
+      mainType: 'modifier', modifier: { name: 'Dormant', effect: 'Creature retreats to its nearest vent and goes off board. Failed Noise Checks add Speed Tokens instead of Threat Tokens, applied on its next emergence.' }
     },
     {
       id: 'hydroponics-2', cat: 'room', category: 'Room Card',
       title: 'Hydroponics &mdash; Filtration Room', resource: 'Food + Medical',
       lore: 'The air recyclers click, then stall, then click again.',
-      badges: [{ label: 'Task', cls: 'task' }],
-      task: 'Task: Pay 1 Components to clear the filter.'
+      mainType: 'hazard', task: 'Draw triggers a Biohazard check &mdash; 1 Biohazard face required to clear the spores.'
     },
     {
       id: 'garage-workshop-1', cat: 'room', category: 'Room Card',
       title: 'Garage / Workshop', resource: 'Components + Salvage',
-      lore: 'A vehicle up on the lift, one wheel missing.'
+      lore: 'A vehicle up on the lift, one wheel missing.',
+      mainType: 'hazard', task: 'Draw triggers a Tools check &mdash; 1 Tools face required to contain the fuel leak.'
     },
     {
       id: 'garage-workshop-2', cat: 'room', category: 'Room Card',
       title: 'Garage &mdash; Parts Bin', resource: 'Components + Salvage',
       lore: 'Everything useful was already picked over.',
-      badges: [{ label: 'Task', cls: 'task' }],
-      task: 'Task: Pass a Tools check to find a usable part.'
+      mainType: 'resolve', task: 'Pass a Tools check to find a usable part.'
     },
     {
       id: 'communications-1', cat: 'room', category: 'Room Card',
       title: 'Communications', resource: 'Data',
       lore: 'Static, low and constant, from every speaker.',
-      badges: [{ label: 'Objective', cls: 'objective' }],
-      task: 'Objective: Restore the long-range antenna array.'
+      mainType: 'objective', task: 'Restore the long-range antenna array.'
     },
     {
       id: 'communications-2', cat: 'room', category: 'Room Card',
       title: 'Communications &mdash; Relay Closet', resource: 'Data',
-      lore: 'Cables everywhere, none of them labeled.'
+      lore: 'Cables everywhere, none of them labeled &mdash; and the signal just dropped.',
+      mainType: 'modifier', modifier: { name: 'Signal Lost', effect: 'Creature retreats to its nearest vent and goes off board. Each failed Noise Check adds 1 Threat Token, applied on its next player interaction.' }
     },
     {
       id: 'dormitories-1', cat: 'room', category: 'Room Card',
       title: 'Dormitories', resource: 'Scrap + Lore',
-      lore: 'Bunks still made. No one came back to unmake them.'
+      lore: 'Bunks still made. No one came back to unmake them.',
+      mainType: 'resource', grant: { type: 'Scrap', qty: 1 }
     },
     {
       id: 'dormitories-2', cat: 'room', category: 'Room Card',
       title: 'Dormitories &mdash; Common Area', resource: 'Scrap + Lore',
       lore: 'A half-finished card game, cards still fanned on the table.',
-      badges: [{ label: 'Task', cls: 'task' }],
-      task: 'Task: Pay 1 Scrap to search the room for supplies.'
+      mainType: 'objective', task: 'Recover the survivor manifest from the common area terminal.'
     },
     // Echo Event Cards - one of each of the Six Echo Events (rules.html
     // // 11 Echo Event Mini-Games / echo-events.html).
@@ -646,14 +680,11 @@
       title: 'Core Stabilization', resource: 'Balance Control', resourceLabel: 'Type',
       lore: 'Triggers the Core Stabilization mini-game on draw. Resolved with the D6 Coordinate Dice, separate from the D12 System Dice.',
       playHref: '../mini-games/core-stabilization.html', playLabel: '&#9654; Open Mini-Game'
-    },
-    // CONTACT Card - unique.
-    {
-      id: 'contact', cat: 'contact', category: 'Contact',
-      title: 'CONTACT', resource: null,
-      lore: 'Names the room family the Creature will be introduced into. Drawn only at the Operations Center’s main terminal.',
-      badges: [{ label: 'Unique', cls: 'unique' }]
     }
+    // No dedicated CONTACT card - see rules.html // 10 The Echo Deck:
+    // whichever regular Room Card is drawn at the Operations Center's
+    // main terminal is nicknamed the "contact" card. Nothing to model
+    // here beyond the Room Cards already above.
   ];
 
   var CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no O/0/I/1 confusion
@@ -665,18 +696,73 @@
     }
     return h || 1;
   }
-  function seededCode(seedStr, len){
-    len = len || 20;
+  // Deterministic RNG per seed string - same card always generates the same
+  // code / search icons on every page load, rather than reshuffling on
+  // every visit.
+  function makeRng(seedStr){
     var s = hashSeed(seedStr);
-    function rnd(){
+    return function(){
       s ^= s << 13; s ^= s >>> 17; s ^= s << 5; s >>>= 0;
       return s / 4294967296;
-    }
+    };
+  }
+  function seededCode(seedStr, len){
+    len = len || 20;
+    var rnd = makeRng(seedStr);
     var out = '';
     for (var i = 0; i < len; i++) out += CODE_CHARS[Math.floor(rnd() * CODE_CHARS.length)];
     return out;
   }
   CARDS.forEach(function(c){ c.code = seededCode(c.id); });
+
+  // ── RESOURCE SEARCH ICONS ──
+  // Generated per rules.html // 10 The Echo Deck - Resource Search Icons.
+  // System Dice Icons: 1-5 icons, weighted so 2 is most common, then 3,
+  // then 1, then 4, then 5 least frequent.
+  // Resource Icons: 1-4 distinct resource types, 1 icon each (majority) or
+  // rarely 2 of the same resource, capped at 5 icons total.
+  // Noise: a flat 1-3, no formula.
+  var DICE_FACES = ['Tools', 'Tech', 'DNA', 'Biohazard'];
+  var RESOURCE_TYPES = ['Scrap', 'Salvage', 'Components', 'Data'];
+  function weightedPick(rnd, items, weights){
+    var total = weights.reduce(function(a, b){ return a + b; }, 0);
+    var r = rnd() * total;
+    for (var i = 0; i < items.length; i++) {
+      if (r < weights[i]) return items[i];
+      r -= weights[i];
+    }
+    return items[items.length - 1];
+  }
+  function shuffleWith(rnd, arr){
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(rnd() * (i + 1));
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+  function generateSearchIcons(seedStr){
+    var rnd = makeRng(seedStr + '-search');
+    var diceCount = weightedPick(rnd, [2, 3, 1, 4, 5], [5, 4, 3, 2, 1]);
+    var systemDice = [];
+    for (var i = 0; i < diceCount; i++) {
+      systemDice.push(DICE_FACES[Math.floor(rnd() * DICE_FACES.length)]);
+    }
+    var typeCount = 1 + Math.floor(rnd() * 4); // 1-4 distinct resource types
+    var chosenTypes = shuffleWith(rnd, RESOURCE_TYPES).slice(0, typeCount);
+    var resourceIcons = [];
+    var total = 0;
+    chosenTypes.forEach(function(type){
+      if (total >= 5) return;
+      var qty = rnd() < 0.15 ? 2 : 1; // rare second icon of the same resource
+      qty = Math.min(qty, 5 - total);
+      resourceIcons.push({ type: type, qty: qty });
+      total += qty;
+    });
+    var noise = 1 + Math.floor(rnd() * 3);
+    return { systemDice: systemDice, resourceIcons: resourceIcons, noise: noise };
+  }
+  CARDS.forEach(function(c){ if (c.cat === 'room') c.searchIcons = generateSearchIcons(c.id); });
 
   var stage = document.getElementById('stage');
   var historyRow = document.getElementById('historyRow');
@@ -711,25 +797,68 @@
     deckCountEl.textContent = deck.length + ' / ' + CARDS.length;
   }
 
-  function cardFrontHTML(card){
-    var badges = (card.badges || []).map(function(b){
-      return '<span class="card-badge ' + b.cls + '">' + b.label + '</span>';
+  // Matches rules.html // 10 The Echo Deck's Main Content Types table.
+  var MAIN_TYPE_META = {
+    objective: { label: 'Objective', cls: 'objective', prefix: 'Objective: ' },
+    resolve:   { label: 'Resolve',   cls: 'resolve',   prefix: 'Task: ' },
+    hazard:    { label: 'Hazard',    cls: 'hazard',    prefix: 'Hazard: ' },
+    resource:  { label: 'Resource Placement', cls: 'resource' },
+    modifier:  { label: 'Creature State Modifier', cls: 'modifier' }
+  };
+  var DICE_ABBR = { Tools: 'TL', Tech: 'TC', DNA: 'DNA', Biohazard: 'BIO' };
+  var RESOURCE_ABBR = { Scrap: 'SCR', Salvage: 'SAL', Components: 'CMP', Data: 'DAT' };
+
+  function mainContentHTML(card){
+    var meta = MAIN_TYPE_META[card.mainType];
+    if (!meta) return { badges: '', body: '' };
+    var badges = '<span class="card-badge ' + meta.cls + '">' + meta.label + '</span>';
+    var body = '';
+    if (card.mainType === 'resource' && card.grant) {
+      body = '<div class="card-task"><strong>Grants:</strong> ' + card.grant.type + ' &times;' + card.grant.qty + '</div>';
+    } else if (card.mainType === 'modifier' && card.modifier) {
+      body = '<div class="card-task"><strong>' + card.modifier.name + ':</strong> ' + card.modifier.effect + '</div>';
+    } else if (card.task) {
+      body = '<div class="card-task">' + meta.prefix + card.task + '</div>';
+    }
+    return { badges: badges, body: body };
+  }
+
+  function searchIconsHTML(card){
+    if (!card.searchIcons) return '';
+    var dice = card.searchIcons.systemDice.map(function(face){
+      return '<span class="si-chip dice" title="' + face + '">' + DICE_ABBR[face] + '</span>';
     }).join('');
+    var resources = [];
+    card.searchIcons.resourceIcons.forEach(function(r){
+      for (var i = 0; i < r.qty; i++) {
+        resources.push('<span class="si-chip resource" title="' + r.type + '">' + RESOURCE_ABBR[r.type] + '</span>');
+      }
+    });
+    return (
+      '<div class="search-icons">' +
+        '<div class="si-group">' + dice + '</div>' +
+        '<div class="si-group">' + resources.join('') + '</div>' +
+        '<span class="si-noise" title="Noise on failed check">&#9650; ' + card.searchIcons.noise + '</span>' +
+      '</div>'
+    );
+  }
+
+  function cardFrontHTML(card){
+    var main = card.mainType ? mainContentHTML(card) : { badges: '', body: '' };
     var resource = card.resource
       ? '<div class="card-resource">' + (card.resourceLabel || 'Resource') + ': <strong>' + card.resource + '</strong></div>' : '';
-    var task = card.task
-      ? '<div class="card-task">' + card.task + '</div>' : '';
     var play = card.playHref
       ? '<a class="card-play" href="' + card.playHref + '" target="_blank" rel="noopener noreferrer">' + card.playLabel + '</a>' : '';
     return (
       '<div class="card-front">' +
         '<div class="card-eyebrow">// ' + card.category + '</div>' +
-        (badges ? '<div class="card-badges">' + badges + '</div>' : '') +
+        (main.badges ? '<div class="card-badges">' + main.badges + '</div>' : '') +
         '<div class="card-title">' + card.title + '</div>' +
         resource +
         '<div class="card-lore">' + card.lore + '</div>' +
         play +
-        task +
+        main.body +
+        searchIconsHTML(card) +
         '<div class="card-code">' + card.code + '</div>' +
       '</div>'
     );
