@@ -1310,21 +1310,22 @@
       </div>
       <p>The crew does not know what they are dealing with. They call it the Creature because they have no better word. It moves wrong. It appears where it should not. Weapons damage it but do not stop it. It is drawn to activity, to noise, to signal.</p>
 
-      <h3>Creature States<button class="view-toggle" aria-label="Toggle table view"></button></h3>
+      <h3 id="creature-states">Creature States<button class="view-toggle" aria-label="Toggle table view"></button></h3>
       <div class="tbl-wrap" data-mode="auto">
         <div class="tbl-scroll">
           <table>
           <thead><tr><th>State</th><th>Description</th></tr></thead>
           <tbody>
-            <tr><td>DORMANT</td><td>Not yet on board. Failed noise checks generate Threat Tokens only. Cannot activate until introduced.</td></tr>
-            <tr><td>ACTIVE</td><td>On the board. Full noise check rules apply. Position known to crew.</td></tr>
-            <tr><td>SIGNAL LOST</td><td>On board but location unknown. Noise checks still fire. Position hidden until re-emergence.</td></tr>
-            <tr><td>VENTED</td><td>Retreated into ship infrastructure. Temporarily off board. Re-emerges via specific Echo cards.</td></tr>
+            <tr><td>DORMANT</td><td>Creature retreats to its nearest vent and goes off board. Failed Noise Checks add Speed Tokens (instead of Threat Tokens), applied on the Creature's next emergence.</td></tr>
+            <tr><td>ACTIVE / AGGRAVATED</td><td>On the board. Full noise check rules apply. Position known to crew. Aggravated is not a separate state — it's an Active Creature carrying Threat Tokens (from a Creature State Modifier's Emerge/Aggravate effect, or similar sources), which add bonus damage on its next player encounter.</td></tr>
+            <tr><td>SIGNAL LOST</td><td>Creature retreats to its nearest vent and goes off board. Each failed Noise Check adds 1 Threat Token, applied on the Creature's next player interaction.</td></tr>
+            <tr><td>VENTED</td><td>Creature travels to and enters its nearest vent (off board). Re-emerges on the next Noise Check at the vent closest to the active player — unless a player is already inside that vent, in which case the Creature instead remains on board at the first space inside it.</td></tr>
           </tbody>
         </table>
         </div>
         <div class="hbar-track"><div class="hbar-thumb"></div></div>
       </div>
+      <div class="callout muted"><span class="callout-eyebrow">// Pending</span><strong class="callout-title">Pre-Introduction Starting State</strong>Whether DORMANT is also the Creature's pre-introduction starting state (see <a href="#setup">// 03 SETUP</a>, which currently says to set the Creature to DORMANT before the Introduction Sequence) is still undecided now that DORMANT describes a mid-game retreat triggered by a Creature State Modifier card. See Open Items.</div>
 
       <h3>Noise</h3>
       <p>Each player tracks their own Noise Tracker, 1&ndash;12, on their character board — it is not a shared meter. Resets at the start of that player's turn. Every Move and Action a player takes generates some amount of Noise on their own tracker — see <a href="#actions">// 12 ACTIONS</a> for the full cost of each. What that accumulated Noise does to the Creature is covered below.</p>
@@ -1585,7 +1586,7 @@
           <table>
           <thead><tr><th>Card Type</th><th>Count</th><th>Function</th></tr></thead>
           <tbody>
-            <tr><td>Room Cards</td><td>~100</td><td>Primary discovery loop. Room type, lore, resource icons, events, tasks, terminal indicators. Some are marked <strong>Objective</strong> — see below.</td></tr>
+            <tr><td>Room Cards</td><td>~100</td><td>Primary discovery loop. Every card carries a Family Type and lore/flavor text. Main content is exactly one of five types — Objective, Resolve, Hazard, Resource Placement, or Creature State Modifier — see below.</td></tr>
             <tr><td>Echo Event Mini-Games</td><td>~12 (6×2) &mdash; ~10%</td><td>Interrupt mechanic. Must resolve before original draw continues.</td></tr>
             <tr><td>CONTACT Card</td><td>1</td><td>Unique. Triggers creature introduction when drawn at Operations Center terminal.</td></tr>
           </tbody>
@@ -1594,8 +1595,48 @@
         <div class="hbar-track"><div class="hbar-thumb"></div></div>
       </div>
 
-      <h3>Room Card Tasks &amp; Objectives</h3>
-      <p>Not every Room Card carries a task, and not every task is an objective. Cards marked <strong>Objective</strong> feed the Objective Board (<a href="#objective-board">// 19 OBJECTIVE BOARD</a>) — their tasks are resolved in order, tied to that card's room family, and completed at whatever the task specifies (a room of that family, a terminal, or a workbench). Cards with a task that <em>isn't</em> marked Objective resolve immediately on draw and never touch the board — simple, then-and-there requirements like a skill check or paying a resource cost, not something that sends the crew anywhere.</p>
+      <h3>Main Content Types</h3>
+      <p>Every Room Card's main content is exactly one of the five types below — never more than one per card.</p>
+      <div class="tbl-wrap" data-mode="auto">
+        <div class="tbl-scroll">
+          <table>
+          <thead><tr><th>Type</th><th>Effect</th></tr></thead>
+          <tbody>
+            <tr><td>Objective</td><td>Applied to the Objective Board to unlock Blueprints. Carries 1&ndash;4 individual tasks, with a single Noise penalty applying to all of them. See <a href="#objective-board">// 19 OBJECTIVE BOARD</a>.</td></tr>
+            <tr><td>Resolve (Immediate Task)</td><td>Resolves immediately on draw — never touches the Objective Board. Noise penalty, resource placement, and/or a Creature movement trigger.</td></tr>
+            <tr><td>Hazard (Immediate Task)</td><td>Resolves immediately on draw. Noise penalty, a Creature movement trigger, and a Creature State Modifier — see below.</td></tr>
+            <tr><td>Resource Placement</td><td>No Objective, Task, or Hazard — spawns a resource directly without a Search Action. See Resource Placement Types below.</td></tr>
+            <tr><td>Creature State Modifier</td><td>Transitions the Creature into one of four states. See Creature State Modifier below.</td></tr>
+          </tbody>
+        </table>
+        </div>
+        <div class="hbar-track"><div class="hbar-thumb"></div></div>
+      </div>
+
+      <h4>Resource Placement Types</h4>
+      <ul class="rules-list">
+        <li><strong>Scrap</strong> &mdash; in-room placement.</li>
+        <li><strong>Salvage</strong> &mdash; in-room placement. Whether/how remote placement works is still undecided — see Open Items.</li>
+        <li><strong>Components</strong> &mdash; in-room placement. Whether/how remote placement works is still undecided — see Open Items.</li>
+        <li><strong>Data</strong> &mdash; remote placement via the Data Retrieval Loop, a terminal Search Action. See <a href="#resources-data-retrieval-loop">// 17 RESOURCES - DATA RETRIEVAL LOOP</a>.</li>
+      </ul>
+
+      <h3>Creature State Modifier</h3>
+      <p>Transitions the Creature into one of four states (see <a href="#creature-states">// 06 THE CREATURE &amp; NOISE - CREATURE STATES</a>) until something interrupts it. At any point while a Creature State Modifier is active, if the Creature's travel to its nearest vent crosses paths with a player — enters an unobstructed line of sight — the modifier is interrupted: the encountering player must perform a Defense Roll (see <a href="#combat-attack-defense-roll">// 14 COMBAT - ATTACK / DEFENSE ROLL</a>), and the modifier is nullified. The Creature remains on board after the encounter.</p>
+      <ul class="rules-list">
+        <li><strong>Signal Lost:</strong> Creature retreats to its nearest vent and goes off board. Each failed Noise Check adds 1 Threat Token, applied on its next player interaction.</li>
+        <li><strong>Vented:</strong> Creature travels to and enters its nearest vent (off board). Re-emerges on the next Noise Check at the vent closest to the active player — unless a player is already inside that vent, in which case it instead remains on board at the first space inside it.</li>
+        <li><strong>Dormant:</strong> Creature retreats to its nearest vent and goes off board. Failed Noise Checks add Speed Tokens instead of Threat Tokens, applied on its next emergence.</li>
+        <li><strong>Emerge / Aggravate:</strong> If off board, the Creature re-emerges at the vent nearest the active player. If already on board, it instead gains two Threat Tokens — see ACTIVE/AGGRAVATED in <a href="#creature-states">// 06 THE CREATURE &amp; NOISE - CREATURE STATES</a>.</li>
+      </ul>
+
+      <h3>Resource Search Icons</h3>
+      <p>When a card is pulled via an environmental Search Action (see <a href="#actions">// 12 ACTIONS</a>) instead of a normal draw, its main content above does not apply — Resource Search Icons take over instead, printed near the bottom of the card. Exceptions: Echo Event and Creature State Modifier cards (and possibly others, TBD) — their main content still applies even on a Search Action pull.</p>
+      <ul class="rules-list">
+        <li><strong>Resource Icons:</strong> One or more of the resource types (Scrap, Salvage, Components, Data) available to find at this location.</li>
+        <li><strong>System Dice Icons:</strong> One or more D12 face icons, showing which faces and how many are needed to pass the skill check to claim them.</li>
+        <li><strong>Noise:</strong> A single Noise icon with a number value — the Noise generated if that skill check fails.</li>
+      </ul>
 
       <h3>Drawing Rules</h3>
       <ul class="rules-list">
@@ -2134,7 +2175,7 @@
           <thead><tr><th>Term</th><th>Definition</th><th>See</th></tr></thead>
           <tbody>
             <tr><td><strong>Noise</strong></td><td>Cumulative meter tracked per player each turn. Resets at the start of each player's turn. Compared against a D12 roll each Creature Phase.</td><td><a href="#actions">// 12 ACTIONS</a></td></tr>
-            <tr><td><strong>Creature States</strong></td><td>DORMANT, ACTIVE, SIGNAL LOST, VENTED &mdash; the four states tracking the Creature's presence and visibility on the board.</td><td><a href="#creature">// 06 THE CREATURE &amp; NOISE</a></td></tr>
+            <tr><td><strong>Creature States</strong></td><td>DORMANT, ACTIVE/AGGRAVATED, SIGNAL LOST, VENTED &mdash; the four states tracking the Creature's presence and visibility on the board.</td><td><a href="#creature">// 06 THE CREATURE &amp; NOISE</a></td></tr>
             <tr><td><strong>Threat Token</strong></td><td>Generated by failed noise checks while the Creature is DORMANT. Converts on Introduction to determine initial aggression.</td><td><a href="#creature">// 06 THE CREATURE &amp; NOISE</a></td></tr>
             <tr><td><strong>CONTACT Card</strong></td><td>Drawn at the Operations Center's main terminal. Names the room family the Creature will be introduced into.</td><td><a href="#creature">// 06 THE CREATURE &amp; NOISE</a></td></tr>
             <tr><td><strong>Line of Sight (LoS) Rush</strong></td><td>If the Creature gets line of sight on any player during its movement, it immediately rushes that player, expending remaining movement. Triggers on first contact, not only at the end of the move.</td><td><a href="#creature">// 06 THE CREATURE &amp; NOISE</a></td></tr>
@@ -2208,9 +2249,11 @@
       <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Biohazard face</div><div class="item-note">Valid D12 requirement face alongside Tech, DNA, and Tools, appearing on specific cards as defined by card design. Also counts identically to Hazard in Brace and Attack / Defense Rolls (see Combat // 13).</div></div></div>
       <div class="open-item"><span class="tag confirmed">CONFIRMED</span><div><div class="item-text">Skill check pass conditions</div><div class="item-note">Pass conditions are card-specific. Each Echo Card defines its own face requirements and quantities. Roll Resolution in Section 09 governs all checks. Card design and notation is part of the ~120 card design phase.</div></div></div>
       <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Threat Token conversion</div><div class="item-note">How tokens affect creature aggression on introduction.</div></div></div>
+      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Creature's pre-introduction starting state</div><div class="item-note">Whether DORMANT — now a mid-game retreat state triggered by a Creature State Modifier card — is also the Creature's starting state before the Introduction Sequence is undecided. See // 03 Setup and // 06 The Creature &amp; Noise - Creature States.</div></div></div>
+      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Salvage / Components remote placement</div><div class="item-note">Whether and how Salvage and Components can be remotely placed (like Data's Data Retrieval Loop) is still undecided.</div></div></div>
       <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Player-controlled Creature ("Shipmaster") mode</div><div class="item-note">Early design idea, from before the game's current form: a variant where one person plays the Creature directly — a gamemaster/"Shipmaster" role — instead of it running on the Noise Check system. Would need its own rules for how that player acts, moves, and wins/loses; how it interacts with the standard Noise Check for the rest of the crew is undecided.</div></div></div>
       <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">CONTACT card mechanic — under reconsideration</div><div class="item-note">Not part of the original design notes. Undecided whether it stays as a mechanic at all, and if so whether it's a separate card/stack outside the Echo Deck or a signifier within it — kept to avoid adding a new card type unless necessary.</div></div></div>
-      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Echo Card template / format</div><div class="item-note">Physical layout for the main Echo Cards (distinct from the Echo Event Mini-Game cards in // 11). Known so far: room family type, objective, a lore snippet, and a 20-digit alphanumeric code. Full content inventory still needs a pass through the rules to confirm everything that belongs on the card face.</div></div></div>
+      <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Echo Card template / format</div><div class="item-note">Physical layout for the main Echo Cards (distinct from the Echo Event Mini-Game cards in // 11). Content inventory confirmed — see // 10 The Echo Deck's Main Content Types and Resource Search Icons. Exact visual/print layout still TBD.</div></div></div>
 
       <h4>Hiding &amp; Defense</h4>
       <div class="open-item"><span class="tag pending">PENDING</span><div><div class="item-text">Locker detection roll mechanic</div><div class="item-note">Triggers when creature physically reaches player's locker. Roll system TBD.</div></div></div>
