@@ -219,14 +219,56 @@
 
   /* Resource Search Icons - printed near the bottom of a Room Card,
      separate from its main content (see rules.html // 10 The Echo Deck).
-     Only shown on Room Cards - Echo Events don't have them. */
+     Only shown on Room Cards - Echo Events don't have them. Two rows:
+     System Dice icons (+ Noise, aligned with that row) on top, Resource
+     icons below. */
   .search-icons {
-    display: flex; align-items: center; flex-wrap: wrap; gap: 4px;
+    display: flex; flex-direction: column; gap: 6px;
     border-top: 1px solid var(--border);
     padding-top: 8px;
     margin-top: 10px;
   }
-  .si-group { display: flex; flex-wrap: wrap; gap: 3px; }
+  .si-row { display: flex; align-items: center; gap: 4px; }
+  .si-group { display: flex; flex-wrap: wrap; gap: 4px; }
+
+  /* System Dice icons: the real D12 face art (see assets/d12-faces),
+     recolored to currentColor and set inside an outline pentagon - the
+     same pentagon used for the Ready/Brace pips on the combat roller -
+     so each chip reads as a little physical die face. */
+  .si-die {
+    position: relative;
+    width: 26px; height: 26px;
+    display: inline-flex; align-items: center; justify-content: center;
+    color: var(--accent);
+    flex: none;
+  }
+  .si-pentagon {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 0.05;
+  }
+  .si-die-glyph {
+    position: relative;
+    width: 52%; height: 52%;
+    overflow: visible;
+  }
+  /* Colors are already remapped to currentColor at fetch time (see
+     loadFaceGlyph), preserving each path's original fill:none vs
+     solid-fill mode. Only the stroke width needs a nudge here, in fixed
+     screen pixels rather than the glyph's own viewBox units, so thin
+     line art stays visible at this small a size. */
+  .si-die-glyph * {
+    stroke-width: 1.2px !important;
+    vector-effect: non-scaling-stroke;
+  }
+  .si-die-fallback {
+    position: relative;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 7px; font-weight: 700; letter-spacing: 0;
+  }
+
   .si-chip {
     display: flex; align-items: center; justify-content: center;
     min-width: 20px; height: 20px; padding: 0 3px;
@@ -234,7 +276,6 @@
     font-family: 'Share Tech Mono', monospace;
     font-size: 7px; font-weight: 700; letter-spacing: 0;
   }
-  .si-chip.dice { color: var(--accent); }
   .si-chip.resource { color: var(--good); }
   .si-noise {
     display: flex; align-items: center; gap: 3px;
@@ -266,8 +307,9 @@
     cursor: pointer;
     transition: opacity 0.15s, transform 0.1s;
   }
-  .btn:hover { opacity: 0.88; }
-  .btn:active { transform: scale(0.97); }
+  .btn:hover:not(:disabled) { opacity: 0.88; }
+  .btn:active:not(:disabled) { transform: scale(0.97); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
   .btn.secondary {
     color: var(--text-dim); background: transparent;
     border: 1px solid var(--border);
@@ -507,139 +549,139 @@
     // left out of this pool).
     {
       id: 'medical-bay-1', cat: 'room', category: 'Room Card',
-      title: 'Medical Bay', resource: 'Salvage + Components',
+      title: 'Medical Bay',
       lore: 'Sedatives spilled across the floor, still tacky underfoot. Someone left in a hurry.',
       mainType: 'resource', grant: { type: 'Salvage', qty: 1 }
     },
     {
       id: 'medical-bay-2', cat: 'room', category: 'Room Card',
-      title: 'Medical Bay &mdash; Supply Locker', resource: 'Salvage + Components',
+      title: 'Medical Bay &mdash; Supply Locker',
       lore: "The medkit's seal is broken. Half the contents are gone.",
       mainType: 'resolve', task: 'Pass a DNA check to identify salvageable meds.'
     },
     {
       id: 'engineering-1', cat: 'room', category: 'Room Card',
-      title: 'Engineering / Maintenance', resource: 'Components',
+      title: 'Engineering / Maintenance',
       lore: 'The relay hums even with the lights out.',
       mainType: 'objective', task: 'Restore auxiliary power to Deck 3.'
     },
     {
       id: 'engineering-2', cat: 'room', category: 'Room Card',
-      title: 'Engineering &mdash; Coolant Line', resource: 'Components',
+      title: 'Engineering &mdash; Coolant Line',
       lore: 'Steam hisses from a cracked line. Someone patched it with tape.',
       mainType: 'resolve', task: 'Pay 1 Components to seal the leak.'
     },
     {
       id: 'research-lab-1', cat: 'room', category: 'Room Card',
-      title: 'Research / Laboratory', resource: 'Data',
+      title: 'Research / Laboratory',
       lore: 'The samples were still labeled when the power failed.',
       mainType: 'hazard', task: 'Draw triggers a Biohazard check &mdash; 2 Biohazard faces required.'
     },
     {
       id: 'research-lab-2', cat: 'room', category: 'Room Card',
-      title: 'Research Lab &mdash; Terminal Array', resource: 'Data',
+      title: 'Research Lab &mdash; Terminal Array',
       lore: 'Rows of monitors, all dark but one.',
       mainType: 'resource', grant: { type: 'Data', qty: 1 }
     },
     {
       id: 'research-lab-3', cat: 'room', category: 'Room Card',
-      title: 'Research Lab &mdash; Specimen Vault', resource: 'Data',
+      title: 'Research Lab &mdash; Specimen Vault',
       lore: 'Something scratched the inside of the glass.',
       mainType: 'objective', task: 'Recover the specimen log from the vault.'
     },
     {
       id: 'cargo-storage-1', cat: 'room', category: 'Room Card',
-      title: 'Cargo / Storage', resource: 'Salvage',
+      title: 'Cargo / Storage',
       lore: 'Crates stacked to the ceiling, half of them already torn open.',
       mainType: 'resource', grant: { type: 'Salvage', qty: 1 }
     },
     {
       id: 'cargo-storage-2', cat: 'room', category: 'Room Card',
-      title: 'Cargo &mdash; Manifest Desk', resource: 'Salvage',
+      title: 'Cargo &mdash; Manifest Desk',
       lore: 'The manifest lists more crew than the roster does.',
       mainType: 'resolve', task: 'Pay 1 Scrap to pry open a sealed container.'
     },
     {
       id: 'crew-quarters-1', cat: 'room', category: 'Room Card',
-      title: 'Crew Quarters', resource: 'Scrap + Lore',
+      title: 'Crew Quarters',
       lore: 'A photograph, face-down on the nightstand.',
       mainType: 'resource', grant: { type: 'Scrap', qty: 1 }
     },
     {
       id: 'crew-quarters-2', cat: 'room', category: 'Room Card',
-      title: 'Crew Quarters &mdash; Locker Row', resource: 'Scrap + Lore',
+      title: 'Crew Quarters &mdash; Locker Row',
       lore: 'One locker is welded shut from the inside &mdash; the vent behind it is not.',
       mainType: 'modifier', modifier: { name: 'Vented', effect: "Creature travels to and enters its nearest vent (off board). Re-emerges on the next Noise Check at the vent closest to the active player." }
     },
     {
       id: 'security-1', cat: 'room', category: 'Room Card',
-      title: 'Security', resource: 'Components + Salvage',
+      title: 'Security',
       lore: "The cameras still record. No one's watching.",
       mainType: 'resolve', task: 'Pass a Tech check to unlock the weapons locker.'
     },
     {
       id: 'security-2', cat: 'room', category: 'Room Card',
-      title: 'Security &mdash; Checkpoint', resource: 'Components + Salvage',
+      title: 'Security &mdash; Checkpoint',
       lore: 'A barricade, hastily built, just as hastily abandoned.',
       mainType: 'objective', task: 'Clear the checkpoint barricade.'
     },
     {
       id: 'reactor-1', cat: 'room', category: 'Room Card',
-      title: 'Reactor Core', resource: 'Components + Data',
+      title: 'Reactor Core',
       lore: 'The gauge needle sits deep in the red.',
       mainType: 'hazard', task: 'Draw triggers a Tools check &mdash; 1 Tools face required to stabilize.'
     },
     {
       id: 'reactor-2', cat: 'room', category: 'Room Card',
-      title: 'Reactor &mdash; Control Room', resource: 'Components + Data',
+      title: 'Reactor &mdash; Control Room',
       lore: 'Every warning light is lit at once.',
       mainType: 'modifier', modifier: { name: 'Active / Aggravated', effect: 'If off board, the Creature re-emerges at the vent nearest the active player. If already on board, it instead gains two Threat Tokens.' }
     },
     {
       id: 'hydroponics-1', cat: 'room', category: 'Room Card',
-      title: 'Hydroponics / Life Support', resource: 'Food + Medical',
+      title: 'Hydroponics / Life Support',
       lore: "The plants are all dead, but the irrigation still runs &mdash; something's using it.",
       mainType: 'modifier', modifier: { name: 'Dormant', effect: 'Creature retreats to its nearest vent and goes off board. Failed Noise Checks add Speed Tokens instead of Threat Tokens, applied on its next emergence.' }
     },
     {
       id: 'hydroponics-2', cat: 'room', category: 'Room Card',
-      title: 'Hydroponics &mdash; Filtration Room', resource: 'Food + Medical',
+      title: 'Hydroponics &mdash; Filtration Room',
       lore: 'The air recyclers click, then stall, then click again.',
       mainType: 'hazard', task: 'Draw triggers a Biohazard check &mdash; 1 Biohazard face required to clear the spores.'
     },
     {
       id: 'garage-workshop-1', cat: 'room', category: 'Room Card',
-      title: 'Garage / Workshop', resource: 'Components + Salvage',
+      title: 'Garage / Workshop',
       lore: 'A vehicle up on the lift, one wheel missing.',
       mainType: 'hazard', task: 'Draw triggers a Tools check &mdash; 1 Tools face required to contain the fuel leak.'
     },
     {
       id: 'garage-workshop-2', cat: 'room', category: 'Room Card',
-      title: 'Garage &mdash; Parts Bin', resource: 'Components + Salvage',
+      title: 'Garage &mdash; Parts Bin',
       lore: 'Everything useful was already picked over.',
       mainType: 'resolve', task: 'Pass a Tools check to find a usable part.'
     },
     {
       id: 'communications-1', cat: 'room', category: 'Room Card',
-      title: 'Communications', resource: 'Data',
+      title: 'Communications',
       lore: 'Static, low and constant, from every speaker.',
       mainType: 'objective', task: 'Restore the long-range antenna array.'
     },
     {
       id: 'communications-2', cat: 'room', category: 'Room Card',
-      title: 'Communications &mdash; Relay Closet', resource: 'Data',
+      title: 'Communications &mdash; Relay Closet',
       lore: 'Cables everywhere, none of them labeled &mdash; and the signal just dropped.',
       mainType: 'modifier', modifier: { name: 'Signal Lost', effect: 'Creature retreats to its nearest vent and goes off board. Each failed Noise Check adds 1 Threat Token, applied on its next player interaction.' }
     },
     {
       id: 'dormitories-1', cat: 'room', category: 'Room Card',
-      title: 'Dormitories', resource: 'Scrap + Lore',
+      title: 'Dormitories',
       lore: 'Bunks still made. No one came back to unmake them.',
       mainType: 'resource', grant: { type: 'Scrap', qty: 1 }
     },
     {
       id: 'dormitories-2', cat: 'room', category: 'Room Card',
-      title: 'Dormitories &mdash; Common Area', resource: 'Scrap + Lore',
+      title: 'Dormitories &mdash; Common Area',
       lore: 'A half-finished card game, cards still fanned on the table.',
       mainType: 'objective', task: 'Recover the survivor manifest from the common area terminal.'
     },
@@ -722,7 +764,7 @@
   // Resource Icons: 1-4 distinct resource types, 1 icon each (majority) or
   // rarely 2 of the same resource, capped at 5 icons total.
   // Noise: a flat 1-3, no formula.
-  var DICE_FACES = ['Tools', 'Tech', 'DNA', 'Biohazard'];
+  var DICE_FACES = ['Tools', 'Tech', 'DNA', 'Hazard', 'Biohazard'];
   var RESOURCE_TYPES = ['Scrap', 'Salvage', 'Components', 'Data'];
   function weightedPick(rnd, items, weights){
     var total = weights.reduce(function(a, b){ return a + b; }, 0);
@@ -805,8 +847,65 @@
     resource:  { label: 'Resource Placement', cls: 'resource' },
     modifier:  { label: 'Creature State Modifier', cls: 'modifier' }
   };
-  var DICE_ABBR = { Tools: 'TL', Tech: 'TC', DNA: 'DNA', Biohazard: 'BIO' };
+  var DICE_ABBR = { Tools: 'TL', Tech: 'TC', DNA: 'DNA', Hazard: 'HAZ', Biohazard: 'BIO' };
   var RESOURCE_ABBR = { Scrap: 'SCR', Salvage: 'SAL', Components: 'CMP', Data: 'DAT' };
+
+  // ── DIE FACE ICONS ──
+  // The real D12 face art (assets/d12-faces), fetched once per face and
+  // reused for every chip that needs it. Falls back to a text
+  // abbreviation (DICE_ABBR) if a fetch fails - e.g. opened from
+  // file:// where relative fetch can be blocked.
+  var DICE_FACE_FILES = {
+    Tools: '../assets/d12-faces/01-tools.svg',
+    Tech: '../assets/d12-faces/03-tech.svg',
+    DNA: '../assets/d12-faces/05-dna.svg',
+    Hazard: '../assets/d12-faces/08-hazard.svg',
+    Biohazard: '../assets/d12-faces/07-biohazard.svg'
+  };
+  var FACE_GLYPH_CACHE = {};
+  function loadFaceGlyph(face){
+    return fetch(DICE_FACE_FILES[face])
+      .then(function(r){ if (!r.ok) throw new Error('bad response'); return r.text(); })
+      .then(function(text){
+        var vbMatch = text.match(/<svg[^>]*viewBox="([^"]*)"/);
+        var gMatch = text.match(/(<g[\s\S]*<\/g>)\s*<\/svg>\s*$/);
+        if (!vbMatch || !gMatch) throw new Error('unexpected svg shape');
+        // Some faces (e.g. Biohazard's trefoil) define their filled
+        // sub-shapes once in <defs> and reference them via <use> in the
+        // visible <g> - drop the defs and those <use> elements resolve
+        // to nothing, so it has to come along too.
+        var defsMatch = text.match(/<defs[\s\S]*?<\/defs>/);
+        var markup = (defsMatch ? defsMatch[0] : '') + gMatch[1];
+        // Recolor black -> currentColor in place, preserving each path's
+        // original fill:none vs solid-fill mode (some glyphs, like
+        // Biohazard's trefoil, rely on filled sub-paths, not just
+        // stroked outlines - forcing every path to stroke-only would
+        // erase those).
+        var recolored = markup.replace(/#000000/gi, 'currentColor');
+        FACE_GLYPH_CACHE[face] = { viewBox: vbMatch[1], inner: recolored };
+      })
+      .catch(function(){ FACE_GLYPH_CACHE[face] = null; });
+  }
+  var faceGlyphsReady = Promise.all(DICE_FACES.map(loadFaceGlyph));
+
+  // Same normalized pentagon used for the combat roller's Ready/Brace
+  // pips (objectBoundingBox coordinates, so it scales to any chip size).
+  var PENTAGON_PATH = 'M 0.070982 0.327768 L 0.428996 0.054196 Q 0.5 0 0.571004 0.054196 ' +
+    'L 0.929018 0.327768 Q 1 0.381964 0.974554 0.467589 L 0.841518 0.914464 Q 0.815982 1 0.726696 1 ' +
+    'L 0.273304 1 Q 0.184018 1 0.158482 0.914464 L 0.025446 0.467589 Q 0 0.381964 0.070982 0.327768 Z';
+
+  function dieChipHTML(face){
+    var g = FACE_GLYPH_CACHE[face];
+    var glyph = g
+      ? '<svg class="si-die-glyph" viewBox="' + g.viewBox + '">' + g.inner + '</svg>'
+      : '<span class="si-die-fallback">' + DICE_ABBR[face] + '</span>';
+    return (
+      '<span class="si-die" title="' + face + '">' +
+        '<svg class="si-pentagon" viewBox="0 0 1 1"><path d="' + PENTAGON_PATH + '"/></svg>' +
+        glyph +
+      '</span>'
+    );
+  }
 
   function mainContentHTML(card){
     var meta = MAIN_TYPE_META[card.mainType];
@@ -825,9 +924,7 @@
 
   function searchIconsHTML(card){
     if (!card.searchIcons) return '';
-    var dice = card.searchIcons.systemDice.map(function(face){
-      return '<span class="si-chip dice" title="' + face + '">' + DICE_ABBR[face] + '</span>';
-    }).join('');
+    var dice = card.searchIcons.systemDice.map(dieChipHTML).join('');
     var resources = [];
     card.searchIcons.resourceIcons.forEach(function(r){
       for (var i = 0; i < r.qty; i++) {
@@ -836,9 +933,11 @@
     });
     return (
       '<div class="search-icons">' +
-        '<div class="si-group">' + dice + '</div>' +
-        '<div class="si-group">' + resources.join('') + '</div>' +
-        '<span class="si-noise" title="Noise on failed check">&#9650; ' + card.searchIcons.noise + '</span>' +
+        '<div class="si-row">' +
+          '<div class="si-group">' + dice + '</div>' +
+          '<span class="si-noise" title="Noise on failed check">&#9650; ' + card.searchIcons.noise + '</span>' +
+        '</div>' +
+        '<div class="si-row"><div class="si-group">' + resources.join('') + '</div></div>' +
       '</div>'
     );
   }
@@ -915,6 +1014,15 @@
   });
 
   refillDeck();
+  // Card rendering reads FACE_GLYPH_CACHE at draw time, so the only
+  // thing that needs to wait on the die-face fetches is the first pull.
+  pullBtn.disabled = true;
+  var pullBtnDefaultText = pullBtn.textContent;
+  pullBtn.textContent = 'Loading Icons…';
+  faceGlyphsReady.then(function(){
+    pullBtn.disabled = false;
+    pullBtn.textContent = pullBtnDefaultText;
+  });
 })();
 </script>
 
