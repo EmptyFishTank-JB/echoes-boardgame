@@ -128,8 +128,17 @@
     text-align: center;
   }
 
+  /* Sized off the screen calibration (see the Calibrate bar at the
+     bottom) so the card renders at its true physical size - 2.5 x 3.5in,
+     the standard poker/TCG card ratio this card's own 5:7 aspect-ratio
+     matches. --calib-px-per-in defaults to 96 (the CSS spec's flat
+     assumption) until the user calibrates it against something real.
+     Capped at 92vw so an uncalibrated or wildly miscalibrated value
+     can't blow out the layout on a narrow viewport. */
+  :root { --calib-px-per-in: 96; }
   .card {
-    width: clamp(200px, 34vw, 260px);
+    width: calc(var(--calib-px-per-in) * 2.5px);
+    max-width: 92vw;
     aspect-ratio: 5 / 7;
     border-radius: 10px;
     position: relative;
@@ -445,6 +454,109 @@
     row-gap: 2px;
   }
   .footer-meta .meta-item span { color: rgba(238,240,245,0.4); }
+
+  /* ── SCREEN CALIBRATION ──
+     A fixed bottom-center bar with a Calibrate toggle and a live slider.
+     Opening the panel above it shows physical reference scales (rulers,
+     a debit/credit card outline) to hold a real object up against - the
+     card in the stage above is sized directly off this calibration
+     (see --calib-px-per-in on .card), so dragging the slider resizes it
+     live. */
+  .calib-bar {
+    position: fixed;
+    left: 50%; bottom: 16px;
+    transform: translateX(-50%);
+    z-index: 20;
+    display: flex; align-items: center; gap: 10px;
+    background: rgba(10,13,18,0.92);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 8px 16px;
+    backdrop-filter: blur(6px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  }
+  .calib-toggle {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--text-dim); background: transparent;
+    border: 1px solid var(--border); border-radius: 999px;
+    padding: 6px 12px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .calib-toggle:hover, .calib-toggle[aria-expanded="true"] {
+    color: var(--accent); border-color: var(--accent);
+  }
+  .calib-slider {
+    width: 140px;
+    accent-color: var(--accent);
+  }
+  .calib-readout {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10.5px; color: var(--text-dim);
+    white-space: nowrap;
+    min-width: 62px;
+  }
+
+  .calib-panel {
+    position: fixed;
+    left: 50%; bottom: 66px;
+    transform: translateX(-50%);
+    z-index: 19;
+    width: min(560px, 92vw);
+    max-height: 70vh;
+    overflow-y: auto;
+    background: rgba(10,13,18,0.96);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 18px 20px;
+    backdrop-filter: blur(6px);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.55);
+  }
+  .calib-instructions {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px; line-height: 1.7; color: var(--text-dim);
+    margin-bottom: 16px;
+  }
+  .calib-refs { display: flex; flex-direction: column; gap: 16px; }
+  .calib-ref-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+  .ruler {
+    position: relative;
+    height: 30px;
+    border-left: 2px solid var(--text);
+    border-right: 2px solid var(--text);
+  }
+  .ruler::before {
+    content: "";
+    position: absolute; left: 0; right: 0; top: 0;
+    height: 2px;
+    background: var(--text);
+  }
+  .ruler-tick {
+    position: absolute; top: 0;
+    width: 1px; height: 14px;
+    background: var(--text);
+  }
+  .ruler-tick.major { height: 20px; background: var(--accent); }
+  .ruler-tick-label {
+    position: absolute; top: 22px;
+    transform: translateX(-50%);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px; color: var(--text-dim);
+  }
+  .calib-card-outline {
+    height: calc(var(--calib-px-per-in) * 2.125px);
+    width: calc(var(--calib-px-per-in) * 3.370px);
+    max-width: 100%;
+    border: 2px solid var(--text);
+    border-radius: calc(var(--calib-px-per-in) * 0.08px);
+  }
 </style>
 </head>
 <body>
@@ -511,6 +623,37 @@
     <div class="signal-bar"></div>
   </div>
 </footer>
+
+<div class="calib-panel" id="calibPanel" hidden>
+  <p class="calib-instructions">Hold a ruler or a real debit/credit card up to one of these and drag the slider below until it matches exactly. The card above is sized directly off this calibration - 2.5 &times; 3.5in, the standard poker/TCG card size.</p>
+  <div class="calib-refs">
+    <div>
+      <div class="calib-ref-label">3 in</div>
+      <div class="ruler" id="ruler3in"></div>
+    </div>
+    <div>
+      <div class="calib-ref-label">6 in</div>
+      <div class="ruler" id="ruler6in"></div>
+    </div>
+    <div>
+      <div class="calib-ref-label">Debit / Credit Card (3.370 &times; 2.125in)</div>
+      <div class="calib-card-outline"></div>
+    </div>
+    <div>
+      <div class="calib-ref-label">5 cm</div>
+      <div class="ruler" id="ruler5cm"></div>
+    </div>
+    <div>
+      <div class="calib-ref-label">15 cm</div>
+      <div class="ruler" id="ruler15cm"></div>
+    </div>
+  </div>
+</div>
+<div class="calib-bar">
+  <button class="calib-toggle" id="calibToggle" aria-expanded="false" aria-controls="calibPanel">Calibrate Screen</button>
+  <input type="range" class="calib-slider" id="calibSlider" min="50" max="300" step="0.5" value="96" aria-label="Pixels per inch">
+  <span class="calib-readout" id="calibReadout">96.0 px/in</span>
+</div>
 
 <script>
 (function(){
@@ -1006,6 +1149,71 @@
     pullBtn.disabled = false;
     pullBtn.textContent = pullBtnDefaultText;
   });
+})();
+</script>
+
+<script>
+(function(){
+  // ── SCREEN CALIBRATION ──
+  // --calib-px-per-in drives both the reference rulers here and the
+  // actual card's width (see .card in <style>). Persisted per-browser
+  // (and so, in practice, per-monitor) in localStorage - each screen
+  // only needs calibrating once.
+  var STORAGE_KEY = 'echoesCardPullerPxPerIn';
+  var toggle = document.getElementById('calibToggle');
+  var panel = document.getElementById('calibPanel');
+  var slider = document.getElementById('calibSlider');
+  var readout = document.getElementById('calibReadout');
+
+  function setPxPerIn(value){
+    document.documentElement.style.setProperty('--calib-px-per-in', value);
+    readout.textContent = value.toFixed(1) + ' px/in';
+    slider.value = value;
+    renderRulers(value);
+    try { localStorage.setItem(STORAGE_KEY, String(value)); } catch (e) { /* private mode etc - just skip persisting */ }
+  }
+
+  function buildRuler(el, totalUnits, pxPerUnit){
+    el.innerHTML = '';
+    el.style.width = (totalUnits * pxPerUnit) + 'px';
+    for (var i = 0; i <= totalUnits; i++) {
+      var tick = document.createElement('div');
+      tick.className = 'ruler-tick major';
+      tick.style.left = (i * pxPerUnit) + 'px';
+      el.appendChild(tick);
+      var label = document.createElement('div');
+      label.className = 'ruler-tick-label';
+      label.style.left = (i * pxPerUnit) + 'px';
+      label.textContent = i;
+      el.appendChild(label);
+    }
+  }
+
+  var ruler3in = document.getElementById('ruler3in');
+  var ruler6in = document.getElementById('ruler6in');
+  var ruler5cm = document.getElementById('ruler5cm');
+  var ruler15cm = document.getElementById('ruler15cm');
+
+  function renderRulers(pxPerIn){
+    var pxPerCm = pxPerIn / 2.54;
+    buildRuler(ruler3in, 3, pxPerIn);
+    buildRuler(ruler6in, 6, pxPerIn);
+    buildRuler(ruler5cm, 5, pxPerCm);
+    buildRuler(ruler15cm, 15, pxPerCm);
+  }
+
+  toggle.addEventListener('click', function(){
+    var open = panel.hidden;
+    panel.hidden = !open;
+    toggle.setAttribute('aria-expanded', String(open));
+  });
+  slider.addEventListener('input', function(){
+    setPxPerIn(parseFloat(slider.value));
+  });
+
+  var saved = null;
+  try { saved = localStorage.getItem(STORAGE_KEY); } catch (e) { /* ignore */ }
+  setPxPerIn(saved ? parseFloat(saved) : 96);
 })();
 </script>
 
