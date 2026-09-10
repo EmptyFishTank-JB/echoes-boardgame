@@ -212,48 +212,38 @@
     font-family: 'Share Tech Mono', monospace;
     font-size: 8.5px; letter-spacing: 0.12em;
     color: rgba(238,240,245,0.28);
-    margin-top: auto;
-    padding-top: 10px;
-    text-align: right;
+    margin-top: auto; /* sticks to the bottom on cards with no search-icons row (Echo Events) */
+    padding-top: 8px;
+    text-align: center;
   }
+  /* Room Cards: the search-icons row (not this) owns the push-to-bottom
+     margin, so the code just sits directly under it. */
+  .search-icons + .card-code { margin-top: 8px; }
 
   /* Resource Search Icons - printed near the bottom of a Room Card,
      separate from its main content (see rules.html // 10 The Echo Deck).
-     Only shown on Room Cards - Echo Events don't have them. Two rows:
-     System Dice icons (+ Noise, aligned with that row) on top, Resource
-     icons below. */
+     Only shown on Room Cards - Echo Events don't have them. Pushed down
+     to sit right above the code. Two rows, both centered: System Dice
+     icons (+ Noise, aligned with that row) on top, Resource icons
+     below. */
   .search-icons {
-    display: flex; flex-direction: column; gap: 6px;
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
     border-top: 1px solid var(--border);
     padding-top: 8px;
-    margin-top: 10px;
+    margin-top: auto;
   }
-  .si-row { display: flex; align-items: center; gap: 4px; }
-  .si-group { display: flex; flex-wrap: wrap; gap: 4px; }
+  .si-row { display: flex; align-items: center; justify-content: center; gap: 6px; }
+  .si-group { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; }
 
   /* System Dice icons: the real D12 face art (see assets/d12-faces),
-     recolored to currentColor and set inside an outline pentagon - the
-     same pentagon used for the Ready/Brace pips on the combat roller -
-     so each chip reads as a little physical die face. */
+     recolored to currentColor. No border/container - just the glyph. */
   .si-die {
-    position: relative;
-    width: 26px; height: 26px;
     display: inline-flex; align-items: center; justify-content: center;
+    width: 15px; height: 15px;
     color: var(--accent);
     flex: none;
   }
-  .si-pentagon {
-    position: absolute; inset: 0;
-    width: 100%; height: 100%;
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 0.05;
-  }
-  .si-die-glyph {
-    position: relative;
-    width: 52%; height: 52%;
-    overflow: visible;
-  }
+  .si-die-glyph { width: 100%; height: 100%; }
   /* Colors are already remapped to currentColor at fetch time (see
      loadFaceGlyph), preserving each path's original fill:none vs
      solid-fill mode. Only the stroke width needs a nudge here, in fixed
@@ -264,11 +254,12 @@
     vector-effect: non-scaling-stroke;
   }
   .si-die-fallback {
-    position: relative;
     font-family: 'Share Tech Mono', monospace;
     font-size: 7px; font-weight: 700; letter-spacing: 0;
   }
 
+  /* Resource icons are plain square chips for now - placeholder until
+     real icon art exists, same as the System Dice icons did before. */
   .si-chip {
     display: flex; align-items: center; justify-content: center;
     min-width: 20px; height: 20px; padding: 0 3px;
@@ -279,7 +270,6 @@
   .si-chip.resource { color: var(--good); }
   .si-noise {
     display: flex; align-items: center; gap: 3px;
-    margin-left: auto;
     font-family: 'Share Tech Mono', monospace;
     font-size: 10px; color: var(--orange);
   }
@@ -755,6 +745,10 @@
     for (var i = 0; i < len; i++) out += CODE_CHARS[Math.floor(rnd() * CODE_CHARS.length)];
     return out;
   }
+  // Printed as 4 groups of 5, hyphen-separated.
+  function formatCode(code){
+    return code.replace(/(.{5})(?=.)/g, '$1-');
+  }
   CARDS.forEach(function(c){ c.code = seededCode(c.id); });
 
   // ── RESOURCE SEARCH ICONS ──
@@ -888,23 +882,12 @@
   }
   var faceGlyphsReady = Promise.all(DICE_FACES.map(loadFaceGlyph));
 
-  // Same normalized pentagon used for the combat roller's Ready/Brace
-  // pips (objectBoundingBox coordinates, so it scales to any chip size).
-  var PENTAGON_PATH = 'M 0.070982 0.327768 L 0.428996 0.054196 Q 0.5 0 0.571004 0.054196 ' +
-    'L 0.929018 0.327768 Q 1 0.381964 0.974554 0.467589 L 0.841518 0.914464 Q 0.815982 1 0.726696 1 ' +
-    'L 0.273304 1 Q 0.184018 1 0.158482 0.914464 L 0.025446 0.467589 Q 0 0.381964 0.070982 0.327768 Z';
-
   function dieChipHTML(face){
     var g = FACE_GLYPH_CACHE[face];
     var glyph = g
       ? '<svg class="si-die-glyph" viewBox="' + g.viewBox + '">' + g.inner + '</svg>'
       : '<span class="si-die-fallback">' + DICE_ABBR[face] + '</span>';
-    return (
-      '<span class="si-die" title="' + face + '">' +
-        '<svg class="si-pentagon" viewBox="0 0 1 1"><path d="' + PENTAGON_PATH + '"/></svg>' +
-        glyph +
-      '</span>'
-    );
+    return '<span class="si-die" title="' + face + '">' + glyph + '</span>';
   }
 
   function mainContentHTML(card){
@@ -958,7 +941,7 @@
         play +
         main.body +
         searchIconsHTML(card) +
-        '<div class="card-code">' + card.code + '</div>' +
+        '<div class="card-code">' + formatCode(card.code) + '</div>' +
       '</div>'
     );
   }
