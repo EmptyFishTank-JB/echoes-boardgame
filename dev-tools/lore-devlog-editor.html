@@ -28,10 +28,10 @@ html,body{height:100%;background:var(--dark);color:var(--blue);
 .hright{display:flex;align-items:center;gap:10px;font-size:11px;color:var(--dim);}
 #as-ind{color:var(--green);opacity:0;transition:opacity 0.4s;}
 #as-ind.show{opacity:1;}
-#fstat{font-size:11px;padding:2px 8px;border:1px solid;letter-spacing:0.06em;}
-#fstat.none{border-color:rgba(79,195,247,0.10);color:var(--dim);}
-#fstat.ro  {border-color:rgba(191,124,10,0.28);color:var(--amber);}
-#fstat.rw  {border-color:rgba(111,176,111,0.35);color:var(--green);}
+.fstat{font-size:11px;padding:2px 8px;border:1px solid;letter-spacing:0.06em;}
+.fstat.none{border-color:rgba(79,195,247,0.10);color:var(--dim);}
+.fstat.ro  {border-color:rgba(191,124,10,0.28);color:var(--amber);}
+.fstat.rw  {border-color:rgba(111,176,111,0.35);color:var(--green);}
 .hbtn{background:transparent;border:1px solid rgba(79,195,247,0.16);
   color:var(--dim);font-family:"Share Tech Mono",monospace;
   font-size:11px;letter-spacing:0.07em;padding:3px 10px;cursor:pointer;transition:all 0.15s;}
@@ -297,9 +297,12 @@ select option{background:#001220;color:var(--blue);}
   </div>
   <div class="hright">
     <span id="as-ind">&#10003; AUTOSAVED</span>
-    <span id="fstat" class="none">NO FILE OPEN</span>
-    <button class="hbtn" onclick="loadFromGitHub()">&#8681; LOAD FROM GITHUB</button>
-    <button class="hbtn" onclick="openFile()">&#8213; OPEN FILE</button>
+    <span id="fstat-lore" class="fstat none">NO LORE FILE</span>
+    <button class="hbtn" onclick="loadFromGitHub('lore')">&#8681; LORE (GITHUB)</button>
+    <button class="hbtn" onclick="openFile('lore')">&#8213; OPEN LORE FILE</button>
+    <span id="fstat-dev" class="fstat none">NO DEVLOG FILE</span>
+    <button class="hbtn" onclick="loadFromGitHub('dev')">&#8681; DEVLOGS (GITHUB)</button>
+    <button class="hbtn" onclick="openFile('dev')">&#8213; OPEN DEVLOG FILE</button>
   </div>
 </div>
 
@@ -321,7 +324,12 @@ select option{background:#001220;color:var(--blue);}
 </div>
 <div id="ecol">
   <div class="ecol-inner">
-    <div class="phdr">&#9658; ENTRIES <span id="ect" style="color:rgba(79,195,247,0.30)">&#8212; 0</span><button id="sort-btn" onclick="toggleSort()" style="margin-left:auto;background:transparent;border:1px solid rgba(79,195,247,0.14);color:rgba(79,195,247,0.40);font-family:'Share Tech Mono',monospace;font-size:10px;padding:2px 7px;cursor:pointer;letter-spacing:0.06em;" title="Toggle sort order">&#8595; DATE</button></div>
+    <div class="phdr">&#9658; ENTRIES <span id="ect" style="color:rgba(79,195,247,0.30)">&#8212; 0</span>
+      <div class="tgg" id="etgmode" style="margin-left:10px;">
+        <button class="tg on" data-v="lore" onclick="setMode('lore')" style="padding:2px 8px;font-size:10px;">LORE</button>
+        <button class="tg"    data-v="dev"  onclick="setMode('dev')"  style="padding:2px 8px;font-size:10px;">DEV</button>
+      </div>
+      <button id="sort-btn" onclick="toggleSort()" style="margin-left:auto;background:transparent;border:1px solid rgba(79,195,247,0.14);color:rgba(79,195,247,0.40);font-family:'Share Tech Mono',monospace;font-size:10px;padding:2px 7px;cursor:pointer;letter-spacing:0.06em;" title="Toggle sort order">&#8595; DATE</button></div>
     <input id="esrch" type="text" placeholder="SEARCH CODE OR LABEL..."
            oninput="filterEnts()" autocomplete="off" spellcheck="false">
     <div id="elist">
@@ -781,6 +789,28 @@ var PROJECT_START_DEFAULT = '2025-10-23';
 var hist = [], histIdx = -1;
 var CHARS_ALL = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
+// Lore and Dev Logs are two independent, simultaneously-loaded datasets -
+// each with its own data, undo/redo history, and file handle - so editing
+// one never touches the other. The bare iData/hist/histIdx/fileHandle
+// variables above always point at whichever store is currently active
+// (per `mode`); switchStore() re-points them on toggle. This keeps every
+// existing function that reads/writes those bare variables working
+// unchanged - they just operate on "whichever store is active" exactly
+// like before the split.
+var stores = {
+  lore: { data: {}, hist: [{}], histIdx: 0, fileHandle: null, fstate: 'none', fname: null, fsha: undefined },
+  dev:  { data: {}, hist: [{}], histIdx: 0, fileHandle: null, fstate: 'none', fname: null, fsha: undefined }
+};
+function switchStore(newMode){
+  var old = stores[mode];
+  old.hist = hist; old.histIdx = histIdx; old.fileHandle = fileHandle; old.data = iData;
+  mode = newMode;
+  var s = stores[mode];
+  iData = s.data; hist = s.hist; histIdx = s.histIdx; fileHandle = s.fileHandle;
+  activeCode = null;
+  updFstat(mode, s.fstate, s.fname, s.fsha);
+}
+
 // ── FAVICON ───────────────────────────────────────────────────────────────────
 (function(){
   function mk(c){var s='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><style>@keyframes f{0%,44%{opacity:1}46%,50%{opacity:0.07}52%,100%{opacity:1}}</style>';[{x:0,y:5,h:22,d:'0s'},{x:12,y:0,h:32,d:'.35s'},{x:24,y:6,h:20,d:'.7s'}].forEach(function(b){s+='<g style="animation:f 5s '+b.d+' infinite"><rect x="'+b.x+'" y="'+b.y+'" width="8" height="'+b.h+'" rx="2" fill="'+c+'" opacity="0.6"/><rect x="'+(b.x+1)+'" y="'+(b.y+1)+'" width="6" height="'+(b.h-2)+'" rx="1" fill="'+c+'"/></g>';});return s+'</svg>';}
@@ -788,9 +818,9 @@ var CHARS_ALL = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 })();
 
 // ── UNDO / REDO ───────────────────────────────────────────────────────────────
-function pushHist(){hist=hist.slice(0,histIdx+1);hist.push(JSON.parse(JSON.stringify(iData)));if(hist.length>60)hist.shift();histIdx=hist.length-1;updUrUI();}
-function undo(){if(histIdx<=0){toast('Nothing to undo');return;}histIdx--;iData=JSON.parse(JSON.stringify(hist[histIdx]));syncAll();toast('Undo');}
-function redo(){if(histIdx>=hist.length-1){toast('Nothing to redo');return;}histIdx++;iData=JSON.parse(JSON.stringify(hist[histIdx]));syncAll();toast('Redo');}
+function pushHist(){hist=hist.slice(0,histIdx+1);hist.push(JSON.parse(JSON.stringify(iData)));if(hist.length>60)hist.shift();histIdx=hist.length-1;stores[mode].hist=hist;stores[mode].histIdx=histIdx;stores[mode].data=iData;updUrUI();}
+function undo(){if(histIdx<=0){toast('Nothing to undo');return;}histIdx--;iData=JSON.parse(JSON.stringify(hist[histIdx]));stores[mode].data=iData;stores[mode].histIdx=histIdx;syncAll();toast('Undo');}
+function redo(){if(histIdx>=hist.length-1){toast('Nothing to redo');return;}histIdx++;iData=JSON.parse(JSON.stringify(hist[histIdx]));stores[mode].data=iData;stores[mode].histIdx=histIdx;syncAll();toast('Redo');}
 function updUrUI(){
   document.getElementById('undo-btn').disabled=histIdx<=0;
   document.getElementById('redo-btn').disabled=histIdx>=hist.length-1;
@@ -960,12 +990,28 @@ function useGenCode(){
 
 // ── MODE / TYPE / CLEARANCE ───────────────────────────────────────────────────
 function setMode(m){
-  mode=m;
-  document.querySelectorAll('#mtg .tg').forEach(function(b){b.classList.toggle('on',b.dataset.v===m);});
+  switchStore(m);
+  document.querySelectorAll('#mtg .tg, #etgmode .tg').forEach(function(b){b.classList.toggle('on',b.dataset.v===m);});
   var mb=document.getElementById('mbadge'), pv=document.getElementById('preview'), tf=document.getElementById('tgtf');
   if(m==='dev'){mb.className='dev';mb.textContent='DEV LOG';pv.classList.add('dv');tf.textContent='\u2192 dev_logs.json';}
   else{mb.className='lore';mb.textContent='LORE';pv.classList.remove('dv');tf.textContent='\u2192 lore.json';}
+  resetEditorForm();
+  syncAll();
   updHeader(); updJ();
+}
+function resetEditorForm(){
+  ['codef','labf','logtxt','l1pre','lidn','lidl','sigf'].forEach(function(id){document.getElementById(id).value='';});
+  delete document.getElementById('dayf').dataset.manual;
+  updDayDisp();
+  document.getElementById('codest').textContent='Enter or generate a 20-character code';
+  document.getElementById('codest').className='';
+  document.getElementById('codef').className='';
+  document.getElementById('jo').textContent='// Fill in code and log text to generate snippet';
+  document.getElementById('preview').innerHTML='<span class="pd">Fill in a code and log text, then click PREVIEW</span>';
+  document.getElementById('cct').textContent='0';
+  document.getElementById('code-out-disp').textContent='\u2014';document.getElementById('code-out-disp').className='empty';
+  document.getElementById('cp-gen-btn').disabled=true;document.getElementById('use-gen-btn').disabled=true;
+  lastGenCode='';
 }
 function setTyp(t){
   typ=t;
@@ -1251,22 +1297,26 @@ function fetchLatestSha(repoPath){
     .then(function(d){return(d&&d.length)?d[0].sha.slice(0,7):null;})
     .catch(function(){return null;});
 }
-async function loadFromGitHub(){
-  var name=(mode==='dev'?'dev_logs.json':'lore.json');
-  fileHandle=null;
+async function loadFromGitHub(target){
+  target = target || mode;
+  var name=(target==='dev'?'dev_logs.json':'lore.json');
+  if(target===mode) fileHandle=null; else stores[target].fileHandle=null;
   try{
     var r=await fetch(GH_RAW_BASE+name+'?v='+Date.now());
     if(!r.ok)throw new Error('HTTP '+r.status);
     var text=await r.text();
     var sha=await fetchLatestSha('terminal-data/'+name);
-    parseImp(text,'GitHub: '+name);updFstat('ro',name,sha);
+    parseImp(text,'GitHub: '+name,target);updFstat(target,'ro',name,sha);
   }catch(e){toast('GitHub fetch failed: '+e.message);}
 }
-async function openFile(){
+async function openFile(target){
+  target = target || mode;
   if(!window.showOpenFilePicker){toast('Not supported. Use drag & drop.');return;}
   try{var picks=await window.showOpenFilePicker({types:[{description:'JSON',accept:{'application/json':['.json']}}],multiple:false});
-    fileHandle=picks[0];var file=await fileHandle.getFile();
-    parseImp(await file.text(),file.name);updFstat('rw',file.name,null);toast('Opened: '+file.name);}
+    var handle=picks[0];var file=await handle.getFile();
+    if(target===mode) fileHandle=handle; else stores[target].fileHandle=handle;
+    parseImp(await file.text(),file.name,target);updFstat(target,'rw',file.name,null);
+    toast('Opened: '+file.name+' ('+(target==='dev'?'Dev Logs':'Lore')+')');}
   catch(e){if(e.name!=='AbortError')toast('Error: '+e.message);}
 }
 async function saveToFile(){
@@ -1285,24 +1335,39 @@ function dlJSON(){
   a.download=mode==='dev'?'dev_logs.json':'lore.json';
   document.body.appendChild(a);a.click();document.body.removeChild(a);toast('Downloaded: '+a.download);
 }
-function updFstat(state,name,sha){
-  var el=document.getElementById('fstat'),stf=document.getElementById('stf-btn');
+function updFstat(target,state,name,sha){
+  stores[target].fstate=state;stores[target].fname=name;stores[target].fsha=sha;
+  var el=document.getElementById(target==='dev'?'fstat-dev':'fstat-lore');
+  var stf=document.getElementById('stf-btn');
   var tag=(sha!==undefined)?(' ['+name+'] ['+(sha||'\u2014')+']'):(' '+name);
-  if(state==='rw'){el.className='rw';el.textContent='\u2713'+tag;stf.disabled=false;}
-  else if(state==='ro'){el.className='ro';el.textContent='\u25cf READ-ONLY:'+tag;stf.disabled=true;}
-  else{el.className='none';el.textContent='NO FILE OPEN';stf.disabled=true;}
+  if(state==='rw'){el.className='fstat rw';el.textContent='\u2713'+tag;if(target===mode)stf.disabled=false;}
+  else if(state==='ro'){el.className='fstat ro';el.textContent='\u25cf READ-ONLY:'+tag;if(target===mode)stf.disabled=true;}
+  else{el.className='fstat none';el.textContent=(target==='dev'?'NO DEVLOG FILE':'NO LORE FILE');if(target===mode)stf.disabled=true;}
 }
 
-// ── IMPORT / DROP ─────────────────────────────────────────────────────────────
+// ── IMPORT / DROP ──────────────────────────────────────────────────────────────────────────────
 function dzov(e){e.preventDefault();document.getElementById('dz').classList.add('ov');}
 function dzlv(e){document.getElementById('dz').classList.remove('ov');}
 function dzdp(e){e.preventDefault();dzlv(e);var f=e.dataTransfer.files[0];if(f&&f.name.endsWith('.json'))rdFile(f);else toast('Drop a .json file');}
 function fiCh(e){var f=e.target.files[0];if(f)rdFile(f);e.target.value='';}
-function rdFile(f){var r=new FileReader();r.onload=function(e){parseImp(e.target.result,f.name);updFstat('ro',f.name,null);};r.readAsText(f);}
+function rdFile(f){var r=new FileReader();r.onload=function(e){parseImp(e.target.result,f.name);updFstat(mode,'ro',f.name,null);};r.readAsText(f);}
 function tryImp(v){if(!v.trim())return;parseImp(v,'pasted JSON');}
-function parseImp(text,src){
-  try{iData=JSON.parse(text);hist=[JSON.parse(JSON.stringify(iData))];histIdx=0;
-    syncAll();toast('Loaded '+Object.keys(iData).length+' entries from '+src);}
+// Drag-drop and paste always target whichever dataset is currently active
+// (the two explicit header buttons above are the only way to load
+// directly into the *inactive* one). target defaults to the active mode.
+function parseImp(text,src,target){
+  target = target || mode;
+  try{
+    var parsed=JSON.parse(text);
+    var newHist=[JSON.parse(JSON.stringify(parsed))];
+    if(target===mode){
+      iData=parsed;hist=newHist;histIdx=0;
+      stores[mode].data=iData;stores[mode].hist=hist;stores[mode].histIdx=histIdx;
+      syncAll();
+    }else{
+      stores[target].data=parsed;stores[target].hist=newHist;stores[target].histIdx=0;
+    }
+    toast('Loaded '+Object.keys(parsed).length+' entries from '+src+' ('+(target==='dev'?'Dev Logs':'Lore')+')');}
   catch(e){toast('JSON parse error \u2014 check format');}
 }
 
@@ -1389,18 +1454,8 @@ function lodEnt(code,e){
 // ── CLEAR FORM ────────────────────────────────────────────────────────────────
 function clrForm(){
   if(!confirm('Clear all fields?'))return;
-  ['codef','labf','logtxt','l1pre','lidn','lidl','sigf'].forEach(function(id){document.getElementById(id).value='';});
-  delete document.getElementById('dayf').dataset.manual;
-  updDayDisp();
-  document.getElementById('codest').textContent='Enter or generate a 20-character code';
-  document.getElementById('codest').className='';
-  document.getElementById('codef').className='';
-  document.getElementById('jo').textContent='// Fill in code and log text to generate snippet';
-  document.getElementById('preview').innerHTML='<span class="pd">Fill in a code and log text, then click PREVIEW</span>';
-  document.getElementById('cct').textContent='0';
-  document.getElementById('code-out-disp').textContent='\u2014';document.getElementById('code-out-disp').className='empty';
-  document.getElementById('cp-gen-btn').disabled=true;document.getElementById('use-gen-btn').disabled=true;
-  lastGenCode='';activeCode=null;
+  resetEditorForm();
+  activeCode=null;
   document.querySelectorAll('.erow').forEach(function(r){r.classList.remove('active');});
   updHeader();
   try{localStorage.removeItem('echo_ed28');}catch(e){}
@@ -1458,7 +1513,8 @@ var toastT=null;
 function toast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(function(){t.classList.remove('show');},2400);}
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
-updFstat('none','');
+updFstat('lore','none','');
+updFstat('dev','none','');
 document.getElementById('stf-btn').disabled=true;
 updUrUI();
 loadSalt();
