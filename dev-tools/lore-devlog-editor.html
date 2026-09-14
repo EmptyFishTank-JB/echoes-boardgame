@@ -185,7 +185,6 @@ select option{background:#001220;color:var(--blue);}
 .salt-row{display:flex;gap:6px;align-items:center;}
 .salt-row input{flex:1;}
 .salt-row input[readonly]{color:var(--dim);cursor:default;background:rgba(255,255,255,0.02);}
-.warn-line{font-size:11px;color:rgba(232,115,42,0.80);line-height:1.7;}
 
 /* CODE GENERATED DISPLAY (inline) */
 #code-out-row{display:flex;gap:8px;align-items:center;margin-top:4px;}
@@ -202,9 +201,9 @@ select option{background:#001220;color:var(--blue);}
 .eid-row label{font-size:12px;color:var(--dim);cursor:pointer;display:flex;align-items:center;gap:5px;white-space:nowrap;}
 .eid-row input[type=checkbox]{width:auto;accent-color:var(--blue);}
 
-/* TEMPLATE EDITOR */
-#tpl-editor{border:1px solid rgba(79,195,247,0.10);background:rgba(79,195,247,0.015);padding:9px 11px;display:flex;flex-direction:column;gap:8px;}
-#tpl-editor.collapsed .tpl-content{display:none!important;}
+/* COLLAPSIBLE BOX — shared by TEMPLATE and TEMPLATE EDITOR */
+.collapsible-box{border:1px solid rgba(79,195,247,0.10);background:rgba(79,195,247,0.015);padding:9px 11px;display:flex;flex-direction:column;gap:8px;}
+.collapsible-box.collapsed .tpl-content{display:none!important;}
 .tpl-ed-hdr{font-size:12px;color:var(--dim);letter-spacing:0.08em;
   display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none;}
 .tpl-ed-hdr:hover{color:var(--blue);}
@@ -218,9 +217,6 @@ select option{background:#001220;color:var(--blue);}
 .psec-title{font-size:12px;color:var(--dim);letter-spacing:0.08em;}
 
 /* LOG FIELDS */
-.set-bar{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--dim);flex-wrap:wrap;}
-.set-bar input[type=date]{width:150px;font-size:12px;padding:4px 7px;color-scheme:dark;}
-.set-bar label{flex-shrink:0;letter-spacing:0.06em;}
 #logtxt{resize:vertical;min-height:150px;max-height:320px;line-height:1.75;}
 #l1pre{resize:vertical;min-height:65px;line-height:1.7;}
 #l1preg{display:none;}
@@ -351,29 +347,14 @@ select option{background:#001220;color:var(--blue);}
   <div class="ephdr">&#9658; ENTRY EDITOR</div>
   <div id="escroll">
 
-    <!-- LIVE HEADER PREVIEW -->
-    <div id="hdprev">
-      <div class="hdprev-top">
-        <span class="fl">LIVE HEADER PREVIEW</span>
-        <div class="hdprev-btns">
-          <button class="inj" onclick="injHeader()">&#8595; INSERT HEADER</button>
-          <button class="inj a" onclick="injSD()">&#8595; STARDATE ONLY</button>
-        </div>
-      </div>
-      <div id="hp-line1">&#8212;</div>
-      <div id="hp-line2">&#8212;</div>
-    </div>
-
-    <!-- SETTINGS -->
+    <!-- ECHOES DAY COUNTER -->
     <div class="psec">
-      <div class="psec-title">PROJECT SETTINGS</div>
-      <div class="set-bar">
-        <label>SIGNATURE</label>
-        <input type="text" id="sigf" placeholder="Dev. J. Betancourt"
-               style="flex:1;min-width:120px;font-size:12px;padding:4px 8px"
-               autocomplete="off" oninput="savSet();updHeader();">
-        <label>PROJECT DAY 1</label>
-        <input type="date" id="startd" oninput="savSet();updDayDisp();">
+      <div class="psec-title">ECHOES &#8212; DAY COUNTER</div>
+      <div class="fr" style="flex-wrap:wrap;gap:16px;">
+        <div><div class="sub-fl">DAY 1</div><div id="ec-day1" style="font-size:13px;color:var(--blue);">10/23/2025</div></div>
+        <div><div class="sub-fl">DAY COUNTER</div><div id="ec-daycount" style="font-size:13px;color:var(--blue);">&#8212;</div></div>
+        <div><div class="sub-fl">STARDATE</div><div id="ec-stardate" style="font-size:13px;color:var(--blue);">&#8212;</div></div>
+        <div><div class="sub-fl">REAL TIME (CST)</div><div id="ec-realtime" style="font-size:13px;color:var(--blue);">&#8212;</div></div>
       </div>
     </div>
 
@@ -389,7 +370,7 @@ select option{background:#001220;color:var(--blue);}
       </div>
 
       <div class="fg">
-        <div class="fl">ENTRY TYPE</div>
+        <div class="fl">ENTRY CONDITION</div>
         <div class="tgg" id="ttg">
           <button class="tg on" data-v="full"       onclick="setTyp('full')">FULL</button>
           <button class="tg"    data-v="partial"    onclick="setTyp('partial')">PARTIAL</button>
@@ -409,20 +390,140 @@ select option{background:#001220;color:var(--blue);}
       </div>
     </div>
 
-    <!-- TEMPLATE SELECTOR -->
+    <!-- ENTRY IDENTITY -->
     <div class="psec">
-      <div class="psec-title">TEMPLATE</div>
+      <div class="psec-title">ENTRY IDENTITY</div>
+
       <div class="fg">
-        <div class="fl">LOG TEMPLATE</div>
-        <div class="fr">
-          <select id="tpls" onchange="onTplChange()"></select>
-          <button class="btn sm" style="flex-shrink:0" onclick="applyTpl()">APPLY</button>
+        <div class="fl">LOG ID (A-00)</div>
+        <div class="fr" style="align-items:center;gap:8px">
+          <input type="text" id="lidl" maxlength="1" placeholder="A"
+                 style="width:44px;flex-shrink:0;text-align:center;text-transform:uppercase;letter-spacing:0.14em"
+                 oninput="fmtLid()" autocomplete="off">
+          <span style="color:var(--dim);font-size:14px;flex-shrink:0">&#8212;</span>
+          <input type="text" id="lidn" maxlength="2" placeholder="00"
+                 style="width:50px;flex-shrink:0;text-align:center;letter-spacing:0.12em"
+                 oninput="fmtLid()" autocomplete="off">
+          <button class="btn sm" style="flex-shrink:0;margin-left:auto" onclick="autoLbl()">AUTO LABEL</button>
+        </div>
+      </div>
+
+      <div class="fg">
+        <div class="fl">LOG TYPE &#8212; e.g. CAPTAIN'S LOG, MEDICAL LOG, INTERCEPTED TRANSMISSION</div>
+        <input type="text" id="logtype" list="logtype-list" placeholder="CAPTAIN'S LOG"
+               oninput="updHeader();updJ();" autocomplete="off">
+        <datalist id="logtype-list"></datalist>
+      </div>
+
+      <div class="fg">
+        <div class="eid-row">
+          <label><input type="checkbox" id="trkday" onchange="toggleTrackDay()"> TRACK DAY #</label>
+        </div>
+        <div id="daystart-row" class="fr" style="align-items:center;gap:8px;display:none;">
+          <span style="font-size:12px;color:var(--dim);flex-shrink:0">START DATE</span>
+          <input type="date" id="daystart" oninput="updDayCt();updHeader();updJ();"
+                 style="flex:1;font-size:12px;padding:5px 8px;color-scheme:dark;">
+          <span style="font-size:12px;color:var(--dim);flex-shrink:0">DAY</span>
+          <span id="dayct" style="font-size:13px;color:var(--blue);min-width:40px;text-align:center;">&#8212;</span>
+        </div>
+      </div>
+
+      <div>
+        <div class="fl" style="margin-bottom:5px;">DATE &amp; TIME &#8212; sets the stardate used in the header and code</div>
+        <div class="dt5">
+          <div><div class="sub-fl">YEAR</div>
+            <input type="number" id="dt-year" min="1900" max="2500" value="2026"
+                   oninput="onDtChange()"></div>
+          <div><div class="sub-fl">MONTH</div>
+            <input type="number" id="dt-month" min="1" max="12" value="1"
+                   oninput="onDtChange()"></div>
+          <div><div class="sub-fl">DAY</div>
+            <input type="number" id="dt-day" min="1" max="31" value="1"
+                   oninput="onDtChange()"></div>
+          <div><div class="sub-fl">HOUR</div>
+            <input type="number" id="dt-hour" min="0" max="23" value="0"
+                   oninput="onDtChange()"></div>
+          <div><div class="sub-fl">MIN</div>
+            <input type="number" id="dt-min" min="0" max="59" value="0"
+                   oninput="onDtChange()"></div>
+        </div>
+        <div class="btn-row" style="margin-top:5px;">
+          <button class="btn sm" onclick="fillNow()">USE NOW</button>
+          <button class="btn sm r" onclick="clearDtFields()">CLEAR DATE</button>
+        </div>
+      </div>
+
+      <div id="doy-line">&#8212;</div>
+
+      <div id="hdprev">
+        <div class="hdprev-top">
+          <span class="fl">LIVE HEADER PREVIEW</span>
+          <div class="hdprev-btns">
+            <button class="inj a" onclick="injSD()">&#8595; STARDATE ONLY</button>
+          </div>
+        </div>
+        <div id="hp-line1">&#8212;</div>
+        <div id="hp-line2">&#8212;</div>
+      </div>
+
+      <!-- CODE FIELD -->
+      <div class="fg">
+        <div class="fl">ENTRY CODE &#8212; XXXXX-XXXXX-XXXXX-XXXXX</div>
+        <input type="text" id="codef" maxlength="24"
+               placeholder="Generate below or enter manually"
+               autocomplete="off" spellcheck="false">
+        <div id="codest">Enter or generate a 20-character code</div>
+      </div>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="psec">
+      <div class="psec-title">CONTENT</div>
+      <div class="fg">
+        <div class="fl">CONDITION &#160;&#160; LABEL &#8212; INTERNAL REFERENCE</div>
+        <div class="fr" style="align-items:center;gap:6px">
+          <span id="type-badge" class="full" style="flex-shrink:0">FULL</span>
+          <span id="clr-badge" style="flex-shrink:0">L1</span>
+          <input type="text" id="labf"
+                 placeholder="Log A-00 | Stardate 2026.139.1431"
+                 autocomplete="off" oninput="updJ()" style="flex:1">
+        </div>
+      </div>
+
+      <!-- LOG TEXT -->
+      <div class="fg">
+        <div class="fl">LOG TEXT &#8212; body only, the header above is generated automatically</div>
+        <textarea id="logtxt"
+          placeholder="[Your entry here]&#10;&#10;    &#8212;&#8212; Dev. J. Betancourt"></textarea>
+        <div class="cct"><span id="cct">0</span> CHARS</div>
+      </div>
+
+      <!-- L1 PREVIEW (classified) -->
+      <div class="fg" id="l1preg">
+        <div class="fl">L1 REDACTED PREVIEW &#8212; SHOWN BEFORE FULL L2 ACCESS</div>
+        <textarea id="l1pre"
+          placeholder="[REDACTED] discovered something on day [REDACTED]. L2 access required."></textarea>
+      </div>
+    </div>
+
+    <!-- TEMPLATE (collapsible) -->
+    <div id="tpl-sec" class="collapsible-box collapsed">
+      <div class="tpl-ed-hdr" onclick="toggleTplSec()">
+        <span id="tpl-sec-arrow">&#9658; TEMPLATE</span>
+      </div>
+      <div class="tpl-content" style="display:flex;flex-direction:column;gap:8px;">
+        <div class="fg">
+          <div class="fl">LOG TEMPLATE</div>
+          <div class="fr">
+            <select id="tpls" onchange="onTplChange()"></select>
+            <button class="btn sm" style="flex-shrink:0" onclick="applyTpl()">APPLY</button>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- TEMPLATE EDITOR (collapsible) -->
-    <div id="tpl-editor" class="collapsed">
+    <div id="tpl-editor" class="collapsible-box collapsed">
       <div class="tpl-ed-hdr" onclick="toggleTplEditor()">
         <span id="tpl-arrow">&#9658; TEMPLATE EDITOR</span>
         <div class="tpl-body-wrap" style="display:flex;gap:6px" onclick="event.stopPropagation()">
@@ -438,49 +539,26 @@ select option{background:#001220;color:var(--blue);}
           <input type="text" id="tpl-name" placeholder="e.g. CAPTAIN'S LOG" autocomplete="off">
         </div>
         <div class="fg">
-          <div class="fl">TEMPLATE BODY &#8212; Use {ID} {SD} {DAY} {SIG} as placeholders</div>
-          <textarea id="tpl-body" placeholder="[Log {ID} | Stardate {SD}]&#10;LOG TITLE &#8212; DAY {DAY}&#10;&#10;[Your entry here]&#10;&#10;    &#8212;&#8212; {SIG}"></textarea>
+          <div class="fl">LOG TYPE &#8212; header title this template uses</div>
+          <input type="text" id="tpl-logtype" placeholder="CAPTAIN'S LOG" autocomplete="off">
+        </div>
+        <div class="fg">
+          <label style="font-size:12px;color:var(--dim);display:flex;align-items:center;gap:6px;cursor:pointer;">
+            <input type="checkbox" id="tpl-trkday"> TRACK DAY # BY DEFAULT
+          </label>
+          <input type="date" id="tpl-daystart" style="font-size:12px;padding:5px 8px;color-scheme:dark;">
+        </div>
+        <div class="fg">
+          <div class="fl">TEMPLATE BODY &#8212; Use {ID} {SD} {DAY} as placeholders. Header lines are automatic, don't include them here.</div>
+          <textarea id="tpl-body" placeholder="[Your entry here]&#10;&#10;    &#8212;&#8212; Dev. J. Betancourt"></textarea>
         </div>
       </div>
     </div>
 
-    <!-- LOG ID + DAY -->
-    <div class="psec">
-      <div class="psec-title">IDENTIFICATION</div>
-      <div class="fg">
-        <div class="fl">LOG ID (A-00) &#160;&#160; PROJECT DAY</div>
-        <div class="fr" style="align-items:center;gap:8px">
-          <input type="text" id="lidl" maxlength="1" placeholder="A"
-                 style="width:44px;flex-shrink:0;text-align:center;text-transform:uppercase;letter-spacing:0.14em"
-                 oninput="fmtLid()" autocomplete="off">
-          <span style="color:var(--dim);font-size:14px;flex-shrink:0">&#8212;</span>
-          <input type="text" id="lidn" maxlength="2" placeholder="00"
-                 style="width:50px;flex-shrink:0;text-align:center;letter-spacing:0.12em"
-                 oninput="fmtLid()" autocomplete="off">
-          <span style="color:var(--dim);font-size:12px;padding:0 6px;flex-shrink:0">|</span>
-          <span style="font-size:12px;color:var(--dim);flex-shrink:0">DAY</span>
-          <input type="number" id="dayf" min="1" placeholder="1"
-                 style="width:70px;flex-shrink:0;font-size:13px;text-align:center;border-color:rgba(79,195,247,0.08)"
-                 oninput="updHeader();updJ();" autocomplete="off"
-                 title="Auto-calculated from project start date. Editable. Double-click to reset.">
-          <button class="btn sm" style="flex-shrink:0;margin-left:auto" onclick="autoLbl()">AUTO LABEL</button>
-        </div>
-      </div>
-
-      <!-- CODE FIELD -->
-      <div class="fg">
-        <div class="fl">ENTRY CODE &#8212; XXXXX-XXXXX-XXXXX-XXXXX</div>
-        <input type="text" id="codef" maxlength="24"
-               placeholder="Generate below or enter manually"
-               autocomplete="off" spellcheck="false">
-        <div id="codest">Enter or generate a 20-character code</div>
-      </div>
-    </div>
-
-    <!-- SALT CODE GENERATOR -->
+    <!-- CODE GENERATOR (collapsible) -->
     <div id="salt-sec">
       <div class="salt-hdr" onclick="toggleSalt()">
-        <span id="salt-arrow">&#9660; SALT KEY</span>
+        <span id="salt-arrow">&#9660; CODE GENERATOR</span>
         <span id="salt-disp" style="font-size:11px;color:rgba(79,195,247,0.30)">SALT: &#8212;</span>
       </div>
       <div class="salt-body" id="salt-body">
@@ -491,41 +569,7 @@ select option{background:#001220;color:var(--blue);}
           </div>
         </div>
 
-        <div>
-          <div class="fl" style="margin-bottom:5px;">DATE &amp; TIME &#8212; sets the stardate used in the header and code</div>
-          <div class="dt5">
-            <div><div class="sub-fl">YEAR</div>
-              <input type="number" id="dt-year" min="1900" max="2500" value="2026"
-                     oninput="onDtChange()"></div>
-            <div><div class="sub-fl">MONTH</div>
-              <input type="number" id="dt-month" min="1" max="12" value="1"
-                     oninput="onDtChange()"></div>
-            <div><div class="sub-fl">DAY</div>
-              <input type="number" id="dt-day" min="1" max="31" value="1"
-                     oninput="onDtChange()"></div>
-            <div><div class="sub-fl">HOUR</div>
-              <input type="number" id="dt-hour" min="0" max="23" value="0"
-                     oninput="onDtChange()"></div>
-            <div><div class="sub-fl">MIN</div>
-              <input type="number" id="dt-min" min="0" max="59" value="0"
-                     oninput="onDtChange()"></div>
-          </div>
-          <div class="btn-row" style="margin-top:5px;">
-            <button class="btn sm" onclick="fillNow()">USE NOW</button>
-            <button class="btn sm r" onclick="clearDtFields()">CLEAR DATE</button>
-          </div>
-        </div>
-
-        <div id="doy-line">&#8212;</div>
-
-        <div>
-          <div class="fl" style="margin-bottom:5px;">ENTRY ID &#8212; locked to 1</div>
-          <div class="eid-row">
-            <input type="number" id="eid" value="1" readonly
-              style="width:90px;flex-shrink:0;opacity:0.35;cursor:not-allowed;pointer-events:none;">
-            <span style="font-size:11px;color:rgba(79,195,247,0.28);letter-spacing:0.05em;">FIXED &#8212; encoded into code</span>
-          </div>
-        </div>
+        <input type="hidden" id="eid" value="1">
 
         <button class="btn lg g" onclick="doGenerate()">&#9654; GENERATE CODE</button>
 
@@ -534,36 +578,6 @@ select option{background:#001220;color:var(--blue);}
           <button class="btn sm" onclick="cpGenCode()" id="cp-gen-btn" disabled>COPY</button>
           <button class="btn sm g" onclick="useGenCode()" id="use-gen-btn" disabled>USE</button>
         </div>
-      </div>
-    </div>
-
-    <!-- TYPE BADGE + LABEL -->
-    <div class="psec">
-      <div class="psec-title">CONTENT</div>
-      <div class="fg">
-        <div class="fl">TYPE &#160;&#160; LABEL &#8212; INTERNAL REFERENCE</div>
-        <div class="fr" style="align-items:center;gap:6px">
-          <span id="type-badge" class="full" style="flex-shrink:0">FULL</span>
-          <span id="clr-badge" style="flex-shrink:0">L1</span>
-          <input type="text" id="labf"
-                 placeholder="Log A-00 | Stardate 2026.139.1431"
-                 autocomplete="off" oninput="updJ()" style="flex:1">
-        </div>
-      </div>
-
-      <!-- LOG TEXT -->
-      <div class="fg">
-        <div class="fl">LOG TEXT</div>
-        <textarea id="logtxt"
-          placeholder="[Log A-00 | Stardate 2026.139.1431]&#10;CREATOR'S LOG &#8212; DAY 1&#10;&#10;[Your entry here]&#10;&#10;    &#8212;&#8212; Dev. J. Betancourt&#10;[END OF LOG]"></textarea>
-        <div class="cct"><span id="cct">0</span> CHARS</div>
-      </div>
-
-      <!-- L1 PREVIEW (classified) -->
-      <div class="fg" id="l1preg">
-        <div class="fl">L1 REDACTED PREVIEW &#8212; SHOWN BEFORE FULL L2 ACCESS</div>
-        <textarea id="l1pre"
-          placeholder="[REDACTED] discovered something on day [REDACTED]. L2 access required."></textarea>
       </div>
     </div>
 
@@ -860,7 +874,7 @@ function iv(id){ return parseInt(document.getElementById(id).value,10)||0; }
 function p2(n){ return String(n).padStart(2,'0'); }
 function p3(n){ return String(n).padStart(3,'0'); }
 
-function onDtChange() { updDoyLine(); updHeader(); updJ(); }
+function onDtChange() { updDoyLine(); updDayCt(); updHeader(); updJ(); }
 
 function updDoyLine() {
   var y  = iv('dt-year')||2026, mo = iv('dt-month')||1, d = iv('dt-day')||1;
@@ -889,34 +903,59 @@ function clearDtFields() {
   updHeader();
 }
 
-// ── LIVE HEADER PREVIEW ───────────────────────────────────────────────────────
+// ── LIVE HEADER PREVIEW ─────────────────────────────────────────────────────────────────────────────────
 function updHeader() {
   var id  = getLid();
   var sd  = getSDFromFields();
-  var day = document.getElementById('dayf').value || '?';
+  var lt  = (document.getElementById('logtype').value||'').trim().toUpperCase() || (mode==='dev'?"CREATOR'S LOG":'LOG');
   var line1 = '[Log '+id+' | Stardate '+sd+']';
-  var tpl   = document.getElementById('tpls').value;
-  var line2 = '';
-  if (tpl && TPLS[tpl]) {
-    // Extract the second line of the template as the title pattern
-    var body  = TPLS[tpl].body;
-    var lines = body.split('\n');
-    if (lines.length > 1) {
-      line2 = lines[1].replace(/\{DAY\}/g, day).replace(/\{ID\}/g, id).replace(/\{SD\}/g, sd);
-    }
-  } else if (mode === 'dev') {
-    line2 = "CREATOR'S LOG \u2014 DAY " + day;
-  } else {
-    line2 = "CAPTAIN'S LOG \u2014 DAY " + day;
-  }
+  var day = getEntryDay();
+  var line2 = day!==null ? (lt+' \u2014 DAY '+day) : lt;
   document.getElementById('hp-line1').textContent = line1;
   document.getElementById('hp-line2').textContent = line2;
 }
-
-function injHeader() {
-  var t = document.getElementById('hp-line1').textContent + '\n' + document.getElementById('hp-line2').textContent;
-  injIntoLog(t); toast('Header inserted');
+function getFullText(){
+  var body = document.getElementById('logtxt').value;
+  if(!body.trim()) return '';
+  var h1 = document.getElementById('hp-line1').textContent;
+  var h2 = document.getElementById('hp-line2').textContent;
+  return h1+'\n'+h2+'\n\n'+body;
 }
+// Strip a legacy baked-in header (bracketed line + title line + blank line)
+// off entries loaded from JSON so the Log Text box holds body-only content.
+function stripLegacyHeader(text){
+  var lines = text.split('\n');
+  if(lines.length && /^\[.*\]$/.test(lines[0].trim())){
+    var rest = lines.slice(1);
+    var idx = 0;
+    if(rest.length && rest[0].trim() && !/^\[/.test(rest[0].trim())) idx = 1;
+    while(rest[idx]!==undefined && rest[idx].trim()==='') idx++;
+    return rest.slice(idx).join('\n');
+  }
+  return text;
+}
+
+// ── DAY # (per-entry, opt-in) ───────────────────────────────────────────────────────────────────────────────────────────
+function getEntryDay(){
+  if(!document.getElementById('trkday').checked) return null;
+  var startVal = document.getElementById('daystart').value;
+  if(!startVal) return null;
+  var y=iv('dt-year')||new Date().getFullYear(), mo=iv('dt-month')||1, d=iv('dt-day')||1;
+  var entryDate = Date.UTC(y, mo-1, d);
+  var startDate = new Date(startVal+'T00:00:00Z').getTime();
+  var elapsed = Math.floor((entryDate - startDate) / 86400000);
+  return elapsed+1 > 0 ? elapsed+1 : 1;
+}
+function updDayCt(){
+  var d = getEntryDay();
+  document.getElementById('dayct').textContent = d===null ? '\u2014' : d;
+}
+function toggleTrackDay(){
+  var on = document.getElementById('trkday').checked;
+  document.getElementById('daystart-row').style.display = on?'flex':'none';
+  updDayCt(); updHeader(); updJ();
+}
+
 function injSD() {
   var sd = getSDFromFields();
   injIntoLog(sd); toast('Stardate inserted');
@@ -929,31 +968,20 @@ function injIntoLog(text) {
   ta.focus(); updCct(); updJ();
 }
 
-// ── DAY COUNTER ───────────────────────────────────────────────────────────────
-function getProjectDay(){
-  var sd = document.getElementById('startd').value || PROJECT_START_DEFAULT;
-  var elapsed = Math.floor((new Date() - new Date(sd+'T00:00:00')) / 86400000);
-  return elapsed+1 > 0 ? elapsed+1 : 1;
-}
-function updDayDisp(){
-  var el = document.getElementById('dayf');
-  if (!el.dataset.manual) { el.value = getProjectDay(); el.style.color='rgba(79,195,247,0.45)'; }
-}
-document.getElementById('dayf').addEventListener('input',function(){this.dataset.manual='1';this.style.color='var(--blue)';updHeader();updJ();});
-document.getElementById('dayf').addEventListener('dblclick',function(){delete this.dataset.manual;this.value=getProjectDay();this.style.color='rgba(79,195,247,0.45)';updHeader();updJ();});
-setInterval(function(){if(!document.getElementById('dayf').dataset.manual)updDayDisp();},60000);
-
-// ── SETTINGS ──────────────────────────────────────────────────────────────────
-function savSet(){
-  try{localStorage.setItem('echo_set',JSON.stringify({sig:document.getElementById('sigf').value,startd:document.getElementById('startd').value}));}catch(e){}
-  updDayDisp();
-}
-function lodSet(){
-  try{var s=JSON.parse(localStorage.getItem('echo_set')||'{}');
-    if(s.sig)document.getElementById('sigf').value=s.sig;
-    document.getElementById('startd').value=s.startd||PROJECT_START_DEFAULT;
-  }catch(e){document.getElementById('startd').value=PROJECT_START_DEFAULT;}
-  updDayDisp();
+// ── ECHOES DAY COUNTER (global, live, read-only) ────────────────────
+function updEchoesClock(){
+  var now = new Date();
+  var elapsed = Math.floor((now - new Date(PROJECT_START_DEFAULT+'T00:00:00')) / 86400000);
+  var dayCount = elapsed+1 > 0 ? elapsed+1 : 1;
+  document.getElementById('ec-daycount').textContent = dayCount;
+  var y=now.getFullYear(), mo=now.getMonth()+1, d=now.getDate(), h=now.getHours(), mi=now.getMinutes();
+  var doy=dayOfYear(y,mo,d);
+  document.getElementById('ec-stardate').textContent = buildSD(y,doy,h,mi);
+  try{
+    var parts = new Intl.DateTimeFormat('en-US',{timeZone:'America/Chicago',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).formatToParts(now);
+    var o={}; parts.forEach(function(p){o[p.type]=p.value;});
+    document.getElementById('ec-realtime').textContent = o.year+'.'+o.month+'.'+o.day+'.'+o.hour+'.'+o.minute+' CST';
+  }catch(e){}
 }
 
 // ── SALT ──────────────────────────────────────────────────────────────────────
@@ -1011,9 +1039,10 @@ function setMode(m){
   updHeader(); updJ();
 }
 function resetEditorForm(){
-  ['codef','labf','logtxt','l1pre','lidn','lidl','sigf'].forEach(function(id){document.getElementById(id).value='';});
-  delete document.getElementById('dayf').dataset.manual;
-  updDayDisp();
+  ['codef','labf','logtxt','l1pre','lidn','lidl','logtype'].forEach(function(id){document.getElementById(id).value='';});
+  document.getElementById('trkday').checked = (mode==='dev');
+  document.getElementById('daystart').value = (mode==='dev') ? PROJECT_START_DEFAULT : '';
+  toggleTrackDay();
   document.getElementById('codest').textContent='Enter or generate a 20-character code';
   document.getElementById('codest').className='';
   document.getElementById('codef').className='';
@@ -1075,65 +1104,86 @@ function setCode(c){document.getElementById('codef').value=c;valC(c.replace(/-/g
 
 // ── AUTO LABEL ────────────────────────────────────────────────────────────────
 function autoLbl(){
-  var id=getLid(), sd=getSDFromFields(), tt=typ!=='full'?' | '+typ.toUpperCase():'';
-  document.getElementById('labf').value=
-    mode==='dev'?"Creator's Log "+id+" | Stardate "+sd:"Log "+id+" | Stardate "+sd+tt;
+  var id=getLid(), sd=getSDFromFields();
+  var lt=(document.getElementById('logtype').value||'').trim() || (mode==='dev'?"Creator's Log":'Log');
+  var tt=typ!=='full'?' | '+typ.toUpperCase():'';
+  document.getElementById('labf').value=lt+' '+id+' | Stardate '+sd+tt;
   updJ();
 }
 
-// ── TEMPLATES ─────────────────────────────────────────────────────────────────
+// ── TEMPLATES ───────────────────────────────────────────────────────────────────────────────────────────
 var TPLS={
-  'captains':  {name:"CAPTAIN'S LOG",               body:"[Log {ID} | Stardate {SD}]\nCAPTAIN\u2019S LOG \u2014 DAY {DAY}\n\n[Your entry here]\n\n    \u2014\u2014 Capt. {SIG}"},
-  'survey':    {name:"SURVEY VESSEL LOG",            body:"[LOG {ID} | STARDATE {SD}]\nSURVEY VESSEL \u2014 CAPTAIN\u2019S LOG \u2014 DAY {DAY}\n\n[Your entry here]\n\n    \u2014\u2014 Capt. {SIG}\n\u2014".repeat(36)},
-  'research':  {name:"RESEARCH NOTES",               body:"[Log {ID} | Stardate {SD}]\nRESEARCH NOTES \u2014 DAY {DAY}\n\n[Your observations here]\n\n    \u2014\u2014 Dr. {SIG}"},
-  'engineering':{name:"ENGINEERING REPORT",          body:"[Log {ID} | Stardate {SD}]\nENGINEERING REPORT \u2014 DAY {DAY}\n\nSYSTEMS STATUS:\n[Status here]\n\nNOTES:\n[Notes here]\n\n    \u2014\u2014 Chief Engineer {SIG}"},
-  'incident':  {name:"INCIDENT REPORT",              body:"[INCIDENT REPORT {ID} | Stardate {SD}]\nCLASSIFICATION: [CLEARANCE LEVEL]\nDAY: {DAY}\n\nDESCRIPTION:\n[Details here]\n\nCASUALTIES: [REDACTED]\nSTATUS: [REDACTED]\n\n    \u2014\u2014 {SIG}"},
-  'personal':  {name:"PERSONAL LOG",                 body:"[Log {ID} | Stardate {SD}]\nPERSONAL LOG \u2014 DAY {DAY}\n\n[Your entry here]"},
-  'comms':     {name:"INTERCEPTED TRANSMISSION",     body:"[INTERCEPTED TRANSMISSION | Stardate {SD}]\nORIGIN: [CORRUPTED]\nINTEGRITY: PARTIAL\n\n[TRANSMISSION BEGINS]\n\n[Content here]\n\n[END TRANSMISSION]"},
-  'field':     {name:"FIELD NOTES",                  body:"[Field Notes {ID} | Stardate {SD}]\nLOCATION: [SECTOR]\nDAY: {DAY}\n\nOBSERVATIONS:\n[Notes here]\n\n    \u2014\u2014 {SIG}"},
-  'medical':   {name:"MEDICAL LOG",                  body:"[MEDICAL LOG {ID} | Stardate {SD}]\nDAY: {DAY}\nPATIENT: [REDACTED]\nCONDITION: [REDACTED]\n\n[Medical notes here]\n\n    \u2014\u2014 Medical Officer {SIG}"},
-  'creator':   {name:"CREATOR'S LOG",                body:"[Log {ID} | Stardate {SD}]\nCREATOR\u2019S LOG \u2014 DAY {DAY}\n\n[Your entry here]\n\n    \u2014\u2014 {SIG}\n[END OF LOG]"}
+  'captains':   {name:"CAPTAIN'S LOG",           logType:"CAPTAIN'S LOG",           trackDay:false, startDate:'', body:"[Your entry here]\n\n    —— Capt. [Signature]"},
+  'survey':     {name:"SURVEY VESSEL LOG",       logType:"SURVEY VESSEL LOG",       trackDay:false, startDate:'', body:"[Your entry here]\n\n    —— Capt. [Signature]\n"+'—'.repeat(36)},
+  'research':   {name:"RESEARCH NOTES",          logType:"RESEARCH NOTES",          trackDay:false, startDate:'', body:"[Your observations here]\n\n    —— Dr. [Signature]"},
+  'engineering':{name:"ENGINEERING REPORT",      logType:"ENGINEERING REPORT",      trackDay:false, startDate:'', body:"SYSTEMS STATUS:\n[Status here]\n\nNOTES:\n[Notes here]\n\n    —— Chief Engineer [Signature]"},
+  'incident':   {name:"INCIDENT REPORT",         logType:"INCIDENT REPORT",         trackDay:false, startDate:'', body:"CLASSIFICATION: [CLEARANCE LEVEL]\n\nDESCRIPTION:\n[Details here]\n\nCASUALTIES: [REDACTED]\nSTATUS: [REDACTED]\n\n    —— [Signature]"},
+  'personal':   {name:"PERSONAL LOG",            logType:"PERSONAL LOG",            trackDay:false, startDate:'', body:"[Your entry here]"},
+  'comms':      {name:"INTERCEPTED TRANSMISSION",logType:"INTERCEPTED TRANSMISSION",trackDay:false, startDate:'', body:"ORIGIN: [CORRUPTED]\nINTEGRITY: PARTIAL\n\n[TRANSMISSION BEGINS]\n\n[Content here]\n\n[END TRANSMISSION]"},
+  'field':      {name:"FIELD NOTES",             logType:"FIELD NOTES",             trackDay:false, startDate:'', body:"LOCATION: [SECTOR]\n\nOBSERVATIONS:\n[Notes here]\n\n    —— [Signature]"},
+  'medical':    {name:"MEDICAL LOG",             logType:"MEDICAL LOG",             trackDay:false, startDate:'', body:"PATIENT: [REDACTED]\nCONDITION: [REDACTED]\n\n[Medical notes here]\n\n    —— Medical Officer [Signature]"},
+  'creator':    {name:"CREATOR'S LOG",           logType:"CREATOR'S LOG",           trackDay:true,  startDate:'2025-10-23', body:"[Your entry here]\n\n    —— Dev. J. Betancourt\n[END OF LOG]"}
 };
 
 function rebuildTplSelect(selectVal){
   var sel=document.getElementById('tpls');
-  sel.innerHTML='<option value="">\u2014 select template \u2014</option>';
+  sel.innerHTML='<option value="">— select template —</option>';
   Object.keys(TPLS).forEach(function(k){var o=document.createElement('option');o.value=k;o.textContent=TPLS[k].name;sel.appendChild(o);});
   if(selectVal)sel.value=selectVal;
+  rebuildLogTypeList();
+}
+function rebuildLogTypeList(){
+  var dl=document.getElementById('logtype-list');
+  dl.innerHTML='';
+  var seen={};
+  Object.keys(TPLS).forEach(function(k){var n=TPLS[k].logType||TPLS[k].name;if(n&&!seen[n]){seen[n]=1;var o=document.createElement('option');o.value=n;dl.appendChild(o);}});
 }
 function onTplChange(){
   var k=document.getElementById('tpls').value;
-  if(!k){document.getElementById('tpl-name').value='';document.getElementById('tpl-body').value='';updHeader();return;}
-  document.getElementById('tpl-name').value=TPLS[k].name;
-  document.getElementById('tpl-body').value=TPLS[k].body;
-  updHeader();
+  if(!k){document.getElementById('tpl-name').value='';document.getElementById('tpl-logtype').value='';document.getElementById('tpl-trkday').checked=false;document.getElementById('tpl-daystart').value='';document.getElementById('tpl-body').value='';return;}
+  var t=TPLS[k];
+  document.getElementById('tpl-name').value=t.name;
+  document.getElementById('tpl-logtype').value=t.logType||'';
+  document.getElementById('tpl-trkday').checked=!!t.trackDay;
+  document.getElementById('tpl-daystart').value=t.startDate||'';
+  document.getElementById('tpl-body').value=t.body;
 }
 function applyTpl(){
   var k=document.getElementById('tpls').value;
   if(!k){toast('Select a template first');return;}
-  var body=document.getElementById('tpl-body').value||TPLS[k].body;
-  var id=getLid(), sd=getSDFromFields();
-  var day=document.getElementById('dayf').value||getProjectDay();
-  var sig=document.getElementById('sigf').value.trim()||'[SIG]';
+  var t=TPLS[k];
+  var body=document.getElementById('tpl-body').value||t.body;
+  if(t.logType)document.getElementById('logtype').value=t.logType;
+  if(typeof t.trackDay==='boolean'){
+    document.getElementById('trkday').checked=t.trackDay;
+    document.getElementById('daystart').value=t.startDate||(mode==='dev'?PROJECT_START_DEFAULT:'');
+    toggleTrackDay();
+  }
+  var id=getLid(), sd=getSDFromFields(), day=getEntryDay()||'';
   document.getElementById('logtxt').value=body
-    .replace(/\{ID\}/g,id).replace(/\{SD\}/g,sd)
-    .replace(/\{DAY\}/g,day).replace(/\{SIG\}/g,sig);
-  updCct();autoLbl();updJ();toast('Template applied');
+    .replace(/\{ID\}/g,id).replace(/\{SD\}/g,sd).replace(/\{DAY\}/g,day);
+  updCct();autoLbl();updHeader();updJ();toast('Template applied');
 }
 function saveTpl(){
   var k=document.getElementById('tpls').value;
   var name=document.getElementById('tpl-name').value.trim();
+  var logType=document.getElementById('tpl-logtype').value.trim();
+  var trackDay=document.getElementById('tpl-trkday').checked;
+  var startDate=document.getElementById('tpl-daystart').value;
   var body=document.getElementById('tpl-body').value;
   if(!name){toast('Enter a template name');return;}
   if(!body){toast('Template body cannot be empty');return;}
   var newKey=k||(name.toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/_+$/,''));
-  TPLS[newKey]={name:name,body:body};
+  TPLS[newKey]={name:name,logType:logType,trackDay:trackDay,startDate:startDate,body:body};
   rebuildTplSelect(newKey);onTplChange();toast('Template saved: '+name);saveTplsLocal();
 }
 function newTpl(){
   document.getElementById('tpls').value='';
   document.getElementById('tpl-name').value='NEW TEMPLATE';
-  document.getElementById('tpl-body').value='[Log {ID} | Stardate {SD}]\n{DAY}\n\n[Your entry here]\n\n    \u2014\u2014 {SIG}';
+  document.getElementById('tpl-logtype').value='';
+  document.getElementById('tpl-trkday').checked=false;
+  document.getElementById('tpl-daystart').value='';
+  document.getElementById('tpl-body').value='[Your entry here]\n\n    —— [Signature]';
 }
 function delTpl(){
   var k=document.getElementById('tpls').value;
@@ -1147,6 +1197,11 @@ function dlTpls(){
   var blob=new Blob([JSON.stringify(TPLS,null,2)],{type:'application/json'});
   var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='entry_templates.json';
   document.body.appendChild(a);a.click();document.body.removeChild(a);toast('Downloaded entry_templates.json');
+}
+function toggleTplSec(){
+  var el=document.getElementById('tpl-sec');
+  var isCollapsed=el.classList.toggle('collapsed');
+  document.getElementById('tpl-sec-arrow').innerHTML=(isCollapsed?'&#9658;':'&#9660;')+' TEMPLATE';
 }
 function toggleTplEditor(){
   var tpl=document.getElementById('tpl-editor'),arrow=document.getElementById('tpl-arrow');
@@ -1228,7 +1283,7 @@ function clearDecode(){
 
 // ── PREVIEW ───────────────────────────────────────────────────────────────────
 function updPrev(){
-  var code=getFmt(),text=document.getElementById('logtxt').value;
+  var code=getFmt(),text=getFullText();
   var pv=document.getElementById('preview'),isDev=mode==='dev';
   if(!code&&!text){pv.innerHTML='<span class="pd">Fill in a code and log text, then click PREVIEW</span>';updJ();return;}
   var SEP='\u2014'.repeat(36),ls=[];
@@ -1257,7 +1312,7 @@ function updPrev(){
 // ── JSON SNIPPET ──────────────────────────────────────────────────────────────
 function buildSnip(){
   var code=getFmt(),lbl=document.getElementById('labf').value.trim();
-  var text=document.getElementById('logtxt').value;
+  var text=getFullText();
   if(!code||!text)return null;
   var o={label:lbl||''};
   if(mode==='lore'){o.type=typ;o.clearance=clr;if(typ==='classified')o.l1_preview=document.getElementById('l1pre').value.trim()||'[REDACTED]';}
@@ -1279,7 +1334,7 @@ document.getElementById('labf').addEventListener('input',updJ);
 // ── ENTRY MANAGEMENT ─────────────────────────────────────────────────────────
 function saveEntry(){
   var code=getFmt();if(!code){toast('Enter a valid 20-character code first');return;}
-  var text=document.getElementById('logtxt').value.trim();if(!text){toast('Log text cannot be empty');return;}
+  var text=getFullText().trim();if(!text){toast('Log text cannot be empty');return;}
   var isUp=iData.hasOwnProperty(code);pushHist();
   var entry={label:document.getElementById('labf').value.trim()||''};
   entry.type=typ;entry.clearance=clr;
@@ -1435,15 +1490,20 @@ function lodEnt(code,e){
   activeCode=code;
   document.getElementById('codef').value=code;
   document.getElementById('labf').value=e.label||'';
-  document.getElementById('logtxt').value=e.text||'';
+  document.getElementById('logtxt').value=stripLegacyHeader(e.text||'');
   document.getElementById('l1pre').value=e.l1_preview||'';
   valC(code.replace(/-/g,''));
   if(e.type)setTyp(e.type);if(e.clearance)setClr(e.clearance);
   updCct();updPrev();highlightRow(code);
-  // Parse log ID letter/number from label
+  // Parse log ID letter/number and log type from label
   var idM=(e.label||'').match(/([A-Z])-(\d+)/i);
   if(idM){document.getElementById('lidl').value=idM[1].toUpperCase();document.getElementById('lidn').value=idM[2];}
-  // Decode code to backfill date/time/entry ID fields if salt is set
+  var ltM=(e.label||'').match(/^(.*?)\s+[A-Z]-\d+\s*\|/i);
+  document.getElementById('logtype').value=ltM?ltM[1].trim():'';
+  document.getElementById('trkday').checked=(mode==='dev');
+  document.getElementById('daystart').value=(mode==='dev')?PROJECT_START_DEFAULT:'';
+  toggleTrackDay();
+  // Decode code to backfill date/time fields if salt is set
   if(saltValue&&saltValue>=1){
     var dec=decodeEntry(code,saltValue);
     if(dec.valid){
@@ -1452,13 +1512,10 @@ function lodEnt(code,e){
       document.getElementById('dt-day').value=dec.day;
       document.getElementById('dt-hour').value=dec.hour;
       document.getElementById('dt-min').value=dec.minute;
-      document.getElementById('eid').value=dec.entryId;
       onDtChange();
     }
   }
-  // Parse signature from log text (line starting with —— or -- )
-  var sigM=null;var _st=e.text||'';var _di=_st.indexOf('\u2014\u2014');if(_di<0)_di=_st.indexOf('--');if(_di>=0){var _sl=_st.slice(_di+2).split(' ').filter(function(s){return s.length>0;});if(_sl.length)sigM=[null,_sl.join(' ').split('\u000a')[0].trim()];}
-  if(sigM&&sigM[1])document.getElementById('sigf').value=sigM[1].trim();
+  updHeader();
   toast('Loaded: '+code);
 }
 
@@ -1485,13 +1542,14 @@ function autoSave(){
       l1p:document.getElementById('l1pre').value,
       lidn:document.getElementById('lidn').value,
       lidl:document.getElementById('lidl').value,
+      logtype:document.getElementById('logtype').value,
+      trkday:document.getElementById('trkday').checked,
+      daystart:document.getElementById('daystart').value,
       dty:document.getElementById('dt-year').value,
       dtmo:document.getElementById('dt-month').value,
       dtd:document.getElementById('dt-day').value,
       dth:document.getElementById('dt-hour').value,
-      dtmi:document.getElementById('dt-min').value,
-      eid:document.getElementById('eid').value,
-      day:document.getElementById('dayf').dataset.manual?document.getElementById('dayf').value:''
+      dtmi:document.getElementById('dt-min').value
     }));
     var i=document.getElementById('as-ind');i.classList.add('show');setTimeout(function(){i.classList.remove('show');},1500);
     }catch(e){}},1200);
@@ -1505,13 +1563,15 @@ function restore(){
     if(s.l1p)document.getElementById('l1pre').value=s.l1p;
     if(s.lidn)document.getElementById('lidn').value=s.lidn;
     if(s.lidl)document.getElementById('lidl').value=s.lidl;
+    if(s.logtype)document.getElementById('logtype').value=s.logtype;
+    if(typeof s.trkday==='boolean')document.getElementById('trkday').checked=s.trkday;
+    if(s.daystart)document.getElementById('daystart').value=s.daystart;
+    toggleTrackDay();
     if(s.dty)document.getElementById('dt-year').value=s.dty;
     if(s.dtmo)document.getElementById('dt-month').value=s.dtmo;
     if(s.dtd)document.getElementById('dt-day').value=s.dtd;
     if(s.dth)document.getElementById('dt-hour').value=s.dth;
     if(s.dtmi)document.getElementById('dt-min').value=s.dtmi;
-    if(s.eid)document.getElementById('eid').value=s.eid;
-    if(s.day){document.getElementById('dayf').value=s.day;document.getElementById('dayf').dataset.manual='1';document.getElementById('dayf').style.color='var(--blue)';}
     updCct();updJ();onDtChange();
     if(s.text||s.code)toast('Session restored');
   }catch(e){}
@@ -1529,11 +1589,12 @@ updFstat('dev','none','');
 document.getElementById('stf-btn').disabled=true;
 updUrUI();
 loadSalt();
-lodSet();
 lodTplsLocal();
 fillNow();
 restore();
 updHeader();
+updEchoesClock();
+setInterval(updEchoesClock, 15000);
 
 // ── TOOL VERSION = COMMIT ID ─────────────────────────────────────────────────
 (function(){
