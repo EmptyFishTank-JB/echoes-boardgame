@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<RSLogix5000Content SchemaRevision="1.0" SoftwareRevision="32.00" TargetName="Main" TargetType="Rung" TargetCount="13" ContainsContext="true" ExportOptions="NoRawData L5KData ForceProtectedEncoding AllProjDocTrans">
+<Controller Use="Context" Name="Controller">
+<DataTypes Use="Context"/>
+<Tags Use="Context">
+<Tag Name="Run_Enable" TagType="Base" DataType="BOOL" Radix="Decimal" Constant="false" ExternalAccess="Read/Write"><Description><![CDATA[1 = signal sequence runs. 0 = sequence paused, all reds on]]></Description><Data Format="L5K"><![CDATA[0]]></Data></Tag>
+<Tag Name="State" TagType="Base" DataType="DINT" Radix="Decimal" Constant="false" ExternalAccess="Read/Write"><Description><![CDATA[0=NS green, 1=NS yellow, 2=EW green, 3=EW yellow]]></Description><Data Format="L5K"><![CDATA[0]]></Data></Tag>
+<Tag Name="Green_Time" TagType="Base" DataType="DINT" Radix="Decimal" Constant="false" ExternalAccess="Read/Write"><Description><![CDATA[Green duration in ms]]></Description><Data Format="L5K"><![CDATA[10000]]></Data></Tag>
+<Tag Name="Yellow_Time" TagType="Base" DataType="DINT" Radix="Decimal" Constant="false" ExternalAccess="Read/Write"><Description><![CDATA[Yellow duration in ms]]></Description><Data Format="L5K"><![CDATA[3000]]></Data></Tag>
+<Tag Name="Phase_TMR" TagType="Base" DataType="TIMER" Constant="false" ExternalAccess="Read/Write"><Data Format="L5K"><![CDATA[[0,10000,0]]]></Data></Tag>
+<Tag Name="NS_Green" TagType="Base" DataType="BOOL" Radix="Decimal" Constant="false" ExternalAccess="Read/Write"><Data Format="L5K"><![CDATA[0]]></Data></Tag>
+<Tag Name="NS_Yellow" TagType="Base" DataType="BOOL" Radix="Decimal" Constant="false" ExternalAccess="Read/Write"><Data Format="L5K"><![CDATA[0]]></Data></Tag>
+<Tag Name="NS_Red" TagType="Base" DataType="BOOL" Radix="Decimal" Constant="false" ExternalAccess="Read/Write"><Data Format="L5K"><![CDATA[0]]></Data></Tag>
+<Tag Name="EW_Green" TagType="Base" DataType="BOOL" Radix="Decimal" Constant="false" ExternalAccess="Read/Write"><Data Format="L5K"><![CDATA[0]]></Data></Tag>
+<Tag Name="EW_Yellow" TagType="Base" DataType="BOOL" Radix="Decimal" Constant="false" ExternalAccess="Read/Write"><Data Format="L5K"><![CDATA[0]]></Data></Tag>
+<Tag Name="EW_Red" TagType="Base" DataType="BOOL" Radix="Decimal" Constant="false" ExternalAccess="Read/Write"><Data Format="L5K"><![CDATA[0]]></Data></Tag>
+</Tags>
+<Programs Use="Context">
+<Program Use="Context" Name="MainProgram">
+<Routines Use="Context">
+<Routine Use="Context" Name="Main">
+<RLLContent Use="Context">
+<Rung Use="Target" Number="0" Type="N"><Comment><![CDATA[State 0 (NS green / EW red): load green time.]]></Comment><Text><![CDATA[EQU(State,0)MOV(Green_Time,Phase_TMR.PRE);]]></Text></Rung>
+<Rung Use="Target" Number="1" Type="N"><Comment><![CDATA[State 1 (NS yellow / EW red): load yellow time.]]></Comment><Text><![CDATA[EQU(State,1)MOV(Yellow_Time,Phase_TMR.PRE);]]></Text></Rung>
+<Rung Use="Target" Number="2" Type="N"><Comment><![CDATA[State 2 (EW green / NS red): load green time.]]></Comment><Text><![CDATA[EQU(State,2)MOV(Green_Time,Phase_TMR.PRE);]]></Text></Rung>
+<Rung Use="Target" Number="3" Type="N"><Comment><![CDATA[State 3 (EW yellow / NS red): load yellow time.]]></Comment><Text><![CDATA[EQU(State,3)MOV(Yellow_Time,Phase_TMR.PRE);]]></Text></Rung>
+<Rung Use="Target" Number="4" Type="N"><Comment><![CDATA[Step timer. Runs while the sequence is enabled.]]></Comment><Text><![CDATA[XIC(Run_Enable)TON(Phase_TMR,10000,0);]]></Text></Rung>
+<Rung Use="Target" Number="5" Type="N"><Comment><![CDATA[Timer done: advance to the next state and restart the timer.]]></Comment><Text><![CDATA[XIC(Phase_TMR.DN)ADD(State,1,State)RES(Phase_TMR);]]></Text></Rung>
+<Rung Use="Target" Number="6" Type="N"><Comment><![CDATA[Wrap back to state 0 after state 3.]]></Comment><Text><![CDATA[GEQ(State,4)MOV(0,State);]]></Text></Rung>
+<Rung Use="Target" Number="7" Type="N"><Comment><![CDATA[North/South green.]]></Comment><Text><![CDATA[XIC(Run_Enable)EQU(State,0)OTE(NS_Green);]]></Text></Rung>
+<Rung Use="Target" Number="8" Type="N"><Comment><![CDATA[North/South yellow.]]></Comment><Text><![CDATA[XIC(Run_Enable)EQU(State,1)OTE(NS_Yellow);]]></Text></Rung>
+<Rung Use="Target" Number="9" Type="N"><Comment><![CDATA[North/South red (also on when sequence is disabled).]]></Comment><Text><![CDATA[[XIO(Run_Enable) ,EQU(State,2) ,EQU(State,3) ]OTE(NS_Red);]]></Text></Rung>
+<Rung Use="Target" Number="10" Type="N"><Comment><![CDATA[East/West green.]]></Comment><Text><![CDATA[XIC(Run_Enable)EQU(State,2)OTE(EW_Green);]]></Text></Rung>
+<Rung Use="Target" Number="11" Type="N"><Comment><![CDATA[East/West yellow.]]></Comment><Text><![CDATA[XIC(Run_Enable)EQU(State,3)OTE(EW_Yellow);]]></Text></Rung>
+<Rung Use="Target" Number="12" Type="N"><Comment><![CDATA[East/West red (also on when sequence is disabled).]]></Comment><Text><![CDATA[[XIO(Run_Enable) ,EQU(State,0) ,EQU(State,1) ]OTE(EW_Red);]]></Text></Rung>
+</RLLContent>
+</Routine>
+</Routines>
+</Program>
+</Programs>
+</Controller>
+</RSLogix5000Content>
