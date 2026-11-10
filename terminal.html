@@ -245,7 +245,11 @@ body.in-archive #t-breadcrumb{opacity:0!important;}
   .t-line{font-size:12px;}
   #t-input-row{padding:14px 14px 16px;}
   #t-header{padding:0 4px 8px;font-size:10px;gap:3px 10px;flex-wrap:wrap;}
-  #t-title{flex:1 1 100%;}   /* the vessel name is long: it gets its own row, breadcrumb and clock share the next */
+  /* The vessel name is long: it gets its own row. The stardate sits under it on the left; a breadcrumb, when there is one, takes a row of its own. */
+  #t-title{flex:1 1 100%;}
+  #t-meta{order:2;margin-right:auto;}
+  #t-breadcrumb{order:3;flex:1 1 100%;text-align:left;}
+  #t-breadcrumb:empty,body.in-archive #t-breadcrumb{display:none;}   /* the archive view shows the address bar instead */
   #t-breadcrumb{font-size:9.5px;}
   #t-version{display:none;}
   #t-clock{font-size:10px;}
