@@ -139,7 +139,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;heigh
 <div id="editor">
   <div class="ephdr" id="ed-hdr">&#9658; ENGINE EDITOR</div>
   <div id="escroll">
-    <div id="no-sel">Load engine_config.json to begin.<br><br>Optionally load nodes.json to sync layers.</div>
+    <div id="no-sel">Load engine_config.json to begin.<br><br>Optionally load echo-os.json to sync layers.</div>
     <div id="sec-form" style="display:none;flex-direction:column;gap:10px;"></div>
   </div>
 </div>
@@ -276,11 +276,11 @@ function setFstat(n,c,sha){
 async function loadNodesFromGitHub(){
   nodesFileHandle=null;
   try{
-    var r=await fetch(GH_RAW_BASE+'nodes.json?v='+Date.now());
+    var r=await fetch(GH_RAW_BASE+'echo-os.json?v='+Date.now());
     if(!r.ok)throw new Error('HTTP '+r.status);
     var raw=JSON.parse(await r.text());
-    var sha=await fetchLatestSha('terminal-data/nodes.json');
-    loadNodes(raw,'nodes.json',sha);
+    var sha=await fetchLatestSha('terminal-data/echo-os.json');
+    loadNodes(raw,'echo-os.json',sha);
   }catch(e){toast('GitHub fetch failed: '+e.message);}
 }
 async function openNodesFile(){
@@ -476,7 +476,7 @@ function mkColorsEditor(){
   var wrap=document.createElement('div');
   var note=document.createElement('div');note.className='fl';note.style.marginBottom='4px';
   note.textContent='Colors per layer. DIM and LO are derived from PRIMARY at set opacity.';
-  if(nodesData) note.textContent+=' Layer list sourced from nodes.json ('+lids.length+' layers).';
+  if(nodesData) note.textContent+=' Layer list sourced from echo-os.json ('+lids.length+' layers).';
   wrap.appendChild(note);
   lids.forEach(function(lid){
     var col=getLayerColor(lid);

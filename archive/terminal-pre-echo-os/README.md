@@ -6,3 +6,6 @@ file except echo-os.json (the migrated tree), and the four terminal-related edit
 
 Restore: copy terminal.html and terminal-data/*.json back to the repo root locations.
 Exact pre-snapshot state: commit a19ef18 (also restorable with `git checkout a19ef18`).
+
+The old node-graph editor, nodes.json and the one-time migration script live only here now (removed from
+dev-tools/ and terminal-data/ when Echo O.S. phase 5 retired them). Editing now happens in the terminal itself.

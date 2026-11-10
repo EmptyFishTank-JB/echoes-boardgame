@@ -400,7 +400,7 @@ async function runScript(){
   output.innerHTML='';inputRow.style.display='none';cursorEl=null;
   await sleep(800);
 
-  // ── PHASE 1: BOOT_NODE body[] — header and narrative from nodes.json ──────
+  // ── PHASE 1: BOOT_NODE body[] — header and narrative from echo-os.json ────
   var bootNode=archData&&archData.nodes&&archData.nodes['BOOT_NODE'];
   if(bootNode&&bootNode.body&&bootNode.body.length){
     for(var bi=0;bi<bootNode.body.length;bi++){
@@ -639,7 +639,7 @@ function fetchCommitVersion(){
   });
 }
 // Per-file commit IDs shown on the boot screen's subsystem check lines.
-// Keys match the file_status.* dynamic variables in nodes.json.
+// Keys match the file_status.* dynamic variables used by the screens in echo-os.json.
 var _fileCommits={personality:null,lore:null,devlogs:null,nodes:null,engine:null};
 var FILE_COMMIT_PATHS={
   personality:'terminal-data/personality.json',
@@ -676,7 +676,7 @@ function applyEngineConfig(c){
   if(c.version_string)    CFG_VERSION      = c.version_string;
   if(c.terminal_title)    CFG_TITLE        = c.terminal_title;
   if(c.terminal_strings)  Object.assign(CFG_STRINGS, c.terminal_strings);
-  // l2a_intro, l3a_intro removed — content lives in L2A_INTRO/L3A_INTRO nodes in nodes.json
+  // l2a_intro, l3a_intro removed — content lives in the L2A_INTRO/L3A_INTRO screens in echo-os.json
   // Update visible UI if already rendered
   var btn=document.getElementById('power-btn');if(btn&&CFG_POWER_BTN) btn.textContent=CFG_POWER_BTN;
   // Version display is the live commit ID only — engine_config's
@@ -850,7 +850,7 @@ function buildArchFromOS(os){
   return {layers:os.layers || {}, nodes:nodes};
 }
 
-// Find the root node for a given layer ID by looking for is_root:true in nodes.json
+// Find the root node for a given layer ID by looking for is_root:true in the adapted echo-os.json tree
 function layerRootId(layerIdOrLevel){
   var lid=typeof layerIdOrLevel==='number'?'l'+layerIdOrLevel+'a':layerIdOrLevel;
   if(!archData||!archData.nodes) return null;
@@ -1425,7 +1425,7 @@ function showIdleMsg(){
   idleTimer=setTimeout(showIdleMsg,CFG_IDLE_MS||IDLE_MS_FB);
 }
 
-// ── HELP — renders help node body[] from nodes.json ──────────────────────────
+// ── HELP — renders help node body[] ──────────────────────────────────────────
 async function renderHelpNode(cmd){
   // If command has a target node, render its body[]
   var nodeId=cmd&&cmd.target?cmd.target:null;
@@ -1729,7 +1729,7 @@ async function tryBuiltin(val, inArchive){
 }
 
 // ── SYSTEM OVERRIDE ────────────────────────────────────────────────────────────
-// Hardcoded, string-matched before any archData/nodes.json lookup — this has
+// Hardcoded, string-matched before any archData/echo-os.json lookup — this has
 // to survive even a fully broken or failed archive load, so it can never
 // depend on the data it exists to diagnose. Typeable from any state.
 var overrideFadeEl=document.getElementById('override-fade');
@@ -1768,7 +1768,7 @@ function printOverrideMenu(){
 }
 // Jump commands replace the old DEV_OVERRIDE_ROOT node — same destinations
 // (L1A_ROOT/L2A_ROOT/L3A_ROOT), now hardcoded here instead of living as
-// discoverable nodes.json content, since they're a dev tool, not lore.
+// discoverable echo-os.json content, since they're a dev tool, not lore.
 async function overrideJumpToLayer(level){
   var targetId=level===1?'L1A_ROOT':level===2?'L2A_ROOT':'L3A_ROOT';
   if(!archData||!archData.nodes||!archData.nodes[targetId]){

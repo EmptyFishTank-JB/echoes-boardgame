@@ -3,7 +3,7 @@
     "version": "33.0",
     "description": "ECHOES Terminal Engine Configuration",
     "last_saved": "2026-05-29",
-    "schema_notes": "l2_intro, l3_intro, destruct_at removed — intros live in nodes.json, self_destruct lives in personality.json",
+    "schema_notes": "l2_intro, l3_intro, destruct_at removed — intros live in echo-os.json, self_destruct lives in personality.json",
     "editor_version": "4.1"
   },
   "power_button_text": "[ Power On / Initialize ]",

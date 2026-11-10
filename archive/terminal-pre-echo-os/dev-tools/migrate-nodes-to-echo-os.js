@@ -1,7 +1,8 @@
 #!/usr/bin/env node
-// ONE-TIME migration, already run: terminal-data/echo-os.json is now edited directly and is the source of truth.
-// Do not re-run this; it would overwrite hand edits (hidden gateway, program items, anything authored since).
-// Kept for reference. Original usage: node dev-tools/migrate-nodes-to-echo-os.js
+// ONE-TIME migration, already run. Archived for reference only.
+// The live terminal-data/echo-os.json is the source of truth and is edited in the terminal itself ([AUTHOR UNLOCK]).
+// This copy reads the archived nodes.json beside it and writes echo-os.migrated.json next to this script,
+// so it can never overwrite the live file.
 'use strict';
 const fs = require('fs');
 const path = require('path');
@@ -153,7 +154,7 @@ Object.keys(flat).forEach((id) => { if (seen.has(id)) errors.push('duplicate id 
 Object.keys(flat).forEach((id) => flat[id].commands.forEach((c) => { if (!flat[c.goto]) errors.push('goto dangling: ' + id + ' -> ' + c.goto); }));
 commands.forEach((c) => { if (!screens[c.screen]) errors.push('command screen missing: ' + c.alias + ' -> ' + c.screen); });
 
-fs.writeFileSync(path.join(DATA, 'echo-os.json'), JSON.stringify(os, null, 2) + '\n');
+fs.writeFileSync(path.join(__dirname, 'echo-os.migrated.json'), JSON.stringify(os, null, 2) + '\n');
 
 console.log('items: ' + Object.keys(flat).length + ' (incl. ROOT), screens: ' + Object.keys(screens).length + ', commands: ' + commands.length);
 console.log('stubs kept as hidden placeholders: ' + report.stubs.length);
