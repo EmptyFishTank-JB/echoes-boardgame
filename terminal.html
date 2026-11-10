@@ -93,6 +93,8 @@ body::after{content:"";position:fixed;inset:-50%;z-index:2;pointer-events:none;
 #power-btn:hover{background:rgba(79,195,247,0.10);border-color:#4fc3f7;
   box-shadow:inset 0 0 32px rgba(79,195,247,0.18),0 0 32px rgba(79,195,247,0.18);
   text-shadow:0 0 4px #4fc3f7;}
+#power-title{font-family:'Share Tech Mono',monospace;font-size:12px;letter-spacing:0.26em;line-height:1.9;
+  color:rgba(79,195,247,0.55);text-align:center;max-width:min(92vw,640px);text-transform:uppercase;}
 #power-sub{font-family:'Share Tech Mono',monospace;font-size:11px;color:rgba(79,195,247,0.28);
   letter-spacing:0.16em;}
 @keyframes blink{0%,49%{opacity:1}50%,100%{opacity:0}}
@@ -226,6 +228,7 @@ body.in-program #terminal-box{border:3px double var(--theme-bc);}
   #t-version{display:none;}
   #t-clock{font-size:10px;}
   #power-btn{font-size:13px;padding:14px 24px;}
+  #power-title{font-size:10px;letter-spacing:0.18em;}
   #power-sub{font-size:10px;}
 }
 </style>
@@ -235,6 +238,7 @@ body.in-program #terminal-box{border:3px double var(--theme-bc);}
 <div id="vignette"></div>
 <div id="override-fade"></div>
 <div id="power-overlay">
+  <div id="power-title">Expedition Control Hub for Operations &amp; Environmental Systems</div>
   <button id="power-btn">[ Power On / Initialize ]</button>
   <div id="power-sub"></div>
 </div>
@@ -393,12 +397,13 @@ function setActiveCursor(el){
   if(el) el.classList.add('t-cursor');
 }
 
+var holdScroll=false;   // true while a page is drawn: it opens at the top instead of following the last line
 function addLine(cls,phosphor){
   var el=document.createElement('div');
   el.className='t-line '+(cls||'');
   if(phosphor) el.classList.add('phos');
   output.appendChild(el);
-  output.scrollTop=output.scrollHeight;
+  if(!holdScroll) output.scrollTop=output.scrollHeight;
   return el;
 }
 
@@ -447,7 +452,7 @@ var FILE_CHECK_MAP = [
   {ready:function(){return _perReady;},  ok:function(){return !!personality;}},
   {ready:function(){return _lorReady;},  ok:function(){return !!loreData;}},
   {ready:function(){return _devReady;},  ok:function(){return !!devLogs;}},
-  {ready:function(){return _archReady;}, ok:function(){return !!archData;}},
+  {ready:function(){return _archReady;}, ok:function(){return navOk();}},
   {ready:function(){return _engReady;},  ok:function(){return !!engineConfig;}}
 ];
 
@@ -530,6 +535,18 @@ async function runScript(){
           }
         }
       }
+    }else if(!typingAbort){
+      // The landing screen lives in echo-os.json. If that file is missing or unusable, draw the subsystem
+      // checks from code so a broken data file still reports itself instead of showing a blank terminal.
+      var fbChecks=[['file_status.personality','CREW BEHAVIORAL MATRIX ------'],['file_status.lore','ARCHIVE LOG DATABASE --------'],
+        ['file_status.devlogs','DEVELOPMENT RECORDS ---------'],['file_status.nodes','NAVIGATION ARCHITECTURE -----'],['file_status.engine','CORE ENGINE PARAMETERS ------']];
+      var fbHead=addLine('dim');await typeLine(fbHead,'> VERIFYING SUBSYSTEM CONNECTIONS...');await sleep(120);
+      fbChecks.forEach(function(c){
+        var r=resolveDynamic({variable:c[0],display_label:c[1],valid_text:'OK',denied_text:'ERROR',label_cls:'full',value_cls:'full'});
+        var fl=addLine(r.cls||'dim');renderDynLine(fl,r);
+      });
+      var fbSt=resolveDynamic({variable:'system.boot_status',valid_text:'FULL ACCESS',denied_text:'DEGRADED',value_cls:'full'});
+      addLine(fbSt.cls||'full').textContent=fbSt.text;
     }
   }
 
@@ -541,6 +558,9 @@ async function runScript(){
   }
   typing=false;
 }
+
+// The navigation file counts as loaded only if the tree has a layer 1 archive root.
+function navOk(){ return !!(archData && layerRootId('l1a')); }
 
 // Find the root chat node for a given layer
 function findChatRootNode(layerId){
@@ -979,7 +999,7 @@ function resolveDynamic(b){
   if(variable==='file_status.personality'){ok=!!personality;}
   else if(variable==='file_status.lore'){ok=!!loreData;}
   else if(variable==='file_status.devlogs'){ok=!!devLogs;}
-  else if(variable==='file_status.nodes'){ok=!!archData;}
+  else if(variable==='file_status.nodes'){ok=navOk();}
   else if(variable==='file_status.engine'){ok=!!engineConfig;}
   else if(variable==='system.boot_status'){
     var fails=window._bootFailCount||0;
@@ -1110,7 +1130,9 @@ async function renderArchivePage(nodeId, notes){
   lines.push({text:'',cls:'blank'});
   lines.push({text:'> AWAITING INPUT',cls:'low'});
   setView(!!osPage||archiveView);renderAddr(nodeId);
-  await printInstant(lines,22);
+  holdScroll=true;
+  try{ await printInstant(lines,22); } finally{ holdScroll=false; }
+  output.scrollTop=0;   // long documents open at their first line
   setBreadcrumb(node?node.breadcrumb||'':'');
   termState=nodeId;currentMenuOpts=opts;menuSelIdx=-1;termInput.value='';
   updateInvertHighlight();setActiveCursor(output.lastElementChild);termInput.focus();

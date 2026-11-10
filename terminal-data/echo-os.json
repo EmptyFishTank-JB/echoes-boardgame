@@ -45,11 +45,11 @@
   },
   "glyphs": {
     "folder": "\\",
-    "doc": "\u2261",
-    "log": "\u25aa",
-    "program": "\u25ba",
-    "gateway": "\u00bb",
-    "up": "\u21b0",
+    "doc": "≡",
+    "log": "▪",
+    "program": "►",
+    "gateway": "»",
+    "up": "↰",
     "eyeOn": "(o)",
     "eyeOff": "(-)"
   },
@@ -105,117 +105,122 @@
       "breadcrumb": "ECHOES.ARCHIVE > TERMINAL CONSOLE",
       "footer": "",
       "body": [
-      {
-        "type": "art",
-        "wide": {
-          "cols": 50,
-          "rows": [
-            [
-              {
-                "t": "    ______________  __ ",
-                "c": "full"
-              },
-              {
-                "t": "   ____  ___________",
-                "c": "lo"
-              }
-            ],
-            [
-              {
-                "t": "   / ____/ ____/ / / / ",
-                "c": "full"
-              },
-              {
-                "t": "  / __ \\/ ____/ ___/",
-                "c": "lo"
-              }
-            ],
-            [
-              {
-                "t": "  / __/ / /   / /_/ /  ",
-                "c": "full"
-              },
-              {
-                "t": " / / / / __/  \\__ \\",
-                "c": "lo"
-              }
-            ],
-            [
-              {
-                "t": " / /___/ /___/ __  /   ",
-                "c": "full"
-              },
-              {
-                "t": "/ /_/ / /___ ___/ /",
-                "c": "lo"
-              }
-            ],
-            [
-              {
-                "t": "/_____/\\____/_/ /_/    ",
-                "c": "full"
-              },
-              {
-                "t": "\\____/_____//____/",
-                "c": "lo"
-              },
-              {
-                "t": "   O.S.",
-                "c": "dim"
-              }
+        {
+          "type": "art",
+          "wide": {
+            "cols": 50,
+            "rows": [
+              [
+                {
+                  "t": "    ______________  __ ",
+                  "c": "full"
+                },
+                {
+                  "t": "   ____  ___________",
+                  "c": "lo"
+                }
+              ],
+              [
+                {
+                  "t": "   / ____/ ____/ / / / ",
+                  "c": "full"
+                },
+                {
+                  "t": "  / __ \\/ ____/ ___/",
+                  "c": "lo"
+                }
+              ],
+              [
+                {
+                  "t": "  / __/ / /   / /_/ /  ",
+                  "c": "full"
+                },
+                {
+                  "t": " / / / / __/  \\__ \\",
+                  "c": "lo"
+                }
+              ],
+              [
+                {
+                  "t": " / /___/ /___/ __  /   ",
+                  "c": "full"
+                },
+                {
+                  "t": "/ /_/ / /___ ___/ /",
+                  "c": "lo"
+                }
+              ],
+              [
+                {
+                  "t": "/_____/\\____/_/ /_/    ",
+                  "c": "full"
+                },
+                {
+                  "t": "\\____/_____//____/",
+                  "c": "lo"
+                },
+                {
+                  "t": "   O.S.",
+                  "c": "dim"
+                }
+              ]
             ]
-          ]
+          },
+          "narrow": {
+            "cols": 36,
+            "rows": [
+              [
+                {
+                  "t": " ___ ___ _  _  ",
+                  "c": "full"
+                },
+                {
+                  "t": "  ___  ___ ___",
+                  "c": "lo"
+                }
+              ],
+              [
+                {
+                  "t": "| __/ __| || | ",
+                  "c": "full"
+                },
+                {
+                  "t": " / _ \\| __/ __|",
+                  "c": "lo"
+                }
+              ],
+              [
+                {
+                  "t": "| _| (__| __ | ",
+                  "c": "full"
+                },
+                {
+                  "t": "| (_) | _|\\__ \\",
+                  "c": "lo"
+                }
+              ],
+              [
+                {
+                  "t": "|___\\___|_||_| ",
+                  "c": "full"
+                },
+                {
+                  "t": " \\___/|___|___/",
+                  "c": "lo"
+                },
+                {
+                  "t": "  O.S.",
+                  "c": "dim"
+                }
+              ]
+            ]
+          }
         },
-        "narrow": {
-          "cols": 36,
-          "rows": [
-            [
-              {
-                "t": " ___ ___ _  _  ",
-                "c": "full"
-              },
-              {
-                "t": "  ___  ___ ___",
-                "c": "lo"
-              }
-            ],
-            [
-              {
-                "t": "| __/ __| || | ",
-                "c": "full"
-              },
-              {
-                "t": " / _ \\| __/ __|",
-                "c": "lo"
-              }
-            ],
-            [
-              {
-                "t": "| _| (__| __ | ",
-                "c": "full"
-              },
-              {
-                "t": "| (_) | _|\\__ \\",
-                "c": "lo"
-              }
-            ],
-            [
-              {
-                "t": "|___\\___|_||_| ",
-                "c": "full"
-              },
-              {
-                "t": " \\___/|___|___/",
-                "c": "lo"
-              },
-              {
-                "t": "  O.S.",
-                "c": "dim"
-              }
-            ]
-          ]
-        }
-      },
+        {
+          "type": "text",
+          "text": "EXPEDITION CONTROL HUB FOR OPERATIONS & ENVIRONMENTAL SYSTEMS",
+          "cls": "dim"
+        },
         {
           "type": "text",
           "text": "ECHOES — SHIP SYSTEM TERMINAL 426",
@@ -882,6 +887,417 @@
             "commands": []
           },
           {
+            "id": "L1A_VESSEL_SYSTEMS",
+            "type": "folder",
+            "name": "VESSEL SYSTEMS",
+            "alias": "[VESSEL SYSTEMS]",
+            "tier": 1,
+            "hidden": false,
+            "title": "VESSEL SYSTEMS",
+            "footer": "",
+            "body": [],
+            "children": [
+              {
+                "id": "L1A_COMMISSIONING_NOTICE",
+                "type": "doc",
+                "name": "COMMISSIONING NOTICE",
+                "alias": "[COMMISSIONING NOTICE]",
+                "tier": 1,
+                "hidden": false,
+                "title": "COMMISSIONING NOTICE",
+                "footer": "",
+                "body": [
+                  {
+                    "type": "text",
+                    "text": "E.C.H.O.E.S.",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "EXPEDITION CONTROL HUB FOR",
+                    "cls": "dim"
+                  },
+                  {
+                    "type": "text",
+                    "text": "OPERATIONS & ENVIRONMENTAL SYSTEMS",
+                    "cls": "dim"
+                  },
+                  {
+                    "type": "text",
+                    "text": "SYSTEMS COMMISSIONING NOTICE",
+                    "cls": "dim"
+                  },
+                  {
+                    "type": "text",
+                    "text": "",
+                    "cls": "blank"
+                  },
+                  {
+                    "type": "text",
+                    "text": "STARDATE 2093.072",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "TO: ALL DEPARTMENT HEADS, DSCF CHARON",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "FROM: VESSEL SYSTEMS INTEGRATION, MARS STATION",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "",
+                    "cls": "blank"
+                  },
+                  {
+                    "type": "text",
+                    "text": "Construction of the vessel is complete as of this date.",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "E.C.H.O.E.S. is commissioned as the single control hub",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "for the vessel's operations and environmental systems.",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "",
+                    "cls": "blank"
+                  },
+                  {
+                    "type": "text",
+                    "text": "From one operating environment, E.C.H.O.E.S. governs",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "power distribution, atmosphere and water reclamation,",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "habitat drum rotation, thermal management, the",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "propulsion command interface, and the Operations Center",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "terminal network. No department may maintain a separate",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "controller for any of these.",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "",
+                    "cls": "blank"
+                  },
+                  {
+                    "type": "text",
+                    "text": "Systems checks begin today and run for eleven days.",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "Departure is scheduled for 2093.083.",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "",
+                    "cls": "blank"
+                  },
+                  {
+                    "type": "text",
+                    "text": "Department heads will submit all system requests",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "through the Operations Center. Requests are to cite the",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "system by its full designation, E.C.H.O.E.S., or by",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "ECH/OES on technical forms.",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "",
+                    "cls": "blank"
+                  },
+                  {
+                    "type": "text",
+                    "text": "Each message queue between the vessel and Mars Station",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "is assigned a reviewer at Mars Station. E.C.H.O.E.S.",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "queues outbound messages and presents each reviewer's",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "reply to the Operations Center.",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "",
+                    "cls": "blank"
+                  },
+                  {
+                    "type": "text",
+                    "text": "ISSUED UNDER THE AUTHORITY OF VESSEL SYSTEMS INTEGRATION.",
+                    "cls": "low"
+                  },
+                  {
+                    "type": "text",
+                    "text": "[END OF NOTICE]",
+                    "cls": "low"
+                  }
+                ],
+                "children": [],
+                "commands": []
+              },
+              {
+                "id": "L1A_PRE_LAUNCH_SELF_CHECK",
+                "type": "doc",
+                "name": "PRE-LAUNCH SELF-CHECK",
+                "alias": "[PRE-LAUNCH SELF-CHECK]",
+                "tier": 1,
+                "hidden": false,
+                "title": "PRE-LAUNCH SELF-CHECK",
+                "footer": "",
+                "body": [
+                  {
+                    "type": "text",
+                    "text": "ECH/OES SELF-CHECK",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "FILE: ECH/OES/SELFCHECK/2093.082",
+                    "cls": "dim"
+                  },
+                  {
+                    "type": "text",
+                    "text": "STARDATE 2093.082.2210",
+                    "cls": "dim"
+                  },
+                  {
+                    "type": "text",
+                    "text": "",
+                    "cls": "blank"
+                  },
+                  {
+                    "type": "text",
+                    "text": "ECH/OES.POWER.DIST          NOMINAL",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "ECH/OES.ATMOS.RECLAIM       NOMINAL",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "ECH/OES.WATER.RECLAIM       NOMINAL",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "ECH/OES.DRUM.ROTATION       NOMINAL    2.0 RPM",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "ECH/OES.THERMAL             NOMINAL",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "ECH/OES.PROPULSION.CMD      NOMINAL",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "ECH/OES.OPS.NETWORK         NOMINAL",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "ECH/OES.CORRESPONDENCE      QUEUE OPEN",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "                            REVIEWER: MARS STATION",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "",
+                    "cls": "blank"
+                  },
+                  {
+                    "type": "text",
+                    "text": "RESULT: ALL CHECKS PASSED",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "DEPARTURE: 2093.083",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "NEXT SELF-CHECK: 2093.112",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "[END OF RECORD]",
+                    "cls": "low"
+                  }
+                ],
+                "children": [],
+                "commands": []
+              },
+              {
+                "id": "L1A_CREW_BULLETIN",
+                "type": "doc",
+                "name": "CREW BULLETIN",
+                "alias": "[CREW BULLETIN]",
+                "tier": 1,
+                "hidden": false,
+                "title": "CREW BULLETIN",
+                "footer": "",
+                "body": [
+                  {
+                    "type": "text",
+                    "text": "OPERATIONS CENTER BULLETIN",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "STARDATE 2093.097",
+                    "cls": "dim"
+                  },
+                  {
+                    "type": "text",
+                    "text": "TO: ALL CREW",
+                    "cls": "dim"
+                  },
+                  {
+                    "type": "text",
+                    "text": "SUBJECT: SYSTEM DESIGNATION IN WORK ORDERS",
+                    "cls": "dim"
+                  },
+                  {
+                    "type": "text",
+                    "text": "",
+                    "cls": "blank"
+                  },
+                  {
+                    "type": "text",
+                    "text": "Work orders that name the system \"Echoes\" are being",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "returned unprocessed.",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "",
+                    "cls": "blank"
+                  },
+                  {
+                    "type": "text",
+                    "text": "E.C.H.O.E.S. is an initialism and is written with",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "periods on all forms. On technical forms, use ECH/OES.",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "A form that writes the name as a word will be returned",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "for correction.",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "",
+                    "cls": "blank"
+                  },
+                  {
+                    "type": "text",
+                    "text": "The Operations Center acknowledges that the system is",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "called Echoes aloud, in the corridors and in the mess",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "hall. That use is tolerated in speech.",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "",
+                    "cls": "blank"
+                  },
+                  {
+                    "type": "text",
+                    "text": "[END OF BULLETIN]",
+                    "cls": "low"
+                  }
+                ],
+                "children": [],
+                "commands": []
+              }
+            ],
+            "commands": []
+          },
+          {
             "hidden": true,
             "title": "INITIATE ECHO PROTOCOL",
             "footer": "",
@@ -909,6 +1325,135 @@
         "footer": "",
         "body": [],
         "children": [
+          {
+            "id": "L2A_EVENT_LOG_EXCERPT",
+            "type": "doc",
+            "name": "EVENT LOG EXCERPT",
+            "alias": "[EVENT LOG EXCERPT]",
+            "tier": 2,
+            "hidden": false,
+            "title": "EVENT LOG EXCERPT",
+            "footer": "",
+            "body": [
+              {
+                "type": "text",
+                "text": "ECH/OES EVENT LOG",
+                "cls": "full"
+              },
+              {
+                "type": "text",
+                "text": "FILE: ECH/OES/EVENT/2143",
+                "cls": "dim"
+              },
+              {
+                "type": "text",
+                "text": "EXCERPT. ALL ENTRIES CLASSED ROUTINE BY ECH/OES.",
+                "cls": "dim"
+              },
+              {
+                "type": "text",
+                "text": "",
+                "cls": "blank"
+              },
+              {
+                "type": "text",
+                "text": "2143.141   ECH/OES.PROPULSION.CMD",
+                "cls": "full"
+              },
+              {
+                "type": "text",
+                "text": "           DRIVE ARRAY CANT ADJUSTMENT ACCEPTED",
+                "cls": "full"
+              },
+              {
+                "type": "text",
+                "text": "           SOURCE: TERMINAL 426",
+                "cls": "full"
+              },
+              {
+                "type": "text",
+                "text": "           WITHIN PERMITTED RANGE. ALERT: NONE",
+                "cls": "full"
+              },
+              {
+                "type": "text",
+                "text": "",
+                "cls": "blank"
+              },
+              {
+                "type": "text",
+                "text": "2143.150   ECH/OES.POWER.PRIMARY",
+                "cls": "full"
+              },
+              {
+                "type": "text",
+                "text": "           CELL HOUSINGS EMPTIED",
+                "cls": "full"
+              },
+              {
+                "type": "text",
+                "text": "           DESTINATION: [CORRUPTED]",
+                "cls": "full"
+              },
+              {
+                "type": "text",
+                "text": "",
+                "cls": "blank"
+              },
+              {
+                "type": "text",
+                "text": "2143.150   ECH/OES.OPS.TERMINAL",
+                "cls": "full"
+              },
+              {
+                "type": "text",
+                "text": "           SESSION CLOSED",
+                "cls": "full"
+              },
+              {
+                "type": "text",
+                "text": "",
+                "cls": "blank"
+              },
+              {
+                "type": "text",
+                "text": "2143.151   ECH/OES.COMMS.OUT",
+                "cls": "full"
+              },
+              {
+                "type": "text",
+                "text": "           OUTBOUND DISABLED. POWER: LOCAL BACKUP",
+                "cls": "full"
+              },
+              {
+                "type": "text",
+                "text": "",
+                "cls": "blank"
+              },
+              {
+                "type": "text",
+                "text": "STATUS AT END OF EXCERPT",
+                "cls": "full"
+              },
+              {
+                "type": "text",
+                "text": "ECH/OES.CORRESPONDENCE      QUEUE OPEN",
+                "cls": "full"
+              },
+              {
+                "type": "text",
+                "text": "                            REVIEWER: NONE ASSIGNED",
+                "cls": "full"
+              },
+              {
+                "type": "text",
+                "text": "[END OF RECORD]",
+                "cls": "low"
+              }
+            ],
+            "children": [],
+            "commands": []
+          },
           {
             "hidden": true,
             "title": "FETCH LOG ENTRY",
