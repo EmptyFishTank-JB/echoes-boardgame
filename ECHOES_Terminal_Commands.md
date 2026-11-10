@@ -69,7 +69,7 @@ These never appear in a listing. The player learns them from the story.
 | Command | Where | What it does |
 |---|---|---|
 | `[INITIATE ECHO PROTOCOL]` | Anywhere: the chat or any archive page | Gateway to the L2 root. Plays the L2 flavor text in the layer 1 theme, then changes theme and ambient sound, then draws `L2A_ROOT`. |
-| `[FETCH LOG ENTRY: //]` | Any tier 2 or tier 3 page (answers "unavailable" in the chat and at tier 1) | Program `lore-entry`. Opens in its own titled window. Prompts for a 20 character code (`XXXXX-XXXXX-XXXXX-XXXXX`) and shows the matching entry from `lore.json` (L2) or `dev_logs.json` (L3). `Esc` or the window's `[X]` cancels. |
+| `[FETCH LOG ENTRY: //]` | Any tier 2 or tier 3 page (answers "unavailable" in the chat and at tier 1) | Program `lore-entry`, shown as **FETCH LOG.EXE** in its own window (see section 3a). |
 
 A hidden item opens only if its tier is at or below the tier you are in. A program opens only where its
 `scope` allows (`tier` means any page of that tier, `folder` means only the folder it sits in). Anywhere
@@ -98,7 +98,35 @@ else it answers "fetch unavailable".
 | Click an item | Runs it as if typed. Ignored while the terminal is drawing. |
 | Address bar `↰` | Up one level (`[BACK]`). |
 | Address bar path segment | Jumps to that ancestor folder. |
-| Program window `[X]` | Same as `Esc`: cancels the program. |
+| `Esc` or `[X]` on a program window | Closes the program. |
+
+### 3a. Program windows and FETCH LOG.EXE
+
+A program opens as a floating window. Everything already on screen (header and terminal) gets a dark tint and
+blur, and the window sits centered above it with a solid, filled title bar (`TITLE · NAME.EXE`, `[X]` at the
+right). The page behind is inert until the window closes. Each program sizes its own window. Closing it prints
+`> <NAME>.EXE CLOSED` and gives the prompt back.
+
+FETCH LOG.EXE layout, top to bottom:
+
+| Area | What it is |
+|---|---|
+| Code field | `ENTRY CODE` and a `FETCH` button. Typing hyphenates and uppercases (`XXXXX-XXXXX-XXXXX-XXXXX`). `Enter` fetches. |
+| Status line | One line of feedback (`ENTRY RECOVERED`, `INVALID FORMAT`, `ACCESS RESTRICTED`, ...). |
+| Log pane | The fetched log, or the recovered list. Lines never wrap on a desktop screen (on a phone they wrap). |
+| `FETCH NEW LOG` | Clears the field and the pane and puts the cursor back in the field. |
+| `RECOVERED LOGS` | Lists every code entered so far, oldest first. Click a row to reopen that log. Hovering a row shows its code in the field. |
+
+Each recovered row reads `[Log header]  //  CODE  //  HEALTH  //  TYPE`:
+
+| Column | Where it comes from |
+|---|---|
+| Log header | First line of the entry's text, for example `[Log A-15 \| Stardate 2143.136.2132]` (falls back to the entry's `label`). |
+| Health | `INTACT`, `PARTIAL` (the text contains `[CORRUPTED]`), `RESTRICTED` (classified and viewed at tier 1). An entry can set its own `health` field in `lore.json` or `dev_logs.json` to override it. A code whose entry no longer exists shows `LOST`. |
+| Type | The wording before the log number in the entry's `label` (`CAPTAIN'S LOG`, `MEDICAL LOG`, `INTERCEPT`, ...). |
+
+Typed codes follow the layer rule (L3 reads `dev_logs.json`, L2 reads `lore.json`). A log already in the recovered
+list can be reopened from any layer.
 
 The mouse pointer is drawn in JavaScript from the active layer color: an arrow, a bracket reticle over
 anything clickable, and an I-beam over the input.
@@ -196,3 +224,23 @@ The `self_destruct` block in `personality.json` is data only. The terminal does 
 
 Browser storage used: `echo_os_draft` (author draft), `echo_disc` (recovered codes), `echo_misc` (unlocked
 programs), `echo_l3_visited`.
+
+---
+
+## 8. Writing a program
+
+A program is `terminal-data/programs/<id>.js` with `export default { id, title, exe, async run(ctx) {} }`, plus a
+`program` item in `echo-os.json` (or `[NEW PROGRAM]` in author mode) that sets its alias, tier and scope.
+
+| `ctx` member | Use |
+|---|---|
+| `ctx.window({ width, height, title, exe })` | Tints the screen and opens the window. Returns `win` with `win.body` (fill it with DOM), `win.style(css)`, `win.focus(el)`, `win.setTitle()`, `win.close()` and `win.closed` (a promise that resolves on close). Size with any CSS length, for example `min(96vw, 880px)`. |
+| `ctx.sound.click / backspace / enter / denied / line / tone` | The terminal's sound effects. |
+| `ctx.recovered()` | Codes entered so far: `[{code, sd, ts}]`, oldest first. |
+| `ctx.discovered(code)` | Records a recovered code. |
+| `ctx.level`, `ctx.lore`, `ctx.devLogs`, `ctx.strings` | Current tier, the two log files, system messages. |
+| `ctx.virus(entry)` | Runs the virus sequence. Close the window first, then return `'reset'`. |
+
+`run` returns `'stay'` when it is done (a windowed program leaves the page untouched) or `'reset'` after
+`ctx.virus`. Shared look: use the classes `pg-btn` and `pg-input`, and the theme variables `--theme-full`,
+`--theme-dim`, `--theme-lo`, `--theme-warn`, `--theme-denied`, `--theme-bc`.

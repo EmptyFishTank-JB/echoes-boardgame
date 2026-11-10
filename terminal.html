@@ -176,30 +176,41 @@ html,body{cursor:var(--cur,default);}
 #ctx .ci:hover .cc{color:#000;}
 #ctx .cs{border-top:1px solid var(--theme-border);margin:3px 0;}
 /* Archive view: dashed frame plus an address bar. A running program gets a titled window with a double frame. */
-#t-addr,#t-win{display:none;flex-shrink:0;align-items:center;gap:8px;padding:8px 28px;min-height:35px;
+#t-addr{display:none;flex-shrink:0;align-items:center;gap:8px;padding:8px 28px;min-height:35px;
   font-family:'Share Tech Mono',monospace;font-size:12px;letter-spacing:0.06em;white-space:nowrap;overflow:hidden;
   border-bottom:1px dashed var(--theme-bc);color:var(--theme-dim);}
 body.in-archive #terminal-box{border:1px dashed var(--theme-bc);}
 body.in-archive #t-addr{display:flex;}
-body.in-archive #t-breadcrumb,body.in-program #t-breadcrumb{opacity:0!important;}
+body.in-archive #t-breadcrumb{opacity:0!important;}
 #t-addr .up{color:var(--theme-full);padding-right:6px;font-size:14px;}
 #t-addr .drv,#t-addr .sep{color:var(--theme-lo);}
 #t-addr .seg{color:var(--theme-dim);overflow:hidden;text-overflow:ellipsis;}
 #t-addr .seg.cur{color:var(--theme-full);}
 #t-addr .seg.go:hover,#t-addr .up.go:hover{color:var(--theme-full);text-shadow:0 0 6px var(--theme-full);text-decoration:underline;}
-#t-addr .up.go,#t-addr .seg.go,#t-win .x{cursor:var(--cur-act,pointer);}
+#t-addr .up.go,#t-addr .seg.go{cursor:var(--cur-act,pointer);}
 #t-addr .tag{margin-left:auto;color:var(--theme-lo);padding-left:12px;}
-body.in-program #t-addr{display:none;}
-body.in-program #t-win{display:flex;}
-body.in-program #terminal-box{border:3px double var(--theme-bc);}
-#t-win .ttl{color:var(--theme-full);}
-#t-win .id{color:var(--theme-lo);}
-#t-win .sub{color:var(--theme-lo);margin-left:12px;overflow:hidden;text-overflow:ellipsis;}
-#t-win .x{margin-left:auto;color:var(--theme-full);padding:0 6px;}
-#t-win .x:hover{background:var(--theme-full);color:#000;}
+/* Program windows: everything on screen is tinted and the window floats above it. Programs size their own window. */
+#prog-layer{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity 0.18s ease;}
+#prog-layer.open{opacity:1;}
+.prog-tint{position:absolute;inset:0;background:rgba(0,3,7,0.76);backdrop-filter:blur(2.5px) saturate(0.7);-webkit-backdrop-filter:blur(2.5px) saturate(0.7);}
+.prog-win{position:relative;display:flex;flex-direction:column;max-width:96vw;max-height:92vh;background:#02070c;
+  border:1px solid var(--theme-full);box-shadow:0 0 0 1px var(--theme-bc),0 0 46px var(--theme-glow-a),0 20px 64px rgba(0,0,0,0.75);
+  font-family:'Share Tech Mono',monospace;transform:scale(0.985);transition:transform 0.18s ease;}
+#prog-layer.open .prog-win{transform:none;}
+.prog-bar{display:flex;align-items:center;gap:10px;padding:6px 8px 6px 14px;background:var(--theme-full);color:#02070c;font-size:12px;letter-spacing:0.14em;flex-shrink:0;}
+.prog-bar .ttl{font-weight:bold;}
+.prog-bar .exe,.prog-bar .sub{opacity:0.62;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.prog-bar .x{margin-left:auto;padding:0 8px;cursor:var(--cur-act,pointer);}
+.prog-bar .x:hover{background:#02070c;color:var(--theme-full);}
+.prog-body{flex:1;min-height:0;display:flex;flex-direction:column;padding:16px 18px 14px;color:var(--theme-full);font-size:13px;letter-spacing:0.02em;}
+.pg-btn{background:transparent;border:1px solid var(--theme-bc);color:var(--theme-full);font:inherit;letter-spacing:0.12em;padding:7px 14px;text-transform:uppercase;cursor:var(--cur-act,pointer);}
+.pg-btn:hover,.pg-btn:focus-visible{background:var(--theme-full);color:#02070c;outline:none;}
+.pg-input{background:transparent;border:1px solid var(--theme-bc);color:var(--theme-full);font:inherit;letter-spacing:0.12em;padding:7px 10px;text-transform:uppercase;caret-color:var(--theme-full);cursor:var(--cur-txt,text);}
+.pg-input:focus{outline:none;border-color:var(--theme-full);box-shadow:0 0 14px var(--theme-glow-a);}
+.pg-input::placeholder{color:var(--theme-lo);}
 .t-line .col{color:var(--theme-lo);white-space:pre;}
 .t-line.inverted .col{color:#000!important;}
-@media(max-width:768px){#t-addr,#t-win{padding:7px 14px;font-size:11px;}}
+@media(max-width:768px){#t-addr{padding:7px 14px;font-size:11px;}}
 /* Cursor */
 .t-cursor::after{content:'_';animation:blink 0.9s step-end infinite;color:var(--theme-full);}
 /* Input row */
@@ -253,7 +264,6 @@ body.in-program #terminal-box{border:3px double var(--theme-bc);}
   </div>
   <div id="terminal-box">
     <div id="t-addr"></div>
-    <div id="t-win"><span class="ttl" id="t-win-ttl"></span><span class="id" id="t-win-id"></span><span class="sub" id="t-win-sub"></span><span class="x" id="t-win-x" title="Close (Esc)">[X]</span></div>
     <div id="t-output"></div>
     <div id="t-input-row" style="display:none;">
       <span id="t-prompt">&gt;&nbsp;</span>
@@ -865,7 +875,6 @@ var titleEl      = document.getElementById('t-title');
 
 function setBreadcrumb(text){
   if(!text){breadcrumbEl.textContent='';breadcrumbEl.classList.remove('visible');}else{breadcrumbEl.textContent=text;breadcrumbEl.classList.add('visible');}
-  var ws=document.getElementById('t-win-sub'); if(ws) ws.textContent=text||'';
 }
 function setHeaderTitle(text){titleEl.style.opacity='0';setTimeout(function(){titleEl.textContent=text;titleEl.style.opacity='1';},280);}
 function applyLayerClass(level){document.body.classList.remove('layer-1a','layer-2a','layer-3a');document.body.classList.add('layer-'+level+'a');currentLevel=level;}
@@ -1365,9 +1374,14 @@ function ctxAsk(opts){
     updateInvertHighlight(); setActiveCursor(output.lastElementChild); termInput.focus();
   });
 }
-function makeProgramCtx(){
-  return {
+function makeProgramCtx(item, prog){
+  var c = {
     level: currentLevel, lore: loreData, devLogs: devLogs, strings: CFG_STRINGS, sep: SEP,
+    // Windowed programs: ctx.window({title, exe, width, height}) tints the screen and opens a floating window;
+    // fill win.body and await win.closed. Esc and the [X] close it.
+    window: function(opts){ c._windowed = true; var w = openProgWindow(opts, item, prog); c._windowName = w.exe || w.title; return w; },
+    recovered: function(){ return Object.keys(discovered).map(function(k){ return {code:k, sd:discovered[k].sd, ts:discovered[k].ts}; }).sort(function(a, b){ return a.ts - b.ts; }); },
+    sound: {click:playClick, backspace:playBackspace, enter:playEnter, denied:playDenied, line:playLineStatic, tone:playEggTone},
     say: async function(text, cls){ var el = addLine(cls || 'dim', true); await typeLine(el, text); },
     lines: function(lines){ return printInstant(lines); },
     echo: function(text){ var u = addLine('user'); u.textContent = '> '+text; },
@@ -1379,7 +1393,53 @@ function makeProgramCtx(){
     denied: playDenied,
     virus: triggerVirusSequence
   };
+  return c;
 }
+var progWin = null;   // the open program window, if any
+function openProgWindow(opts, item, prog){
+  if(progWin) progWin.close();
+  opts = opts || {};
+  function sp(cls, text){ var e = document.createElement('span'); e.className = cls; if(text != null) e.textContent = text; return e; }
+  var layer = document.createElement('div'); layer.id = 'prog-layer';
+  var tint = document.createElement('div'); tint.className = 'prog-tint'; layer.appendChild(tint);
+  var win = document.createElement('div'); win.className = 'prog-win'; win.setAttribute('role', 'dialog');
+  if(opts.width) win.style.width = opts.width;
+  if(opts.height) win.style.height = opts.height;
+  var title = opts.title || (prog && prog.title) || (item && item.name) || 'PROGRAM';
+  var exe = opts.exe || (prog && prog.exe) || (item && item.program ? item.program + '.exe' : '');
+  var bar = document.createElement('div'); bar.className = 'prog-bar';
+  var ttl = sp('ttl', String(title).toUpperCase()), exeEl = sp('exe', exe ? '\u00B7 ' + String(exe).toUpperCase() : ''), sub = sp('sub', ''), x = sp('x', '[X]');
+  x.title = 'Close (Esc)';
+  [ttl, exeEl, sub, x].forEach(function(e){ bar.appendChild(e); });
+  var body = document.createElement('div'); body.className = 'prog-body';
+  win.appendChild(bar); win.appendChild(body); layer.appendChild(win); document.body.appendChild(layer);
+  var prevState = termState; termState = 'PROGRAM';
+  hoverStash = null; clearInverts();
+  playEggTone();
+  requestAnimationFrame(function(){ layer.classList.add('open'); });
+  var resolveClosed, closed = new Promise(function(r){ resolveClosed = r; });
+  var w = {
+    el: win, body: body, closed: closed, exe: String(exe || '').toUpperCase(), title: String(title).toUpperCase(),
+    setTitle: function(t){ ttl.textContent = String(t).toUpperCase(); },
+    setSub: function(t){ sub.textContent = t || ''; },
+    style: function(css){ var st = document.createElement('style'); st.textContent = css; win.appendChild(st); },
+    focus: function(el){ setTimeout(function(){ try{ el.focus(); }catch(e){} }, 40); },
+    close: function(){
+      if(w._done) return; w._done = true;
+      if(progWin === w) progWin = null;
+      termState = prevState;
+      layer.classList.remove('open'); setTimeout(function(){ layer.remove(); }, 200);
+      resolveClosed();
+      try{ termInput.focus(); }catch(e){}
+    }
+  };
+  x.addEventListener('click', function(){ w.close(); });
+  layer.addEventListener('keydown', resetIdleTimer, true);
+  layer.addEventListener('input', resetIdleTimer, true);
+  progWin = w; return w;
+}
+function closeProgWindow(){ if(progWin) progWin.close(); }
+document.addEventListener('keydown', function(e){ if(e.key === 'Escape' && progWin){ e.preventDefault(); e.stopPropagation(); progWin.close(); } }, true);
 async function promptInPlace(){
   var pl = addLine('low'); await typeLine(pl, '> AWAITING INPUT'); setActiveCursor(pl);
   isResponding = false; output.scrollTop = output.scrollHeight; termInput.focus();
@@ -1388,21 +1448,21 @@ async function runProgram(item){
   var prog = await loadProgram(item.program);
   if(!prog){ playDenied(); var eu = addLine('denied', true); await typeLine(eu, CFG_STRINGS.error_program_unavailable); await promptInPlace(); return; }
   unlockMisc(item.program);
-  var prev = termState, res, onPage = !!osItems[prev];
+  var prev = termState, res, failed = false, ctx = makeProgramCtx(item, prog);
   isResponding = true;
-  winOn(item);
-  if(onPage){ output.classList.add('dim-out'); await sleep(getFade()); output.innerHTML = ''; cursorEl = null; output.classList.remove('dim-out'); }   // the window opens on a clean screen
-  try{ res = await prog.run(makeProgramCtx()); }
-  catch(err){ playDenied(); var er = addLine('denied', true); await typeLine(er, CFG_STRINGS.error_program_unavailable); res = 'stay'; }
-  // Closing a window on a page redraws that page; the program's last message stays under it.
-  var lastMsg = Array.from(output.querySelectorAll('.t-line')).map(function(e){ return e.textContent.trim(); }).filter(function(t){ return t && t !== '> AWAITING INPUT' && t.charAt(0) === '>'; }).pop();
-  winOff();
+  try{ res = await prog.run(ctx); }
+  catch(err){ failed = true; closeProgWindow(); playDenied(); var er = addLine('denied', true); await typeLine(er, CFG_STRINGS.error_program_unavailable); res = 'stay'; }
+  closeProgWindow();
   progWait = null; inputMask = null; termInput.placeholder = '';
   if(res === 'reset') return;
   termState = prev;
+  // A windowed program leaves the page behind it untouched: note that it closed and give the prompt back.
+  if(ctx._windowed && !failed){
+    var cl = addLine('low', true); await typeLine(cl, '> ' + (ctx._windowName || item.name || item.program).toUpperCase() + ' CLOSED');
+    await promptInPlace(); return;
+  }
   if(res === 'stay' || prev === 'L1_NORMAL'){
     if(prev === 'L1_NORMAL'){ setBreadcrumb(''); setHeaderTitle(''); }
-    else if(onPage){ isResponding = false; await renderArchivePage(prev, lastMsg ? [{text:lastMsg, cls:'low'}] : []); return; }
     await promptInPlace(); return;
   }
   isResponding = false;
@@ -1551,16 +1611,6 @@ async function printAuthorLs(){
 // dashed frame; the chat stays a plain conversation. Programs run in a titled window with a [X].
 var archiveView = false;
 function setView(on){ archiveView = !!on; document.body.classList.toggle('in-archive', !!on); if(!on){ var a = document.getElementById('t-addr'); if(a) a.innerHTML = ''; } }
-function winOn(item){
-  document.getElementById('t-win-ttl').textContent = (item.name || item.program || '').toUpperCase();
-  document.getElementById('t-win-id').textContent = '· ' + (item.program || '').toUpperCase() + '.EXE';
-  document.getElementById('t-win-sub').textContent = '';
-  document.body.classList.add('in-program');
-}
-function winOff(){ document.body.classList.remove('in-program'); }
-document.getElementById('t-win-x').addEventListener('click', function(){
-  if(progWait && !inputBusy()){ hoverStash = null; termInput.value = ''; routeInput(null); }   // same as Esc
-});
 function plural(n, one, many){ return n + ' ' + (n === 1 ? one : many); }
 function textLines(arr){ return (arr || []).filter(function(b){ return b.type === 'text' && (b.text || '').trim() !== ''; }).length; }
 function rowCols(b, kind){
@@ -1668,7 +1718,7 @@ function buildItemLine(el, L){
   return lb;
 }
 var hoverStash = null;   // what the player had typed before hovering an item
-function uiReady(){ return !overrideActive && !inputBusy() && termState !== 'PROGRAM' && inputRow.style.display !== 'none'; }
+function uiReady(){ return !overrideActive && !progWin && !inputBusy() && termState !== 'PROGRAM' && inputRow.style.display !== 'none'; }
 function hoverOn(el){
   if(!uiReady()) return;
   var cmd = el.dataset.cmd;
@@ -1809,7 +1859,7 @@ async function triggerVirusSequence(entry){
   try{if(ambNodes){ambNodes.stop();ambNodes.master.disconnect();ambNodes=null;}}catch(e){}
   applyLayerClass(1);setBreadcrumb('');setHeaderTitle('');
   output.innerHTML='';termInput.value='';termInput.disabled=false;
-  setView(false);winOff();
+  setView(false);closeProgWindow();
   termState='L1_NORMAL';currentMenuOpts=[];menuSelIdx=-1;isResponding=false;typing=false;l1ChatBackup=null;
   var po=document.getElementById('power-overlay');po.classList.remove('hidden');po.style.opacity='1';
   document.getElementById('page').style.opacity='1';
