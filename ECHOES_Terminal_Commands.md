@@ -25,14 +25,29 @@ command that is missing from it. Run it before committing terminal changes.
 - While the terminal is drawing a page or running a sequence, typing is ignored. Nothing is queued.
 - Clicking works everywhere typing does (see section 3).
 
-**How output renders.** Everything that is not a chat reply (boot lines, command results, archive pages, system
-messages, prompts, errors) renders line by line at one fixed pace, 24 ms per line, with no per-character typing
-and no speed variation. Set `typing.line_ms` in `engine_config.json` to change the pace. Chat replies to free text
-keep the typewriter, with natural variation and slower words. Every line that arrives whole flashes as a whole and
-fades to its normal brightness; every typed character flashes and fades on its own. Brightness and duration are
-`timing.phosphor_brightness` and `timing.phosphor_duration_ms`. A screen that is put back (leaving an archive for the
-chat, leaving `[SYSTEM OVERRIDE]`) returns settled, with no flash. A page that is redrawn from data (`[BACK]`, `[ROOT]`,
-a click on the address bar) renders line by line again.
+**How output renders.** Every line the terminal prints has a kind, and one table (`RENDER`, in `terminal.html`)
+says how each kind appears. To change what types and what lands whole, change a kind's mode in that table.
+
+| Kind | What it covers | How it renders |
+|---|---|---|
+| `chat` | Replies to free text: personality responses, easter eggs, denied and admin lines, `KNOCK KNOCK`. This is the only place speed varies. | Typed. Speed varies, slower on the slow words. |
+| `boot` | The landing screen: the boot check intro, subsystem lines, the fallback boot lines. | Typed, uniform speed. |
+| `flavor` | Transition text between layers, the mount and unmount lines, layer enter and exit confirmations, the `[SYSTEM OVERRIDE]` banner, the self-destruct sequence. | Typed, uniform speed. |
+| `status` | One-line system messages: errors, `<NAME>.EXE CLOSED`, author messages, command headings, validation summary. | Typed, uniform speed. |
+| `doc` | Body text of a document printed inline. | Typed, uniform speed. |
+| `prompt` | `> AWAITING INPUT`. | Typed, uniform speed. |
+| `list` | `[HELP]` entries, `[LEGEND]` rows, `[STATUS]` results, `[TREE]`, the author `[LS]`, the echo of what you typed. | Whole line, a short pause between lines. |
+| `page` | Archive pages (folders, documents, logs). | Whole line, a shorter pause between lines. |
+
+Settings in `engine_config.json`, under `typing`: `base_ms` is the uniform typing speed (default 38 ms per
+character) and the base for chat; `variance` and `slow_multiplier` apply to chat only; `line_ms` is the pause
+after a whole `list` line (default 40) and `page_ms` after a `page` line (default 22).
+
+Either way the glow is the same. A whole line flashes once as a whole and fades to its normal brightness. Typed
+characters each flash and fade on their own. Brightness and duration are `timing.phosphor_brightness` and
+`timing.phosphor_duration_ms`. A screen that is put back (leaving an archive for the chat, leaving
+`[SYSTEM OVERRIDE]`) returns settled, with no flash. A page redrawn from data (`[BACK]`, `[ROOT]`, a click on the
+address bar) renders again as new lines.
 
 ---
 
@@ -104,6 +119,7 @@ else it answers "fetch unavailable".
 | `Left` with an empty field | Same as `[BACK]` (on a program prompt, cancels). |
 | `Esc` | Same as `[EXIT]` on an archive page. In a program prompt it cancels. |
 | Hover an item | Highlights it and shows its `[COMMAND]` in the input field. Moving away restores what was typed. |
+| Type a full command | The input field highlights as soon as what you typed is a valid command, listed or not. Hidden commands (`[ECHOES.ARCHIVE]`, `[SYSTEM OVERRIDE]`, `[INITIATE ECHO PROTOCOL]`, hidden items, programs) light it too, so finding one confirms it is real. Author commands light it only once typed in full, and only in author mode. Inside `[SYSTEM OVERRIDE]` only the override menu's own commands light it. |
 | Click an item | Runs it as if typed. Ignored while the terminal is drawing. |
 | Address bar `↰` | Up one level (`[BACK]`). |
 | Address bar path segment | Jumps to that ancestor folder. |
