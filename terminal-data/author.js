@@ -1,4 +1,4 @@
-// Echo O.S. author tools. Loaded on first [AUTHOR UNLOCK]; the engine holds the tree and
+// ECHOES O.S. author tools. Loaded on first [AUTHOR UNLOCK]; the engine holds the tree and
 // the prompt plumbing (terminal.html), this file is the editing commands.
 // Every command works on the folder the author is standing in (ctx.cwd). Edits change the
 // in-memory tree and a localStorage draft; [EXPORT] downloads the file to commit.
@@ -56,7 +56,7 @@ const canceled = (ctx) => ctx.say('> CANCELED', 'low').then(() => 'stay');
 
 function cwdFolder(ctx) {
   const it = ctx.os.items[ctx.cwd];
-  if (!it) return ctx.say('> OPEN THE ARCHIVE FIRST, E.G. [ECHO.ARCHIVE], THEN RUN THIS FROM THE FOLDER YOU WANT.', 'warn').then(() => null);
+  if (!it) return ctx.say('> OPEN THE ARCHIVE FIRST, E.G. [ECHOES.ARCHIVE], THEN RUN THIS FROM THE FOLDER YOU WANT.', 'warn').then(() => null);
   if (it.type !== 'folder') return ctx.say('> THIS PAGE IS NOT A FOLDER. GO UP WITH [BACK] AND TRY AGAIN.', 'warn').then(() => null);
   return Promise.resolve(it);
 }

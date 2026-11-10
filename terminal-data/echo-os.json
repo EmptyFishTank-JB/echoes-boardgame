@@ -1,14 +1,14 @@
 {
   "meta": {
     "version": "1.0",
-    "description": "ECHO O.S. virtual filesystem",
+    "description": "ECHOES O.S. virtual filesystem",
     "migrated_from": "nodes.json 2026-05-29T20:04:22.234Z",
     "locked": false
   },
   "layers": {
     "l1a": {
       "theme": "blue",
-      "header_title": "ECHO-ARCHIVE",
+      "header_title": "ECHOES-ARCHIVE",
       "ambient": "l1a",
       "_color": "#4fc3f7"
     },
@@ -20,7 +20,7 @@
     },
     "l2a": {
       "theme": "amber",
-      "header_title": "ECHO-ARCHIVE",
+      "header_title": "ECHOES-ARCHIVE",
       "ambient": "l2a",
       "_color": "#bf7c0a"
     },
@@ -102,9 +102,120 @@
       "node_type": "chat",
       "is_root": true,
       "title": "TERMINAL CONSOLE",
-      "breadcrumb": "ECHO.ARCHIVE > TERMINAL CONSOLE",
+      "breadcrumb": "ECHOES.ARCHIVE > TERMINAL CONSOLE",
       "footer": "",
       "body": [
+      {
+        "type": "art",
+        "wide": {
+          "cols": 50,
+          "rows": [
+            [
+              {
+                "t": "    ______________  __ ",
+                "c": "full"
+              },
+              {
+                "t": "   ____  ___________",
+                "c": "lo"
+              }
+            ],
+            [
+              {
+                "t": "   / ____/ ____/ / / / ",
+                "c": "full"
+              },
+              {
+                "t": "  / __ \\/ ____/ ___/",
+                "c": "lo"
+              }
+            ],
+            [
+              {
+                "t": "  / __/ / /   / /_/ /  ",
+                "c": "full"
+              },
+              {
+                "t": " / / / / __/  \\__ \\",
+                "c": "lo"
+              }
+            ],
+            [
+              {
+                "t": " / /___/ /___/ __  /   ",
+                "c": "full"
+              },
+              {
+                "t": "/ /_/ / /___ ___/ /",
+                "c": "lo"
+              }
+            ],
+            [
+              {
+                "t": "/_____/\\____/_/ /_/    ",
+                "c": "full"
+              },
+              {
+                "t": "\\____/_____//____/",
+                "c": "lo"
+              },
+              {
+                "t": "   O.S.",
+                "c": "dim"
+              }
+            ]
+          ]
+        },
+        "narrow": {
+          "cols": 36,
+          "rows": [
+            [
+              {
+                "t": " ___ ___ _  _  ",
+                "c": "full"
+              },
+              {
+                "t": "  ___  ___ ___",
+                "c": "lo"
+              }
+            ],
+            [
+              {
+                "t": "| __/ __| || | ",
+                "c": "full"
+              },
+              {
+                "t": " / _ \\| __/ __|",
+                "c": "lo"
+              }
+            ],
+            [
+              {
+                "t": "| _| (__| __ | ",
+                "c": "full"
+              },
+              {
+                "t": "| (_) | _|\\__ \\",
+                "c": "lo"
+              }
+            ],
+            [
+              {
+                "t": "|___\\___|_||_| ",
+                "c": "full"
+              },
+              {
+                "t": " \\___/|___|___/",
+                "c": "lo"
+              },
+              {
+                "t": "  O.S.",
+                "c": "dim"
+              }
+            ]
+          ]
+        }
+      },
         {
           "type": "text",
           "text": "ECHOES — SHIP SYSTEM TERMINAL 426",
@@ -223,7 +334,7 @@
         {
           "type": "command",
           "cmd_type": "navigation",
-          "label": "[ECHO.ARCHIVE]",
+          "label": "[ECHOES.ARCHIVE]",
           "target": "L1A_ROOT",
           "hidden": false
         }
@@ -254,7 +365,7 @@
         },
         {
           "type": "text",
-          "text": "> ECHO-ARCHIVE ACCESS GRANTED.",
+          "text": "> ECHOES-ARCHIVE ACCESS GRANTED.",
           "cls": "full"
         },
         {
@@ -453,11 +564,11 @@
       {
         "id": "L1A_ROOT",
         "type": "folder",
-        "name": "ECHO.ARCHIVE",
-        "alias": "[ECHO.ARCHIVE]",
+        "name": "ECHOES.ARCHIVE",
+        "alias": "[ECHOES.ARCHIVE]",
         "tier": 1,
         "hidden": false,
-        "title": "ECHO.ARCHIVE",
+        "title": "ECHOES.ARCHIVE",
         "footer": "",
         "body": [
           {

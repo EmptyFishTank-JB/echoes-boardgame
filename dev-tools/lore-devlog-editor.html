@@ -1313,7 +1313,7 @@ function updPrev(){
     var l1=document.getElementById('l1pre').value.trim();
     ls.push({t:'CLASSIFICATION: L2 CLEARANCE REQUIRED',c:'pd'},{t:'',c:''});
     if(l1)l1.split('\n').forEach(function(ln){ls.push({t:ln,c:'pd'});});
-    ls.push({t:'',c:''},{t:'> Full entry requires elevated access.',c:'pd'},{t:'> Use [ECHO.ARCHIVE] to access ECHO PROTOCOL.',c:'pd'});
+    ls.push({t:'',c:''},{t:'> Full entry requires elevated access.',c:'pd'},{t:'> Use [ECHOES.ARCHIVE] to access ECHO PROTOCOL.',c:'pd'});
   }else if(typ==='virus'){
     var vl=text.split('\n').filter(function(l){return l.trim();});
     vl.slice(0,3).forEach(function(ln){ls.push({t:ln,c:'pdc'});});

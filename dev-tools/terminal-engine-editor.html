@@ -534,7 +534,7 @@ var STRING_KEYS = [
   {key:'error_fetch_cancelled',       label:'Fetch canceled message'},
   {key:'layer_enter_confirmed',       label:'Layer entry confirmation (leave blank = silent)'},
   {key:'layer_exit_confirmed',        label:'Layer exit confirmation (leave blank = silent)'},
-  {key:'layer_mount',                 label:'Archive mount line, shown when entering ECHO.ARCHIVE'},
+  {key:'layer_mount',                 label:'Archive mount line, shown when entering ECHOES.ARCHIVE'},
   {key:'layer_unmount',               label:'Archive unmount line, shown when leaving to the chat'}
 ];
 var DEFAULT_STRINGS = {
@@ -550,8 +550,8 @@ var DEFAULT_STRINGS = {
   error_fetch_cancelled:      '> FETCH CANCELED',
   layer_enter_confirmed:      '',
   layer_exit_confirmed:       '',
-  layer_mount:                '> MOUNTING ECHO:\\ . . .',
-  layer_unmount:              '> ECHO:\\ UNMOUNTED'
+  layer_mount:                '> MOUNTING ECHOES:\\ . . .',
+  layer_unmount:              '> ECHOES:\\ UNMOUNTED'
 };
 function mkStringsEditor(){
   if(!cfg.terminal_strings) cfg.terminal_strings={};

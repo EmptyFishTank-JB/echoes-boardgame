@@ -155,6 +155,8 @@ body::after{content:"";position:fixed;inset:-50%;z-index:2;pointer-events:none;
 .t-line .eye{display:inline-block;width:4ch;color:var(--theme-lo);}
 .t-line .eye.off{color:var(--theme-warn);}
 .t-line .eye:hover{color:var(--theme-full);text-shadow:0 0 6px var(--theme-full);}
+.t-line.art{white-space:pre;line-height:1.15;min-height:0;letter-spacing:0;}
+.t-line.art-last{margin-bottom:0.9em;}
 .t-line.act{display:inline-block;align-self:flex-start;max-width:100%;padding:0 4px;margin-left:-4px;user-select:none;}
 .t-line.inverted .gl,.t-line.inverted .eye{color:#000!important;text-shadow:none;}
 /* Pointer: drawn in JS from the active layer color (updateCursors) */
@@ -495,7 +497,19 @@ async function runScript(){
           if(typingAbort) break;
           var cb=chatNode.body[ci];
           if(cb.hidden) continue;
-          if(cb.type==='text'){
+          if(cb.type==='art'){
+            // Title art: ASCII rows made of colored segments (ECH bright, OES dimmer, O.S. to the right).
+            // The narrow variant is used when the wide one would not fit the screen.
+            var avail=Math.max(0,output.clientWidth-56);
+            var av=(cb.wide&&avail>=cb.wide.cols*8)?cb.wide:(cb.narrow||cb.wide);
+            for(var ar=0;ar<av.rows.length;ar++){
+              if(typingAbort) break;
+              var aEl=addLine('full',true);aEl.classList.add('art');if(ar===av.rows.length-1)aEl.classList.add('art-last');
+              av.rows[ar].forEach(function(sg){var sp=document.createElement('span');sp.className='seg-'+sg.c;sp.textContent=sg.t;aEl.appendChild(sp);});
+              playLineStatic();await sleep(90);
+            }
+            await sleep(160);
+          }else if(cb.type==='text'){
             var cel=addLine(cb.cls||'full');
             if(cb.text){playLineStatic();await typeLine(cel,cb.text);}
             await sleep(60);
@@ -663,8 +677,8 @@ var CFG_STRINGS = {
   error_fetch_cancelled:       '> FETCH CANCELED',
   layer_enter_confirmed:       '',
   layer_exit_confirmed:        '',
-  layer_mount:                 '> MOUNTING ECHO:\\ . . .',
-  layer_unmount:               '> ECHO:\\ UNMOUNTED'
+  layer_mount:                 '> MOUNTING ECHOES:\\ . . .',
+  layer_unmount:               '> ECHOES:\\ UNMOUNTED'
 };
 
 function decryptIfNeeded(text){
@@ -884,7 +898,7 @@ function withAuthorList(body, list){
   if(!placed) put();
   return out;
 }
-// ── ECHO O.S. TREE -> PAGE STRUCTURE ─────────────────────────────────────────
+// ── ECHOES O.S. TREE -> PAGE STRUCTURE ─────────────────────────────────────────
 // echo-os.json is a filesystem tree (folders, docs, hidden items, tiers). The page
 // renderer reads archData.nodes, so this builds that view once at load: each visible
 // child becomes a navigation entry, and [BACK] / [EXIT] are generated per page instead
@@ -1558,7 +1572,7 @@ function renderAddr(id){
   var chain = []; for(var c = it; c; c = c._parent ? osItems[c._parent] : null) chain.unshift(c);
   function span(cls, text, go){ var s = document.createElement('span'); s.className = cls; s.textContent = text; if(go){ s.classList.add('go'); s.dataset.go = go; } a.appendChild(s); return s; }
   var up = span('up', glyphSet().up, '__UP__'); up.title = 'Up one level';
-  span('drv', 'ECHO:');
+  span('drv', 'ECHOES:');
   chain.forEach(function(c, i){
     span('sep', '\\');
     var last = i === chain.length - 1;
@@ -2037,7 +2051,7 @@ async function renderPullInline(nodeId){
   var sep=addLine('low',true);sep.textContent=SEP;await sleep(40);
 }
 
-// ── ECHO O.S. BUILT-IN COMMANDS ───────────────────────────────────────────────
+// ── ECHOES O.S. BUILT-IN COMMANDS ───────────────────────────────────────────────
 // Generated from the tree rather than defined per page: [HELP] [TREE] [CLEAR] work
 // everywhere; [LS] [BACK] [ROOT] [EXIT] work inside the archive; [OPEN <name>] opens a
 // listed or hidden item by name. Hidden items are reachable by alias, never listed.
@@ -2081,7 +2095,7 @@ function treeLines(full){
   return out;
 }
 async function printTree(full){
-  var lines = [{text:full?'ECHO O.S. FILE TREE — FULL (AUTHOR VIEW)':'ECHO O.S. FILE TREE', cls:'full'}, {text:SEP, cls:'low'}]
+  var lines = [{text:full?'ECHOES O.S. FILE TREE — FULL (AUTHOR VIEW)':'ECHOES O.S. FILE TREE', cls:'full'}, {text:SEP, cls:'low'}]
     .concat(treeLines(full), [{text:SEP, cls:'low'}]);
   await printInstant(lines);
 }
