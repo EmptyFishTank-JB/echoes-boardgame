@@ -334,7 +334,10 @@ function crossfadeAmbient(level){
 function sleep(ms){return new Promise(function(r){setTimeout(r,ms);});}
 
 function setActiveCursor(el){
-  if(cursorEl) cursorEl.classList.remove('t-cursor');
+  // Only the line the player will type on blinks. Clear every other one, including lines
+  // restored from saved history that still carry the class.
+  var stale=output.querySelectorAll('.t-cursor');
+  for(var si=0;si<stale.length;si++) if(stale[si]!==el) stale[si].classList.remove('t-cursor');
   cursorEl=el;
   if(el) el.classList.add('t-cursor');
 }
@@ -1545,7 +1548,7 @@ async function handleL1Input(val){
   }
 
   // Bracket commands this layer really defines win over the admin keyword scan,
-  // otherwise "[L1 ROOT]" trips the "root" keyword. Unknown brackets still fall through to it.
+  // otherwise "[L2 ROOT]" and "[L3 ROOT]" trip the "root" keyword. Unknown brackets still fall through to it.
   if(/^\[.+\]$/.test(val)&&isChatCommand(val)){var uC=addLine('user');uC.textContent='> '+val;await handleL1Bracket(val);return;}
 
   // ADMIN check — responses from personality.json

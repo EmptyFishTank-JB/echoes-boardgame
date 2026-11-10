@@ -56,7 +56,7 @@ const cancelled = (ctx) => ctx.say('> CANCELLED', 'low').then(() => 'stay');
 
 function cwdFolder(ctx) {
   const it = ctx.os.items[ctx.cwd];
-  if (!it) return ctx.say('> OPEN THE ARCHIVE FIRST, E.G. [L1 ROOT], THEN RUN THIS FROM THE FOLDER YOU WANT.', 'warn').then(() => null);
+  if (!it) return ctx.say('> OPEN THE ARCHIVE FIRST, E.G. [ECHO.ARCHIVE], THEN RUN THIS FROM THE FOLDER YOU WANT.', 'warn').then(() => null);
   if (it.type !== 'folder') return ctx.say('> THIS PAGE IS NOT A FOLDER. GO UP WITH [BACK] AND TRY AGAIN.', 'warn').then(() => null);
   return Promise.resolve(it);
 }

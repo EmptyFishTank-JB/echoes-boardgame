@@ -213,7 +213,7 @@
         {
           "type": "command",
           "cmd_type": "navigation",
-          "label": "[L1 ROOT]",
+          "label": "[ECHO.ARCHIVE]",
           "target": "L1A_ROOT",
           "hidden": false
         }
@@ -444,7 +444,7 @@
         "id": "L1A_ROOT",
         "type": "folder",
         "name": "ECHO.ARCHIVE",
-        "alias": "[L1 ROOT]",
+        "alias": "[ECHO.ARCHIVE]",
         "tier": 1,
         "hidden": false,
         "title": "ECHO.ARCHIVE",
