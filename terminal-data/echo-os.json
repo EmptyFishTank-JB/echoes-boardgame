@@ -378,15 +378,6 @@
       ],
       "personality_src": "personality.json"
     },
-    "L1C_INTRO": {
-      "layer": "l1c",
-      "node_type": "intro",
-      "is_root": false,
-      "title": "",
-      "breadcrumb": "L1C_INTRO",
-      "footer": "",
-      "body": []
-    },
     "L1A_INTRO": {
       "layer": "l1a",
       "node_type": "intro",
@@ -553,36 +544,6 @@
           "type": "text",
           "text": "",
           "cls": "blank"
-        }
-      ]
-    },
-    "GLOBAL_STATUS": {
-      "layer": "l1a",
-      "node_type": "data",
-      "is_root": false,
-      "title": "STATUS",
-      "breadcrumb": "HELP > HELP > STATUS",
-      "footer": "",
-      "body": [
-        {
-          "type": "text",
-          "text": "*STATUS DISPLAYED HERE*",
-          "cls": "warn"
-        }
-      ]
-    },
-    "GLOBAL_SCAN": {
-      "layer": "l1a",
-      "node_type": "data",
-      "is_root": false,
-      "title": "SCAN",
-      "breadcrumb": "HELP > HELP > SCAN",
-      "footer": "",
-      "body": [
-        {
-          "type": "text",
-          "text": "*SCAN INFO DISPLAYED HERE*",
-          "cls": "warn"
         }
       ]
     }
@@ -790,30 +751,372 @@
                 "commands": []
               },
               {
-                "id": "L1A_INCIDENT__STUB_MEDICAL_TRIAGE_DAY_34",
+                "id": "L1A_MEDICAL_TRIAGE_DAY_34",
                 "type": "doc",
                 "name": "MEDICAL TRIAGE — DAY 34",
                 "alias": "[MEDICAL TRIAGE — DAY 34]",
                 "tier": 1,
-                "hidden": true,
-                "stub": true,
-                "title": "MEDICAL TRIAGE — DAY 34",
-                "body": [],
+                "hidden": false,
+                "title": "MEDICAL TRIAGE — DAY 34 // PARTIAL RECOVERY:",
+                "body": [
+                  {
+                    "type": "text",
+                    "text": "MEDICAL BAY TRIAGE LOG",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "FILE: MED/LOCAL/2143.152",
+                    "cls": "dim"
+                  },
+                  {
+                    "type": "text",
+                    "text": "STARDATE 2143.152.0610",
+                    "cls": "dim"
+                  },
+                  {
+                    "type": "text",
+                    "text": "SOURCE: LOCAL UNIT, BATTERY. SHIP NETWORK: NONE",
+                    "cls": "dim"
+                  },
+                  {
+                    "type": "text",
+                    "text": "",
+                    "cls": "blank"
+                  },
+                  {
+                    "type": "text",
+                    "text": "This unit runs on its own battery and is off the ship",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "network. It has been since the primary cells went out.",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "Everything in this log was typed by whoever was awake.",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "",
+                    "cls": "blank"
+                  },
+                  {
+                    "type": "text",
+                    "text": "BOARD AT 0600",
+                    "cls": "dim"
+                  },
+                  {
+                    "type": "text",
+                    "text": "  RED          06",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "  AMBER        19",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "  GREEN        41",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "  UNACCOUNTED  [CORRUPTED]",
+                    "cls": "warn"
+                  },
+                  {
+                    "type": "text",
+                    "text": "",
+                    "cls": "blank"
+                  },
+                  {
+                    "type": "text",
+                    "text": "The red cases are on the benches in the main bay. The",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "bay lights went out with the cells, so we are working",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "by flashlights taped to the ceiling rails.",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "",
+                    "cls": "blank"
+                  },
+                  {
+                    "type": "text",
+                    "text": "Four of the ambers are falls from the spokes. People",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "are trying to reach the hubs on foot, in the dark,",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "because the lifts have been dead since Day thirty-two.",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "",
+                    "cls": "blank"
+                  },
+                  {
+                    "type": "text",
+                    "text": "Eleven intake forms today have no cause of injury on",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "them. The patients gave one when I asked. I have",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "written \"corridor\" on each form and I am leaving it",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "there.",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "",
+                    "cls": "blank"
+                  },
+                  {
+                    "type": "text",
+                    "text": "SUPPLIES",
+                    "cls": "dim"
+                  },
+                  {
+                    "type": "text",
+                    "text": "  BLOOD PRODUCTS     TWO DAYS",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "  ANALGESICS         [CORRUPTED]",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "  UNIT BATTERY       [CORRUPTED] HOURS",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "",
+                    "cls": "blank"
+                  },
+                  {
+                    "type": "text",
+                    "text": "...BAY CLOSED TO NEW INTAKE AT [CORRUPTED]...",
+                    "cls": "warn"
+                  },
+                  {
+                    "type": "text",
+                    "text": "",
+                    "cls": "blank"
+                  },
+                  {
+                    "type": "text",
+                    "text": "Day thirty-four, by the research phase count. The",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "captain's office started that count and nobody has",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "told us to stop.",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "",
+                    "cls": "blank"
+                  },
+                  {
+                    "type": "text",
+                    "text": "    DR. [CORRUPTED], MEDICAL BAY",
+                    "cls": "dim"
+                  },
+                  {
+                    "type": "text",
+                    "text": "",
+                    "cls": "blank"
+                  },
+                  {
+                    "type": "text",
+                    "text": "> FURTHER DATA REQUIRES DEEPER ARCHIVE ACCESS.",
+                    "cls": "low"
+                  }
+                ],
                 "children": [],
-                "commands": []
+                "commands": [],
+                "footer": ""
               },
               {
-                "id": "L1A_INCIDENT__STUB_EMERGENCY_PROTOCOL_DAY_41",
+                "id": "L1A_EMERGENCY_PROTOCOL_DAY_41",
                 "type": "doc",
                 "name": "EMERGENCY PROTOCOL — DAY 41",
                 "alias": "[EMERGENCY PROTOCOL — DAY 41]",
                 "tier": 1,
-                "hidden": true,
-                "stub": true,
-                "title": "EMERGENCY PROTOCOL — DAY 41",
-                "body": [],
+                "hidden": false,
+                "title": "EMERGENCY PROTOCOL — DAY 41 // PARTIAL RECOVERY:",
+                "body": [
+                  {
+                    "type": "text",
+                    "text": "EMERGENCY PROTOCOL",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "FILED: OPERATIONS CENTER, STARDATE 2143.150.2318",
+                    "cls": "dim"
+                  },
+                  {
+                    "type": "text",
+                    "text": "ISSUED BY: COMMANDING OFFICER",
+                    "cls": "dim"
+                  },
+                  {
+                    "type": "text",
+                    "text": "REVIEW DATE: DAY 41 (2143.159)",
+                    "cls": "dim"
+                  },
+                  {
+                    "type": "text",
+                    "text": "",
+                    "cls": "blank"
+                  },
+                  {
+                    "type": "text",
+                    "text": "1. The Operations Center closes to all personnel at the",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "   end of this session. No watch will be kept in it.",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "2. The primary cells have been moved by the Chief",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "   Engineer. Their destination is recorded under his",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "   authority.",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "   DESTINATION: [CORRUPTED]",
+                    "cls": "warn"
+                  },
+                  {
+                    "type": "text",
+                    "text": "3. On Day forty-one conditions aboard will be reviewed.",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "   If they have not improved, the pod bays open to all",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "   personnel on that date.",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "4. The pods hold one hundred and twenty. The ship holds",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "   [CORRUPTED]. Seats are not assigned.",
+                    "cls": "warn"
+                  },
+                  {
+                    "type": "text",
+                    "text": "5. No person is ordered into a pod. No person is ordered",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "   to remain.",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "6. POD BEACON SETTINGS: [CORRUPTED]",
+                    "cls": "warn"
+                  },
+                  {
+                    "type": "text",
+                    "text": "7. Copies are to be posted by hand at every hub and at",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "   the base of every spoke. The ship's address system is",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "   down with the cells.",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "",
+                    "cls": "blank"
+                  },
+                  {
+                    "type": "text",
+                    "text": "    CAPT. E. HARROW",
+                    "cls": "dim"
+                  },
+                  {
+                    "type": "text",
+                    "text": "",
+                    "cls": "blank"
+                  },
+                  {
+                    "type": "text",
+                    "text": "> FURTHER DATA REQUIRES DEEPER ARCHIVE ACCESS.",
+                    "cls": "low"
+                  }
+                ],
                 "children": [],
-                "commands": []
+                "commands": [],
+                "footer": ""
               }
             ],
             "commands": []
@@ -830,43 +1133,471 @@
             "body": [],
             "children": [
               {
-                "id": "L1A_RESTRICTED__STUB_CAPTAIN_S_PRIVATE_LOG",
+                "id": "L1A_CAPTAINS_PRIVATE_LOG",
                 "type": "doc",
                 "name": "CAPTAIN'S PRIVATE LOG",
                 "alias": "[CAPTAIN'S PRIVATE LOG]",
                 "tier": 1,
                 "hidden": true,
-                "stub": true,
-                "title": "CAPTAIN'S PRIVATE LOG",
-                "body": [],
+                "title": "CAPTAIN'S PRIVATE LOG // PARTIAL RECOVERY:",
+                "body": [
+                  {
+                    "type": "text",
+                    "text": "CAPTAIN'S LOG, PRIVATE",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "STARDATE 2143.150.2301",
+                    "cls": "dim"
+                  },
+                  {
+                    "type": "text",
+                    "text": "FILED AS PERSONAL. NOT FOR THE SHIP'S RECORD.",
+                    "cls": "dim"
+                  },
+                  {
+                    "type": "text",
+                    "text": "",
+                    "cls": "blank"
+                  },
+                  {
+                    "type": "text",
+                    "text": "I have known Harlan Cross for eleven years. Tonight he",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "came to the Operations Center and told me what he means",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "to do with the cells. He told me as a courtesy, and I",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "let him have it.",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "",
+                    "cls": "blank"
+                  },
+                  {
+                    "type": "text",
+                    "text": "...[CORRUPTED] AND I AM NOT GOING TO WRITE IT HERE...",
+                    "cls": "warn"
+                  },
+                  {
+                    "type": "text",
+                    "text": "",
+                    "cls": "blank"
+                  },
+                  {
+                    "type": "text",
+                    "text": "Dr. Osei came to me on Day thirty. She told me what her",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "report from Day eighteen had said. By then I did not",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "need it explained.",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "",
+                    "cls": "blank"
+                  },
+                  {
+                    "type": "text",
+                    "text": "I wrote on the first day of this phase that we had",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "everything we needed. I believed it when I wrote it.",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "I would like that on the record somewhere, that I",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "believed it.",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "",
+                    "cls": "blank"
+                  },
+                  {
+                    "type": "text",
+                    "text": "Nearly nine hundred people. One hundred and twenty seats.",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "I have counted the seats more often than I will say here.",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "",
+                    "cls": "blank"
+                  },
+                  {
+                    "type": "text",
+                    "text": "Filing the protocol now. Then I close this room.",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "",
+                    "cls": "blank"
+                  },
+                  {
+                    "type": "text",
+                    "text": "...[CORRUPTED]...",
+                    "cls": "warn"
+                  },
+                  {
+                    "type": "text",
+                    "text": "    CAPT. E. HARROW",
+                    "cls": "dim"
+                  },
+                  {
+                    "type": "text",
+                    "text": "",
+                    "cls": "blank"
+                  },
+                  {
+                    "type": "text",
+                    "text": "> FURTHER DATA REQUIRES DEEPER ARCHIVE ACCESS.",
+                    "cls": "low"
+                  }
+                ],
                 "children": [],
-                "commands": []
+                "commands": [],
+                "footer": ""
               },
               {
-                "id": "L1A_RESTRICTED__STUB_RESEARCH_NOTES_DR_OSEI",
+                "id": "L1A_RESEARCH_NOTES_DR_OSEI",
                 "type": "doc",
                 "name": "RESEARCH NOTES — DR. OSEI",
                 "alias": "[RESEARCH NOTES — DR. OSEI]",
                 "tier": 1,
-                "hidden": true,
-                "stub": true,
-                "title": "RESEARCH NOTES — DR. OSEI",
-                "body": [],
+                "hidden": false,
+                "title": "RESEARCH NOTES — DR. OSEI // PARTIAL RECOVERY:",
+                "body": [
+                  {
+                    "type": "text",
+                    "text": "RESEARCH NOTES",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "AUTHOR: DR. AISHA OSEI, RESEARCH TEAM",
+                    "cls": "dim"
+                  },
+                  {
+                    "type": "text",
+                    "text": "FILE: RSCH/OSEI/PERSONAL",
+                    "cls": "dim"
+                  },
+                  {
+                    "type": "text",
+                    "text": "RECOVERED ENTRIES ONLY. SEQUENCE INCOMPLETE.",
+                    "cls": "dim"
+                  },
+                  {
+                    "type": "text",
+                    "text": "",
+                    "cls": "blank"
+                  },
+                  {
+                    "type": "text",
+                    "text": "2143.124.2205",
+                    "cls": "dim"
+                  },
+                  {
+                    "type": "text",
+                    "text": "Baseline run complete. All three calibration sources",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "agree within tolerance. Cross has asked for the wing",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "feed to come off the shared network for the duration.",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "Routine, he says. ECH/OES agrees.",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "",
+                    "cls": "blank"
+                  },
+                  {
+                    "type": "text",
+                    "text": "2143.133.0341",
+                    "cls": "dim"
+                  },
+                  {
+                    "type": "text",
+                    "text": "Run fourteen ended early. Cross says the shielding",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "tripped. The shielding log shows no trip. I have asked",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "him twice for the record and he has said he will find",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "it.",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "...RESIDUAL FIELD, FORWARD SHIELDING: [CORRUPTED]...",
+                    "cls": "warn"
+                  },
+                  {
+                    "type": "text",
+                    "text": "",
+                    "cls": "blank"
+                  },
+                  {
+                    "type": "text",
+                    "text": "2143.136.1930",
+                    "cls": "dim"
+                  },
+                  {
+                    "type": "text",
+                    "text": "Filed a supplemental sensor report. Cross says it",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "belongs to his department. I told the captain the",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "same when he asked. I am keeping my own copy here,",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "where it belongs to nobody.",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "",
+                    "cls": "blank"
+                  },
+                  {
+                    "type": "text",
+                    "text": "2143.143.0220",
+                    "cls": "dim"
+                  },
+                  {
+                    "type": "text",
+                    "text": "One workstation in the wing keeps a session open",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "overnight. No operator is signed in. ECH/OES lists it",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "as routine. The readings in the shielding change when",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "that session is active. I cannot tell which is",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "following which.",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "",
+                    "cls": "blank"
+                  },
+                  {
+                    "type": "text",
+                    "text": "...[CORRUPTED]... I SHOULD HAVE ... [CORRUPTED]",
+                    "cls": "warn"
+                  },
+                  {
+                    "type": "text",
+                    "text": "",
+                    "cls": "blank"
+                  },
+                  {
+                    "type": "text",
+                    "text": "> FURTHER DATA REQUIRES DEEPER ARCHIVE ACCESS.",
+                    "cls": "low"
+                  }
+                ],
                 "children": [],
-                "commands": []
+                "commands": [],
+                "footer": ""
               },
               {
-                "id": "L1A_RESTRICTED__STUB_COMMUNICATION_INTERCEPTS",
+                "id": "L1A_COMMUNICATION_INTERCEPTS",
                 "type": "doc",
                 "name": "COMMUNICATION INTERCEPTS",
                 "alias": "[COMMUNICATION INTERCEPTS]",
                 "tier": 1,
-                "hidden": true,
-                "stub": true,
-                "title": "COMMUNICATION INTERCEPTS",
-                "body": [],
+                "hidden": false,
+                "title": "COMMUNICATION INTERCEPTS // PARTIAL RECOVERY:",
+                "body": [
+                  {
+                    "type": "text",
+                    "text": "COMMUNICATIONS OFFICE",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "FLAGGED TRAFFIC, 2143.148 TO 2143.151",
+                    "cls": "dim"
+                  },
+                  {
+                    "type": "text",
+                    "text": "FLAGS SET BY ECH/OES. EVERY ENTRY CLASSED ROUTINE.",
+                    "cls": "dim"
+                  },
+                  {
+                    "type": "text",
+                    "text": "",
+                    "cls": "blank"
+                  },
+                  {
+                    "type": "text",
+                    "text": "2143.148   INTERNAL CH 07",
+                    "cls": "dim"
+                  },
+                  {
+                    "type": "text",
+                    "text": "...is it in the corridor? Is anyone else seeing this...",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "2143.148   INTERNAL CH 03",
+                    "cls": "dim"
+                  },
+                  {
+                    "type": "text",
+                    "text": "Operations, say again. Which section.",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "2143.148   INTERNAL CH 12",
+                    "cls": "dim"
+                  },
+                  {
+                    "type": "text",
+                    "text": "...[CORRUPTED]... do not take the lifts...",
+                    "cls": "warn"
+                  },
+                  {
+                    "type": "text",
+                    "text": "2143.149   INTERNAL CH 07",
+                    "cls": "dim"
+                  },
+                  {
+                    "type": "text",
+                    "text": "They are not answering from the forward ring.",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "",
+                    "cls": "blank"
+                  },
+                  {
+                    "type": "text",
+                    "text": "2143.150   OUTBOUND, MARS STATION OPS",
+                    "cls": "dim"
+                  },
+                  {
+                    "type": "text",
+                    "text": "CHARON REQUESTS [CORRUPTED]",
+                    "cls": "warn"
+                  },
+                  {
+                    "type": "text",
+                    "text": "QUEUE: ACCEPTED.   REVIEWER: NONE ASSIGNED.",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "",
+                    "cls": "blank"
+                  },
+                  {
+                    "type": "text",
+                    "text": "2143.151   COMMS.OUT",
+                    "cls": "dim"
+                  },
+                  {
+                    "type": "text",
+                    "text": "TRANSMITTER DISABLED. POWER SOURCE: LOCAL BACKUP.",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "AUTHORIZED BY: [CORRUPTED]",
+                    "cls": "warn"
+                  },
+                  {
+                    "type": "text",
+                    "text": "",
+                    "cls": "blank"
+                  },
+                  {
+                    "type": "text",
+                    "text": "> FURTHER DATA REQUIRES DEEPER ARCHIVE ACCESS.",
+                    "cls": "low"
+                  }
+                ],
                 "children": [],
-                "commands": []
+                "commands": [],
+                "footer": ""
               }
             ],
             "commands": []

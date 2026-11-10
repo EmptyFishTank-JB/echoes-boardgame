@@ -31,7 +31,8 @@ says how each kind appears. To change what types and what lands whole, change a 
 | Kind | What it covers | How it renders |
 |---|---|---|
 | `chat` | Replies to free text: personality responses, easter eggs, denied and admin lines, `KNOCK KNOCK`. This is the only place speed varies. | Typed. Speed varies, slower on the slow words. |
-| `boot` | The landing screen: the boot check intro, the five subsystem check lines (typed segment by segment, colors kept) and the status line, the fallback boot lines. | Typed, uniform speed, with the typing sound. |
+| `boot` | The landing screen's text: the intro, `> VERIFYING SUBSYSTEM CONNECTIONS...`, the `FULL ACCESS` / `DEGRADED` verdict, the fallback boot text. | Typed, uniform speed. |
+| `check` | The five subsystem check lines (label, dashes, `[STATUS]`, commit ID, colors kept). | Whole line with the static sound, a short beat between lines. |
 | `flavor` | Transition text between layers, the mount and unmount lines, layer enter and exit confirmations, the `[SYSTEM OVERRIDE]` banner, the self-destruct sequence. | Typed, uniform speed. |
 | `status` | One-line system messages: errors, `<NAME>.EXE CLOSED`, author messages, command headings, validation summary. | Typed, uniform speed. |
 | `doc` | Body text of a document printed inline. | Typed, uniform speed. |
@@ -104,7 +105,7 @@ else it answers "fetch unavailable".
 | Command | Status |
 |---|---|
 | `[L2 ROOT]`, `[L3 ROOT]` | Exist on the L2 and L3 chat screens (stubs). The engine never routes to those screens. |
-| `[STATUS]`, `[SCAN]` | Reserved names for future programs. Placeholder screens exist but nothing opens them. (`[STATUS]` does exist inside the override menu, section 4.) |
+| `[STATUS]`, `[SCAN]` | Reserved names for future programs. Nothing defines them yet, and an alias cannot take them. (`[STATUS]` does exist inside the override menu, section 4.) |
 
 ---
 

@@ -465,7 +465,8 @@ function addLine(cls,phosphor){
 // Either way the glow is the same: a whole line flashes once and fades; typed characters each flash and fade on their own.
 var RENDER = {
   chat:   'chat',    // free-text replies: personality responses, easter eggs, denied and admin lines, KNOCK KNOCK
-  boot:   'type',    // the landing screen: boot check intro text, subsystem lines, fallback boot lines
+  boot:   'type',    // the landing screen's text: the intro, "VERIFYING SUBSYSTEM CONNECTIONS...", the FULL ACCESS / DEGRADED verdict, fallback boot text
+  check:  'whole',   // the five subsystem check lines (label, dashes, [STATUS], commit ID): each lands whole, with the static
   flavor: 'type',    // transition text, mount and unmount lines, layer enter and exit confirmations, system override and self destruct sequences
   status: 'type',    // one-line system messages: errors, confirmations, "PROGRAM CLOSED", command headings, summaries
   doc:    'type',    // body text of a document or a pulled node
@@ -633,7 +634,7 @@ async function runScript(){
             await sleep(60);
           }else if(cb.type==='dynamic'){
             var dr1=resolveDynamic(cb);
-            var del1=addLine(dr1.cls||'dim');await putDyn(del1,dr1,'boot');await sleep(60);
+            var del1=addLine(dr1.cls||'dim');await putDyn(del1,dr1,/^file_status\./.test(cb.variable||'')?'check':'boot');await sleep(60);
           }else if(cb.type==='command'){
             var cCls=cb.cmd_type==='navigation'?'cmd-nav':cb.cmd_type==='pull'?'cmd-pull':'dim';
             var cEl=addLine(cCls);
@@ -656,7 +657,7 @@ async function runScript(){
       var fbHead=addLine('dim');await put(fbHead,'> VERIFYING SUBSYSTEM CONNECTIONS...','boot');await sleep(120);
       for(var fbi=0;fbi<fbChecks.length;fbi++){ var c=fbChecks[fbi];
         var r=resolveDynamic({variable:c[0],display_label:c[1],valid_text:'OK',denied_text:'ERROR',label_cls:'full',value_cls:'full'});
-        var fl=addLine(r.cls||'dim');await putDyn(fl,r,'boot');await sleep(60);
+        var fl=addLine(r.cls||'dim');await putDyn(fl,r,'check');await sleep(60);
       }
       var fbSt=resolveDynamic({variable:'system.boot_status',valid_text:'FULL ACCESS',denied_text:'DEGRADED',value_cls:'full'});
       await putDyn(addLine(fbSt.cls||'full'),fbSt,'boot');
@@ -2001,7 +2002,7 @@ updateCursors();
 
 // Author context menu: right-click an item for its edit commands, empty space for the create commands.
 var ctxEl = null;
-function ctxClose(){ if(ctxEl){ ctxEl.remove(); ctxEl = null; } hoverOff(); }
+function ctxClose(){ if(!ctxEl) return; ctxEl.remove(); ctxEl = null; hoverOff(); }   // only when a menu was open: scrolling or blurring must not wipe a hover highlight
 function ctxOpen(x, y, title, entries){
   ctxClose();
   var m = document.createElement('div'); m.id = 'ctx';
