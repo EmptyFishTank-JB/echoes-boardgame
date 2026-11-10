@@ -5,4 +5,4 @@ replaced the node-graph terminal. Contains the engine (terminal.html), every ter
 file except echo-os.json (the migrated tree), and the four terminal-related editors.
 
 Restore: copy terminal.html and terminal-data/*.json back to the repo root locations.
-Exact state is also tagged: pre-echo-os.
+Exact pre-snapshot state: commit a19ef18 (also restorable with `git checkout a19ef18`).
