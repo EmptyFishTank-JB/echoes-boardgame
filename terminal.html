@@ -459,11 +459,11 @@ async function printTyped(lines){
 // File readiness checks — used to wait for async file loads before rendering
 // Display labels come from L1C_ROOT body[] dynamic lines, not from here
 var FILE_CHECK_MAP = [
-  {ready:function(){return _perReady;},  ok:function(){return !!personality;}},
-  {ready:function(){return _lorReady;},  ok:function(){return !!loreData;}},
-  {ready:function(){return _devReady;},  ok:function(){return !!devLogs;}},
-  {ready:function(){return _archReady;}, ok:function(){return navOk();}},
-  {ready:function(){return _engReady;},  ok:function(){return !!engineConfig;}}
+  {key:'personality', ready:function(){return _perReady;}},
+  {key:'lore',        ready:function(){return _lorReady;}},
+  {key:'devlogs',     ready:function(){return _devReady;}},
+  {key:'nodes',       ready:function(){return _archReady;}},
+  {key:'engine',      ready:function(){return _engReady;}}
 ];
 
 async function runScript(){
@@ -491,15 +491,16 @@ async function runScript(){
   }
 
   // ── PHASE 2: silent wait for all files to load or timeout ────────────────
-  var failCount=0;
+  var failCount=0, warnCount=0;
   for(var fi=0;fi<FILE_CHECK_MAP.length;fi++){
     var fc=FILE_CHECK_MAP[fi];
     var waited=0;
     while(!fc.ready()&&waited<3000){await sleep(80);waited+=80;}
-    if(!fc.ok()) failCount++;
+    var fst=fileState(fc.key);
+    if(fst==='warn') warnCount++; else if(fst!=='ok') failCount++;
   }
   // Store result for system.boot_status dynamic variable
-  window._bootFailCount=failCount;
+  window._bootFailCount=failCount; window._bootWarnCount=warnCount;
 
   // ── PHASE 3: find L1 chat root node and render its body[] inline ──────────
   if(!typingAbort){
@@ -705,6 +706,11 @@ var CFG_STRINGS = {
   error_pull_not_found:        '> ERROR \u2014 PULL TARGET NOT FOUND',
   error_target_not_found:      '> ERROR \u2014 TARGET NODE NOT FOUND',
   error_fetch_cancelled:       '> FETCH CANCELED',
+  status_ok:                   'OK',
+  status_warn:                 'WARN',
+  status_invalid:              'INVALID',
+  status_broken:               'BROKEN',
+  status_missing:              'MISSING',
   layer_enter_confirmed:       '',
   layer_exit_confirmed:        '',
   layer_mount:                 '> MOUNTING ECHOES:\\ . . .',
@@ -760,12 +766,90 @@ function fetchFileCommits(){
   });
 }
 
+// ── DATA FILE STATUS ─────────────────────────────────────────────────────────
+// Every data file ends up in one state, shown on the boot screen and in [SYSTEM OVERRIDE] [STATUS]:
+//   ok       loaded, parsed, and the contents look right
+//   warn     usable, but something inside is off (some entries malformed, a theme missing, ...)
+//   invalid  valid JSON with the wrong contents: treated as unavailable
+//   broken   fetched, but not valid JSON
+//   missing  could not be fetched (not found, or the network failed)
+var FILE_STATUS = {};
+var FILE_LABELS = {personality:'CREW BEHAVIORAL MATRIX', lore:'ARCHIVE LOG DATABASE', devlogs:'DEVELOPMENT RECORDS', nodes:'NAVIGATION ARCHITECTURE', engine:'CORE ENGINE PARAMETERS'};
+var FILE_NAMES = {personality:'personality.json', lore:'lore.json', devlogs:'dev_logs.json', nodes:'echo-os.json', engine:'engine_config.json'};
+function fileState(key){ return (FILE_STATUS[key] && FILE_STATUS[key].state) || 'missing'; }
+function statusLabel(state){ return (CFG_STRINGS && CFG_STRINGS['status_'+state]) || state.toUpperCase(); }
+function isObj(x){ return !!x && typeof x === 'object' && !Array.isArray(x); }
+function stOk(){ return {state:'ok', detail:''}; }
+function stWarn(list){ return {state:'warn', detail:list.join('; ')}; }
+function stBad(detail){ return {state:'invalid', detail:detail}; }
+var CODE_KEY_RE = /^[A-Z0-9]{5}(-[A-Z0-9]{5}){3}$/;
+function checkLogFile(d){
+  if(!isObj(d)) return stBad('MUST BE AN OBJECT OF ENTRIES KEYED BY CODE');
+  var keys = Object.keys(d);
+  if(!keys.length) return stWarn(['NO ENTRIES']);
+  var bad = keys.filter(function(k){ var e = d[k]; return !isObj(e) || typeof e.text !== 'string' || ['full','classified','virus'].indexOf(e.type) === -1; }).length;
+  if(bad === keys.length) return stBad('NO USABLE ENTRIES (EACH NEEDS text AND type: full, classified OR virus)');
+  var issues = [];
+  if(bad) issues.push(bad+' OF '+keys.length+' ENTRIES MALFORMED');
+  var badKeys = keys.filter(function(k){ return !CODE_KEY_RE.test(k); }).length;
+  if(badKeys) issues.push(badKeys+' CODE(S) NOT IN THE XXXXX-XXXXX-XXXXX-XXXXX FORMAT');
+  return issues.length ? stWarn(issues) : stOk();
+}
+var DATA_CHECKS = {
+  personality: function(d){
+    if(!isObj(d)) return stBad('MUST BE AN OBJECT');
+    if(!Array.isArray(d.easter_eggs)) return stBad('easter_eggs MUST BE A LIST');
+    if(!Array.isArray(d.denied)) return stBad('denied MUST BE A LIST');
+    var a = d.admin_triggers;
+    if(!isObj(a) || !Array.isArray(a.keywords) || !Array.isArray(a.responses)) return stBad('admin_triggers NEEDS keywords AND responses LISTS');
+    var bad = d.easter_eggs.filter(function(e){ return !isObj(e) || !Array.isArray(e.keys) || !(Array.isArray(e.variants) || Array.isArray(e.lines)); }).length;
+    return bad ? stWarn([bad+' EASTER EGG(S) MALFORMED (NEED keys AND variants)']) : stOk();
+  },
+  lore: checkLogFile,
+  devlogs: checkLogFile,
+  nodes: function(d){
+    if(!isObj(d)) return stBad('MUST BE AN OBJECT');
+    if(!isObj(d.tree) || !Array.isArray(d.tree.children)) return stBad('tree.children IS MISSING');
+    if(!d.tree.children.some(function(c){ return isObj(c) && c.tier === 1 && c.type === 'folder'; })) return stBad('NO TIER 1 ARCHIVE ROOT');
+    var issues = [], ids = {}, dup = 0, items = [];
+    (function walk(it){ if(!isObj(it)) return; if(it.id){ if(ids[it.id]) dup++; ids[it.id] = true; } items.push(it); (it.children || []).forEach(walk); })(d.tree);
+    var dangling = items.filter(function(it){ return it.type === 'gateway' && !ids[it.goto]; }).length;
+    var landing = isObj(d.screens) && Object.keys(d.screens).some(function(k){ var sc = d.screens[k]; return sc && sc.node_type === 'chat' && sc.layer === 'l1c' && sc.is_root; });
+    if(!landing) issues.push('NO LAYER 1 CHAT (LANDING) SCREEN');
+    if(dup) issues.push(dup+' DUPLICATE ID(S)');
+    if(dangling) issues.push(dangling+' GATEWAY(S) POINT NOWHERE');
+    return issues.length ? stWarn(issues) : stOk();
+  },
+  engine: function(d){
+    if(!isObj(d)) return stBad('MUST BE AN OBJECT');
+    if(!isObj(d.typing) || !isObj(d.timing) || !isObj(d.theme)) return stBad('typing, timing AND theme ARE REQUIRED');
+    var issues = [];
+    var noTheme = ['l1a','l2a','l3a'].filter(function(k){ return !isObj(d.theme[k]) || !d.theme[k].primary; });
+    if(noTheme.length) issues.push('THEME MISSING FOR '+noTheme.join(', ').toUpperCase());
+    if(!Array.isArray(d.idle_messages)) issues.push('idle_messages SHOULD BE A LIST');
+    return issues.length ? stWarn(issues) : stOk();
+  }
+};
+// Fetches one data file, records its status, and hands the parsed data (or null) to apply().
+// An invalid file is treated as unavailable so the rest of the engine only ever sees usable data.
+function loadDataFile(key, file, apply){
+  function finish(d){ try{ apply(d); }catch(e){ FILE_STATUS[key] = {state:'invalid', detail:'FAILED WHILE LOADING: '+(e && e.message || e)}; try{ apply(null); }catch(e2){} } }
+  return fetch('./terminal-data/'+file+'?v='+Date.now()).then(function(r){
+    if(!r.ok){ FILE_STATUS[key] = {state:'missing', detail:'HTTP '+r.status}; return null; }
+    return r.text().then(function(t){
+      var d;
+      try{ d = JSON.parse(decryptIfNeeded(t)); }catch(e){ FILE_STATUS[key] = {state:'broken', detail:'NOT VALID JSON ('+e.message+')'}; return null; }
+      var v = DATA_CHECKS[key](d); FILE_STATUS[key] = v;
+      return v.state === 'invalid' ? null : d;
+    });
+  }, function(){ FILE_STATUS[key] = {state:'missing', detail:'COULD NOT BE LOADED'}; return null; }).then(finish, function(){ FILE_STATUS[key] = {state:'broken', detail:'COULD NOT BE READ'}; finish(null); });
+}
 function fetchAllData(){
-  fetch('./terminal-data/engine_config.json?v='+Date.now()).then(function(r){return r.text();}).then(function(t){return JSON.parse(decryptIfNeeded(t));}).then(function(d){engineConfig=d;applyEngineConfig(d);_engReady=true;}).catch(function(){engineConfig=null;_engReady=true;});
-  fetch('./terminal-data/echo-os.json?v='+Date.now()).then(function(r){return r.text();}).then(function(t){return JSON.parse(decryptIfNeeded(t));}).then(function(d){osData=d;archData=buildArchFromOS(d);_archReady=true;}).catch(function(){osData=null;archData=null;_archReady=true;});
-  fetch('./terminal-data/lore.json?v='+Date.now()).then(function(r){return r.text();}).then(function(t){return JSON.parse(decryptIfNeeded(t));}).then(function(d){loreData=d;_lorReady=true;}).catch(function(){loreData=null;_lorReady=true;});
-  fetch('./terminal-data/dev_logs.json?v='+Date.now()).then(function(r){return r.text();}).then(function(t){return JSON.parse(decryptIfNeeded(t));}).then(function(d){devLogs=d;_devReady=true;}).catch(function(){devLogs=null;_devReady=true;});
-  fetch('./terminal-data/personality.json?v='+Date.now()).then(function(r){return r.text();}).then(function(t){return JSON.parse(decryptIfNeeded(t));}).then(function(d){personality=d;applyPersonality(d);_perReady=true;}).catch(function(){personality=null;_perReady=true;});
+  loadDataFile('engine', 'engine_config.json', function(d){ engineConfig = d; applyEngineConfig(d); _engReady = true; });
+  loadDataFile('nodes', 'echo-os.json', function(d){ osData = d; archData = d ? buildArchFromOS(d) : null; _archReady = true; });
+  loadDataFile('lore', 'lore.json', function(d){ loreData = d; _lorReady = true; });
+  loadDataFile('devlogs', 'dev_logs.json', function(d){ devLogs = d; _devReady = true; });
+  loadDataFile('personality', 'personality.json', function(d){ personality = d; applyPersonality(d); _perReady = true; });
 }
 
 function applyEngineConfig(c){
@@ -1005,15 +1089,13 @@ function resolveDynamic(b){
   var labelCls  = b.label_cls   || b.cls || 'dim';
   var valueCls  = b.value_cls   || 'full';
   var ok, val, cls;
-  if(variable==='file_status.personality'){ok=!!personality;}
-  else if(variable==='file_status.lore'){ok=!!loreData;}
-  else if(variable==='file_status.devlogs'){ok=!!devLogs;}
-  else if(variable==='file_status.nodes'){ok=navOk();}
-  else if(variable==='file_status.engine'){ok=!!engineConfig;}
+  if(variable.indexOf('file_status.')===0){ok=null;}   // drawn below from the file's status
   else if(variable==='system.boot_status'){
-    var fails=window._bootFailCount||0;
-    val=fails===0?okText:errText+(fails>0?' \u2014 '+fails+' SUBSYSTEM'+(fails===1?'':'S')+' OFFLINE':'');
-    cls=fails===0?valueCls:'warn';
+    var fails=window._bootFailCount||0, warns=window._bootWarnCount||0;
+    if(fails) val=errText+' \u2014 '+fails+' SUBSYSTEM'+(fails===1?'':'S')+' OFFLINE'+(warns?', '+warns+' WARNING'+(warns===1?'':'S'):'');
+    else if(warns) val=okText+' \u2014 '+warns+' WARNING'+(warns===1?'':'S');
+    else val=okText;
+    cls=(fails||warns)?'warn':valueCls;
     return{text:'> '+val,cls:cls};
   }
   else if(variable==='session.level'){return{text:'> '+label+String(currentLevel),cls:labelCls};}
@@ -1023,20 +1105,21 @@ function resolveDynamic(b){
   else if(variable==='node.title'){var cn=archData&&archData.nodes&&archData.nodes[termState];return{text:'> '+label+(cn?cn.title||'\u2014':'\u2014'),cls:labelCls};}
   else if(variable==='node.layer'){var cn2=archData&&archData.nodes&&archData.nodes[termState];return{text:'> '+label+(cn2?cn2.layer||'\u2014':'\u2014'),cls:labelCls};}
   else{return{text:'> '+label+'[?]',cls:'low'};}
-  // file_status variables — segmented line: label at labelCls, [OK] in green
-  // ([ERROR] in red), then that file's own commit ID in orange glow. The
-  // commit shows an em-dash until (unless) its GitHub API fetch resolves.
-  val = ok ? '['+okText+']' : '['+errText+']';
-  cls = ok ? valueCls : 'denied';
+  // file_status variables: segmented line. Label, then [STATUS] (green for OK, amber for WARN, red for anything
+  // that makes the file unusable), then that file's own commit ID in orange glow. The commit shows an
+  // em-dash until (unless) its GitHub API fetch resolves.
   var fileKey = variable.split('.')[1];
+  var state = fileState(fileKey);
+  val = '['+(state==='ok' ? okText : statusLabel(state))+']';
+  cls = state==='ok' ? valueCls : state==='warn' ? 'warn' : 'denied';
   var sha = _fileCommits && _fileCommits[fileKey];
   return{
-    text:'> '+label+val+' '+(sha||'—'),
-    cls:cls, ok:ok,
+    text:'> '+label+val+' '+(sha||'\u2014'),
+    cls:cls, ok:state==='ok',
     parts:[
       {text:'> '+label, cls:labelCls},
-      {text:val, cls: ok?'ok':'denied'},
-      {text:' '+(sha||'—'), cls:'commit'}
+      {text:val, cls: state==='ok'?'ok':state==='warn'?'warn':'denied'},
+      {text:' '+(sha||'\u2014'), cls:'commit'}
     ]
   };
 }
@@ -1870,7 +1953,7 @@ function pickVariant(egg){
   if(egg.variants){if(egg.weighted){var last=egg.variants[egg.variants.length-1];if(last.weight&&Math.random()<last.weight)return last;var pool=egg.variants.slice(0,egg.variants.length-1);return pool[Math.floor(Math.random()*pool.length)];}return egg.variants[Math.floor(Math.random()*egg.variants.length)];}
   return{lines:egg.lines,cls:egg.cls};
 }
-function checkEasterEgg(input){var lower=input.toLowerCase();if(!EASTER_EGGS)return null;for(var i=0;i<EASTER_EGGS.length;i++){var egg=EASTER_EGGS[i];for(var j=0;j<egg.keys.length;j++){if(lower.indexOf(egg.keys[j])>=0)return egg;}}return null;}
+function checkEasterEgg(input){var lower=input.toLowerCase();if(!EASTER_EGGS)return null;for(var i=0;i<EASTER_EGGS.length;i++){var egg=EASTER_EGGS[i];if(!egg||!egg.keys)continue;for(var j=0;j<egg.keys.length;j++){if(lower.indexOf(egg.keys[j])>=0)return egg;}}return null;}
 function checkAdmin(input){if(!ADMIN_KW)return false;var lower=input.toLowerCase();for(var i=0;i<ADMIN_KW.length;i++){if(lower.indexOf(ADMIN_KW[i])>=0)return true;}return false;}
 
 // ── IDLE ──────────────────────────────────────────────────────────────────────
@@ -2271,14 +2354,9 @@ var VALIDATOR_KNOWN_NODE_TYPES=['chat','intro','standard','global','data','log_e
 // incoming command link — reachable even with zero inbound references.
 var VALIDATOR_ENGINE_ENTRY_IDS=['BOOT_NODE','L1A_INTRO','L2A_INTRO','L3A_INTRO'];
 function runDataValidator(){
-  var report={fileStatus:[],dangling:[],stub:[],badCmdType:[],badNodeType:[],badLayer:[],orphaned:[]};
-  report.fileStatus=[
-    {label:'CREW BEHAVIORAL MATRIX',ok:!!personality},
-    {label:'ARCHIVE LOG DATABASE',ok:!!loreData},
-    {label:'DEVELOPMENT RECORDS',ok:!!devLogs},
-    {label:'NAVIGATION ARCHITECTURE',ok:!!archData},
-    {label:'CORE ENGINE PARAMETERS',ok:!!engineConfig}
-  ];
+  var report={fileStatus:[],fileProblems:[],dangling:[],stub:[],badCmdType:[],badNodeType:[],badLayer:[],orphaned:[]};
+  report.fileStatus=Object.keys(FILE_LABELS).map(function(k){ return {label:FILE_LABELS[k], file:FILE_NAMES[k], state:fileState(k), detail:(FILE_STATUS[k]&&FILE_STATUS[k].detail)||''}; });
+  report.fileProblems=report.fileStatus.filter(function(f){ return f.state!=='ok'; }).map(function(f){ return f.file+' ['+statusLabel(f.state)+']'+(f.detail?': '+f.detail:''); });
   if(!archData||!archData.nodes) return report;
   var nodes=archData.nodes;
   var layers=(archData.layers||{});
@@ -2322,10 +2400,11 @@ async function handleOverrideInput(val){
     var r=runDataValidator();
     var sep1=addLine('low');sep1.textContent=SEP;
     r.fileStatus.forEach(function(f){
-      var fl=addLine('full');fl.textContent='  '+f.label+' '+'-'.repeat(Math.max(1,30-f.label.length))+' ['+(f.ok?'OK':'ERROR')+']';
+      var fl=addLine(f.state==='ok'?'full':f.state==='warn'?'warn':'denied');fl.textContent='  '+f.label+' '+'-'.repeat(Math.max(1,30-f.label.length))+' ['+(f.state==='ok'?'OK':statusLabel(f.state))+']';
     });
     var sep2=addLine('low');sep2.textContent=SEP;
     var sections=[
+      ['DATA FILE PROBLEMS',r.fileProblems],
       ['DANGLING TARGETS',r.dangling],
       ['UNHANDLED CMD_TYPES',r.badCmdType],
       ['UNRECOGNIZED NODE_TYPES',r.badNodeType],
@@ -2333,7 +2412,7 @@ async function handleOverrideInput(val){
       ['ORPHANED NODES',r.orphaned],
       ['STUB ITEMS (planned, empty — hidden from player)',r.stub]
     ];
-    var totalIssues=r.dangling.length+r.badCmdType.length+r.badNodeType.length+r.badLayer.length+r.orphaned.length+r.stub.length;
+    var totalIssues=r.fileProblems.length+r.dangling.length+r.badCmdType.length+r.badNodeType.length+r.badLayer.length+r.orphaned.length+r.stub.length;
     sections.forEach(function(sec){
       var name=sec[0],items=sec[1];
       var sl=addLine(items.length?'warn':'low');sl.textContent='  '+name+': '+items.length;

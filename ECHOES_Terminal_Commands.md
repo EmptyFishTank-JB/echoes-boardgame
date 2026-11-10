@@ -189,21 +189,39 @@ be unique within their folder. Programs may share an alias across tiers.
 
 ## 6. Boot checks
 
-The five lines on the landing page are real load checks. Each shows `[OK]` if the file was fetched and parsed
-and `[ERROR]` if not, followed by that file's latest commit ID from GitHub. The last line reads `FULL ACCESS`,
-or `DEGRADED` with a count of offline subsystems.
+The five lines on the landing page check the five data files. Each line ends with a status in brackets, then that
+file's latest commit ID from GitHub (a dash if GitHub does not answer). The last line summarizes them.
 
-| Label | File | Counts as `[OK]` when |
+| Status | Color | Meaning |
 |---|---|---|
-| CREW BEHAVIORAL MATRIX | `personality.json` | It loads and parses. |
-| ARCHIVE LOG DATABASE | `lore.json` | It loads and parses. |
-| DEVELOPMENT RECORDS | `dev_logs.json` | It loads and parses. |
-| NAVIGATION ARCHITECTURE | `echo-os.json` | It loads, parses, and the tree has a layer 1 root. |
-| CORE ENGINE PARAMETERS | `engine_config.json` | It loads and parses. |
+| `OK` | green | Loaded, parsed, and the contents look right. |
+| `WARN` | amber | Usable, but something inside is off. The file is used as is. |
+| `INVALID` | red | Valid JSON with the wrong contents. Treated as unavailable. |
+| `BROKEN` | red | Fetched, but not valid JSON. Treated as unavailable. |
+| `MISSING` | red | Could not be fetched (not found, or the network failed). Treated as unavailable. |
 
-These checks do not validate contents. A file that is valid JSON but has the wrong shape still passes (use
-`[SYSTEM OVERRIDE]` then `[STATUS]` to validate the tree). If `echo-os.json` itself fails, the landing screen
-cannot come from it, so the same five checks are drawn from code instead.
+The labels are editable as the `status_ok`, `status_warn`, `status_invalid`, `status_broken` and `status_missing`
+strings in the terminal engine editor.
+
+The last line reads `FULL ACCESS`, `FULL ACCESS — n WARNING(S)`, or `DEGRADED — n SUBSYSTEM(S) OFFLINE` (with
+`, n WARNING(S)` added if there are warnings too). INVALID, BROKEN and MISSING count as offline.
+
+| Label | File | `INVALID` when | `WARN` when |
+|---|---|---|---|
+| CREW BEHAVIORAL MATRIX | `personality.json` | Not an object, or `easter_eggs`, `denied` or `admin_triggers` (`keywords` and `responses` lists) is missing or the wrong type. | Some easter eggs lack `keys` or `variants`. |
+| ARCHIVE LOG DATABASE | `lore.json` | Not an object of entries, or no entry has `text` and a `type` of `full`, `classified` or `virus`. | The file has no entries, some entries are malformed, or a code is not in the `XXXXX-XXXXX-XXXXX-XXXXX` format. |
+| DEVELOPMENT RECORDS | `dev_logs.json` | Same as `lore.json`. | Same as `lore.json`. |
+| NAVIGATION ARCHITECTURE | `echo-os.json` | No `tree.children`, or no tier 1 folder. | No layer 1 chat (landing) screen, duplicate item ids, or a gateway that points nowhere. |
+| CORE ENGINE PARAMETERS | `engine_config.json` | Not an object, or `typing`, `timing` or `theme` is missing. | A theme is missing for layer 1, 2 or 3, or `idle_messages` is not a list. |
+
+Examples that now report `INVALID`: `lore.json` containing `["not", "an", "object"]`, `dev_logs.json` containing
+`{"hello": "world"}`, `personality.json` containing `{"easter_eggs": "text", "admin_triggers": 7}`. Before this
+check existed all three showed `[OK]` and `FULL ACCESS`.
+
+The landing screen (title art, the five lines, the `[ECHOES.ARCHIVE]` command) is data in `echo-os.json`. If that
+file is `MISSING`, `BROKEN` or `INVALID`, the engine has no landing screen to draw, so it draws the same five check
+lines from its own built-in copy instead, with the error showing. The terminal then runs with the chat only, because
+there is no archive to enter. `[SYSTEM OVERRIDE]` then `[STATUS]` lists each problem and the reason for it.
 
 ---
 
