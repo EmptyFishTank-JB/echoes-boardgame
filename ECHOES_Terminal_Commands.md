@@ -255,6 +255,12 @@ file is `MISSING`, `BROKEN` or `INVALID`, the engine has no landing screen to dr
 lines from its own built-in copy instead, with the error showing. The terminal then runs with the chat only, because
 there is no archive to enter. `[SYSTEM OVERRIDE]` then `[STATUS]` lists each problem and the reason for it.
 
+
+**Where the vessel name shows.** `DSCF CHARON` (Deep Space Colonial [Outpost] Facility, Ixion-class) appears in three
+places. The start screen shows it large above the hub name, with the full `DSCF CHARON - ECHOES SHIP SYSTEM TERMINAL 426`
+under the power button. The landing screen opens with a `DSCF CHARON ────` heading row above the ECHOES art (the first
+two rows of the `art` item in `echo-os.json`: a heading and a spacer). The header in the chat reads the full name from
+`terminal_title` in `engine_config.json`. On a phone the header puts the name on its own row.
 ---
 
 ## 7. Where content lives

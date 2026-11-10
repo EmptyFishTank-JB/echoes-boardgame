@@ -93,10 +93,12 @@ body::after{content:"";position:fixed;inset:-50%;z-index:2;pointer-events:none;
 #power-btn:hover{background:rgba(79,195,247,0.10);border-color:#4fc3f7;
   box-shadow:inset 0 0 32px rgba(79,195,247,0.18),0 0 32px rgba(79,195,247,0.18);
   text-shadow:0 0 4px #4fc3f7;}
+#power-vessel{font-family:'Share Tech Mono',monospace;font-size:26px;letter-spacing:0.5em;margin-right:-0.5em;color:rgba(79,195,247,0.85);
+  text-shadow:0 0 14px rgba(79,195,247,0.35);text-align:center;}
 #power-title{font-family:'Share Tech Mono',monospace;font-size:12px;letter-spacing:0.26em;line-height:1.9;
   color:rgba(79,195,247,0.55);text-align:center;max-width:min(92vw,640px);text-transform:uppercase;}
 #power-sub{font-family:'Share Tech Mono',monospace;font-size:11px;color:rgba(79,195,247,0.28);
-  letter-spacing:0.16em;}
+  letter-spacing:0.16em;text-align:center;max-width:min(92vw,640px);line-height:1.7;}
 @keyframes blink{0%,49%{opacity:1}50%,100%{opacity:0}}
 /* Page */
 #page{position:fixed;top:0;left:0;right:0;z-index:3;height:100vh;height:100dvh;
@@ -242,11 +244,13 @@ body.in-archive #t-breadcrumb{opacity:0!important;}
   #page{padding:10px 14px 14px;}
   .t-line{font-size:12px;}
   #t-input-row{padding:14px 14px 16px;}
-  #t-header{padding:0 4px 8px;font-size:10px;gap:10px;}
+  #t-header{padding:0 4px 8px;font-size:10px;gap:3px 10px;flex-wrap:wrap;}
+  #t-title{flex:1 1 100%;}   /* the vessel name is long: it gets its own row, breadcrumb and clock share the next */
   #t-breadcrumb{font-size:9.5px;}
   #t-version{display:none;}
   #t-clock{font-size:10px;}
   #power-btn{font-size:13px;padding:14px 24px;}
+  #power-vessel{font-size:20px;letter-spacing:0.38em;margin-right:-0.38em;}
   #power-title{font-size:10px;letter-spacing:0.18em;}
   #power-sub{font-size:10px;}
 }
@@ -257,6 +261,7 @@ body.in-archive #t-breadcrumb{opacity:0!important;}
 <div id="vignette"></div>
 <div id="override-fade"></div>
 <div id="power-overlay">
+  <div id="power-vessel">DSCF CHARON</div>
   <div id="power-title">Expedition Control Hub for Operations &amp; Environmental Systems</div>
   <button id="power-btn">[ Power On / Initialize ]</button>
   <div id="power-sub"></div>
