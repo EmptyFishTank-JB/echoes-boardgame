@@ -534,7 +534,7 @@ function updPhosphorCSS(){
 // ── MOBILE KEYBOARD ───────────────────────────────────────────────────────────
 (function(){
   termInput.addEventListener('input',function(){
-    if(typeof termState!=='undefined'&&termState==='AWAITING_FETCH_CODE') return;
+    if(inputMask==='code') return;
     this.value=this.value.toUpperCase();
   });
   document.getElementById('terminal-box').addEventListener('click',function(){
@@ -597,6 +597,7 @@ var CFG_STRINGS = {
   error_invalid_selection_hint:'  Enter option exactly as shown, including brackets.',
   error_fetch_format:          '> INVALID FORMAT \u2014 Expected: XXXXX-XXXXX-XXXXX-XXXXX',
   error_fetch_unavailable:     '> FETCH UNAVAILABLE FROM THIS NODE',
+  error_program_unavailable:   '> PROGRAM UNAVAILABLE',
   error_pull_not_found:        '> ERROR \u2014 PULL TARGET NOT FOUND',
   error_target_not_found:      '> ERROR \u2014 TARGET NODE NOT FOUND',
   error_fetch_cancelled:       '> FETCH CANCELLED',
@@ -754,7 +755,6 @@ var currentLevel    = 1;
 var currentMenuOpts = [];
 var menuSelIdx      = -1;
 var l1ChatBackup    = null;
-var preFetchState   = null;
 var commandHistory  = [];
 var commandHistIdx  = -1;
 var overrideActive  = false;
@@ -797,10 +797,11 @@ function updateInvertHighlight(){
 // of being hand-wired. Hidden items get no entry but stay reachable by alias; stubs
 // (planned, empty items) are left out entirely.
 var osItems = {};      // id -> tree item, every item
-var osHidden = {};     // UPPERCASE alias -> id, hidden items only
+var osHidden = {};     // UPPERCASE alias -> id, hidden items and gateways
+var osPrograms = {};   // UPPERCASE alias -> [program items]
 function buildArchFromOS(os){
   var nodes = {};
-  osItems = {}; osHidden = {};
+  osItems = {}; osHidden = {}; osPrograms = {};
   var screens = os.screens || {};
   Object.keys(screens).forEach(function(id){ nodes[id] = screens[id]; });
   (os.commands || []).forEach(function(c, i){
@@ -808,11 +809,15 @@ function buildArchFromOS(os){
   });
   function walk(it, parentId, crumb){
     osItems[it.id] = it;
+    it._parent = parentId;
     if(it.stub) return;
+    // Programs and gateways are invoked by alias, never drawn as pages or listed as menu entries.
+    if(it.type === 'program'){ (osPrograms[it.alias.trim().toUpperCase()] = osPrograms[it.alias.trim().toUpperCase()] || []).push(it); return; }
+    if(it.type === 'gateway'){ osHidden[it.alias.trim().toUpperCase()] = it.id; return; }
     var isTierRoot = parentId === null;
     var cmds = [];
     (it.children || []).forEach(function(c){
-      if(c.hidden || c.stub) return;
+      if(c.hidden || c.stub || c.type === 'program' || c.type === 'gateway') return;
       cmds.push({type:'command', cmd_type:'navigation', label:c.alias || ('['+c.name+']'), target:c.id});
     });
     (it.commands || []).forEach(function(c){ cmds.push({type:'command', cmd_type:'navigation', label:c.label, target:c.goto}); });
@@ -820,7 +825,7 @@ function buildArchFromOS(os){
                          : {type:'command', cmd_type:'navigation', label:'[BACK]', target:'__BACK__'});
     var title = it.title || it.name;
     nodes[it.id] = {
-      layer:'l'+it.tier+'a', node_type:'standard', is_root:isTierRoot, fetch_allowed:!!it.fetch_allowed,
+      layer:'l'+it.tier+'a', node_type:'standard', is_root:isTierRoot,
       title:title, breadcrumb:crumb, footer:it.footer || '', hidden:!!it.hidden, parent:parentId,
       body:(it.body || []).concat(cmds)
     };
@@ -1133,7 +1138,6 @@ async function handleArchiveInput(val){
       else if(target==='__ROOT__'){await handleRoot();}
       else if(target==='__TRANSITION_L2A__'){if(l1ChatBackup===null)l1ChatBackup=output.innerHTML;await transitionToL2();isResponding=false;var r2=layerRootId('l2a');if(r2)await renderArchivePage(r2);}
       else if(target==='__TRANSITION_L3A__'){await transitionToL3();isResponding=false;var r3=layerRootId('l3a');if(r3)await renderArchivePage(r3);}
-      else if(target==='__FETCH__'){if(!isFetchRootState()){isResponding=false;await showFetchNodeError();}else{unlockMisc('fetch');isResponding=false;await startFetchStep2();}}
       else if(archData.nodes[target]){isResponding=false;await renderArchivePage(target);}
       else{isResponding=false;await showInvalidSelection();}
       return;
@@ -1143,8 +1147,7 @@ async function handleArchiveInput(val){
   // 2. GLOBAL FALLBACK — check global nodes (local had no match)
   var uG=addLine('user');uG.textContent='> '+typed;
   isResponding=true;
-  var hiddenId=findHiddenAlias(val);
-  if(hiddenId){isResponding=false;await renderArchivePage(hiddenId);return;}
+  if(await tryAliasCommand(val)) return;
   var builtin=await tryBuiltin(val,true);
   if(builtin==='page') return;
   var globalHandled=builtin||await checkGlobalCommand(val);
@@ -1159,62 +1162,121 @@ async function handleArchiveInput(val){
 }
 async function showInvalidSelection(){var el=addLine('denied',true);playDenied();await typeLine(el,CFG_STRINGS.error_invalid_selection);var el2=addLine('low',true);await typeLine(el2,CFG_STRINGS.error_invalid_selection_hint);}
 
-// ── FETCH TWO-STEP ────────────────────────────────────────────────────────────
-var FETCH_RE=/^[A-Z0-9]{5}-[A-Z0-9]{5}-[A-Z0-9]{5}-[A-Z0-9]{5}$/;
-function isFetchRootState(){if(termState==='L1_NORMAL')return true;if(!archData||!archData.nodes||!archData.nodes[termState])return false;return!!archData.nodes[termState].fetch_allowed;}
-async function showFetchNodeError(){var u=addLine('user');u.textContent='> [FETCH LOG ENTRY: //]';var el=addLine('denied',true);playDenied();await typeLine(el,CFG_STRINGS.error_fetch_unavailable);}
-async function startFetchStep2(){
-  var u=addLine('user');u.textContent='> [FETCH LOG ENTRY: //]';var el=addLine('dim',true);await typeLine(el,'> ENTER ENTRY CODE:');
-  preFetchState=termState;termState='AWAITING_FETCH_CODE';currentMenuOpts=[];menuSelIdx=-1;termInput.value='';termInput.placeholder='XXXXX-XXXXX-XXXXX-XXXXX';termInput.focus();
-}
-async function executeFetch(code){
-  termInput.placeholder='';var u=addLine('user');u.textContent='> '+code;isResponding=true;
-  var fromState=preFetchState;preFetchState=null;termState=fromState;var fromLevel=currentLevel;
-  if(fromLevel===3){
-    if(!devLogs){var e1=addLine('denied',true);playDenied();await typeLine(e1,CFG_STRINGS.error_nav_offline);isResponding=false;return;}
-    var dentry=devLogs[code]||devLogs[code.replace(/-/g,"")];if(!dentry){await renderFetchError(code);isResponding=false;return;}
-    markDiscovered(code);playEggTone();await renderFetchEntry(code,dentry.text||'',true,fromLevel);
-  }else{
-    if(!loreData){var e2=addLine('denied',true);playDenied();await typeLine(e2,CFG_STRINGS.error_nav_offline);isResponding=false;return;}
-    var entry=loreData[code]||loreData[code.replace(/-/g,"")];if(!entry){await renderFetchError(code);isResponding=false;return;}
-    if(entry.type==='virus'){isResponding=false;await triggerVirusSequence(entry);return;}
-    if(entry.type==='classified'&&fromLevel===1){markDiscovered(code);playEggTone();await renderFetchClassified(code,entry);}
-    else{markDiscovered(code);playEggTone();await renderFetchEntry(code,entry.text||'',false,fromLevel);}
-  }
-  isResponding=false;
-}
-async function renderFetchEntry(code,text,isDevLog,fromLevel){
-  output.classList.add('dim-out');await sleep(getFade());output.innerHTML='';cursorEl=null;output.classList.remove('dim-out');
-  var bc=fromLevel===3?'RECOVERED ENTRY: '+code:'RECOVERED ENTRY: '+code;setBreadcrumb(bc);
-  var lines=[{text:'',cls:'blank'},{text:'ENTRY: '+code,cls:'full'},{text:SEP,cls:'low'}];
-  if(isDevLog){lines.push({text:'> DECRYPTING ENTRY...',cls:'dim'});lines.push({text:'> STATUS: PARTIAL RESTORATION',cls:'dim'});lines.push({text:'',cls:'blank'});}
-  (text||'').split('\n').forEach(function(p){lines.push({text:p,cls:'full'});});
-  lines.push({text:SEP,cls:'low'},{text:'',cls:'blank'},{text:'> AWAITING INPUT',cls:'low'});
-  await printInstant(lines);
-  termState='FETCH_RESULT';currentMenuOpts=[];menuSelIdx=-1;termInput.value='';updateInvertHighlight();setActiveCursor(output.lastElementChild);termInput.focus();
-}
-async function renderFetchClassified(code,entry){
-  output.classList.add('dim-out');await sleep(getFade());output.innerHTML='';cursorEl=null;output.classList.remove('dim-out');setBreadcrumb('QUERY: '+code);
-  var lines=[{text:'',cls:'blank'},{text:'ENTRY: '+code,cls:'full'},{text:SEP,cls:'low'},{text:'CLASSIFICATION: ACCESS RESTRICTED',cls:'warn'},{text:'',cls:'blank'}];
-  (entry.l1_preview||'[CONTENT REDACTED]').split('\n').forEach(function(p){lines.push({text:p,cls:'dim'});});
-  lines.push({text:'',cls:'blank'},{text:'> Full entry requires elevated access.',cls:'low'},{text:SEP,cls:'low'},{text:'',cls:'blank'},{text:'> AWAITING INPUT',cls:'low'});
-  await printInstant(lines);
-  termState='FETCH_RESULT';currentMenuOpts=[];menuSelIdx=-1;termInput.value='';updateInvertHighlight();setActiveCursor(output.lastElementChild);termInput.focus();
-}
-async function renderFetchError(code){
-  output.classList.add('dim-out');await sleep(getFade());output.innerHTML='';cursorEl=null;output.classList.remove('dim-out');
-  var lines=[{text:'',cls:'blank'},{text:'ENTRY: '+code,cls:'denied'},{text:SEP,cls:'low'},{text:'',cls:'blank'},{text:'NO MATCHING ENTRY FOUND.',cls:'denied'},{text:'Verify code and try again.',cls:'low'},{text:'',cls:'blank'},{text:SEP,cls:'low'},{text:'  [BACK]',cls:'low'},{text:'  [EXIT]',cls:'low'},{text:SEP,cls:'low'},{text:'',cls:'blank'},{text:'> AWAITING INPUT',cls:'low'}];
-  await printInstant(lines);playDenied();
-  termState='FETCH_RESULT';currentMenuOpts=['[BACK]','[EXIT]'];menuSelIdx=-1;termInput.value='';updateInvertHighlight();setActiveCursor(output.lastElementChild);termInput.focus();
-}
+// ── PROGRAMS ──────────────────────────────────────────────────────────────────
+// A program is a module at terminal-data/programs/<id>.js exporting default { run(ctx) }.
+// Program items sit in the tree (type 'program': alias, tier, scope, program id) and are
+// invoked by alias. scope 'tier' = any page of that tier; 'folder' = only on the page of
+// the folder the item sits in. Outside its allowed place a program answers "unavailable".
+// run() may return 'stay' (just reprint the prompt), 'reset' (it reset the terminal), or
+// nothing (the engine redraws the page the player was on).
+var progCache = {};
+var progWait  = null;   // pending ctx.ask(): {resolve}
+var inputMask = null;   // 'code' = auto-hyphenate XXXXX-XXXXX-XXXXX-XXXXX
+var uiLock    = 0;      // >0 while the engine is rendering or responding; submitting is ignored
+function inputBusy(){ return isResponding || uiLock > 0; }
+async function withLock(fn){ uiLock++; try{ return await fn(); } finally{ uiLock--; } }
 
-// FETCH auto-hyphen
+// Code-mask prompts (ctx.ask({mask:'code'})) format as XXXXX-XXXXX-XXXXX-XXXXX while typing.
 termInput.addEventListener('input',function(){
-  if(termState!=='AWAITING_FETCH_CODE') return;
+  if(inputMask!=='code') return;
   var raw=this.value.replace(/-/g,'').replace(/[^A-Z0-9]/gi,'').toUpperCase().slice(0,20);
   var out='';for(var i=0;i<raw.length;i++){if(i===5||i===10||i===15)out+='-';out+=raw[i];}
   this.value=out;
 });
+
+async function loadProgram(id){
+  if(progCache[id]) return progCache[id];
+  try{ var m = await import('./terminal-data/programs/'+encodeURIComponent(id)+'.js?v='+Date.now()); progCache[id] = m.default; return m.default; }
+  catch(e){ return null; }
+}
+// Waits for the next submitted line. The render lock is released while waiting (so the
+// player can type) and retaken when the answer arrives. Resolves '' if cancelled.
+function ctxAsk(opts){
+  opts = opts || {};
+  return new Promise(function(resolve){
+    var held = uiLock > 0, wasResp = isResponding;
+    if(held) uiLock--;
+    isResponding = false;
+    progWait = {resolve:function(v){ if(held) uiLock++; isResponding = wasResp; resolve(v); }};
+    termState = 'PROGRAM'; currentMenuOpts = []; menuSelIdx = -1;
+    termInput.value = ''; termInput.placeholder = opts.placeholder || ''; inputMask = opts.mask || null;
+    updateInvertHighlight(); setActiveCursor(output.lastElementChild); termInput.focus();
+  });
+}
+function makeProgramCtx(){
+  return {
+    level: currentLevel, lore: loreData, devLogs: devLogs, strings: CFG_STRINGS, sep: SEP,
+    say: async function(text, cls){ var el = addLine(cls || 'dim', true); await typeLine(el, text); },
+    lines: function(lines){ return printInstant(lines); },
+    echo: function(text){ var u = addLine('user'); u.textContent = '> '+text; },
+    clearScreen: async function(){ output.classList.add('dim-out'); await sleep(getFade()); output.innerHTML=''; cursorEl=null; output.classList.remove('dim-out'); },
+    breadcrumb: setBreadcrumb,
+    ask: ctxAsk,
+    pause: function(){ return ctxAsk({}); },
+    discovered: function(code){ markDiscovered(code); playEggTone(); },
+    denied: playDenied,
+    virus: triggerVirusSequence
+  };
+}
+async function promptInPlace(){
+  var pl = addLine('low'); await typeLine(pl, '> AWAITING INPUT'); setActiveCursor(pl);
+  isResponding = false; output.scrollTop = output.scrollHeight; termInput.focus();
+}
+async function runProgram(item){
+  var prog = await loadProgram(item.program);
+  if(!prog){ playDenied(); var eu = addLine('denied', true); await typeLine(eu, CFG_STRINGS.error_program_unavailable); await promptInPlace(); return; }
+  unlockMisc(item.program);
+  var prev = termState, res;
+  isResponding = true;
+  try{ res = await prog.run(makeProgramCtx()); }
+  catch(err){ playDenied(); var er = addLine('denied', true); await typeLine(er, CFG_STRINGS.error_program_unavailable); res = 'stay'; }
+  progWait = null; inputMask = null; termInput.placeholder = '';
+  if(res === 'reset') return;
+  termState = prev;
+  if(res === 'stay' || prev === 'L1_NORMAL'){
+    if(prev === 'L1_NORMAL'){ setBreadcrumb(''); setHeaderTitle(''); }
+    await promptInPlace(); return;
+  }
+  isResponding = false;
+  await renderArchivePage(prev);
+}
+function programHere(items){
+  for(var i = 0; i < items.length; i++){
+    var it = items[i];
+    if(it.tier !== currentLevel) continue;
+    if(it.scope === 'folder' && it._parent !== termState) continue;
+    return it;
+  }
+  return null;
+}
+// Gateways move the player to another tier's root with the full transition (alert tone,
+// theme and ambient change, intro lines), then draw that root.
+async function runGateway(it){
+  var target = archData.nodes[it.goto];
+  if(!target){ playDenied(); var e = addLine('denied'); await typeLine(e, CFG_STRINGS.error_target_not_found); await promptInPlace(); return; }
+  var lvl = parseInt((target.layer || 'l1a').charAt(1), 10);
+  if(termState === 'L1_NORMAL' && l1ChatBackup === null) l1ChatBackup = output.innerHTML;
+  isResponding = true;
+  if(lvl !== currentLevel){ if(lvl === 2) await transitionToL2(); else if(lvl === 3) await transitionToL3(); }
+  isResponding = false;
+  await renderArchivePage(it.goto);
+}
+// Programs, gateways and hidden items, all reached by [ALIAS]. True = handled (the
+// destination drew its own prompt).
+async function tryAliasCommand(val){
+  var progs = osPrograms[val];
+  if(progs){
+    var here = programHere(progs);
+    if(!here){ playDenied(); var eu = addLine('denied', true); await typeLine(eu, CFG_STRINGS.error_fetch_unavailable); await promptInPlace(); return true; }
+    await runProgram(here); return true;
+  }
+  var id = findHiddenAlias(val);
+  if(!id) return false;
+  var it = osItems[id];
+  if(it.type === 'gateway'){ await runGateway(it); return true; }
+  if(termState === 'L1_NORMAL') await enterEchoArchive();
+  isResponding = false; await renderArchivePage(id); return true;
+}
 
 // ── VIRUS SEQUENCE ────────────────────────────────────────────────────────────
 async function triggerVirusSequence(entry){
@@ -1254,7 +1316,7 @@ function resetIdleTimer(){
   idleTimer=setTimeout(showIdleMsg,CFG_IDLE_MS||IDLE_MS_FB);
 }
 function showIdleMsg(){
-  if(overrideActive||termState!=='L1_NORMAL'||typing||isResponding){idleTimer=setTimeout(showIdleMsg,CFG_IDLE_MS||IDLE_MS_FB);return;}
+  if(overrideActive||termState!=='L1_NORMAL'||typing||inputBusy()){idleTimer=setTimeout(showIdleMsg,CFG_IDLE_MS||IDLE_MS_FB);return;}
   var pool=CFG_IDLE_MSGS;
   if(!pool||!pool.length) return; // no idle messages configured — stay silent
   idleEl=addLine('low',true);idleEl.textContent=pool[Math.floor(Math.random()*pool.length)];
@@ -1360,8 +1422,7 @@ async function handleL1Bracket(val){
   }
 
   // 3. Hidden items by alias, then built-ins, then global node fallback
-  var hiddenC=findHiddenAlias(val);
-  if(hiddenC){await enterEchoArchive();isResponding=false;await renderArchivePage(hiddenC);return;}
+  if(await tryAliasCommand(val)) return;
   var builtinC=await tryBuiltin(val,false);
   var globalHandled=builtinC||await checkGlobalCommand(val);
   if(globalHandled){
@@ -1402,9 +1463,6 @@ async function handleL1Input(val){
 
   // Bracket commands
   if(/^\[.+\]$/.test(val)){var u2=addLine('user');u2.textContent='> '+val;await handleL1Bracket(val);return;}
-
-  // FETCH step 1
-  if(val==='[FETCH LOG ENTRY: //]'){unlockMisc('fetch');await startFetchStep2();return;}
 
   // Knock knock
   if(/^KNOCK\s*KNOCK$/.test(val)){var u4=addLine('user');u4.textContent='> '+val;var kk=addLine('dim');await typeLine(kk,"> WHO'S THERE?");var kk2=addLine('low');await typeLine(kk2,'> AWAITING INPUT');setActiveCursor(kk2);output.scrollTop=output.scrollHeight;termInput.focus();return;}
@@ -1514,7 +1572,7 @@ function openToAlias(val){
 function isChatCommand(val){
   val = openToAlias(val);
   if(val === '[HELP]' || val === '[TREE]' || val === '[CLEAR]') return true;
-  if(findHiddenAlias(val)) return true;
+  if(findHiddenAlias(val) || osPrograms[val]) return true;
   var cid = findChatRootNode('l1c'); var cn = cid && archData && archData.nodes[cid];
   return !!(cn && (cn.body || []).some(function(b){ return b.type === 'command' && (b.label || '').trim() === val; }));
 }
@@ -1524,7 +1582,7 @@ function treeLines(full){
   function lab(it){ return it.alias || ('['+it.name+']'); }
   function tag(it){
     if(!full) return '';
-    return (it.stub ? '  ?stub' : it.hidden ? '  ~hidden' : '') + '  T'+it.tier;
+    return (it.stub ? '  ?stub' : it.hidden ? '  ~hidden' : '') + (it.type === 'program' ? '  program:'+it.program+(it.scope === 'folder' ? ' (this folder only)' : '') : it.type === 'gateway' ? '  gateway:'+it.goto : '') + '  T'+it.tier;
   }
   function walk(list, prefix, isRoot){
     var vis = list.filter(function(c){ return c.tier <= maxTier && (full || (!c.hidden && !c.stub)); });
@@ -1632,7 +1690,7 @@ async function overrideJumpToLayer(level){
 }
 // Targets the engine resolves itself, outside archData.nodes — a command
 // pointing at one of these is not dangling even though no such node exists.
-var VALIDATOR_SENTINEL_TARGETS=['__EXIT__','__BACK__','__ROOT__','__FETCH__','__ECHO_ARCHIVE__','__ENTER_ARCHIVE__','__CLEAR__','__HOME__','__TRANSITION_L2A__','__TRANSITION_L3A__'];
+var VALIDATOR_SENTINEL_TARGETS=['__EXIT__','__BACK__','__ROOT__','__ECHO_ARCHIVE__','__ENTER_ARCHIVE__','__CLEAR__','__HOME__','__TRANSITION_L2A__','__TRANSITION_L3A__'];
 var VALIDATOR_KNOWN_CMD_TYPES=['navigation','pull','loop'];
 var VALIDATOR_KNOWN_NODE_TYPES=['chat','intro','standard','global','data','log_entry','help'];
 // Node IDs the engine looks up directly by string, independent of any
@@ -1673,7 +1731,11 @@ function runDataValidator(){
     if(VALIDATOR_ENGINE_ENTRY_IDS.indexOf(nid)!==-1) return;
     if(!referenced[nid]) report.orphaned.push(nid);
   });
-  Object.keys(osItems).forEach(function(id){ if(osItems[id].stub) report.stub.push(id); });
+  Object.keys(osItems).forEach(function(id){
+    var it = osItems[id];
+    if(it.stub) report.stub.push(id);
+    if(it.type === 'gateway' && !nodes[it.goto]) report.dangling.push(id+' -> gateway -> "'+it.goto+'"');
+  });
   return report;
 }
 async function handleOverrideInput(val){
@@ -1747,23 +1809,18 @@ async function exitSystemOverride(){
 }
 
 // ── MAIN INPUT ROUTER ─────────────────────────────────────────────────────────
-async function routeInput(val){
+// Every submission runs under the render lock, so a second line can't be submitted
+// (and can't interleave its output) until the first has finished drawing.
+async function routeInput(val){ return withLock(function(){ return routeInputInner(val); }); }
+async function routeInputInner(val){
   if(!overrideActive&&val==='[SYSTEM OVERRIDE]'){await enterSystemOverride();return;}
   if(overrideActive){await handleOverrideInput(val);return;}
-  if(!val&&termState!=='AWAITING_FETCH_CODE') return;
+  if(!val&&termState!=='PROGRAM') return;
 
-  if(termState==='AWAITING_FETCH_CODE'){
-    termInput.placeholder='';
-    if(!val){var el=addLine('low',true);await typeLine(el,CFG_STRINGS.error_fetch_cancelled);termState=preFetchState;preFetchState=null;currentMenuOpts=[];menuSelIdx=-1;termInput.value='';var pl=addLine('low');await typeLine(pl,'> AWAITING INPUT');setActiveCursor(pl);termInput.focus();return;}
-    if(!FETCH_RE.test(val)){var er=addLine('denied',true);playDenied();await typeLine(er,CFG_STRINGS.error_fetch_format);var pl2=addLine('low');await typeLine(pl2,'> AWAITING INPUT');setActiveCursor(pl2);termInput.value='';termInput.focus();return;}
-    await executeFetch(val.toUpperCase());return;
-  }
-
-  if(termState==='FETCH_RESULT'){
-    var fetchPrev=preFetchState||'L1_NORMAL';preFetchState=null;termState=fetchPrev;
-    if(fetchPrev==='L1_NORMAL'){setBreadcrumb('');setHeaderTitle('');var p=addLine('low');await typeLine(p,'> AWAITING INPUT');setActiveCursor(p);termInput.value='';termInput.focus();}
-    else{await renderArchivePage(fetchPrev);}
-    return;
+  if(termState==='PROGRAM'){
+    var w=progWait; if(!w) return;
+    progWait=null;termInput.placeholder='';inputMask=null;
+    w.resolve(val);return;
   }
 
   if(termState==='archive_integrity_PAGE'){var u2=addLine('user');u2.textContent='> '+val;isResponding=true;await handleBack();isResponding=false;return;}
@@ -1780,11 +1837,14 @@ termInput.addEventListener('keydown',async function(e){
   }
   setTimeout(updateInvertHighlight,0);
 
-  var isMenu=currentMenuOpts.length>0&&!isResponding;
+  var isMenu=currentMenuOpts.length>0&&!inputBusy();
 
-  if(termState==='AWAITING_FETCH_CODE'){
-    if(e.key==='Enter'){e.preventDefault();var v=termInput.value.trim().toUpperCase();termInput.value='';routeInput(v);}
-    else if(e.key==='Escape'||(e.key==='ArrowLeft'&&termInput.value==='')||(e.key==='Backspace'&&termInput.value==='')){e.preventDefault();termInput.value='';routeInput('');}
+  // A running program is either waiting for a line (progWait) or drawing (keys ignored).
+  if(termState==='PROGRAM'){
+    if(progWait&&!inputBusy()){
+      if(e.key==='Enter'){e.preventDefault();var v=termInput.value.trim().toUpperCase();termInput.value='';routeInput(v);}
+      else if(e.key==='Escape'||(e.key==='ArrowLeft'&&termInput.value==='')||(e.key==='Backspace'&&termInput.value==='')){e.preventDefault();termInput.value='';routeInput('');}
+    }else if(e.key==='Enter'||e.key==='Escape'){e.preventDefault();}
     if(e.key==='Backspace') playBackspace();
     return;
   }
@@ -1793,20 +1853,22 @@ termInput.addEventListener('keydown',async function(e){
   if(e.key==='Tab'&&isMenu){e.preventDefault();menuSelIdx=(menuSelIdx+1)%currentMenuOpts.length;termInput.value=currentMenuOpts[menuSelIdx];updateInvertHighlight();return;}
   if(e.key==='ArrowUp'&&isMenu){e.preventDefault();menuSelIdx=((menuSelIdx-1)+currentMenuOpts.length)%currentMenuOpts.length;termInput.value=currentMenuOpts[menuSelIdx];updateInvertHighlight();return;}
 
-  if(e.key==='ArrowUp'&&termState==='L1_NORMAL'&&!isResponding&&commandHistory.length){e.preventDefault();commandHistIdx=Math.max(0,commandHistIdx-1);termInput.value=commandHistory[commandHistIdx]||'';return;}
-  if(e.key==='ArrowDown'&&termState==='L1_NORMAL'&&!isResponding){e.preventDefault();if(commandHistIdx<commandHistory.length-1){commandHistIdx++;termInput.value=commandHistory[commandHistIdx];}else{commandHistIdx=commandHistory.length;termInput.value='';}return;}
+  if(e.key==='ArrowUp'&&termState==='L1_NORMAL'&&!inputBusy()&&commandHistory.length){e.preventDefault();commandHistIdx=Math.max(0,commandHistIdx-1);termInput.value=commandHistory[commandHistIdx]||'';return;}
+  if(e.key==='ArrowDown'&&termState==='L1_NORMAL'&&!inputBusy()){e.preventDefault();if(commandHistIdx<commandHistory.length-1){commandHistIdx++;termInput.value=commandHistory[commandHistIdx];}else{commandHistIdx=commandHistory.length;termInput.value='';}return;}
 
-  if(e.key==='ArrowRight'&&termInput.value.trim()&&!isResponding){e.preventDefault();var v2=termInput.value.trim().toUpperCase();termInput.value='';if(termState==='L1_NORMAL'){commandHistory.push(v2);commandHistIdx=commandHistory.length;}playEnter();routeInput(v2);return;}
-  if(e.key==='ArrowLeft'&&termInput.value===''&&!isResponding){e.preventDefault();if(termState!=='L1_NORMAL'&&termState!=='AWAITING_FETCH_CODE'){isResponding=true;await handleBack();}return;}
-  if(e.key==='Escape'&&!isResponding){e.preventDefault();if(termState!=='L1_NORMAL'&&termState!=='AWAITING_FETCH_CODE'){isResponding=true;await handleExit();}return;}
+  if(e.key==='ArrowRight'&&termInput.value.trim()&&!inputBusy()){e.preventDefault();var v2=termInput.value.trim().toUpperCase();termInput.value='';if(termState==='L1_NORMAL'){commandHistory.push(v2);commandHistIdx=commandHistory.length;}playEnter();routeInput(v2);return;}
+  if(e.key==='ArrowLeft'&&termInput.value===''&&!inputBusy()){e.preventDefault();if(termState!=='L1_NORMAL'){await withLock(async function(){isResponding=true;await handleBack();});}return;}
+  if(e.key==='Escape'&&!inputBusy()){e.preventDefault();if(termState!=='L1_NORMAL'){await withLock(async function(){isResponding=true;await handleExit();});}return;}
 
-  // SYSTEM OVERRIDE must be reachable even mid-response (isResponding=true) —
+  // SYSTEM OVERRIDE must be reachable even mid-response (the lock is bypassed) —
   // that's the whole point of a hardcoded recovery entry point.
   if(e.key==='Enter'&&!overrideActive&&termInput.value.trim().toUpperCase()==='[SYSTEM OVERRIDE]'){
     e.preventDefault();termInput.value='';playEnter();routeInput('[SYSTEM OVERRIDE]');return;
   }
-  if(e.key==='Enter'&&!isResponding){
-    e.preventDefault();var v5=termInput.value.trim().toUpperCase();termInput.value='';
+  if(e.key==='Enter'){
+    e.preventDefault();
+    if(inputBusy()) return;   // still drawing: keep the typed text, submit nothing
+    var v5=termInput.value.trim().toUpperCase();termInput.value='';
     if(termState==='L1_NORMAL'&&v5){commandHistory.push(v5);commandHistIdx=commandHistory.length;}
     playEnter();routeInput(v5);return;
   }

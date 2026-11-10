@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-// One-time migration: terminal-data/nodes.json (node graph) -> terminal-data/echo-os.json (virtual filesystem tree).
-// Usage: node dev-tools/migrate-nodes-to-echo-os.js
-// Writes echo-os.json, then verifies it against nodes.json and exits non-zero on any mismatch.
+// ONE-TIME migration, already run: terminal-data/echo-os.json is now edited directly and is the source of truth.
+// Do not re-run this; it would overwrite hand edits (hidden gateway, program items, anything authored since).
+// Kept for reference. Original usage: node dev-tools/migrate-nodes-to-echo-os.js
 'use strict';
 const fs = require('fs');
 const path = require('path');

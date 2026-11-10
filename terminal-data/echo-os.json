@@ -91,7 +91,6 @@
       "layer": "l1c",
       "node_type": "chat",
       "is_root": true,
-      "fetch_allowed": false,
       "title": "TERMINAL CONSOLE",
       "breadcrumb": "ECHO.ARCHIVE > TERMINAL CONSOLE",
       "footer": "",
@@ -225,7 +224,6 @@
       "layer": "l1c",
       "node_type": "intro",
       "is_root": false,
-      "fetch_allowed": false,
       "title": "",
       "breadcrumb": "L1C_INTRO",
       "footer": "",
@@ -235,7 +233,6 @@
       "layer": "l1a",
       "node_type": "intro",
       "is_root": false,
-      "fetch_allowed": false,
       "title": "L1 INTRO",
       "breadcrumb": "L1 INTRO",
       "footer": "",
@@ -266,7 +263,6 @@
       "layer": "l2c",
       "node_type": "chat",
       "is_root": true,
-      "fetch_allowed": false,
       "title": "ECHO PROTOCOL CONSOLE",
       "breadcrumb": "ECHO PROTOCOL CONSOLE",
       "footer": "",
@@ -289,7 +285,6 @@
       "layer": "l2a",
       "node_type": "intro",
       "is_root": false,
-      "fetch_allowed": false,
       "title": "",
       "breadcrumb": "L2A_INTRO",
       "footer": "",
@@ -340,7 +335,6 @@
       "layer": "l3c",
       "node_type": "chat",
       "is_root": true,
-      "fetch_allowed": false,
       "title": "DEEP ARCHIVE CONSOLE",
       "breadcrumb": "DEEP ARCHIVE CONSOLE",
       "footer": "",
@@ -363,7 +357,6 @@
       "layer": "l3a",
       "node_type": "intro",
       "is_root": false,
-      "fetch_allowed": false,
       "title": "L3 INTRO",
       "breadcrumb": "L3 INTRO",
       "footer": "",
@@ -409,7 +402,6 @@
       "layer": "l1a",
       "node_type": "data",
       "is_root": false,
-      "fetch_allowed": false,
       "title": "STATUS",
       "breadcrumb": "HELP > HELP > STATUS",
       "footer": "",
@@ -425,7 +417,6 @@
       "layer": "l1a",
       "node_type": "data",
       "is_root": false,
-      "fetch_allowed": false,
       "title": "SCAN",
       "breadcrumb": "HELP > HELP > SCAN",
       "footer": "",
@@ -456,7 +447,6 @@
         "alias": "[L1 ROOT]",
         "tier": 1,
         "hidden": false,
-        "fetch_allowed": false,
         "title": "ECHO.ARCHIVE",
         "footer": "",
         "body": [
@@ -487,7 +477,6 @@
             "alias": "[CREW MANIFEST]",
             "tier": 1,
             "hidden": false,
-            "fetch_allowed": false,
             "title": "CREW MANIFEST — OFFLINE:",
             "footer": "",
             "body": [
@@ -532,7 +521,6 @@
             "alias": "[MISSION BRIEFING]",
             "tier": 1,
             "hidden": false,
-            "fetch_allowed": false,
             "title": "MISSION BRIEFING — CORRUPTED:",
             "footer": "",
             "body": [
@@ -578,7 +566,6 @@
             "alias": "[INCIDENT REPORTS]",
             "tier": 1,
             "hidden": false,
-            "fetch_allowed": false,
             "title": "INCIDENT REPORTS — PARTIAL RECOVERY (47% INTEGRITY):",
             "footer": "",
             "body": [],
@@ -590,7 +577,6 @@
                 "alias": "[CONTAINMENT BREACH — DAY 31]",
                 "tier": 1,
                 "hidden": false,
-                "fetch_allowed": false,
                 "title": "CONTAINMENT BREACH — DAY 31 // PARTIAL RECOVERY:",
                 "footer": "",
                 "body": [
@@ -643,12 +629,7 @@
                   }
                 ],
                 "children": [],
-                "commands": [
-                  {
-                    "label": "[INITIATE ECHO PROTOCOL]",
-                    "goto": "L3A_ROOT"
-                  }
-                ]
+                "commands": []
               },
               {
                 "id": "L1A_INCIDENT__STUB_MEDICAL_TRIAGE_DAY_34",
@@ -686,7 +667,6 @@
             "alias": "[RESTRICTED FILES]",
             "tier": 1,
             "hidden": false,
-            "fetch_allowed": false,
             "title": "RESTRICTED FILES — PARTIAL KEY DETECTED:",
             "footer": "",
             "body": [],
@@ -740,7 +720,6 @@
             "alias": "[SYSTEM LOGS]",
             "tier": 1,
             "hidden": false,
-            "fetch_allowed": false,
             "title": "SYSTEM LOGS — ACCESS DENIED:",
             "footer": "",
             "body": [
@@ -780,6 +759,20 @@
             ],
             "children": [],
             "commands": []
+          },
+          {
+            "hidden": true,
+            "title": "INITIATE ECHO PROTOCOL",
+            "footer": "",
+            "body": [],
+            "children": [],
+            "commands": [],
+            "id": "GW_INITIATE_ECHO_PROTOCOL",
+            "type": "gateway",
+            "name": "INITIATE ECHO PROTOCOL",
+            "alias": "[INITIATE ECHO PROTOCOL]",
+            "tier": 1,
+            "goto": "L3A_ROOT"
           }
         ],
         "commands": []
@@ -791,11 +784,26 @@
         "alias": "[L2 ROOT]",
         "tier": 2,
         "hidden": false,
-        "fetch_allowed": true,
         "title": "L2 ROOT",
         "footer": "",
         "body": [],
-        "children": [],
+        "children": [
+          {
+            "hidden": true,
+            "title": "FETCH LOG ENTRY",
+            "footer": "",
+            "body": [],
+            "children": [],
+            "commands": [],
+            "id": "L2A_PROG_LORE_ENTRY",
+            "type": "program",
+            "program": "lore-entry",
+            "scope": "tier",
+            "name": "FETCH LOG ENTRY",
+            "alias": "[FETCH LOG ENTRY: //]",
+            "tier": 2
+          }
+        ],
         "commands": []
       },
       {
@@ -805,11 +813,26 @@
         "alias": "[L3 ROOT]",
         "tier": 3,
         "hidden": false,
-        "fetch_allowed": true,
         "title": "L3 ROOT",
         "footer": "",
         "body": [],
-        "children": [],
+        "children": [
+          {
+            "hidden": true,
+            "title": "FETCH LOG ENTRY",
+            "footer": "",
+            "body": [],
+            "children": [],
+            "commands": [],
+            "id": "L3A_PROG_LORE_ENTRY",
+            "type": "program",
+            "program": "lore-entry",
+            "scope": "tier",
+            "name": "FETCH LOG ENTRY",
+            "alias": "[FETCH LOG ENTRY: //]",
+            "tier": 3
+          }
+        ],
         "commands": []
       }
     ]
