@@ -341,7 +341,7 @@
           "cmd_type": "navigation",
           "label": "[ECHOES.ARCHIVE]",
           "target": "L1A_ROOT",
-          "hidden": false
+          "hidden": true
         }
       ],
       "personality_src": "personality.json"

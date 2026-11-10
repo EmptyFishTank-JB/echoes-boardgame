@@ -23,7 +23,16 @@ command that is missing from it. Run it before committing terminal changes.
 - `[OPEN <name>]` is shorthand for `[NAME]`. `[OPEN CREW MANIFEST]` opens `[CREW MANIFEST]`.
 - Anything typed in the chat that is not a command is free text and gets a response from `personality.json`.
 - While the terminal is drawing a page or running a sequence, typing is ignored. Nothing is queued.
-- Clicking works everywhere typing does (see section 6).
+- Clicking works everywhere typing does (see section 3).
+
+**How output renders.** Everything that is not a chat reply (boot lines, command results, archive pages, system
+messages, prompts, errors) renders line by line at one fixed pace, 24 ms per line, with no per-character typing
+and no speed variation. Set `typing.line_ms` in `engine_config.json` to change the pace. Chat replies to free text
+keep the typewriter, with natural variation and slower words. Every line that arrives whole flashes as a whole and
+fades to its normal brightness; every typed character flashes and fades on its own. Brightness and duration are
+`timing.phosphor_brightness` and `timing.phosphor_duration_ms`. A screen that is put back (leaving an archive for the
+chat, leaving `[SYSTEM OVERRIDE]`) returns settled, with no flash. A page that is redrawn from data (`[BACK]`, `[ROOT]`,
+a click on the address bar) renders line by line again.
 
 ---
 
@@ -34,15 +43,14 @@ command that is missing from it. Run it before committing terminal changes.
 | Command | What it does |
 |---|---|
 | `[HELP]` | Lists the commands. The list is the `help` block in `echo-os.json`. |
-| `[TREE]` | Prints the file tree. Currently available to everyone. It is meant to be author-only once the file is locked. |
+| `[TREE]` | Prints the file tree. Available to everyone, locked or not. Players see only what the archive shows them: hidden items, stubs, programs, gateways and deeper tiers are left out, and a tier root appears by name only (no `[COMMAND]`). In author mode (`[AUTHOR UNLOCK]`) every hidden item appears, with its marks. |
 | `[CLEAR]` | Clears the screen. |
 | `[SYSTEM OVERRIDE]` | Hardcoded recovery menu (section 4). Works from any state, even mid-draw, and cannot be blocked by data. |
 
 ### Chat (layer 1 console)
 
-| Command | What it does |
-|---|---|
-| `[ECHOES.ARCHIVE]` | Enters the layer 1 archive. Prints a mount line, then the ECHOES.ARCHIVE root. |
+The chat has no listed commands. The landing screen prints the title art, the five boot lines and a hint to type
+`[HELP]`. `[ECHOES.ARCHIVE]` is not shown there (see the hidden commands below).
 
 Free text gets a personality response. Special cases: `KNOCK KNOCK`, the easter eggs in `personality.json`,
 and the admin keywords (`admin`, `root`, `sudo`, `bypass`, `superuser`, `administrator`, `authenticate`,
@@ -68,6 +76,7 @@ These never appear in a listing. The player learns them from the story.
 
 | Command | Where | What it does |
 |---|---|---|
+| `[ECHOES.ARCHIVE]` | The chat | Enters the layer 1 archive. Prints a mount line, then the ECHOES.ARCHIVE root. It is not on the landing screen, not in `[HELP]` and not in the player `[TREE]`: it is printed on a few of the game's Echo cards, and players bring it to the terminal and type it. Its item in `echo-os.json` (the `l1c` root's command) has `"hidden": true`. Typed only: nothing on the chat screen can be clicked to enter. The author `[TREE]` lists it. |
 | `[INITIATE ECHO PROTOCOL]` | Anywhere: the chat or any archive page | Gateway to the L2 root. Plays the L2 flavor text in the layer 1 theme, then changes theme and ambient sound, then draws `L2A_ROOT`. |
 | `[FETCH LOG ENTRY: //]` | Any tier 2 or tier 3 page (answers "unavailable" in the chat and at tier 1) | Program `lore-entry`, shown as **FETCH LOG.EXE** in its own window (see section 3a). |
 
@@ -135,11 +144,12 @@ anything clickable, and an I-beam over the input.
 
 ## 4. `[SYSTEM OVERRIDE]` menu
 
-Type `[SYSTEM OVERRIDE]` anywhere. The screen goes black and green. These work inside it:
+Type `[SYSTEM OVERRIDE]` anywhere. The screen goes black and green. These work inside it, typed or clicked (hovering a command shows it in the input field, as everywhere else):
 
 | Command | What it does |
 |---|---|
 | `[STATUS]` | Runs the data validator: file status, dangling targets, unknown command or node types, orphaned nodes, stub items. |
+| `[LEGEND]` | Explains the boot check labels (`OK`, `WARN`, `INVALID`, `BROKEN`, `MISSING`), the status line, and which label belongs to which file. Built from the live label strings, so it matches the boot screen even if you rename them. |
 | `[TREE]` | The full author view of the tree (hidden items, stubs, tiers, programs, gateways). |
 | `[JUMP L1]`, `[JUMP L2]`, `[JUMP L3]` | Jumps to that tier's archive root with the theme and ambient sound for it. |
 | `[EXIT]` | Leaves the override and restores the screen you were on. |
@@ -218,7 +228,7 @@ Examples that now report `INVALID`: `lore.json` containing `["not", "an", "objec
 `{"hello": "world"}`, `personality.json` containing `{"easter_eggs": "text", "admin_triggers": 7}`. Before this
 check existed all three showed `[OK]` and `FULL ACCESS`.
 
-The landing screen (title art, the five lines, the `[ECHOES.ARCHIVE]` command) is data in `echo-os.json`. If that
+The landing screen (title art, the five lines, the `[HELP]` hint) is data in `echo-os.json`. If that
 file is `MISSING`, `BROKEN` or `INVALID`, the engine has no landing screen to draw, so it draws the same five check
 lines from its own built-in copy instead, with the error showing. The terminal then runs with the chat only, because
 there is no archive to enter. `[SYSTEM OVERRIDE]` then `[STATUS]` lists each problem and the reason for it.

@@ -126,9 +126,9 @@ body::after{content:"";position:fixed;inset:-50%;z-index:2;pointer-events:none;
 #t-output::-webkit-scrollbar-thumb{background:var(--theme-irow);}
 /* Phosphor decay — overrideable via engine config */
 @keyframes phosphorIn{0%{filter:brightness(2.4)}100%{filter:brightness(1.0)}}
-.t-line.phos{animation:phosphorIn 0.45s ease-out forwards;}
+.t-line.phos,.t-line .ch{animation:phosphorIn 0.45s ease-out forwards;}   /* a whole line, or each typed character */
 /* Output lines */
-.t-line{font-family:'Share Tech Mono',monospace;font-size:13px;line-height:1.9;
+.t-line{font-family:'Share Tech Mono',monospace;font-size:13px;line-height:1.9;flex-shrink:0;
   letter-spacing:0.04em;white-space:pre-wrap;min-height:1.9em;
   color:var(--theme-full);transition:color 1.1s ease;}
 .t-line.full  {color:var(--theme-full);}
@@ -408,16 +408,55 @@ function setActiveCursor(el){
 }
 
 var holdScroll=false;   // true while a page is drawn: it opens at the top instead of following the last line
+// The pop-in glow: brightness flash that fades to the line's normal luminosity (see updPhosphorCSS for brightness and
+// duration). Lines that appear whole glow as a whole; typed characters each glow on their own (typeChat).
+function glowMs(){return (typeof CFG_TIMING!=='undefined'&&CFG_TIMING&&CFG_TIMING.phosphor_duration_ms)||450;}
+function glow(el){
+  el.classList.remove('phos'); void el.offsetWidth; el.classList.add('phos');
+  if(!el._glowEnd){ el._glowEnd=true; el.addEventListener('animationend',function(e){ if(e.target===el) el.classList.remove('phos'); }); }
+  // Backstop: animationend does not fire if the line is hidden or the tab is in the background, and a line left holding
+  // the class would flash again the next time its screen is shown.
+  clearTimeout(el._glowT); el._glowT=setTimeout(function(){ el.classList.remove('phos'); },glowMs()+80);
+}
+// Puts a saved screen back. Lines that were already on screen come back settled: no flash, whole screen or per line.
+function restoreOutput(html){
+  output.innerHTML=html;
+  output.querySelectorAll('.phos').forEach(function(e){e.classList.remove('phos');});
+  output.querySelectorAll('.ch').forEach(function(e){e.classList.remove('ch');});
+}
+// A copy of the screen's HTML for restoring later. Glow classes are dropped: a line caught mid-glow would otherwise
+// restore holding the class forever (and replay the flash).
+function snapOutput(){
+  var c=output.cloneNode(true);
+  c.querySelectorAll('.phos').forEach(function(e){e.classList.remove('phos');});
+  c.querySelectorAll('.ch').forEach(function(e){e.classList.remove('ch');});
+  return c.innerHTML;
+}
 function addLine(cls,phosphor){
   var el=document.createElement('div');
   el.className='t-line '+(cls||'');
-  if(phosphor) el.classList.add('phos');
+  if(phosphor!==false) glow(el);   // pass false for a line that will be typed character by character
   output.appendChild(el);
   if(!holdScroll) output.scrollTop=output.scrollHeight;
   return el;
 }
 
+// Everything the terminal prints that is not a chat reply (boot lines, command results, system messages, flavor text,
+// prompts, errors) renders line by line at one fixed pace: the line lands with a phosphor flash, then a short fixed pause.
+// No per-character typing, no speed variation. Archive pages use the same pace (printInstant).
+var LINE_MS_DEFAULT=24;
+function lineMs(){var t=typeof CFG_TYPING!=='undefined'&&CFG_TYPING;return (t&&t.line_ms)||LINE_MS_DEFAULT;}
 async function typeLine(el,text){
+  if(typingAbort) return;
+  el.textContent+=text;
+  glow(el);
+  if(text) playLineStatic();
+  if(!holdScroll) output.scrollTop=output.scrollHeight;
+  await sleep(lineMs());
+}
+// The terminal's chat replies (personality responses to free text) keep the typewriter: character by character with
+// natural variation, slower on the configured slow words.
+async function typeChat(el,text){
   var sw=CFG_SLOW_WORDS||[];
   var slowed=inputSlowed||sw.some(function(w){return text.toUpperCase().indexOf(w)>=0;});
   var t=typeof CFG_TYPING!=='undefined'&&CFG_TYPING;
@@ -426,11 +465,14 @@ async function typeLine(el,text){
   var mult=slowed?((t&&t.slow_multiplier?t.slow_multiplier:2.8)):1;
   for(var i=0;i<text.length;i++){
     if(typingAbort) return;
-    el.textContent+=text[i];
+    var ch=document.createElement('span');ch.className='ch';ch.textContent=text[i];el.appendChild(ch);   // glows, then settles
     if(text[i]!==' '&&text[i]!=='\u2500') playClick(text[i]);
     output.scrollTop=output.scrollHeight;
     await sleep(baseMs*mult*(0.7+Math.random()*variance));
   }
+  // Once the last character has settled, fold the spans back into plain text.
+  var settle=(typeof CFG_TIMING!=='undefined'&&CFG_TIMING&&CFG_TIMING.phosphor_duration_ms?CFG_TIMING.phosphor_duration_ms:450)+120;
+  setTimeout(function(){ if(el.isConnected&&el.querySelector('.ch')) el.textContent=el.textContent; },settle);
 }
 
 async function printInstant(lines,gap){
@@ -440,7 +482,7 @@ async function printInstant(lines,gap){
     else if(lines[i].cmd||lines[i].id||lines[i].glyph){buildItemLine(el,lines[i]);playLineStatic();}
     else if(lines[i].parts){renderDynLine(el,lines[i]);playLineStatic();}
     else if(lines[i].text){el.textContent=lines[i].text;playLineStatic();}
-    await sleep(gap==null?40:gap);
+    await sleep(gap==null?lineMs():gap);
   }
 }
 
@@ -607,7 +649,7 @@ function updPhosphorCSS(){
   var d=typeof CFG_TIMING!=='undefined'&&CFG_TIMING&&CFG_TIMING.phosphor_duration_ms?CFG_TIMING.phosphor_duration_ms:450;
   var ex=document.getElementById('phosphor-style');if(ex)ex.remove();
   var s=document.createElement('style');s.id='phosphor-style';
-  s.textContent='@keyframes phosphorIn{0%{filter:brightness('+b+')}100%{filter:brightness(1.0)}}.t-line.phos{animation:phosphorIn '+d+'ms ease-out forwards;}';
+  s.textContent='@keyframes phosphorIn{0%{filter:brightness('+b+')}100%{filter:brightness(1.0)}}.t-line.phos,.t-line .ch{animation:phosphorIn '+d+'ms ease-out forwards;}';
   document.head.appendChild(s);
 }
 
@@ -1223,7 +1265,7 @@ async function renderArchivePage(nodeId, notes){
   lines.push({text:'> AWAITING INPUT',cls:'low'});
   setView(!!osPage||archiveView);renderAddr(nodeId);
   holdScroll=true;
-  try{ await printInstant(lines,22); } finally{ holdScroll=false; }
+  try{ await printInstant(lines); } finally{ holdScroll=false; }
   output.scrollTop=0;   // long documents open at their first line
   setBreadcrumb(node?node.breadcrumb||'':'');
   termState=nodeId;currentMenuOpts=opts;menuSelIdx=-1;termInput.value='';
@@ -1318,7 +1360,7 @@ function getLayerTitle(layerId,fallback){
 }
 
 async function enterEchoArchive(){
-  if(l1ChatBackup===null) l1ChatBackup=output.innerHTML;
+  if(l1ChatBackup===null) l1ChatBackup=snapOutput();
   if(CFG_STRINGS.layer_mount){var mt=addLine('full');await typeLine(mt,CFG_STRINGS.layer_mount);await sleep(450);}
   output.classList.add('dim-out');await sleep(getFade());output.innerHTML='';cursorEl=null;output.classList.remove('dim-out');
   setHeaderTitle(getLayerTitle('l1a',''));applyLayerClass(1);await sleep(40);
@@ -1352,7 +1394,7 @@ async function handleExit(){
   else if(currentLevel===2){applyLayerClass(1);setHeaderTitle(archData&&archData.layers&&archData.layers.l1a?archData.layers.l1a.header_title||'':'');crossfadeAmbient(1);await sleep(40);isResponding=false;var r1=layerRootId('l1a');if(r1)await renderArchivePage(r1);}
   else{
     setHeaderTitle('');setBreadcrumb('');
-    if(l1ChatBackup!==null){output.innerHTML=l1ChatBackup;l1ChatBackup=null;}
+    if(l1ChatBackup!==null){restoreOutput(l1ChatBackup);l1ChatBackup=null;}
     output.classList.remove('dim-out');output.scrollTop=output.scrollHeight;
     currentMenuOpts=[];menuSelIdx=-1;termState='L1_NORMAL';
     setActiveCursor(output.lastElementChild);
@@ -1390,7 +1432,7 @@ async function handleArchiveInput(val){
       if(target==='__EXIT__'){await handleExit();}
       else if(target==='__BACK__'){await handleBack();}
       else if(target==='__ROOT__'){await handleRoot();}
-      else if(target==='__TRANSITION_L2A__'){if(l1ChatBackup===null)l1ChatBackup=output.innerHTML;await transitionToL2();isResponding=false;var r2=layerRootId('l2a');if(r2)await renderArchivePage(r2);}
+      else if(target==='__TRANSITION_L2A__'){if(l1ChatBackup===null)l1ChatBackup=snapOutput();await transitionToL2();isResponding=false;var r2=layerRootId('l2a');if(r2)await renderArchivePage(r2);}
       else if(target==='__TRANSITION_L3A__'){await transitionToL3();isResponding=false;var r3=layerRootId('l3a');if(r3)await renderArchivePage(r3);}
       else if(archData.nodes[target]){isResponding=false;await renderArchivePage(target);}
       else{isResponding=false;await showInvalidSelection();}
@@ -1566,7 +1608,7 @@ async function runGateway(it){
   var target = archData.nodes[it.goto];
   if(!target){ playDenied(); var e = addLine('denied'); await typeLine(e, CFG_STRINGS.error_target_not_found); await promptInPlace(); return; }
   var lvl = parseInt((target.layer || 'l1a').charAt(1), 10);
-  if(termState === 'L1_NORMAL' && l1ChatBackup === null) l1ChatBackup = output.innerHTML;
+  if(termState === 'L1_NORMAL' && l1ChatBackup === null) l1ChatBackup = snapOutput();
   isResponding = true;
   if(lvl !== currentLevel){ if(lvl === 2) await transitionToL2(); else if(lvl === 3) await transitionToL3(); }
   isResponding = false;
@@ -1750,7 +1792,7 @@ async function gotoPage(id, notes){
 // Author view of [TREE]: jump straight to any item. Programs, gateways and stubs have no page of
 // their own, so the jump lands on the folder that holds them.
 async function authorJump(id){
-  if(!authorMode || !uiReady()) return;
+  if(!authorMode || overrideActive || !uiReady()) return;
   var it = osItems[id]; if(!it) return;
   var own = it.type === 'program' || it.type === 'gateway' || it.stub;
   var pageId = own ? it._parent : id;
@@ -1758,7 +1800,7 @@ async function authorJump(id){
   hoverStash = null; termInput.value = '';
   await withLock(async function(){
     isResponding = true;
-    if(termState === 'L1_NORMAL' && l1ChatBackup === null) l1ChatBackup = output.innerHTML;
+    if(termState === 'L1_NORMAL' && l1ChatBackup === null) l1ChatBackup = snapOutput();
     if(it.tier !== currentLevel || termState === 'L1_NORMAL'){
       if(it.tier !== currentLevel){ applyLayerClass(it.tier); crossfadeAmbient(it.tier); }
       setHeaderTitle(getLayerTitle('l' + it.tier + 'a', ''));
@@ -1801,7 +1843,7 @@ function buildItemLine(el, L){
   return lb;
 }
 var hoverStash = null;   // what the player had typed before hovering an item
-function uiReady(){ return !overrideActive && !progWin && !inputBusy() && termState !== 'PROGRAM' && inputRow.style.display !== 'none'; }
+function uiReady(){ return !progWin && !inputBusy() && termState !== 'PROGRAM' && inputRow.style.display !== 'none'; }
 function hoverOn(el){
   if(!uiReady()) return;
   var cmd = el.dataset.cmd;
@@ -2064,7 +2106,7 @@ async function handleL1Bracket(val){
       }else{
         // Navigation — enter archive mode
         if(tgt==='__EXIT__'||tgt==='__BACK__'||!tgt){isResponding=false;termInput.focus();return;}
-        if(tgt==='__TRANSITION_L2A__'){if(l1ChatBackup===null)l1ChatBackup=output.innerHTML;await transitionToL2();isResponding=false;var rr2=layerRootId('l2a');if(rr2)await renderArchivePage(rr2);return;}
+        if(tgt==='__TRANSITION_L2A__'){if(l1ChatBackup===null)l1ChatBackup=snapOutput();await transitionToL2();isResponding=false;var rr2=layerRootId('l2a');if(rr2)await renderArchivePage(rr2);return;}
         if(tgt==='__TRANSITION_L3A__'){await transitionToL3();isResponding=false;var rr3=layerRootId('l3a');if(rr3)await renderArchivePage(rr3);return;}
         if(archData.nodes[tgt]){await enterEchoArchive();isResponding=false;await renderArchivePage(tgt);return;}
       }
@@ -2106,7 +2148,7 @@ async function handleL1Input(val){
     isResponding=true;var u=addLine('user');u.textContent='> '+val;
     await sleep(120);playDenied();
     var pick=ADMIN_RESP[Math.floor(Math.random()*ADMIN_RESP.length)];
-    for(var i=0;i<pick.length;i++){if(overrideActive)return;playThinkHum(200);await sleep(200);if(overrideActive)return;var el=addLine(i===0?'denied':'warn');await typeLine(el,pick[i]);await sleep(180);}
+    for(var i=0;i<pick.length;i++){if(overrideActive)return;playThinkHum(200);await sleep(200);if(overrideActive)return;var el=addLine(i===0?'denied':'warn',false);await typeChat(el,pick[i]);await sleep(180);}
     if(overrideActive)return;
     var pl=addLine('low');await typeLine(pl,'> AWAITING INPUT');setActiveCursor(pl);isResponding=false;output.scrollTop=output.scrollHeight;termInput.focus();return;
   }
@@ -2115,7 +2157,7 @@ async function handleL1Input(val){
   if(/^\[.+\]$/.test(val)){var u2=addLine('user');u2.textContent='> '+val;await handleL1Bracket(val);return;}
 
   // Knock knock
-  if(/^KNOCK\s*KNOCK$/.test(val)){var u4=addLine('user');u4.textContent='> '+val;var kk=addLine('dim');await typeLine(kk,"> WHO'S THERE?");var kk2=addLine('low');await typeLine(kk2,'> AWAITING INPUT');setActiveCursor(kk2);output.scrollTop=output.scrollHeight;termInput.focus();return;}
+  if(/^KNOCK\s*KNOCK$/.test(val)){var u4=addLine('user');u4.textContent='> '+val;var kk=addLine('dim',false);await typeChat(kk,"> WHO'S THERE?");var kk2=addLine('low');await typeLine(kk2,'> AWAITING INPUT');setActiveCursor(kk2);output.scrollTop=output.scrollHeight;termInput.focus();return;}
 
   inputSlowed=(CFG_SLOW_WORDS||[]).some(function(w){return val.indexOf(w)>=0;});
   isResponding=true;var u5=addLine('user');u5.textContent='> '+(val||' ');await sleep(120);
@@ -2123,12 +2165,12 @@ async function handleL1Input(val){
   var egg=checkEasterEgg(val);
   if(egg){
     playEggTone();await sleep(300);if(overrideActive)return;var v=pickVariant(egg);
-    for(var ei=0;ei<v.lines.length;ei++){if(overrideActive)return;var eel=addLine((v.cls&&v.cls[ei])||'dim');await typeLine(eel,v.lines[ei]);await sleep(280*0.8);}
+    for(var ei=0;ei<v.lines.length;ei++){if(overrideActive)return;var eel=addLine((v.cls&&v.cls[ei])||'dim',false);await typeChat(eel,v.lines[ei]);await sleep(280*0.8);}
   }else{
     playDenied();
     var dResp=DENIED[deniedIdx%DENIED.length];deniedIdx++;
     if(Math.random()<0.05){output.style.opacity='0.4';output.style.letterSpacing='0.12em';setTimeout(function(){output.style.opacity='';output.style.letterSpacing='';},120);}
-    for(var ri=0;ri<dResp.length;ri++){if(!dResp[ri])continue;if(overrideActive)return;playThinkHum(200);await sleep(200);if(overrideActive)return;var isBad=dResp[ri].indexOf('COMMAND')>=0||dResp[ri].indexOf('ERROR')>=0||dResp[ri].indexOf('WARNING')>=0;var rel=addLine(isBad?'denied':'dim');await typeLine(rel,dResp[ri]);await sleep(280*0.6);}
+    for(var ri=0;ri<dResp.length;ri++){if(!dResp[ri])continue;if(overrideActive)return;playThinkHum(200);await sleep(200);if(overrideActive)return;var isBad=dResp[ri].indexOf('COMMAND')>=0||dResp[ri].indexOf('ERROR')>=0||dResp[ri].indexOf('WARNING')>=0;var rel=addLine(isBad?'denied':'dim',false);await typeChat(rel,dResp[ri]);await sleep(280*0.6);}
   }
   if(overrideActive)return;
   var pl2=addLine('low');await typeLine(pl2,'> AWAITING INPUT');setActiveCursor(pl2);inputSlowed=false;isResponding=false;output.scrollTop=output.scrollHeight;termInput.focus();
@@ -2175,7 +2217,7 @@ async function checkGlobalCommand(val){
     }else{
       var tNode=archData.nodes[target];var tLid=tNode.layer||'l1a';
       if(tLid!==lid){
-        if(tLid==='l2a'){if(l1ChatBackup===null)l1ChatBackup=output.innerHTML;await transitionToL2();}
+        if(tLid==='l2a'){if(l1ChatBackup===null)l1ChatBackup=snapOutput();await transitionToL2();}
         else if(tLid==='l3a'){await transitionToL3();}
       }
       await renderArchivePage(target);
@@ -2229,7 +2271,8 @@ function isChatCommand(val){
 function treeLines(full){
   var out = [{text:'  /', cls:'dim'}];
   var maxTier = full ? 3 : currentLevel;
-  function lab(it){ return it.alias || ('['+it.name+']'); }
+  // The player's tree does not give away a tier root's [COMMAND]: the commands that open the archive are found, not listed.
+  function lab(it){ return (!full && it._parent === null) ? it.name : (it.alias || ('['+it.name+']')); }
   function tag(it){
     if(!full) return '';
     return (it.stub ? '  ?stub' : it.hidden ? '  ~hidden' : '') + (it.type === 'program' ? '  program:'+it.program+(it.scope === 'folder' ? ' (this folder only)' : '') : it.type === 'gateway' ? '  gateway:'+it.goto : '') + '  T'+it.tier;
@@ -2239,7 +2282,7 @@ function treeLines(full){
     vis.forEach(function(c, i){
       var last = i === vis.length-1;
       var ln={text:'  '+prefix+(last?'└─ ':'├─ ')+glyphOf(c.type)+' '+lab(c)+(isRoot?'  '+(c.title||c.name):'')+tag(c)+(full&&authorMode&&c.id===termState?'  \u25C4 HERE':''), cls:c.hidden||c.stub?'low':'dim'};
-      if(full&&authorMode) ln.jump=c.id;   // author view: click a line to go there
+      if(full&&authorMode&&!overrideActive) ln.jump=c.id;   // author view: click a line to go there
       out.push(ln);
       walk(c.children || [], prefix+(last?'   ':'│  '), false);
     });
@@ -2295,7 +2338,7 @@ async function fadeFromBlack(){overrideFadeEl.classList.remove('show');await sle
 async function enterSystemOverride(){
   overrideActive=true;isResponding=true;
   overrideSnapshot={
-    html:output.innerHTML, termState:termState, currentLevel:currentLevel,
+    html:snapOutput(), termState:termState, currentLevel:currentLevel,
     breadcrumb:breadcrumbEl.textContent, title:titleEl.textContent,
     menuOpts:currentMenuOpts.slice(), menuSelIdx:menuSelIdx,
     inputValue:termInput.value, inputPlaceholder:termInput.placeholder
@@ -2316,12 +2359,14 @@ async function enterSystemOverride(){
   isResponding=false;termInput.focus();
 }
 function printOverrideMenu(){
-  var m1=addLine('full');m1.textContent='  [STATUS]      — run full data validation report';
-  var m2=addLine('full');m2.textContent='  [JUMP L1]      — jump to layer 1 archive root';
-  var m3=addLine('full');m3.textContent='  [JUMP L2]      — jump to layer 2 archive root';
-  var m4=addLine('full');m4.textContent='  [JUMP L3]      — jump to layer 3 archive root';
-  var m6=addLine('full');m6.textContent='  [TREE]         — show the full file tree, hidden items included';
-  var m5=addLine('full');m5.textContent='  [EXIT]         — return to previous screen';
+  [['[STATUS]',      '  [STATUS]      \u2014 run full data validation report'],
+   ['[LEGEND]',      '  [LEGEND]      \u2014 what the boot check labels mean'],
+   ['[JUMP L1]',     '  [JUMP L1]      \u2014 jump to layer 1 archive root'],
+   ['[JUMP L2]',     '  [JUMP L2]      \u2014 jump to layer 2 archive root'],
+   ['[JUMP L3]',     '  [JUMP L3]      \u2014 jump to layer 3 archive root'],
+   ['[TREE]',        '  [TREE]         \u2014 show the full file tree, hidden items included'],
+   ['[EXIT]',        '  [EXIT]         \u2014 return to previous screen']
+  ].forEach(function(m){ buildItemLine(addLine('full'), {text:m[1], cmd:m[0]}); });   // hover shows the command, click runs it
 }
 // Jump commands replace the old DEV_OVERRIDE_ROOT node — same destinations
 // (L1A_ROOT/L2A_ROOT/L3A_ROOT), now hardcoded here instead of living as
@@ -2390,6 +2435,25 @@ function runDataValidator(){
   });
   return report;
 }
+async function printLegend(){
+  var L = function(state){ return '['+(state==='ok' ? (CFG_STRINGS.status_ok||'OK') : statusLabel(state))+']'; };
+  var row = function(a, b, cls){ var e = addLine(cls||'dim'); e.textContent = '  '+a.padEnd(34)+b; };
+  var h = addLine('full', true); await typeLine(h, '> BOOT CHECK LEGEND');
+  var sp = addLine('low'); sp.textContent = SEP;
+  row(L('ok'),      'LOADED, PARSED, AND THE CONTENTS LOOK RIGHT');
+  row(L('warn'),    'USABLE, BUT SOMETHING INSIDE IS OFF. USED AS IS', 'warn');
+  row(L('invalid'), 'VALID JSON WITH THE WRONG CONTENTS. UNAVAILABLE', 'denied');
+  row(L('broken'),  'NOT VALID JSON, CANNOT BE READ. UNAVAILABLE', 'denied');
+  row(L('missing'), 'COULD NOT BE FETCHED. UNAVAILABLE', 'denied');
+  var sp2 = addLine('low'); sp2.textContent = SEP;
+  row('FULL ACCESS', 'ALL FIVE FILES ARE '+L('ok'));
+  row('FULL ACCESS \u2014 N WARNINGS', 'NOTHING OFFLINE, N FILES ARE '+L('warn'));
+  row('DEGRADED \u2014 N SUBSYSTEMS OFFLINE', 'N FILES ARE '+L('invalid')+', '+L('broken')+' OR '+L('missing'));
+  var sp3 = addLine('low'); sp3.textContent = SEP;
+  Object.keys(FILE_LABELS).forEach(function(k){ row(FILE_LABELS[k], FILE_NAMES[k]); });
+  var sp4 = addLine('low'); sp4.textContent = SEP;
+  var tail = addLine('low'); tail.textContent = '  [STATUS] SHOWS WHICH FILE HAS WHICH PROBLEM, AND WHY.';
+}
 async function handleOverrideInput(val){
   isResponding=true;
   var u=addLine('user');u.textContent='> '+val;
@@ -2419,6 +2483,7 @@ async function handleOverrideInput(val){
       items.forEach(function(it){var il=addLine('dim');il.textContent='    - '+it;});
     });
     var sep3=addLine('low');sep3.textContent=SEP;
+    var lg=addLine('low');lg.textContent='  [LEGEND] EXPLAINS THE STATUS LABELS.';
     var summary=addLine(totalIssues?'warn':'full',true);
     await typeLine(summary,totalIssues?('> '+totalIssues+' ISSUE'+(totalIssues===1?'':'S')+' FOUND'):'> NO ISSUES FOUND — DATA INTEGRITY CONFIRMED');
     var pl=addLine('low');await typeLine(pl,'> AWAITING INPUT');setActiveCursor(pl);
@@ -2427,6 +2492,11 @@ async function handleOverrideInput(val){
   if(val==='[TREE]'){
     await printTree(true);
     var plT=addLine('low');await typeLine(plT,'> AWAITING INPUT');setActiveCursor(plT);
+    isResponding=false;termInput.focus();return;
+  }
+  if(val==='[LEGEND]'){
+    await printLegend();
+    var plL=addLine('low');await typeLine(plL,'> AWAITING INPUT');setActiveCursor(plL);
     isResponding=false;termInput.focus();return;
   }
   if(val==='[EXIT]'){await exitSystemOverride();return;}
@@ -2449,7 +2519,7 @@ async function exitSystemOverride(){
     isResponding=false;termInput.focus();return;
   }
   applyLayerClass(snap.currentLevel);
-  output.innerHTML=snap.html;
+  restoreOutput(snap.html);
   termState=snap.termState;
   setBreadcrumb(snap.breadcrumb);
   titleEl.textContent=snap.title;titleEl.style.opacity='1';
