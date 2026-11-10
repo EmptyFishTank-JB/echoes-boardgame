@@ -43,14 +43,49 @@
       "_color": "#e05050"
     }
   },
-  "commands": [
-    {
-      "alias": "[HELP]",
-      "kind": "pull",
-      "screen": "GLOBAL_HELP",
-      "scope": null
-    }
-  ],
+  "help": {
+    "title": "AVAILABLE COMMANDS",
+    "entries": [
+      {
+        "alias": "[HELP]",
+        "desc": "display this list"
+      },
+      {
+        "alias": "[TREE]",
+        "desc": "show the file tree"
+      },
+      {
+        "alias": "[LS]",
+        "desc": "list this folder",
+        "scope": "archive"
+      },
+      {
+        "alias": "[OPEN <name>]",
+        "desc": "open an item by name",
+        "scope": "archive"
+      },
+      {
+        "alias": "[BACK]",
+        "desc": "go up one level",
+        "scope": "archive"
+      },
+      {
+        "alias": "[ROOT]",
+        "desc": "return to this layer's root",
+        "scope": "archive"
+      },
+      {
+        "alias": "[EXIT]",
+        "desc": "leave this layer",
+        "scope": "archive"
+      },
+      {
+        "alias": "[CLEAR]",
+        "desc": "clear the screen"
+      }
+    ]
+  },
+  "commands": [],
   "screens": {
     "L1C_ROOT": {
       "layer": "l1c",
@@ -370,70 +405,6 @@
         }
       ]
     },
-    "GLOBAL_HELP": {
-      "layer": "l1a",
-      "node_type": "data",
-      "is_root": false,
-      "fetch_allowed": false,
-      "title": "HELP",
-      "breadcrumb": "HELP > HELP",
-      "footer": "",
-      "body": [
-        {
-          "type": "text",
-          "text": "*HELP_COMMANDS DATA NODE*",
-          "cls": "warn"
-        },
-        {
-          "type": "text",
-          "text": "AVAILABLE COMMANDS",
-          "cls": "full"
-        },
-        {
-          "type": "text",
-          "text": "> ─────────────────────────────────",
-          "cls": "low"
-        },
-        {
-          "type": "command",
-          "cmd_type": "pull",
-          "label": "  [HELP]       — display this list",
-          "target": "",
-          "hidden": false
-        },
-        {
-          "type": "command",
-          "cmd_type": "navigation",
-          "label": "  [STATUS]     — vessel system status",
-          "target": "GLOBAL_STATUS",
-          "hidden": false
-        },
-        {
-          "type": "command",
-          "cmd_type": "navigation",
-          "label": "  [SCAN]       — environment scan",
-          "target": "GLOBAL_SCAN",
-          "hidden": false
-        },
-        {
-          "type": "command",
-          "cmd_type": "navigation",
-          "label": "  [CLEAR]",
-          "target": "",
-          "hidden": false
-        },
-        {
-          "type": "text",
-          "text": "> ─────────────────────────────────",
-          "cls": "low"
-        },
-        {
-          "type": "text",
-          "text": "*HELP_COMMANDS DATA NODE*",
-          "cls": "warn"
-        }
-      ]
-    },
     "GLOBAL_STATUS": {
       "layer": "l1a",
       "node_type": "data",
@@ -485,7 +456,9 @@
         "alias": "[L1 ROOT]",
         "tier": 1,
         "hidden": false,
+        "fetch_allowed": false,
         "title": "ECHO.ARCHIVE",
+        "footer": "",
         "body": [
           {
             "type": "text",
@@ -514,7 +487,9 @@
             "alias": "[CREW MANIFEST]",
             "tier": 1,
             "hidden": false,
+            "fetch_allowed": false,
             "title": "CREW MANIFEST — OFFLINE:",
+            "footer": "",
             "body": [
               {
                 "type": "text",
@@ -557,7 +532,9 @@
             "alias": "[MISSION BRIEFING]",
             "tier": 1,
             "hidden": false,
+            "fetch_allowed": false,
             "title": "MISSION BRIEFING — CORRUPTED:",
+            "footer": "",
             "body": [
               {
                 "type": "text",
@@ -601,7 +578,9 @@
             "alias": "[INCIDENT REPORTS]",
             "tier": 1,
             "hidden": false,
+            "fetch_allowed": false,
             "title": "INCIDENT REPORTS — PARTIAL RECOVERY (47% INTEGRITY):",
+            "footer": "",
             "body": [],
             "children": [
               {
@@ -611,7 +590,9 @@
                 "alias": "[CONTAINMENT BREACH — DAY 31]",
                 "tier": 1,
                 "hidden": false,
+                "fetch_allowed": false,
                 "title": "CONTAINMENT BREACH — DAY 31 // PARTIAL RECOVERY:",
+                "footer": "",
                 "body": [
                   {
                     "type": "text",
@@ -705,7 +686,9 @@
             "alias": "[RESTRICTED FILES]",
             "tier": 1,
             "hidden": false,
+            "fetch_allowed": false,
             "title": "RESTRICTED FILES — PARTIAL KEY DETECTED:",
+            "footer": "",
             "body": [],
             "children": [
               {
@@ -757,7 +740,9 @@
             "alias": "[SYSTEM LOGS]",
             "tier": 1,
             "hidden": false,
+            "fetch_allowed": false,
             "title": "SYSTEM LOGS — ACCESS DENIED:",
+            "footer": "",
             "body": [
               {
                 "type": "text",
@@ -806,7 +791,9 @@
         "alias": "[L2 ROOT]",
         "tier": 2,
         "hidden": false,
+        "fetch_allowed": true,
         "title": "L2 ROOT",
+        "footer": "",
         "body": [],
         "children": [],
         "commands": []
@@ -818,7 +805,9 @@
         "alias": "[L3 ROOT]",
         "tier": 3,
         "hidden": false,
+        "fetch_allowed": true,
         "title": "L3 ROOT",
+        "footer": "",
         "body": [],
         "children": [],
         "commands": []

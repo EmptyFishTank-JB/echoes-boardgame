@@ -644,7 +644,7 @@ var FILE_COMMIT_PATHS={
   personality:'terminal-data/personality.json',
   lore:'terminal-data/lore.json',
   devlogs:'terminal-data/dev_logs.json',
-  nodes:'terminal-data/nodes.json',
+  nodes:'terminal-data/echo-os.json',
   engine:'terminal-data/engine_config.json'
 };
 function fetchFileCommits(){
@@ -655,7 +655,7 @@ function fetchFileCommits(){
 
 function fetchAllData(){
   fetch('./terminal-data/engine_config.json?v='+Date.now()).then(function(r){return r.text();}).then(function(t){return JSON.parse(decryptIfNeeded(t));}).then(function(d){engineConfig=d;applyEngineConfig(d);_engReady=true;}).catch(function(){engineConfig=null;_engReady=true;});
-  fetch('./terminal-data/nodes.json?v='+Date.now()).then(function(r){return r.text();}).then(function(t){return JSON.parse(decryptIfNeeded(t));}).then(function(d){archData=d;buildParentMap();_archReady=true;}).catch(function(){archData=null;_archReady=true;});
+  fetch('./terminal-data/echo-os.json?v='+Date.now()).then(function(r){return r.text();}).then(function(t){return JSON.parse(decryptIfNeeded(t));}).then(function(d){osData=d;archData=buildArchFromOS(d);_archReady=true;}).catch(function(){osData=null;archData=null;_archReady=true;});
   fetch('./terminal-data/lore.json?v='+Date.now()).then(function(r){return r.text();}).then(function(t){return JSON.parse(decryptIfNeeded(t));}).then(function(d){loreData=d;_lorReady=true;}).catch(function(){loreData=null;_lorReady=true;});
   fetch('./terminal-data/dev_logs.json?v='+Date.now()).then(function(r){return r.text();}).then(function(t){return JSON.parse(decryptIfNeeded(t));}).then(function(d){devLogs=d;_devReady=true;}).catch(function(){devLogs=null;_devReady=true;});
   fetch('./terminal-data/personality.json?v='+Date.now()).then(function(r){return r.text();}).then(function(t){return JSON.parse(decryptIfNeeded(t));}).then(function(d){personality=d;applyPersonality(d);_perReady=true;}).catch(function(){personality=null;_perReady=true;});
@@ -729,7 +729,8 @@ function applyPersonality(p){
 }
 
 // ── DATA STATE ────────────────────────────────────────────────────────────────
-var archData  = null;
+var archData  = null;   // page structure the renderer reads, built from osData by buildArchFromOS()
+var osData    = null;   // echo-os.json: the virtual filesystem tree (source of truth)
 var loreData  = null;
 var devLogs   = null;
 var personality = null;
@@ -789,16 +790,48 @@ function updateInvertHighlight(){
   }
 }
 
-// ── PARENT MAP ────────────────────────────────────────────────────────────────
-function buildParentMap(){
-  if(!archData||!archData.nodes) return;
-  Object.keys(archData.nodes).forEach(function(id){archData.nodes[id].parent=null;});
-  Object.keys(archData.nodes).forEach(function(id){
-    (archData.nodes[id].body||[]).forEach(function(b){
-      if(b.type==='command'&&b.target&&archData.nodes[b.target]&&!archData.nodes[b.target].parent)
-        archData.nodes[b.target].parent=id;
-    });
+// ── ECHO O.S. TREE -> PAGE STRUCTURE ─────────────────────────────────────────
+// echo-os.json is a filesystem tree (folders, docs, hidden items, tiers). The page
+// renderer reads archData.nodes, so this builds that view once at load: each visible
+// child becomes a navigation entry, and [BACK] / [EXIT] are generated per page instead
+// of being hand-wired. Hidden items get no entry but stay reachable by alias; stubs
+// (planned, empty items) are left out entirely.
+var osItems = {};      // id -> tree item, every item
+var osHidden = {};     // UPPERCASE alias -> id, hidden items only
+function buildArchFromOS(os){
+  var nodes = {};
+  osItems = {}; osHidden = {};
+  var screens = os.screens || {};
+  Object.keys(screens).forEach(function(id){ nodes[id] = screens[id]; });
+  (os.commands || []).forEach(function(c, i){
+    nodes['OS_CMD_'+i] = {layer:'l1a', node_type:'global', layer_scope:c.scope||null, title:'', body:[{type:'command', cmd_type:c.kind||'pull', label:c.alias, target:c.screen}]};
   });
+  function walk(it, parentId, crumb){
+    osItems[it.id] = it;
+    if(it.stub) return;
+    var isTierRoot = parentId === null;
+    var cmds = [];
+    (it.children || []).forEach(function(c){
+      if(c.hidden || c.stub) return;
+      cmds.push({type:'command', cmd_type:'navigation', label:c.alias || ('['+c.name+']'), target:c.id});
+    });
+    (it.commands || []).forEach(function(c){ cmds.push({type:'command', cmd_type:'navigation', label:c.label, target:c.goto}); });
+    cmds.push(isTierRoot ? {type:'command', cmd_type:'navigation', label:'[EXIT]', target:'__EXIT__'}
+                         : {type:'command', cmd_type:'navigation', label:'[BACK]', target:'__BACK__'});
+    var title = it.title || it.name;
+    nodes[it.id] = {
+      layer:'l'+it.tier+'a', node_type:'standard', is_root:isTierRoot, fetch_allowed:!!it.fetch_allowed,
+      title:title, breadcrumb:crumb, footer:it.footer || '', hidden:!!it.hidden, parent:parentId,
+      body:(it.body || []).concat(cmds)
+    };
+    if(it.hidden && it.alias) osHidden[it.alias.trim().toUpperCase()] = it.id;
+    (it.children || []).forEach(function(c){ walk(c, it.id, crumb+' > '+(c.title || c.name)); });
+  }
+  ((os.tree && os.tree.children) || []).forEach(function(r){
+    var lyr = os.layers && os.layers['l'+r.tier+'c'];
+    walk(r, null, ((lyr && lyr.header_title) ? lyr.header_title+' > ' : '') + (r.title || r.name));
+  });
+  return {layers:os.layers || {}, nodes:nodes};
 }
 
 // Find the root node for a given layer ID by looking for is_root:true in nodes.json
@@ -1083,6 +1116,7 @@ async function handleRoot(){var rootId=layerRootId(currentLevel);isResponding=tr
 
 // ── ARCHIVE INPUT ROUTER ──────────────────────────────────────────────────────
 async function handleArchiveInput(val){
+  var typed=val; val=openToAlias(val);
   // Close log-entry overlay if present
   if(window._logOverlay){try{window._logOverlay.parentNode.removeChild(window._logOverlay);}catch(e){}window._logOverlay=null;}
 
@@ -1093,7 +1127,7 @@ async function handleArchiveInput(val){
       if(b.type==='command'&&(b.cmd_type==='navigation'||b.cmd_type==='loop')&&(b.label||'').trim()===val)match=b;
     });
     if(match){
-      var u=addLine('user');u.textContent='> '+val;isResponding=true;var target=match.target;
+      var u=addLine('user');u.textContent='> '+typed;isResponding=true;var target=match.target;
       if(target==='__EXIT__'){await handleExit();}
       else if(target==='__BACK__'){await handleBack();}
       else if(target==='__ROOT__'){await handleRoot();}
@@ -1107,9 +1141,13 @@ async function handleArchiveInput(val){
   }
 
   // 2. GLOBAL FALLBACK — check global nodes (local had no match)
-  var uG=addLine('user');uG.textContent='> '+val;
+  var uG=addLine('user');uG.textContent='> '+typed;
   isResponding=true;
-  var globalHandled=await checkGlobalCommand(val);
+  var hiddenId=findHiddenAlias(val);
+  if(hiddenId){isResponding=false;await renderArchivePage(hiddenId);return;}
+  var builtin=await tryBuiltin(val,true);
+  if(builtin==='page') return;
+  var globalHandled=builtin||await checkGlobalCommand(val);
   if(globalHandled){
     var plG=addLine('low');await typeLine(plG,'> AWAITING INPUT');setActiveCursor(plG);
     isResponding=false;output.scrollTop=output.scrollHeight;termInput.focus();return;
@@ -1287,6 +1325,7 @@ async function tryL1Command(val){
 
 // ── L1 BRACKET HANDLER ────────────────────────────────────────────────────────
 async function handleL1Bracket(val){
+  val=openToAlias(val);
   isResponding=true;
   if(!archData){
     var errN=addLine('denied');await typeLine(errN,CFG_STRINGS.error_nav_offline);
@@ -1320,8 +1359,11 @@ async function handleL1Bracket(val){
     }
   }
 
-  // 3. Global node fallback
-  var globalHandled=await checkGlobalCommand(val);
+  // 3. Hidden items by alias, then built-ins, then global node fallback
+  var hiddenC=findHiddenAlias(val);
+  if(hiddenC){await enterEchoArchive();isResponding=false;await renderArchivePage(hiddenC);return;}
+  var builtinC=await tryBuiltin(val,false);
+  var globalHandled=builtinC||await checkGlobalCommand(val);
   if(globalHandled){
     var plG=addLine('low');await typeLine(plG,'> AWAITING INPUT');setActiveCursor(plG);
     isResponding=false;output.scrollTop=output.scrollHeight;termInput.focus();return;
@@ -1343,6 +1385,10 @@ async function handleL1Input(val){
     await sleep(120);var errP=addLine('denied');await typeLine(errP,CFG_STRINGS.error_personality_offline);
     var plE=addLine('low');await typeLine(plE,'> AWAITING INPUT');setActiveCursor(plE);isResponding=false;termInput.focus();return;
   }
+
+  // Bracket commands this layer really defines win over the admin keyword scan,
+  // otherwise "[L1 ROOT]" trips the "root" keyword. Unknown brackets still fall through to it.
+  if(/^\[.+\]$/.test(val)&&isChatCommand(val)){var uC=addLine('user');uC.textContent='> '+val;await handleL1Bracket(val);return;}
 
   // ADMIN check — responses from personality.json
   if(checkAdmin(val)){
@@ -1452,6 +1498,78 @@ async function renderPullInline(nodeId){
   var sep=addLine('low',true);sep.textContent=SEP;await sleep(40);
 }
 
+// ── ECHO O.S. BUILT-IN COMMANDS ───────────────────────────────────────────────
+// Generated from the tree rather than defined per page: [HELP] [TREE] [CLEAR] work
+// everywhere; [LS] [BACK] [ROOT] [EXIT] work inside the archive; [OPEN <name>] opens a
+// listed or hidden item by name. Hidden items are reachable by alias, never listed.
+function findHiddenAlias(val){
+  var id = osHidden[val]; var it = id && osItems[id];
+  if(!it || it.stub || it.tier > currentLevel) return null;
+  return id;
+}
+function openToAlias(val){
+  var m = /^\[OPEN\s+(.+)\]$/.exec(val);
+  return m ? '['+m[1].trim()+']' : val;
+}
+function isChatCommand(val){
+  val = openToAlias(val);
+  if(val === '[HELP]' || val === '[TREE]' || val === '[CLEAR]') return true;
+  if(findHiddenAlias(val)) return true;
+  var cid = findChatRootNode('l1c'); var cn = cid && archData && archData.nodes[cid];
+  return !!(cn && (cn.body || []).some(function(b){ return b.type === 'command' && (b.label || '').trim() === val; }));
+}
+function treeLines(full){
+  var out = [{text:'  /', cls:'dim'}];
+  var maxTier = full ? 3 : currentLevel;
+  function lab(it){ return it.alias || ('['+it.name+']'); }
+  function tag(it){
+    if(!full) return '';
+    return (it.stub ? '  ?stub' : it.hidden ? '  ~hidden' : '') + '  T'+it.tier;
+  }
+  function walk(list, prefix, isRoot){
+    var vis = list.filter(function(c){ return c.tier <= maxTier && (full || (!c.hidden && !c.stub)); });
+    vis.forEach(function(c, i){
+      var last = i === vis.length-1;
+      out.push({text:'  '+prefix+(last?'└─ ':'├─ ')+lab(c)+(isRoot?'  '+(c.title||c.name):'')+tag(c), cls:c.hidden||c.stub?'low':'dim'});
+      walk(c.children || [], prefix+(last?'   ':'│  '), false);
+    });
+  }
+  walk((osData && osData.tree && osData.tree.children) || [], '', true);
+  return out;
+}
+async function printTree(full){
+  var lines = [{text:full?'ECHO O.S. FILE TREE — FULL (AUTHOR VIEW)':'ECHO O.S. FILE TREE', cls:'full'}, {text:SEP, cls:'low'}]
+    .concat(treeLines(full), [{text:SEP, cls:'low'}]);
+  await printInstant(lines);
+}
+async function printHelp(inArchive){
+  var h = osData && osData.help;
+  if(!h){var e=addLine('denied');await typeLine(e,CFG_STRINGS.error_pull_not_found);return;}
+  var t = addLine('full', true); await typeLine(t, h.title || 'AVAILABLE COMMANDS'); await sleep(40);
+  var sp = addLine('low', true); sp.textContent = SEP; await sleep(20);
+  for(var i = 0; i < (h.entries || []).length; i++){
+    var en = h.entries[i];
+    if(en.scope === 'archive' && !inArchive) continue;
+    var el = addLine('dim', true); playLineStatic();
+    await typeLine(el, '  '+en.alias.padEnd(16)+'— '+en.desc);
+    await sleep(30);
+  }
+  var sp2 = addLine('low', true); sp2.textContent = SEP;
+}
+// Returns false (not a built-in), 'inline' (printed in place, caller adds the prompt),
+// or 'page' (navigated; the destination renders its own prompt).
+async function tryBuiltin(val, inArchive){
+  if(val === '[HELP]'){ await printHelp(inArchive); return 'inline'; }
+  if(val === '[TREE]'){ await printTree(false); return 'inline'; }
+  if(val === '[CLEAR]'){ output.innerHTML=''; cursorEl=null; return 'inline'; }
+  if(!inArchive) return false;
+  if(val === '[LS]'){ isResponding=false; await renderArchivePage(termState); return 'page'; }
+  if(val === '[BACK]'){ await handleBack(); return 'page'; }
+  if(val === '[ROOT]'){ await handleRoot(); return 'page'; }
+  if(val === '[EXIT]'){ await handleExit(); return 'page'; }
+  return false;
+}
+
 // ── SYSTEM OVERRIDE ────────────────────────────────────────────────────────────
 // Hardcoded, string-matched before any archData/nodes.json lookup — this has
 // to survive even a fully broken or failed archive load, so it can never
@@ -1487,6 +1605,7 @@ function printOverrideMenu(){
   var m2=addLine('full');m2.textContent='  [JUMP L1]      — jump to layer 1 archive root';
   var m3=addLine('full');m3.textContent='  [JUMP L2]      — jump to layer 2 archive root';
   var m4=addLine('full');m4.textContent='  [JUMP L3]      — jump to layer 3 archive root';
+  var m6=addLine('full');m6.textContent='  [TREE]         — show the full file tree, hidden items included';
   var m5=addLine('full');m5.textContent='  [EXIT]         — return to previous screen';
 }
 // Jump commands replace the old DEV_OVERRIDE_ROOT node — same destinations
@@ -1549,11 +1668,12 @@ function runDataValidator(){
   });
   Object.keys(nodes).forEach(function(nid){
     var node=nodes[nid];
-    if(node.is_root) return;
+    if(node.is_root||node.hidden) return;
     if(node.node_type==='global') return;
     if(VALIDATOR_ENGINE_ENTRY_IDS.indexOf(nid)!==-1) return;
     if(!referenced[nid]) report.orphaned.push(nid);
   });
+  Object.keys(osItems).forEach(function(id){ if(osItems[id].stub) report.stub.push(id); });
   return report;
 }
 async function handleOverrideInput(val){
@@ -1575,7 +1695,7 @@ async function handleOverrideInput(val){
       ['UNRECOGNIZED NODE_TYPES',r.badNodeType],
       ['UNDEFINED LAYER REFERENCES',r.badLayer],
       ['ORPHANED NODES',r.orphaned],
-      ['STUB COMMANDS (empty target — hidden from player)',r.stub]
+      ['STUB ITEMS (planned, empty — hidden from player)',r.stub]
     ];
     var totalIssues=r.dangling.length+r.badCmdType.length+r.badNodeType.length+r.badLayer.length+r.orphaned.length+r.stub.length;
     sections.forEach(function(sec){
@@ -1587,6 +1707,11 @@ async function handleOverrideInput(val){
     var summary=addLine(totalIssues?'warn':'full',true);
     await typeLine(summary,totalIssues?('> '+totalIssues+' ISSUE'+(totalIssues===1?'':'S')+' FOUND'):'> NO ISSUES FOUND — DATA INTEGRITY CONFIRMED');
     var pl=addLine('low');await typeLine(pl,'> AWAITING INPUT');setActiveCursor(pl);
+    isResponding=false;termInput.focus();return;
+  }
+  if(val==='[TREE]'){
+    await printTree(true);
+    var plT=addLine('low');await typeLine(plT,'> AWAITING INPUT');setActiveCursor(plT);
     isResponding=false;termInput.focus();return;
   }
   if(val==='[EXIT]'){await exitSystemOverride();return;}

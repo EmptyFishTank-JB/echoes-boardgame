@@ -28,7 +28,9 @@ function convert(id, label, parentId) {
     alias: (label || '').trim() || null,
     tier: tierOf(n.layer),
     hidden: false,
+    fetch_allowed: !!n.fetch_allowed,
     title: n.title || '',
+    footer: n.footer || '',
     body: cleanBody(n.body),
     children: [],
     commands: [],
@@ -95,9 +97,24 @@ Object.keys(nodes).forEach((id) => {
   const n = nodes[id];
   if (n.node_type !== 'global') return;
   (n.body || []).forEach((b) => {
-    if (b.type === 'command') commands.push({ alias: b.label.trim(), kind: b.cmd_type, screen: b.target, scope: n.layer_scope || null });
+    if (b.type === 'command' && b.label.trim() !== '[HELP]') commands.push({ alias: b.label.trim(), kind: b.cmd_type, screen: b.target, scope: n.layer_scope || null });
   });
 });
+
+delete screens.GLOBAL_HELP;
+const help = {
+  title: 'AVAILABLE COMMANDS',
+  entries: [
+    { alias: '[HELP]', desc: 'display this list' },
+    { alias: '[TREE]', desc: 'show the file tree' },
+    { alias: '[LS]', desc: 'list this folder', scope: 'archive' },
+    { alias: '[OPEN <name>]', desc: 'open an item by name', scope: 'archive' },
+    { alias: '[BACK]', desc: 'go up one level', scope: 'archive' },
+    { alias: '[ROOT]', desc: "return to this layer's root", scope: 'archive' },
+    { alias: '[EXIT]', desc: 'leave this layer', scope: 'archive' },
+    { alias: '[CLEAR]', desc: 'clear the screen' },
+  ],
+};
 
 const os = {
   meta: {
@@ -107,6 +124,7 @@ const os = {
     locked: false,
   },
   layers: old.layers,
+  help,
   commands,
   screens,
   tree: { id: 'ROOT', type: 'folder', name: '/', alias: null, tier: 1, hidden: false, title: '', body: [], commands: [], children: roots },
