@@ -149,6 +149,28 @@ body::after{content:"";position:fixed;inset:-50%;z-index:2;pointer-events:none;
 .t-line.inverted{background:var(--theme-full)!important;color:#000!important;
   padding-left:4px;padding-right:4px;display:inline-block;
   align-self:flex-start;max-width:100%;font-weight:bold;transition:none;}
+/* Item lines: type glyph, author eye, hover. Actionable lines only occupy their own text width so the hover
+   highlight can't resize the line under the pointer. */
+.t-line .gl{display:inline-block;width:2ch;color:var(--theme-lo);}
+.t-line .eye{display:inline-block;width:4ch;color:var(--theme-lo);}
+.t-line .eye.off{color:var(--theme-warn);}
+.t-line .eye:hover{color:var(--theme-full);text-shadow:0 0 6px var(--theme-full);}
+.t-line.act{display:inline-block;align-self:flex-start;max-width:100%;padding:0 4px;margin-left:-4px;user-select:none;}
+.t-line.inverted .gl,.t-line.inverted .eye{color:#000!important;text-shadow:none;}
+/* Pointer: drawn in JS from the active layer color (updateCursors) */
+html,body{cursor:var(--cur,default);}
+#power-btn,.t-line.act,.t-line .eye,#ctx .ci{cursor:var(--cur-act,pointer);}
+#t-field{cursor:var(--cur-txt,text);}
+/* Author context menu */
+#ctx{position:fixed;z-index:60;min-width:210px;max-width:320px;background:rgba(2,6,10,0.98);
+  border:1px solid var(--theme-bc);box-shadow:0 0 18px rgba(0,0,0,0.7),0 0 16px var(--theme-glow-a);
+  font-family:'Share Tech Mono',monospace;font-size:12px;letter-spacing:0.04em;padding:4px 0;}
+#ctx .ch{color:var(--theme-lo);padding:4px 12px 3px;font-size:10.5px;letter-spacing:0.12em;border-bottom:1px solid var(--theme-border);margin-bottom:3px;}
+#ctx .ci{display:flex;justify-content:space-between;gap:18px;padding:3px 12px;color:var(--theme-dim);}
+#ctx .ci .cc{color:var(--theme-lo);}
+#ctx .ci:hover{background:var(--theme-full);color:#000;}
+#ctx .ci:hover .cc{color:#000;}
+#ctx .cs{border-top:1px solid var(--theme-border);margin:3px 0;}
 /* Cursor */
 .t-cursor::after{content:'_';animation:blink 0.9s step-end infinite;color:var(--theme-full);}
 /* Input row */
@@ -370,7 +392,8 @@ async function typeLine(el,text){
 async function printInstant(lines){
   for(var i=0;i<lines.length;i++){
     var el=addLine(lines[i].cls||'full',true);
-    if(lines[i].parts){renderDynLine(el,lines[i]);playLineStatic();}
+    if(lines[i].cmd||lines[i].id||lines[i].glyph){buildItemLine(el,lines[i]);playLineStatic();}
+    else if(lines[i].parts){renderDynLine(el,lines[i]);playLineStatic();}
     else if(lines[i].text){el.textContent=lines[i].text;playLineStatic();}
     await sleep(40);
   }
@@ -454,7 +477,13 @@ async function runScript(){
           }else if(cb.type==='command'){
             var cCls=cb.cmd_type==='navigation'?'cmd-nav':cb.cmd_type==='pull'?'cmd-pull':'dim';
             var cEl=addLine(cCls);
-            if(cb.text||cb.label){playLineStatic();await typeLine(cEl,(cb.text||(cb.label||'').trim()));}
+            if(cb.text||cb.label){
+              var cTxt=(cb.text||(cb.label||'').trim());
+              if(cb.cmd_type==='navigation'&&cb.label){
+                var cLb=buildItemLine(cEl,{text:cTxt,glyph:glyphOf(kindOfTarget(cb.target)),cmd:cTxt.toUpperCase()});
+                cLb.textContent='';playLineStatic();await typeLine(cLb,cTxt);
+              }else{playLineStatic();await typeLine(cEl,cTxt);}
+            }
             await sleep(40);
           }
         }
@@ -603,7 +632,7 @@ var CFG_STRINGS = {
   error_program_unavailable:   '> PROGRAM UNAVAILABLE',
   error_pull_not_found:        '> ERROR \u2014 PULL TARGET NOT FOUND',
   error_target_not_found:      '> ERROR \u2014 TARGET NODE NOT FOUND',
-  error_fetch_cancelled:       '> FETCH CANCELLED',
+  error_fetch_cancelled:       '> FETCH CANCELED',
   layer_enter_confirmed:       '',
   layer_exit_confirmed:        ''
 };
@@ -787,7 +816,7 @@ function updateInvertHighlight(){
   for(var i=0;i<currentMenuOpts.length;i++){
     if(currentMenuOpts[i]===val){
       termInput.classList.add('inverted');
-      Array.from(output.children).forEach(function(el){if(el.textContent==='  '+currentMenuOpts[i])el.classList.add('inverted');});
+      Array.from(output.children).forEach(function(el){if(el.dataset&&el.dataset.cmd===currentMenuOpts[i])el.classList.add('inverted');});
       return;
     }
   }
@@ -796,12 +825,31 @@ function updateInvertHighlight(){
 // A 'log' item shows an entry from lore.json / dev_logs.json instead of its own text.
 function pageBody(node){
   if(!node) return [];
-  if(!node.log_ref) return node.body || [];
-  var d = node.log_ref.source === 'dev' ? devLogs : loreData;
-  var c = node.log_ref.code, e = d && (d[c] || d[c.replace(/-/g, '')]);
-  var text = e ? (e.text || '').split('\n').map(function(t){ return {type:'text', text:t, cls:'full'}; })
-               : [{type:'text', text:'> ENTRY NOT FOUND: '+c, cls:'denied'}];
-  return text.concat((node.body || []).filter(function(b){ return b.type === 'command'; }));
+  var body;
+  if(!node.log_ref) body = node.body || [];
+  else {
+    var d = node.log_ref.source === 'dev' ? devLogs : loreData;
+    var c = node.log_ref.code, e = d && (d[c] || d[c.replace(/-/g, '')]);
+    var text = e ? (e.text || '').split('\n').map(function(t){ return {type:'text', text:t, cls:'full'}; })
+                 : [{type:'text', text:'> ENTRY NOT FOUND: '+c, cls:'denied'}];
+    body = text.concat((node.body || []).filter(function(b){ return b.type === 'command'; }));
+  }
+  return (authorMode && node.author_list && node.author_list.length) ? withAuthorList(body, node.author_list) : body;
+}
+// Author view: the tree's entries (hidden, stubs, programs, gateways included) replace the player's list.
+function withAuthorList(body, list){
+  var out = [], placed = false;
+  function put(){
+    list.forEach(function(a){ out.push({type:'command', cmd_type:'navigation', label:a.label, target:a.target, kind:a.kind, osId:a.osId, dim:a.dim, stub:a.stub, special:a.special}); });
+    placed = true;
+  }
+  body.forEach(function(b){
+    if(b.type === 'command' && b.osId){ if(!placed) put(); return; }
+    if(b.type === 'command' && !placed) put();
+    out.push(b);
+  });
+  if(!placed) put();
+  return out;
 }
 // ── ECHO O.S. TREE -> PAGE STRUCTURE ─────────────────────────────────────────
 // echo-os.json is a filesystem tree (folders, docs, hidden items, tiers). The page
@@ -831,16 +879,21 @@ function buildArchFromOS(os){
     var cmds = [];
     (it.children || []).forEach(function(c){
       if(c.hidden || c.stub || c.type === 'program' || c.type === 'gateway') return;
-      cmds.push({type:'command', cmd_type:'navigation', label:c.alias || ('['+c.name+']'), target:c.id});
+      cmds.push({type:'command', cmd_type:'navigation', label:c.alias || ('['+c.name+']'), target:c.id, kind:c.type, osId:c.id});
     });
     (it.commands || []).forEach(function(c){ cmds.push({type:'command', cmd_type:'navigation', label:c.label, target:c.goto}); });
-    cmds.push(isTierRoot ? {type:'command', cmd_type:'navigation', label:'[EXIT]', target:'__EXIT__'}
-                         : {type:'command', cmd_type:'navigation', label:'[BACK]', target:'__BACK__'});
+    cmds.push(isTierRoot ? {type:'command', cmd_type:'navigation', label:'[EXIT]', target:'__EXIT__', kind:'up'}
+                         : {type:'command', cmd_type:'navigation', label:'[BACK]', target:'__BACK__', kind:'up'});
     var title = it.title || it.name;
     nodes[it.id] = {
       layer:'l'+it.tier+'a', node_type:'standard', is_root:isTierRoot,
       title:title, breadcrumb:crumb, footer:it.footer || '', hidden:!!it.hidden, parent:parentId,
       log_ref:it.log_ref || null,
+      // Every child, hidden or not: author mode lists them all (dimmed when unlisted).
+      author_list:(it.children || []).map(function(c){
+        var sp = c.type === 'program' || c.type === 'gateway';
+        return {label:c.alias || ('['+c.name+']'), target:c.id, kind:c.type, osId:c.id, dim:!!(c.hidden || c.stub || sp), stub:!!c.stub, special:sp};
+      }),
       body:(it.body || []).concat(cmds)
     };
     if(it.hidden && it.alias) osHidden[it.alias.trim().toUpperCase()] = it.id;
@@ -961,8 +1014,10 @@ async function renderArchivePage(nodeId, notes){
         var ct=b.cmd_type||'navigation';
         if(ct==='navigation'&&b.target&&b.label){
           if(!hasBodySep){lines.push({text:SEP,cls:'low'});hasBodySep=true;}
-          lines.push({text:'  '+b.label,cls:'dim'});
-          opts.push(b.label);
+          var ln={text:'  '+b.label, cls:b.dim?'lo':'dim', glyph:glyphOf(b.kind||kindOfTarget(b.target))};
+          if(!b.stub){ ln.cmd=b.label; opts.push(b.label); }
+          if(authorMode&&b.osId){ ln.id=b.osId; ln.eye={off:!!b.dim}; }
+          lines.push(ln);
         } else if(ct==='pull'&&b.target){
           // Render target node's body inline
           var pullNode=archData&&archData.nodes&&archData.nodes[b.target];
@@ -1206,7 +1261,7 @@ async function loadProgram(id){
   catch(e){ return null; }
 }
 // Waits for the next submitted line. The render lock is released while waiting (so the
-// player can type) and retaken when the answer arrives. Resolves '' if cancelled.
+// player can type) and retaken when the answer arrives. Resolves '' if canceled.
 function ctxAsk(opts){
   opts = opts || {};
   return new Promise(function(resolve){
@@ -1333,7 +1388,9 @@ function makeAuthorCtx(){
 }
 async function authorSay(text, cls){ var el = addLine(cls || 'dim', true); await typeLine(el, text); }
 // True = handled. Unknown commands fall through to normal handling.
+var authorPreset = null;   // {target:itemId}: set by a click or the context menu so the command skips its "which item?" prompt
 async function handleAuthorInput(val){
+  var preset = authorPreset; authorPreset = null;
   if(val === '[AUTHOR UNLOCK]'){
     if(osLocked() || overrideActive) return false;
     var u = addLine('user'); u.textContent = '> '+val;
@@ -1342,41 +1399,211 @@ async function handleAuthorInput(val){
     var m = await loadAuthor();
     if(!m){ playDenied(); await authorSay('> AUTHOR MODULE UNAVAILABLE', 'denied'); await promptInPlace(); return true; }
     authorMode = true; setAuthorPrompt(); playEggTone();
-    await authorSay('> AUTHOR MODE ACTIVE', 'full');
-    await authorSay('> CHANGES LIVE IN THIS SESSION ONLY. [EXPORT] DOWNLOADS THE FILE.');
-    await authorSay('> [AUTHOR HELP] LISTS THE COMMANDS.');
-    if(makeAuthorCtx().os.draft()) await authorSay('> AN UNSAVED DRAFT WAS FOUND. [RESTORE DRAFT] OR [DISCARD DRAFT].', 'warn');
-    await promptInPlace(); return true;
+    var msgs = [['> AUTHOR MODE ACTIVE', 'full'], ['> CHANGES LIVE IN THIS SESSION ONLY. [EXPORT] DOWNLOADS THE FILE.', 'dim'],
+                ['> [AUTHOR HELP] LISTS THE COMMANDS. RIGHT-CLICK FOR MENUS.', 'dim']];
+    if(makeAuthorCtx().os.draft()) msgs.push(['> AN UNSAVED DRAFT WAS FOUND. [RESTORE DRAFT] OR [DISCARD DRAFT].', 'warn']);
+    await showAuthorMessages(msgs); return true;
   }
   if(!authorMode) return false;
   if(val === '[AUTHOR LOCK]'){
     var u2 = addLine('user'); u2.textContent = '> '+val; isResponding = true;
     authorMode = false; setAuthorPrompt();
-    await authorSay('> AUTHOR MODE LOCKED'); await promptInPlace(); return true;
+    await showAuthorMessages([['> AUTHOR MODE LOCKED', 'dim']]); return true;
   }
   var mod = authorMod;
   if(!mod || !mod.recognizes(val)) return false;
   var u3 = addLine('user'); u3.textContent = '> '+val;
-  var prev = termState, res, actx = makeAuthorCtx();
+  var prev = termState, prevParent = osItems[prev] ? osItems[prev]._parent : null, res, actx = makeAuthorCtx();
+  actx.preset = preset || {};
   isResponding = true;
   try{ res = await mod.handle(val, actx); }
   catch(err){ playDenied(); await authorSay('> AUTHOR ERROR: '+err.message, 'denied'); res = 'stay'; }
   progWait = null; inputMask = null; termInput.placeholder = '';
   termState = prev;
-  if(res === 'redraw' && archData.nodes[prev]){ isResponding = false; await renderArchivePage(prev, actx.notes); return true; }
+  if(res === 'redraw'){
+    // The page we were on may be the thing that was deleted: fall back to its folder.
+    var back = archData.nodes[prev] ? prev : (prevParent && archData.nodes[prevParent] ? prevParent : layerRootId(currentLevel));
+    if(back){ isResponding = false; await renderArchivePage(back, actx.notes); return true; }
+  }
   await promptInPlace(); return true;
+}
+// Mode switches redraw an archive page so hidden items appear / disappear; elsewhere the messages just print.
+async function showAuthorMessages(msgs){
+  if(osItems[termState] && archData.nodes[termState]){
+    isResponding = false;
+    await renderArchivePage(termState, msgs.map(function(m){ return {text:m[0], cls:m[1]}; }));
+    return;
+  }
+  for(var i = 0; i < msgs.length; i++) await authorSay(msgs[i][0], msgs[i][1]);
+  await promptInPlace();
 }
 async function printAuthorLs(){
   var cur = osItems[termState];
   if(!cur){ await authorSay('> NOT IN A FOLDER. OPEN THE ARCHIVE FIRST.', 'warn'); return; }
   var lines = [{text:(cur.title || cur.name)+'  ('+cur.type+', T'+cur.tier+')', cls:'full'}, {text:SEP, cls:'low'}];
   (cur.children || []).forEach(function(c){
-    lines.push({text:'  '+(c.alias || '['+c.name+']')+'  '+c.type+(c.stub ? '  ?stub' : c.hidden ? '  ~hidden' : ''), cls:c.hidden || c.stub ? 'low' : 'dim'});
+    lines.push({text:'  '+glyphOf(c.type)+' '+(c.alias || '['+c.name+']')+'  '+c.type+(c.stub ? '  ?stub' : c.hidden ? '  ~hidden' : ''), cls:c.hidden || c.stub ? 'low' : 'dim'});
   });
   if(!(cur.children || []).length) lines.push({text:'  (EMPTY)', cls:'low'});
   lines.push({text:SEP, cls:'low'});
   await printInstant(lines);
 }
+
+// ── ITEM LINES, HOVER, CLICK, POINTER, AUTHOR MENU ────────────────────────────
+// Listed items are drawn as  [eye] glyph [COMMAND]. Hovering an item shows its command in the
+// input field and highlights it; clicking runs it exactly as if it had been typed.
+var GLYPH_DEFAULT = {folder:'\\', doc:'≡', log:'▪', program:'►', gateway:'»', up:'↰', eyeOn:'(o)', eyeOff:'(-)'};
+function glyphSet(){
+  var g = (osData && osData.glyphs) || {}, o = {};
+  Object.keys(GLYPH_DEFAULT).forEach(function(k){ o[k] = g[k] != null ? g[k] : GLYPH_DEFAULT[k]; });
+  return o;
+}
+function glyphOf(kind){ var g = glyphSet(); return g[kind] != null ? g[kind] : ''; }
+function kindOfTarget(t){
+  if(t === '__EXIT__' || t === '__BACK__' || t === '__ROOT__') return 'up';
+  var it = osItems[t]; return it ? it.type : '';
+}
+// Builds the spans for one item line; returns the label span (callers may type into it).
+function buildItemLine(el, L){
+  el.textContent = '';
+  var ind = (L.text.match(/^\s*/) || [''])[0];
+  if(ind) el.appendChild(document.createTextNode(ind));
+  if(L.eye){
+    var ey = document.createElement('span'); ey.className = 'eye' + (L.eye.off ? ' off' : '');
+    ey.textContent = (L.eye.off ? glyphSet().eyeOff : glyphSet().eyeOn) + ' ';
+    ey.title = L.eye.off ? 'Unlisted. Click to list it' : 'Listed. Click to unlist it';
+    ey.dataset.eye = L.id || ''; el.appendChild(ey);
+  }
+  if(L.glyph){ var g = document.createElement('span'); g.className = 'gl'; g.textContent = L.glyph + ' '; el.appendChild(g); }
+  var lb = document.createElement('span'); lb.className = 'lb'; lb.textContent = L.text.replace(/^\s+/, ''); el.appendChild(lb);
+  if(L.cmd){ el.classList.add('act'); el.dataset.cmd = L.cmd; }
+  if(L.id) el.dataset.id = L.id;
+  return lb;
+}
+var hoverStash = null;   // what the player had typed before hovering an item
+function uiReady(){ return !overrideActive && !inputBusy() && termState !== 'PROGRAM' && inputRow.style.display !== 'none'; }
+function hoverOn(el){
+  if(!uiReady()) return;
+  var cmd = el.dataset.cmd; if(!cmd) return;
+  if(hoverStash === null) hoverStash = termInput.value;
+  termInput.value = cmd; clearInverts(); el.classList.add('inverted'); termInput.classList.add('inverted');
+  menuSelIdx = currentMenuOpts.indexOf(cmd);
+}
+function hoverOff(){
+  if(hoverStash === null) return;
+  termInput.value = hoverStash; hoverStash = null; menuSelIdx = -1; updateInvertHighlight();
+}
+// Runs a command as if typed. preset ({target:id}) lets author commands skip their "which item?" prompt.
+function uiSubmit(cmd, preset){
+  if(!uiReady()) return;
+  hoverStash = null; termInput.value = ''; clearInverts();
+  if(termState === 'L1_NORMAL'){ commandHistory.push(cmd); commandHistIdx = commandHistory.length; }
+  playEnter(); authorPreset = preset || null; routeInput(cmd);
+}
+output.addEventListener('mouseover', function(e){
+  var el = e.target.closest && e.target.closest('.t-line.act'); if(!el) return;
+  if(e.target.closest('.eye')){ hoverOff(); return; }
+  hoverOn(el);
+});
+output.addEventListener('mouseout', function(e){
+  var el = e.target.closest && e.target.closest('.t-line.act'); if(!el) return;
+  if(e.relatedTarget && el.contains(e.relatedTarget) && !(e.relatedTarget.closest && e.relatedTarget.closest('.eye'))) return;
+  hoverOff();
+});
+output.addEventListener('click', function(e){
+  var eye = e.target.closest && e.target.closest('.eye');
+  var el = e.target.closest && e.target.closest('.t-line');
+  if(eye && el && authorMode){
+    var it = osItems[eye.dataset.eye];
+    if(it) uiSubmit(it.hidden && !it.stub && it.type !== 'program' && it.type !== 'gateway' ? '[SHOW]' : '[HIDE]', {target:it.id});
+    return;
+  }
+  el = e.target.closest && e.target.closest('.t-line.act'); if(!el) return;
+  if(window.getSelection && String(window.getSelection())) return;   // the player was selecting text
+  uiSubmit(el.dataset.cmd);
+});
+termInput.addEventListener('input', function(){ hoverStash = null; });
+
+// Pointer: an arrow for idle, bracket reticle over anything clickable, I-beam over the input.
+// Drawn in the active layer color; redrawn whenever the body's theme class changes.
+function cursorCss(inner, w, h, hx, hy, fb){
+  var svg = "<svg xmlns='http://www.w3.org/2000/svg' width='"+w+"' height='"+h+"' viewBox='0 0 "+w+" "+h+"'>"+inner+"</svg>";
+  return 'url("data:image/svg+xml,'+encodeURIComponent(svg)+'") '+hx+' '+hy+', '+fb;
+}
+function updateCursors(){
+  var c = (getComputedStyle(document.body).getPropertyValue('--theme-full') || '').trim() || '#4fc3f7';
+  var glow = "stroke='"+c+"' stroke-opacity='0.28' stroke-width='3.6' fill='none' stroke-linejoin='round' stroke-linecap='round'";
+  var ln = "stroke='"+c+"' stroke-width='1.3' fill='none' stroke-linejoin='round' stroke-linecap='round'";
+  var arrow = 'M2.5 2.5 L2.5 18 L6.6 14.2 L9.6 21 L12.3 19.8 L9.3 13.2 L15 13.2 Z';
+  var def = "<path d='"+arrow+"' "+glow+"/><path d='"+arrow+"' fill='rgba(0,8,14,0.75)' stroke='"+c+"' stroke-width='1.3' stroke-linejoin='round'/><circle cx='2.5' cy='2.5' r='1.6' fill='"+c+"'/>";
+  var brk = 'M8 4 H3.5 V20 H8 M16 4 H20.5 V20 H16';
+  var tick = 'M12 6.5 V9 M12 15 V17.5 M6.5 12 H9 M15 12 H17.5';
+  var act = "<path d='"+brk+"' "+glow+"/><path d='"+brk+"' "+ln+"/><path d='"+tick+"' "+ln+"/><circle cx='12' cy='12' r='1.7' fill='"+c+"'/>";
+  var bar = 'M12 3.5 V20.5 M8.8 3.5 H15.2 M8.8 20.5 H15.2';
+  var txt = "<path d='"+bar+"' "+glow+"/><path d='"+bar+"' "+ln+"/>";
+  var st = document.documentElement.style;
+  st.setProperty('--cur', cursorCss(def, 24, 24, 2, 2, 'default'));
+  st.setProperty('--cur-act', cursorCss(act, 24, 24, 12, 12, 'pointer'));
+  st.setProperty('--cur-txt', cursorCss(txt, 24, 24, 12, 12, 'text'));
+}
+new MutationObserver(updateCursors).observe(document.body, {attributes:true, attributeFilter:['class']});
+updateCursors();
+
+// Author context menu: right-click an item for its edit commands, empty space for the create commands.
+var ctxEl = null;
+function ctxClose(){ if(ctxEl){ ctxEl.remove(); ctxEl = null; } hoverOff(); }
+function ctxOpen(x, y, title, entries){
+  ctxClose();
+  var m = document.createElement('div'); m.id = 'ctx';
+  var h = document.createElement('div'); h.className = 'ch'; h.textContent = title; m.appendChild(h);
+  entries.forEach(function(en){
+    if(en === '-'){ var s = document.createElement('div'); s.className = 'cs'; m.appendChild(s); return; }
+    var d = document.createElement('div'); d.className = 'ci';
+    var a = document.createElement('span'); a.textContent = en.label; d.appendChild(a);
+    var b = document.createElement('span'); b.className = 'cc'; b.textContent = en.cmd; d.appendChild(b);
+    d.addEventListener('mouseenter', function(){ if(hoverStash === null) hoverStash = termInput.value; termInput.value = en.cmd; });
+    d.addEventListener('mouseleave', hoverOff);
+    d.addEventListener('click', function(ev){ ev.stopPropagation(); ctxClose(); uiSubmit(en.cmd, en.preset); });
+    m.appendChild(d);
+  });
+  document.body.appendChild(m);
+  var r = m.getBoundingClientRect();
+  m.style.left = Math.max(4, Math.min(x, window.innerWidth - r.width - 6)) + 'px';
+  m.style.top = Math.max(4, Math.min(y, window.innerHeight - r.height - 6)) + 'px';
+  ctxEl = m;
+}
+function itemMenuEntries(it){
+  var pre = {target:it.id}, special = it.type === 'program' || it.type === 'gateway', e = [];
+  if(!it.stub) e.push({label:'OPEN', cmd:it.alias || '['+it.name+']'});
+  e.push({label:it.stub ? 'MAKE IT A REAL DOC...' : 'EDIT...', cmd:'[EDIT]', preset:pre});
+  e.push({label:'CHANGE ALIAS...', cmd:'[ALIAS]', preset:pre});
+  if(!special && !it.stub) e.push({label:it.hidden ? 'LIST IT (SHOW)' : 'UNLIST IT (HIDE)', cmd:it.hidden ? '[SHOW]' : '[HIDE]', preset:pre});
+  e.push({label:'MOVE...', cmd:'[MV]', preset:pre});
+  e.push({label:'DELETE...', cmd:'[RM]', preset:pre});
+  return e;
+}
+document.getElementById('terminal-box').addEventListener('contextmenu', function(e){
+  if(!authorMode || overrideActive) return;
+  e.preventDefault();
+  if(!uiReady() || !osItems[termState]) return;
+  var line = e.target.closest && e.target.closest('.t-line');
+  var hit = line && line.dataset.id && osItems[line.dataset.id];
+  var cur = osItems[termState];
+  if(hit){ ctxOpen(e.clientX, e.clientY, (hit.alias || hit.name) + '  ' + hit.type, itemMenuEntries(hit)); return; }
+  var tail = ['-', {label:'SHOW THE TREE', cmd:'[TREE]'}, {label:'EXPORT THE FILE', cmd:'[EXPORT]'},
+              {label:'AUTHOR HELP', cmd:'[AUTHOR HELP]'}, {label:'LEAVE AUTHOR MODE', cmd:'[AUTHOR LOCK]'}];
+  if(cur.type === 'folder'){
+    ctxOpen(e.clientX, e.clientY, 'IN ' + (cur.title || cur.name),
+      [{label:'NEW FOLDER', cmd:'[MKDIR]'}, {label:'NEW DOC', cmd:'[NEW DOC]'}, {label:'NEW LOG', cmd:'[NEW LOG]'},
+       {label:'NEW PROGRAM', cmd:'[NEW PROGRAM]'}, {label:'NEW GATEWAY', cmd:'[NEW GATEWAY]'}].concat(tail));
+  } else {
+    ctxOpen(e.clientX, e.clientY, 'THIS PAGE  ' + (cur.alias || cur.name), itemMenuEntries(cur).slice(1).concat(tail));
+  }
+});
+document.addEventListener('mousedown', function(e){ if(ctxEl && !ctxEl.contains(e.target)) ctxClose(); }, true);
+document.addEventListener('keydown', function(e){ if(e.key === 'Escape' && ctxEl){ e.preventDefault(); e.stopPropagation(); ctxClose(); } }, true);
+window.addEventListener('blur', ctxClose);
+output.addEventListener('scroll', ctxClose);
 
 // ── VIRUS SEQUENCE ────────────────────────────────────────────────────────────
 async function triggerVirusSequence(entry){
@@ -1688,11 +1915,13 @@ function treeLines(full){
     var vis = list.filter(function(c){ return c.tier <= maxTier && (full || (!c.hidden && !c.stub)); });
     vis.forEach(function(c, i){
       var last = i === vis.length-1;
-      out.push({text:'  '+prefix+(last?'└─ ':'├─ ')+lab(c)+(isRoot?'  '+(c.title||c.name):'')+tag(c), cls:c.hidden||c.stub?'low':'dim'});
+      out.push({text:'  '+prefix+(last?'└─ ':'├─ ')+glyphOf(c.type)+' '+lab(c)+(isRoot?'  '+(c.title||c.name):'')+tag(c), cls:c.hidden||c.stub?'low':'dim'});
       walk(c.children || [], prefix+(last?'   ':'│  '), false);
     });
   }
   walk((osData && osData.tree && osData.tree.children) || [], '', true);
+  var g = glyphSet();
+  out.push({text:'  '+g.folder+' folder   '+g.doc+' doc   '+g.log+' log   '+g.program+' program   '+g.gateway+' gateway   '+g.up+' back', cls:'low'});
   return out;
 }
 async function printTree(full){
@@ -1914,7 +2143,7 @@ async function exitSystemOverride(){
 // ── MAIN INPUT ROUTER ─────────────────────────────────────────────────────────
 // Every submission runs under the render lock, so a second line can't be submitted
 // (and can't interleave its output) until the first has finished drawing.
-async function routeInput(val){ return withLock(function(){ return routeInputInner(val); }); }
+async function routeInput(val){ hoverStash = null; return withLock(function(){ return routeInputInner(val); }); }
 async function routeInputInner(val){
   if(!overrideActive&&val==='[SYSTEM OVERRIDE]'){await enterSystemOverride();return;}
   if(overrideActive){await handleOverrideInput(val);return;}

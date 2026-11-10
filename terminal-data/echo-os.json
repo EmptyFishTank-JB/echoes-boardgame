@@ -43,6 +43,16 @@
       "_color": "#e05050"
     }
   },
+  "glyphs": {
+    "folder": "\\",
+    "doc": "\u2261",
+    "log": "\u25aa",
+    "program": "\u25ba",
+    "gateway": "\u00bb",
+    "up": "\u21b0",
+    "eyeOn": "(o)",
+    "eyeOff": "(-)"
+  },
   "help": {
     "title": "AVAILABLE COMMANDS",
     "entries": [

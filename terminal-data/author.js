@@ -52,7 +52,7 @@ async function yn(ctx, label, dflt) {
   if (v === '') return dflt;
   return v[0] === 'Y';
 }
-const cancelled = (ctx) => ctx.say('> CANCELLED', 'low').then(() => 'stay');
+const canceled = (ctx) => ctx.say('> CANCELED', 'low').then(() => 'stay');
 
 function cwdFolder(ctx) {
   const it = ctx.os.items[ctx.cwd];
@@ -96,6 +96,13 @@ async function pick(ctx, folder, label) {
   const it = findIn(folder, q);
   if (!it) { ctx.denied(); await ctx.say('> NOTHING HERE MATCHES "' + q + '"', 'denied'); return null; }
   return it;
+}
+// The item a command acts on: the one a click or context menu named (ctx.preset), else ask by name.
+async function target(ctx, label) {
+  const pre = ctx.preset && ctx.preset.target;
+  if (pre) { ctx.preset.target = null; const it = ctx.os.items[pre]; if (it) return it; }
+  const f = await cwdFolder(ctx); if (!f) return null;
+  return pick(ctx, f, label);
 }
 function descendants(it) { return (it.children || []).flatMap((c) => [c, ...descendants(c)]); }
 function findFolder(ctx, q, exclude) {
@@ -148,35 +155,37 @@ const handlers = {
   async '[AUTHOR HELP]'(ctx) {
     await ctx.lines([{ text: 'AUTHOR COMMANDS', cls: 'full' }, { text: ctx.sep, cls: 'low' },
       ...HELP.map(([a, d]) => ({ text: '  ' + a.padEnd(34) + '- ' + d, cls: 'dim' })), { text: ctx.sep, cls: 'low' },
-      { text: '  Edits apply to the folder you are standing in. Esc cancels any prompt.', cls: 'low' }]);
+      { text: '  Edits apply to the folder you are standing in. Esc cancels any prompt.', cls: 'low' },
+      { text: '  Right-click an item for its menu, empty space for the create commands.', cls: 'low' },
+      { text: '  The (o) / (-) eye beside an item lists / unlists it. Click it to toggle.', cls: 'low' }]);
     return 'stay';
   },
 
   async '[MKDIR]'(ctx) {
     const f = await cwdFolder(ctx); if (!f) return 'stay';
-    const n = await nameHiddenAlias(ctx, f, 'FOLDER'); if (!n) return cancelled(ctx);
-    const title = await askTitle(ctx, n.name); if (title === null) return cancelled(ctx);
+    const n = await nameHiddenAlias(ctx, f, 'FOLDER'); if (!n) return canceled(ctx);
+    const title = await askTitle(ctx, n.name); if (title === null) return canceled(ctx);
     return add(ctx, f, make({ id: uid(ctx, 'L' + f.tier + 'A_', n.name), type: 'folder', name: n.name, alias: n.alias, tier: f.tier, hidden: n.hidden, title }), 'FOLDER');
   },
 
   async '[NEW DOC]'(ctx) {
     const f = await cwdFolder(ctx); if (!f) return 'stay';
-    const n = await nameHiddenAlias(ctx, f, 'DOC'); if (!n) return cancelled(ctx);
-    const title = await askTitle(ctx, n.name); if (title === null) return cancelled(ctx);
-    const body = await readBody(ctx); if (body === null) return cancelled(ctx);
+    const n = await nameHiddenAlias(ctx, f, 'DOC'); if (!n) return canceled(ctx);
+    const title = await askTitle(ctx, n.name); if (title === null) return canceled(ctx);
+    const body = await readBody(ctx); if (body === null) return canceled(ctx);
     return add(ctx, f, make({ id: uid(ctx, 'L' + f.tier + 'A_', n.name), type: 'doc', name: n.name, alias: n.alias, tier: f.tier, hidden: n.hidden, title, body }), 'DOC');
   },
 
   async '[NEW LOG]'(ctx) {
     const f = await cwdFolder(ctx); if (!f) return 'stay';
-    const n = await nameHiddenAlias(ctx, f, 'LOG'); if (!n) return cancelled(ctx);
-    const title = await askTitle(ctx, n.name); if (title === null) return cancelled(ctx);
+    const n = await nameHiddenAlias(ctx, f, 'LOG'); if (!n) return canceled(ctx);
+    const title = await askTitle(ctx, n.name); if (title === null) return canceled(ctx);
     const src = await ask(ctx, '> SOURCE (LORE = lore.json, DEV = dev_logs.json):', 'LORE / DEV');
-    if (src === null || !/^(LORE|DEV)$/.test(src)) { await ctx.say('> SOURCE MUST BE LORE OR DEV', 'denied'); return cancelled(ctx); }
+    if (src === null || !/^(LORE|DEV)$/.test(src)) { await ctx.say('> SOURCE MUST BE LORE OR DEV', 'denied'); return canceled(ctx); }
     const code = await ask(ctx, '> ENTRY CODE:', 'XXXXX-XXXXX-XXXXX-XXXXX', { mask: 'code' });
-    if (!code) return cancelled(ctx);
+    if (!code) return canceled(ctx);
     const data = src === 'DEV' ? ctx.devLogs : ctx.lore;
-    if (!data || !(data[code] || data[code.replace(/-/g, '')])) { ctx.denied(); await ctx.say('> NO ENTRY ' + code + ' IN ' + (src === 'DEV' ? 'dev_logs' : 'lore') + '.json', 'denied'); return cancelled(ctx); }
+    if (!data || !(data[code] || data[code.replace(/-/g, '')])) { ctx.denied(); await ctx.say('> NO ENTRY ' + code + ' IN ' + (src === 'DEV' ? 'dev_logs' : 'lore') + '.json', 'denied'); return canceled(ctx); }
     const item = make({ id: uid(ctx, 'L' + f.tier + 'A_', n.name), type: 'log', name: n.name, alias: n.alias, tier: f.tier, hidden: n.hidden, title, log_ref: { source: src.toLowerCase(), code } });
     return add(ctx, f, item, 'LOG');
   },
@@ -184,42 +193,41 @@ const handlers = {
   async '[NEW PROGRAM]'(ctx) {
     const f = await cwdFolder(ctx); if (!f) return 'stay';
     const pid = await ask(ctx, '> PROGRAM ID (FILE NAME IN terminal-data/programs, WITHOUT .js):', 'lore-entry', { mask: 'free' });
-    if (!pid || !/^[a-z0-9-]+$/i.test(pid.trim())) return cancelled(ctx);
+    if (!pid || !/^[a-z0-9-]+$/i.test(pid.trim())) return canceled(ctx);
     const id = pid.trim().toLowerCase();
-    if (!(await ctx.os.loadProgram(id))) { ctx.denied(); await ctx.say('> NO PROGRAM FILE terminal-data/programs/' + id + '.js (OR IT FAILS TO LOAD)', 'denied'); return cancelled(ctx); }
-    const n = await nameHiddenAlias(ctx, f, 'PROGRAM', { forceHidden: true, program: true }); if (!n) return cancelled(ctx);
+    if (!(await ctx.os.loadProgram(id))) { ctx.denied(); await ctx.say('> NO PROGRAM FILE terminal-data/programs/' + id + '.js (OR IT FAILS TO LOAD)', 'denied'); return canceled(ctx); }
+    const n = await nameHiddenAlias(ctx, f, 'PROGRAM', { forceHidden: true, program: true }); if (!n) return canceled(ctx);
     const sc = await ask(ctx, '> SCOPE: TIER = ANY PAGE OF THIS TIER, FOLDER = ONLY THIS FOLDER (ENTER = TIER):', 'TIER / FOLDER');
-    if (sc === null) return cancelled(ctx);
+    if (sc === null) return canceled(ctx);
     const scope = sc === 'FOLDER' ? 'folder' : 'tier';
     return add(ctx, f, make({ id: uid(ctx, 'L' + f.tier + 'A_PROG_', n.name), type: 'program', program: id, scope, name: n.name, alias: n.alias, tier: f.tier, hidden: true }), 'PROGRAM');
   },
 
   async '[NEW GATEWAY]'(ctx) {
     const f = await cwdFolder(ctx); if (!f) return 'stay';
-    const n = await nameHiddenAlias(ctx, f, 'GATEWAY', { forceHidden: true }); if (!n) return cancelled(ctx);
-    const dest = await askDestination(ctx, null); if (!dest) return cancelled(ctx);
+    const n = await nameHiddenAlias(ctx, f, 'GATEWAY', { forceHidden: true }); if (!n) return canceled(ctx);
+    const dest = await askDestination(ctx, null); if (!dest) return canceled(ctx);
     return add(ctx, f, make({ id: uid(ctx, 'GW_', n.name), type: 'gateway', name: n.name, alias: n.alias, tier: f.tier, hidden: true, goto: dest.id }), 'GATEWAY -> ' + dest.id);
   },
 
   async '[EDIT]'(ctx) {
-    const f = await cwdFolder(ctx); if (!f) return 'stay';
-    const it = await pick(ctx, f, 'EDIT WHICH ITEM'); if (!it) return cancelled(ctx);
+    const it = await target(ctx, 'EDIT WHICH ITEM'); if (!it) return canceled(ctx);
     await ctx.say('> ' + it.id + '  (' + it.type + ', T' + it.tier + (it.stub ? ', STUB' : '') + ')  ' + (it.alias || ''), 'low');
     if (it.stub) await ctx.say('> THIS IS A STUB PLACEHOLDER. EDITING IT TURNS IT INTO A REAL DOC.', 'warn');
-    const name = await ask(ctx, '> NAME (ENTER = KEEP ' + it.name + '):', it.name); if (name === null) return cancelled(ctx);
+    const name = await ask(ctx, '> NAME (ENTER = KEEP ' + it.name + '):', it.name); if (name === null) return canceled(ctx);
     let hidden = it.hidden;
-    if (!isGlobalType(it)) { const h = await yn(ctx, '> HIDDEN? (Y/N, ENTER = KEEP ' + (it.hidden ? 'Y' : 'N') + '):', it.hidden); if (h === null) return cancelled(ctx); hidden = h; }
+    if (!isGlobalType(it)) { const h = await yn(ctx, '> HIDDEN? (Y/N, ENTER = KEEP ' + (it.hidden ? 'Y' : 'N') + '):', it.hidden); if (h === null) return canceled(ctx); hidden = h; }
     const alias = await askAlias(ctx, name || it.name, { parentId: it._parent, global: hidden || isGlobalType(it), exceptId: it.id, program: it.type === 'program' }, it.alias);
-    if (alias === null) return cancelled(ctx);
-    const title = await ask(ctx, '> TITLE (ENTER = KEEP "' + (it.title || it.name) + '"):', it.title || it.name); if (title === null) return cancelled(ctx);
+    if (alias === null) return canceled(ctx);
+    const title = await ask(ctx, '> TITLE (ENTER = KEEP "' + (it.title || it.name) + '"):', it.title || it.name); if (title === null) return canceled(ctx);
     let body = null;
     if (it.type === 'doc' || it.stub) {
       const rb = it.stub ? true : await yn(ctx, '> RETYPE THE TEXT? (Y/N, ENTER = N):', false);
-      if (rb === null) return cancelled(ctx);
-      if (rb) { body = await readBody(ctx); if (body === null) return cancelled(ctx); }
+      if (rb === null) return canceled(ctx);
+      if (rb) { body = await readBody(ctx); if (body === null) return canceled(ctx); }
     }
-    if (it.type === 'gateway') { const d = await askDestination(ctx, it.goto); if (d === null) return cancelled(ctx); it.goto = d.id; }
-    if (it.type === 'program') { const sc = await ask(ctx, '> SCOPE (TIER / FOLDER, ENTER = KEEP ' + it.scope.toUpperCase() + '):', 'TIER / FOLDER'); if (sc === null) return cancelled(ctx); if (sc) it.scope = sc === 'FOLDER' ? 'folder' : 'tier'; }
+    if (it.type === 'gateway') { const d = await askDestination(ctx, it.goto); if (d === null) return canceled(ctx); it.goto = d.id; }
+    if (it.type === 'program') { const sc = await ask(ctx, '> SCOPE (TIER / FOLDER, ENTER = KEEP ' + it.scope.toUpperCase() + '):', 'TIER / FOLDER'); if (sc === null) return canceled(ctx); if (sc) it.scope = sc === 'FOLDER' ? 'folder' : 'tier'; }
     if (name) it.name = name;
     it.alias = alias; it.hidden = hidden; if (title) it.title = title; if (body) it.body = body;
     if (it.stub) { it.stub = false; it.type = 'doc'; }
@@ -232,25 +240,23 @@ const handlers = {
   async '[SHOW]'(ctx) { return setHidden(ctx, false); },
 
   async '[ALIAS]'(ctx) {
-    const f = await cwdFolder(ctx); if (!f) return 'stay';
-    const it = await pick(ctx, f, 'CHANGE THE ALIAS OF'); if (!it) return cancelled(ctx);
+    const it = await target(ctx, 'CHANGE THE ALIAS OF'); if (!it) return canceled(ctx);
     const alias = await askAlias(ctx, it.name, { parentId: it._parent, global: it.hidden || isGlobalType(it), exceptId: it.id, program: it.type === 'program' }, it.alias);
-    if (alias === null) return cancelled(ctx);
+    if (alias === null) return canceled(ctx);
     it.alias = alias; ctx.os.commit();
     ctx.note('> ALIAS IS NOW ' + alias);
     return 'redraw';
   },
 
   async '[MV]'(ctx) {
-    const f = await cwdFolder(ctx); if (!f) return 'stay';
-    const it = await pick(ctx, f, 'MOVE WHICH ITEM'); if (!it) return cancelled(ctx);
-    const dest = await askDestination(ctx, null, it, '.. = PARENT FOLDER'); if (!dest) return cancelled(ctx);
+    const it = await target(ctx, 'MOVE WHICH ITEM'); if (!it) return canceled(ctx);
+    const dest = await askDestination(ctx, null, it, '.. = PARENT FOLDER'); if (!dest) return canceled(ctx);
     if ((dest.children || []).some((c) => c.id !== it.id && c.alias && it.alias && c.alias.toUpperCase() === it.alias.toUpperCase() && !it.hidden && !c.hidden && !isGlobalType(c))) {
-      ctx.denied(); await ctx.say('> ' + dest.id + ' ALREADY HAS AN ITEM WITH THE ALIAS ' + it.alias, 'denied'); return cancelled(ctx);
+      ctx.denied(); await ctx.say('> ' + dest.id + ' ALREADY HAS AN ITEM WITH THE ALIAS ' + it.alias, 'denied'); return canceled(ctx);
     }
     if (dest.tier !== it.tier) {
       const ok = await yn(ctx, '> ' + dest.id + ' IS TIER ' + dest.tier + '; THIS MOVES ' + (1 + descendants(it).length) + ' ITEM(S) FROM TIER ' + it.tier + '. CONTINUE? (Y/N)', false);
-      if (!ok) return cancelled(ctx);
+      if (!ok) return canceled(ctx);
     }
     const src = parentList(ctx, it);
     src.splice(src.indexOf(it), 1);
@@ -262,13 +268,12 @@ const handlers = {
   },
 
   async '[RM]'(ctx) {
-    const f = await cwdFolder(ctx); if (!f) return 'stay';
-    const it = await pick(ctx, f, 'DELETE WHICH ITEM'); if (!it) return cancelled(ctx);
+    const it = await target(ctx, 'DELETE WHICH ITEM'); if (!it) return canceled(ctx);
     const doomed = [it, ...descendants(it)], ids = new Set(doomed.map((d) => d.id));
     const refs = all(ctx).filter((o) => !ids.has(o.id) && ((o.type === 'gateway' && ids.has(o.goto)) || (o.commands || []).some((c) => ids.has(c.goto))));
-    if (refs.length) { ctx.denied(); await ctx.say('> CANNOT DELETE: ' + refs.map((r) => r.id).join(', ') + ' POINT(S) INTO IT. REMOVE OR REPOINT FIRST.', 'denied'); return cancelled(ctx); }
+    if (refs.length) { ctx.denied(); await ctx.say('> CANNOT DELETE: ' + refs.map((r) => r.id).join(', ') + ' POINT(S) INTO IT. REMOVE OR REPOINT FIRST.', 'denied'); return canceled(ctx); }
     const ok = await yn(ctx, '> DELETE ' + (it.alias || it.name) + (doomed.length > 1 ? ' AND ' + (doomed.length - 1) + ' ITEM(S) UNDER IT' : '') + '? (Y/N)', false);
-    if (!ok) return cancelled(ctx);
+    if (!ok) return canceled(ctx);
     const list = parentList(ctx, it); list.splice(list.indexOf(it), 1);
     ctx.os.commit();
     ctx.note('> DELETED ' + doomed.length + ' ITEM(S)');
@@ -301,8 +306,8 @@ const handlers = {
 };
 
 async function setHidden(ctx, hidden) {
-  const f = await cwdFolder(ctx); if (!f) return 'stay';
-  const it = await pick(ctx, f, (hidden ? 'HIDE' : 'SHOW') + ' WHICH ITEM'); if (!it) return cancelled(ctx);
+  const it = await target(ctx, (hidden ? 'HIDE' : 'SHOW') + ' WHICH ITEM'); if (!it) return canceled(ctx);
+  if (it.stub) { await ctx.say('> THIS IS A STUB PLACEHOLDER. [EDIT] IT TO MAKE IT A REAL DOC FIRST.', 'warn'); return 'stay'; }
   if (isGlobalType(it)) { await ctx.say('> PROGRAMS AND GATEWAYS ARE ALWAYS HIDDEN', 'warn'); return 'stay'; }
   if (it.hidden === hidden) { await ctx.say('> ALREADY ' + (hidden ? 'HIDDEN' : 'LISTED'), 'low'); return 'stay'; }
   const prob = aliasProblem(ctx, (it.alias || bracket(it.name)).toUpperCase(), { parentId: it._parent, global: hidden, exceptId: it.id });
