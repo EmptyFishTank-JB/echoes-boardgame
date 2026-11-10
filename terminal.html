@@ -534,7 +534,7 @@ function updPhosphorCSS(){
 // ── MOBILE KEYBOARD ───────────────────────────────────────────────────────────
 (function(){
   termInput.addEventListener('input',function(){
-    if(inputMask==='code') return;
+    if(inputMask==='code'||inputMask==='free') return;
     this.value=this.value.toUpperCase();
   });
   document.getElementById('terminal-box').addEventListener('click',function(){
@@ -790,6 +790,16 @@ function updateInvertHighlight(){
   }
 }
 
+// A 'log' item shows an entry from lore.json / dev_logs.json instead of its own text.
+function pageBody(node){
+  if(!node) return [];
+  if(!node.log_ref) return node.body || [];
+  var d = node.log_ref.source === 'dev' ? devLogs : loreData;
+  var c = node.log_ref.code, e = d && (d[c] || d[c.replace(/-/g, '')]);
+  var text = e ? (e.text || '').split('\n').map(function(t){ return {type:'text', text:t, cls:'full'}; })
+               : [{type:'text', text:'> ENTRY NOT FOUND: '+c, cls:'denied'}];
+  return text.concat((node.body || []).filter(function(b){ return b.type === 'command'; }));
+}
 // ── ECHO O.S. TREE -> PAGE STRUCTURE ─────────────────────────────────────────
 // echo-os.json is a filesystem tree (folders, docs, hidden items, tiers). The page
 // renderer reads archData.nodes, so this builds that view once at load: each visible
@@ -827,6 +837,7 @@ function buildArchFromOS(os){
     nodes[it.id] = {
       layer:'l'+it.tier+'a', node_type:'standard', is_root:isTierRoot,
       title:title, breadcrumb:crumb, footer:it.footer || '', hidden:!!it.hidden, parent:parentId,
+      log_ref:it.log_ref || null,
       body:(it.body || []).concat(cmds)
     };
     if(it.hidden && it.alias) osHidden[it.alias.trim().toUpperCase()] = it.id;
@@ -917,7 +928,7 @@ function renderDynLine(el, dr){
 var FADE_MS = 380;
 function getFade(){return(typeof CFG_TIMING!=='undefined'&&CFG_TIMING&&CFG_TIMING.fade_ms)?CFG_TIMING.fade_ms:FADE_MS;}
 
-async function renderArchivePage(nodeId){
+async function renderArchivePage(nodeId, notes){
   if(!archData||!archData.nodes){
     var errA=addLine('denied');await typeLine(errA,CFG_STRINGS.error_nav_offline);
     var plA=addLine('low');await typeLine(plA,'> AWAITING INPUT');setActiveCursor(plA);return;
@@ -933,10 +944,11 @@ async function renderArchivePage(nodeId){
   lines.push({text:SEP,cls:'low'});
 
   // Read unified body[] — handle text, command, dynamic
-  if(node&&node.body&&node.body.length){
+  var pbody=pageBody(node);
+  if(pbody.length){
     var hasBodySep=false;
-    for(var bi=0;bi<node.body.length;bi++){
-      var b=node.body[bi];
+    for(var bi=0;bi<pbody.length;bi++){
+      var b=pbody[bi];
       if(b.hidden) continue;
       if(b.type==='text'){
         lines.push({text:b.text||'',cls:b.cls||'full'});
@@ -975,6 +987,7 @@ async function renderArchivePage(nodeId){
   var isRoot=node&&node.is_root;
   lines.push({text:SEP,cls:'low'});
   if(node&&node.footer) lines.push({text:node.footer,cls:'low'});
+  (notes||[]).forEach(function(n){ lines.push({text:n.text, cls:n.cls||'full'}); });
   lines.push({text:'',cls:'blank'});
   lines.push({text:'> AWAITING INPUT',cls:'low'});
   await printInstant(lines);
@@ -1197,7 +1210,7 @@ function ctxAsk(opts){
     var held = uiLock > 0, wasResp = isResponding;
     if(held) uiLock--;
     isResponding = false;
-    progWait = {resolve:function(v){ if(held) uiLock++; isResponding = wasResp; resolve(v); }};
+    progWait = {sticky:!!opts.sticky, resolve:function(v){ if(held) uiLock++; isResponding = wasResp; resolve(v); }};
     termState = 'PROGRAM'; currentMenuOpts = []; menuSelIdx = -1;
     termInput.value = ''; termInput.placeholder = opts.placeholder || ''; inputMask = opts.mask || null;
     updateInvertHighlight(); setActiveCursor(output.lastElementChild); termInput.focus();
@@ -1276,6 +1289,90 @@ async function tryAliasCommand(val){
   if(it.type === 'gateway'){ await runGateway(it); return true; }
   if(termState === 'L1_NORMAL') await enterEchoArchive();
   isResponding = false; await renderArchivePage(id); return true;
+}
+
+// ── AUTHOR MODE ───────────────────────────────────────────────────────────────
+// [AUTHOR UNLOCK] switches on the editing commands (terminal-data/author.js, loaded on
+// first use). Edits change the in-memory tree only; [EXPORT] downloads echo-os.json. A
+// draft is kept in localStorage so a reload doesn't lose work. Setting meta.locked:true in
+// echo-os.json removes the commands entirely: [AUTHOR UNLOCK] then behaves like any
+// unknown command.
+var authorMode = false;
+var authorMod  = null;
+function osLocked(){ return !!(osData && osData.meta && osData.meta.locked); }
+function setAuthorPrompt(){ document.getElementById('t-prompt').innerHTML = authorMode ? 'AUTHOR&gt;&nbsp;' : '&gt;&nbsp;'; }
+async function loadAuthor(){
+  if(authorMod) return authorMod;
+  try{ var m = await import('./terminal-data/author.js?v='+Date.now()); authorMod = m.default; } catch(e){ authorMod = null; }
+  return authorMod;
+}
+function osSnapshot(){ return JSON.stringify(osData, function(k, v){ return k === '_parent' ? undefined : v; }, 2)+'\n'; }
+function makeAuthorCtx(){
+  var c = makeProgramCtx();
+  c.cwd = termState; c.tier = currentLevel;
+  c.notes = [];
+  c.note = function(text, cls){ c.notes.push({text:text, cls:cls || 'full'}); };   // shown under the redrawn page
+  c.os = {
+    get data(){ return osData; },
+    get items(){ return osItems; },
+    snapshot: osSnapshot,
+    commit: function(){ archData = buildArchFromOS(osData); try{ localStorage.setItem('echo_os_draft', osSnapshot()); }catch(e){} },
+    replace: function(d){ osData = d; archData = buildArchFromOS(osData); },
+    download: function(name, text){
+      var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], {type:'application/json'}));
+      a.download = name; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    },
+    draft: function(){ try{ return localStorage.getItem('echo_os_draft'); }catch(e){ return null; } },
+    clearDraft: function(){ try{ localStorage.removeItem('echo_os_draft'); }catch(e){} },
+    loadProgram: loadProgram
+  };
+  return c;
+}
+async function authorSay(text, cls){ var el = addLine(cls || 'dim', true); await typeLine(el, text); }
+// True = handled. Unknown commands fall through to normal handling.
+async function handleAuthorInput(val){
+  if(val === '[AUTHOR UNLOCK]'){
+    if(osLocked() || overrideActive) return false;
+    var u = addLine('user'); u.textContent = '> '+val;
+    isResponding = true;
+    if(authorMode){ await authorSay('> AUTHOR MODE IS ALREADY ACTIVE'); await promptInPlace(); return true; }
+    var m = await loadAuthor();
+    if(!m){ playDenied(); await authorSay('> AUTHOR MODULE UNAVAILABLE', 'denied'); await promptInPlace(); return true; }
+    authorMode = true; setAuthorPrompt(); playEggTone();
+    await authorSay('> AUTHOR MODE ACTIVE', 'full');
+    await authorSay('> CHANGES LIVE IN THIS SESSION ONLY. [EXPORT] DOWNLOADS THE FILE.');
+    await authorSay('> [AUTHOR HELP] LISTS THE COMMANDS.');
+    if(makeAuthorCtx().os.draft()) await authorSay('> AN UNSAVED DRAFT WAS FOUND. [RESTORE DRAFT] OR [DISCARD DRAFT].', 'warn');
+    await promptInPlace(); return true;
+  }
+  if(!authorMode) return false;
+  if(val === '[AUTHOR LOCK]'){
+    var u2 = addLine('user'); u2.textContent = '> '+val; isResponding = true;
+    authorMode = false; setAuthorPrompt();
+    await authorSay('> AUTHOR MODE LOCKED'); await promptInPlace(); return true;
+  }
+  var mod = authorMod;
+  if(!mod || !mod.recognizes(val)) return false;
+  var u3 = addLine('user'); u3.textContent = '> '+val;
+  var prev = termState, res, actx = makeAuthorCtx();
+  isResponding = true;
+  try{ res = await mod.handle(val, actx); }
+  catch(err){ playDenied(); await authorSay('> AUTHOR ERROR: '+err.message, 'denied'); res = 'stay'; }
+  progWait = null; inputMask = null; termInput.placeholder = '';
+  termState = prev;
+  if(res === 'redraw' && archData.nodes[prev]){ isResponding = false; await renderArchivePage(prev, actx.notes); return true; }
+  await promptInPlace(); return true;
+}
+async function printAuthorLs(){
+  var cur = osItems[termState];
+  if(!cur){ await authorSay('> NOT IN A FOLDER. OPEN THE ARCHIVE FIRST.', 'warn'); return; }
+  var lines = [{text:(cur.title || cur.name)+'  ('+cur.type+', T'+cur.tier+')', cls:'full'}, {text:SEP, cls:'low'}];
+  (cur.children || []).forEach(function(c){
+    lines.push({text:'  '+(c.alias || '['+c.name+']')+'  '+c.type+(c.stub ? '  ?stub' : c.hidden ? '  ~hidden' : ''), cls:c.hidden || c.stub ? 'low' : 'dim'});
+  });
+  if(!(cur.children || []).length) lines.push({text:'  (EMPTY)', cls:'low'});
+  lines.push({text:SEP, cls:'low'});
+  await printInstant(lines);
 }
 
 // ── VIRUS SEQUENCE ────────────────────────────────────────────────────────────
@@ -1618,10 +1715,13 @@ async function printHelp(inArchive){
 // or 'page' (navigated; the destination renders its own prompt).
 async function tryBuiltin(val, inArchive){
   if(val === '[HELP]'){ await printHelp(inArchive); return 'inline'; }
-  if(val === '[TREE]'){ await printTree(false); return 'inline'; }
+  if(val === '[TREE]'){ await printTree(authorMode); return 'inline'; }
   if(val === '[CLEAR]'){ output.innerHTML=''; cursorEl=null; return 'inline'; }
   if(!inArchive) return false;
-  if(val === '[LS]'){ isResponding=false; await renderArchivePage(termState); return 'page'; }
+  if(val === '[LS]'){
+    if(authorMode){ await printAuthorLs(); return 'inline'; }
+    isResponding=false; await renderArchivePage(termState); return 'page';
+  }
   if(val === '[BACK]'){ await handleBack(); return 'page'; }
   if(val === '[ROOT]'){ await handleRoot(); return 'page'; }
   if(val === '[EXIT]'){ await handleExit(); return 'page'; }
@@ -1823,6 +1923,8 @@ async function routeInputInner(val){
     w.resolve(val);return;
   }
 
+  if(await handleAuthorInput(val)) return;
+
   if(termState==='archive_integrity_PAGE'){var u2=addLine('user');u2.textContent='> '+val;isResponding=true;await handleBack();isResponding=false;return;}
   if(termState==='L1_NORMAL'){await handleL1Input(val);return;}
   await handleArchiveInput(val);
@@ -1842,8 +1944,10 @@ termInput.addEventListener('keydown',async function(e){
   // A running program is either waiting for a line (progWait) or drawing (keys ignored).
   if(termState==='PROGRAM'){
     if(progWait&&!inputBusy()){
-      if(e.key==='Enter'){e.preventDefault();var v=termInput.value.trim().toUpperCase();termInput.value='';routeInput(v);}
-      else if(e.key==='Escape'||(e.key==='ArrowLeft'&&termInput.value==='')||(e.key==='Backspace'&&termInput.value==='')){e.preventDefault();termInput.value='';routeInput('');}
+      // Enter submits ('' is a legitimate empty answer); Escape cancels with null.
+      if(e.key==='Enter'){e.preventDefault();var v=inputMask==='free'?termInput.value.replace(/\s+$/,''):termInput.value.trim().toUpperCase();termInput.value='';routeInput(v);}
+      else if(e.key==='Escape'||(!progWait.sticky&&((e.key==='ArrowLeft'&&termInput.value==='')||(e.key==='Backspace'&&termInput.value===''))))
+        {e.preventDefault();termInput.value='';routeInput(null);}
     }else if(e.key==='Enter'||e.key==='Escape'){e.preventDefault();}
     if(e.key==='Backspace') playBackspace();
     return;

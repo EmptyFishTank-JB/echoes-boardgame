@@ -772,7 +772,7 @@
             "name": "INITIATE ECHO PROTOCOL",
             "alias": "[INITIATE ECHO PROTOCOL]",
             "tier": 1,
-            "goto": "L3A_ROOT"
+            "goto": "L2A_ROOT"
           }
         ],
         "commands": []
