@@ -533,7 +533,9 @@ var STRING_KEYS = [
   {key:'error_target_not_found',      label:'Nav target not found error'},
   {key:'error_fetch_cancelled',       label:'Fetch canceled message'},
   {key:'layer_enter_confirmed',       label:'Layer entry confirmation (leave blank = silent)'},
-  {key:'layer_exit_confirmed',        label:'Layer exit confirmation (leave blank = silent)'}
+  {key:'layer_exit_confirmed',        label:'Layer exit confirmation (leave blank = silent)'},
+  {key:'layer_mount',                 label:'Archive mount line, shown when entering ECHO.ARCHIVE'},
+  {key:'layer_unmount',               label:'Archive unmount line, shown when leaving to the chat'}
 ];
 var DEFAULT_STRINGS = {
   error_nav_offline:          '> ERROR \u2014 NAVIGATION DATA UNAVAILABLE',
@@ -547,7 +549,9 @@ var DEFAULT_STRINGS = {
   error_target_not_found:     '> ERROR \u2014 TARGET NODE NOT FOUND',
   error_fetch_cancelled:      '> FETCH CANCELED',
   layer_enter_confirmed:      '',
-  layer_exit_confirmed:       ''
+  layer_exit_confirmed:       '',
+  layer_mount:                '> MOUNTING ECHO:\\ . . .',
+  layer_unmount:              '> ECHO:\\ UNMOUNTED'
 };
 function mkStringsEditor(){
   if(!cfg.terminal_strings) cfg.terminal_strings={};
