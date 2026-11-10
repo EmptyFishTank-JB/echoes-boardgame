@@ -4,7 +4,7 @@
 // in-memory tree and a localStorage draft; [EXPORT] downloads the file to commit.
 
 const COMMANDS = ['[AUTHOR HELP]', '[MKDIR]', '[NEW DOC]', '[NEW LOG]', '[NEW PROGRAM]', '[NEW GATEWAY]', '[EDIT]',
-  '[HIDE]', '[SHOW]', '[ALIAS]', '[MV]', '[RM]', '[EXPORT]', '[RESTORE DRAFT]', '[DISCARD DRAFT]'];
+  '[SET]', '[HIDE]', '[SHOW]', '[ALIAS]', '[MV]', '[RM]', '[EXPORT]', '[RESTORE DRAFT]', '[DISCARD DRAFT]'];
 // Typed commands an alias must never shadow.
 const RESERVED = new Set(['[HELP]', '[TREE]', '[LS]', '[BACK]', '[ROOT]', '[EXIT]', '[CLEAR]', '[SYSTEM OVERRIDE]',
   '[AUTHOR UNLOCK]', '[AUTHOR LOCK]', '[STATUS]', '[SCAN]', ...COMMANDS]);
@@ -16,6 +16,7 @@ const HELP = [
   ['[NEW PROGRAM]', 'register a program from terminal-data/programs'],
   ['[NEW GATEWAY]', 'hidden command that jumps to another folder or tier'],
   ['[EDIT]', 'change an item: name, alias, title, hidden, text'],
+  ['[SET] [SET NAME]', 'change one property of an item (right-click an item to see them all)'],
   ['[HIDE] [SHOW]', 'unlist an item (still opens by alias) / list it again'],
   ['[ALIAS]', 'change an item\'s [COMMAND]'],
   ['[MV]', 'move an item to another folder'],
@@ -31,6 +32,8 @@ const bare = (s) => bracket(s).slice(1, -1);
 const slug = (s) => s.toUpperCase().replace(/[^A-Z0-9]+/g, '_').replace(/^_+|_+$/g, '') || 'ITEM';
 const all = (ctx) => Object.values(ctx.os.items);
 const isGlobalType = (it) => it.type === 'program' || it.type === 'gateway';
+// A destination is stored as the folder's id (L3A_ROOT: tier 3, Archive root). Show the name beside it.
+const destLabel = (items, id) => { const d = items[id]; return d ? d.name + ' (' + id + ')' : id + ' (NOT FOUND)'; };
 
 function uid(ctx, prefix, name) {
   const base = prefix + slug(name);
@@ -64,7 +67,7 @@ function cwdFolder(ctx) {
 // An alias must not shadow a built-in, and hidden aliases are global so they must be unique everywhere;
 // visible aliases only need to be unique within their folder. Programs may share an alias across tiers.
 function aliasProblem(ctx, alias, { parentId, global, exceptId, program }) {
-  if (RESERVED.has(alias) || /^\[OPEN\s/.test(alias)) return 'THAT IS A BUILT-IN COMMAND';
+  if (RESERVED.has(alias) || /^\[(OPEN|SET)\s/.test(alias)) return 'THAT IS A BUILT-IN COMMAND';
   if (/\[|\]/.test(alias.slice(1, -1)) || alias.length < 3) return 'ALIAS MUST BE ONE [BRACKETED] NAME';
   for (const o of all(ctx)) {
     if (o.id === exceptId || !o.alias || o.alias.toUpperCase() !== alias) continue;
@@ -207,7 +210,7 @@ const handlers = {
     const f = await cwdFolder(ctx); if (!f) return 'stay';
     const n = await nameHiddenAlias(ctx, f, 'GATEWAY', { forceHidden: true }); if (!n) return canceled(ctx);
     const dest = await askDestination(ctx, null); if (!dest) return canceled(ctx);
-    return add(ctx, f, make({ id: uid(ctx, 'GW_', n.name), type: 'gateway', name: n.name, alias: n.alias, tier: f.tier, hidden: true, goto: dest.id }), 'GATEWAY -> ' + dest.id);
+    return add(ctx, f, make({ id: uid(ctx, 'GW_', n.name), type: 'gateway', name: n.name, alias: n.alias, tier: f.tier, hidden: true, goto: dest.id }), 'GATEWAY -> ' + destLabel(ctx.os.items, dest.id));
   },
 
   async '[EDIT]'(ctx) {
@@ -234,6 +237,18 @@ const handlers = {
     ctx.os.commit();
     ctx.note('> UPDATED ' + it.alias);
     return 'redraw';
+  },
+
+  // One property at a time. [SET NAME] names it; plain [SET] asks. The right-click menu sends [SET <PROPERTY>] with the item.
+  async '[SET]'(ctx, key) {
+    const it = await target(ctx, 'CHANGE A PROPERTY OF'); if (!it) return canceled(ctx);
+    const keys = fieldKeys(it);
+    if (!key) {
+      await ctx.say('> PROPERTIES: ' + keys.join(', '), 'low');
+      const q = await ask(ctx, '> WHICH PROPERTY?', keys[0] + ' / ...'); if (!q) return canceled(ctx);
+      key = q.trim();
+    }
+    return setField(ctx, it, key.toUpperCase());
   },
 
   async '[HIDE]'(ctx) { return setHidden(ctx, true); },
@@ -263,7 +278,7 @@ const handlers = {
     dest.children.push(it);
     if (dest.tier !== it.tier) retier(it, dest.tier);
     ctx.os.commit();
-    ctx.note('> MOVED ' + (it.alias || it.name) + ' -> ' + dest.id);
+    ctx.note('> MOVED ' + (it.alias || it.name) + ' -> ' + destLabel(ctx.os.items, dest.id));
     return 'redraw';
   },
 
@@ -319,7 +334,7 @@ async function setHidden(ctx, hidden) {
 
 async function askDestination(ctx, current, moving, hint) {
   for (;;) {
-    const q = await ask(ctx, '> DESTINATION FOLDER (NAME, ALIAS OR ID' + (hint ? '; ' + hint : '') + (current ? '; ENTER = KEEP ' + current : '') + '):', 'folder');
+    const q = await ask(ctx, '> DESTINATION FOLDER (NAME, ALIAS OR ID' + (hint ? '; ' + hint : '') + (current ? '; ENTER = KEEP ' + destLabel(ctx.os.items, current) : '') + '):', 'folder');
     if (q === null) return null;
     if (q === '' && current) return ctx.os.items[current];
     if (q === '') return null;
@@ -331,8 +346,111 @@ async function askDestination(ctx, current, moving, hint) {
   }
 }
 
+// The properties [SET] can change for an item, in the order the right-click menu lists them.
+function fieldKeys(it) {
+  const k = ['NAME', 'ALIAS', 'TITLE'];
+  if (!isGlobalType(it) && !it.stub) k.push('HIDDEN');
+  if (!isGlobalType(it)) k.push('FOOTER');
+  if (it.type === 'doc' || it.stub) k.push('TEXT');
+  if (it.type === 'log') k.push('LOG');
+  if (it.type === 'gateway') k.push('DESTINATION');
+  if (it.type === 'program') k.push('PROGRAM', 'SCOPE');
+  return k;
+}
+
+async function setField(ctx, it, key) {
+  const keys = fieldKeys(it);
+  if (!keys.includes(key)) { ctx.denied(); await ctx.say('> ' + it.id + ' HAS NO ' + key + '. IT HAS: ' + keys.join(', '), 'denied'); return canceled(ctx); }
+  const done = (msg) => { ctx.os.commit(); ctx.note('> ' + msg); return 'redraw'; };
+  const keep = (what, cur) => '> ' + what + ' (ENTER = KEEP ' + cur + '):';
+  switch (key) {
+    case 'NAME': {
+      const v = await ask(ctx, keep('NAME', it.name), it.name); if (v === null) return canceled(ctx);
+      if (v) it.name = v;
+      return done('NAME IS NOW ' + it.name);
+    }
+    case 'ALIAS': ctx.preset.target = it.id; return handlers['[ALIAS]'](ctx);
+    case 'HIDDEN': ctx.preset.target = it.id; return setHidden(ctx, !it.hidden);
+    case 'TITLE': {
+      const v = await ask(ctx, keep('TITLE', '"' + (it.title || it.name) + '"'), it.title || it.name); if (v === null) return canceled(ctx);
+      if (v) it.title = v;
+      return done('TITLE IS NOW ' + (it.title || it.name));
+    }
+    case 'FOOTER': {
+      const v = await ask(ctx, '> FOOTER LINE (ENTER = KEEP ' + (it.footer ? '"' + it.footer + '"' : 'NONE') + ', - = CLEAR):', 'footer', { mask: 'free' }); if (v === null) return canceled(ctx);
+      if (v === '-') it.footer = ''; else if (v) it.footer = v;
+      return done(it.footer ? 'FOOTER IS NOW ' + it.footer : 'FOOTER CLEARED');
+    }
+    case 'TEXT': {
+      const body = await readBody(ctx); if (body === null) return canceled(ctx);
+      it.body = body;
+      if (it.stub) { it.stub = false; it.type = 'doc'; }
+      return done('TEXT UPDATED (' + body.length + ' LINES)');
+    }
+    case 'LOG': {
+      const cur = it.log_ref || {};
+      const src = await ask(ctx, keep('SOURCE (LORE = lore.json, DEV = dev_logs.json)', (cur.source || 'LORE').toUpperCase()), 'LORE / DEV'); if (src === null) return canceled(ctx);
+      const source = (src || cur.source || 'lore').toLowerCase();
+      if (!/^(lore|dev)$/.test(source)) { ctx.denied(); await ctx.say('> SOURCE MUST BE LORE OR DEV', 'denied'); return canceled(ctx); }
+      const code = await ask(ctx, keep('ENTRY CODE', cur.code || 'NONE'), 'XXXXX-XXXXX-XXXXX-XXXXX', { mask: 'code' }); if (code === null) return canceled(ctx);
+      const c = code || cur.code;
+      const data = source === 'dev' ? ctx.devLogs : ctx.lore;
+      if (!c || !data || !(data[c] || data[c.replace(/-/g, '')])) { ctx.denied(); await ctx.say('> NO ENTRY ' + c + ' IN ' + (source === 'dev' ? 'dev_logs' : 'lore') + '.json', 'denied'); return canceled(ctx); }
+      it.log_ref = { source, code: c };
+      return done('LOG IS NOW ' + source.toUpperCase() + ' ' + c);
+    }
+    case 'DESTINATION': {
+      const d = await askDestination(ctx, it.goto); if (d === null) return canceled(ctx);
+      it.goto = d.id;
+      return done('DESTINATION IS NOW ' + destLabel(ctx.os.items, d.id));
+    }
+    case 'SCOPE': {
+      const sc = await ask(ctx, keep('SCOPE (TIER = ANY PAGE OF THIS TIER, FOLDER = ONLY THE FOLDER IT SITS IN)', (it.scope || 'tier').toUpperCase()), 'TIER / FOLDER'); if (sc === null) return canceled(ctx);
+      if (sc) it.scope = sc === 'FOLDER' ? 'folder' : 'tier';
+      return done('SCOPE IS NOW ' + it.scope.toUpperCase());
+    }
+    case 'PROGRAM': {
+      const pid = await ask(ctx, keep('PROGRAM ID', it.program), it.program, { mask: 'free' }); if (pid === null) return canceled(ctx);
+      const id = (pid || it.program).trim().toLowerCase();
+      if (!/^[a-z0-9-]+$/.test(id) || !(await ctx.os.loadProgram(id))) { ctx.denied(); await ctx.say('> NO PROGRAM FILE terminal-data/programs/' + id + '.js (OR IT FAILS TO LOAD)', 'denied'); return canceled(ctx); }
+      it.program = id;
+      return done('PROGRAM IS NOW ' + id);
+    }
+  }
+  return canceled(ctx);
+}
+
+// What the right-click menu shows about an item. A row with a command can be clicked to change that property.
+function infoRows(it, items) {
+  const set = (k) => ({ cmd: '[SET ' + k + ']', preset: { target: it.id } });
+  const lines = (it.body || []).filter((b) => b.type === 'text');
+  const first = (lines.find((b) => b.text) || {}).text || '';
+  const rows = [
+    { k: 'ID', v: it.id },
+    { k: 'TYPE', v: it.type + (it.stub ? ' (stub)' : '') + ', tier ' + it.tier },
+    { k: 'NAME', v: it.name, ...set('NAME') },
+    { k: 'ALIAS', v: it.alias || '(none)', cmd: '[ALIAS]', preset: { target: it.id } },
+    { k: 'TITLE', v: it.title || it.name, ...set('TITLE') },
+  ];
+  if (isGlobalType(it)) rows.push({ k: 'HIDDEN', v: 'always (reached by its alias)' });
+  else if (!it.stub) rows.push({ k: 'HIDDEN', v: it.hidden ? 'yes (opens by alias only)' : 'no', cmd: it.hidden ? '[SHOW]' : '[HIDE]', preset: { target: it.id } });
+  if (!isGlobalType(it)) rows.push({ k: 'FOOTER', v: it.footer || '(none)', ...set('FOOTER') });
+  if (it.type === 'folder') rows.push({ k: 'CONTAINS', v: (it.children || []).length + ' item(s)' });
+  if (it.type === 'doc' || it.stub) rows.push({ k: 'TEXT', v: it.stub ? '(empty: write it to make a real doc)' : lines.length + ' line(s)' + (first ? ': ' + first : ''), ...set('TEXT') });
+  if (it.type === 'log') rows.push({ k: 'LOG ENTRY', v: it.log_ref ? it.log_ref.source.toUpperCase() + ' ' + it.log_ref.code : '(none)', ...set('LOG') });
+  if (it.type === 'gateway') rows.push({ k: 'DESTINATION', v: destLabel(items, it.goto), ...set('DESTINATION') });
+  if (it.type === 'program') {
+    rows.push({ k: 'PROGRAM', v: it.program, ...set('PROGRAM') });
+    rows.push({ k: 'SCOPE', v: it.scope === 'folder' ? 'folder (only where it sits)' : 'tier (any page of tier ' + it.tier + ')', ...set('SCOPE') });
+  }
+  return rows;
+}
+
+const SET_RE = /^\[SET\s+([A-Z ]+?)\s*\]$/;
 export default {
   id: 'author',
-  recognizes: (val) => COMMANDS.includes(val),
-  handle: (val, ctx) => handlers[val](ctx),
+  recognizes: (val) => COMMANDS.includes(val) || SET_RE.test(val),
+  handle: (val, ctx) => { const m = SET_RE.exec(val); return m ? handlers['[SET]'](ctx, m[1]) : handlers[val](ctx); },
+  infoRows,
+  destLabel,
 };

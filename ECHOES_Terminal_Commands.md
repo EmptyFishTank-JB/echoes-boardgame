@@ -31,7 +31,7 @@ says how each kind appears. To change what types and what lands whole, change a 
 | Kind | What it covers | How it renders |
 |---|---|---|
 | `chat` | Replies to free text: personality responses, easter eggs, denied and admin lines, `KNOCK KNOCK`. This is the only place speed varies. | Typed. Speed varies, slower on the slow words. |
-| `boot` | The landing screen: the boot check intro, subsystem lines, the fallback boot lines. | Typed, uniform speed. |
+| `boot` | The landing screen: the boot check intro, the five subsystem check lines (typed segment by segment, colors kept) and the status line, the fallback boot lines. | Typed, uniform speed, with the typing sound. |
 | `flavor` | Transition text between layers, the mount and unmount lines, layer enter and exit confirmations, the `[SYSTEM OVERRIDE]` banner, the self-destruct sequence. | Typed, uniform speed. |
 | `status` | One-line system messages: errors, `<NAME>.EXE CLOSED`, author messages, command headings, validation summary. | Typed, uniform speed. |
 | `doc` | Body text of a document printed inline. | Typed, uniform speed. |
@@ -187,7 +187,8 @@ in `echo-os.json` removes every author command: `[AUTHOR UNLOCK]` then behaves l
 | `[NEW LOG]` | New page that shows a `lore.json` (`LORE`) or `dev_logs.json` (`DEV`) entry by code. |
 | `[NEW PROGRAM]` | Registers a program from `terminal-data/programs/<id>.js` as a hidden item. Asks for its scope. |
 | `[NEW GATEWAY]` | Hidden command that jumps to any folder, in any tier. A different tier plays the transition. |
-| `[EDIT]` | Changes an item's name, alias, title, hidden flag and text. On a stub it turns it into a real doc. |
+| `[EDIT]` | Changes an item's name, alias, title, hidden flag and text, one question after another. On a stub it turns it into a real doc. |
+| `[SET]`, `[SET <PROPERTY>]` | Changes one property of an item. `[SET]` asks which; `[SET NAME]` goes straight to it. Properties: `NAME`, `ALIAS`, `TITLE`, `HIDDEN` (toggles), `FOOTER`, `TEXT` (docs and stubs), `LOG` (log items: source and code), `DESTINATION` (gateways), `PROGRAM` and `SCOPE` (programs). Asks which item unless a click or the right-click menu named it. |
 | `[HIDE]`, `[SHOW]` | Unlists an item (it still opens by its alias) or lists it again. Programs and gateways are always hidden. |
 | `[ALIAS]` | Changes an item's `[COMMAND]`. |
 | `[MV]` | Moves an item and everything under it to another folder. `..` means the parent folder. |
@@ -196,6 +197,11 @@ in `echo-os.json` removes every author command: `[AUTHOR UNLOCK]` then behaves l
 | `[RESTORE DRAFT]`, `[DISCARD DRAFT]` | Recover or drop the autosaved draft (kept in the browser as `echo_os_draft`). |
 
 Every prompt can be canceled with `Esc`. Edits are autosaved to the draft and offered back on the next unlock.
+
+**Ids.** Every item has an id the engine stores in links. `L3A_ROOT` reads as tier 3, Archive, root: `A` means archive
+(the chat screens use `C`, as in `L1C_ROOT`). Gateways are `GW_...` and programs `L<tier>A_PROG_...`. A gateway's
+destination is stored as the destination folder's id, so it keeps working if the folder is renamed; the menus and the
+author `[TREE]` show it as name and id.
 
 **Alias rules.** An alias cannot shadow a built-in or reserved name (`[HELP]`, `[TREE]`, `[LS]`, `[BACK]`,
 `[ROOT]`, `[EXIT]`, `[CLEAR]`, `[SYSTEM OVERRIDE]`, `[AUTHOR UNLOCK]`, `[AUTHOR LOCK]`, `[STATUS]`, `[SCAN]`,
@@ -207,7 +213,7 @@ be unique within their folder. Programs may share an alias across tiers.
 | Input | Effect |
 |---|---|
 | `(o)` / `(-)` beside an item | Open or closed eye. Click it to list or unlist the item. |
-| Right-click an item | Menu: open, edit, change alias, hide or show, move, delete. Skips the "which item?" prompt. |
+| Right-click an item | A menu that starts with what the item is, one row per property: `ID`, `TYPE`, `NAME`, `ALIAS`, `TITLE`, `HIDDEN`, `FOOTER`, `CONTAINS` (folders), `TEXT` (docs), `LOG ENTRY` (logs), `DESTINATION` (gateways, shown as name and id, for example `L3 ROOT (L3A_ROOT)`), `PROGRAM` and `SCOPE` (programs). `ID`, `TYPE` and `CONTAINS` are read-only. Click any other row to change that property: it asks only the one question (`[SET NAME]`, `[ALIAS]`, `[SHOW]`/`[HIDE]` and so on). Below the rows: open, edit everything, move, delete. Skips the "which item?" prompt. |
 | Right-click empty space | Menu: the create commands, tree, export, help, lock. |
 | Click a line in `[TREE]` | Jumps straight to that item, across tiers. Programs, gateways and stubs land on their folder. |
 

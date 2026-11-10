@@ -166,7 +166,7 @@ html,body{cursor:var(--cur,default);}
 #power-btn,.t-line.act,.t-line .eye,#ctx .ci{cursor:var(--cur-act,pointer);}
 #t-field{cursor:var(--cur-txt,text);}
 /* Author context menu */
-#ctx{position:fixed;z-index:60;min-width:210px;max-width:320px;background:rgba(2,6,10,0.98);
+#ctx{position:fixed;z-index:60;min-width:210px;max-width:440px;background:rgba(2,6,10,0.98);
   border:1px solid var(--theme-bc);box-shadow:0 0 18px rgba(0,0,0,0.7),0 0 16px var(--theme-glow-a);
   font-family:'Share Tech Mono',monospace;font-size:12px;letter-spacing:0.04em;padding:4px 0;}
 #ctx .ch{color:var(--theme-lo);padding:4px 12px 3px;font-size:10.5px;letter-spacing:0.12em;border-bottom:1px solid var(--theme-border);margin-bottom:3px;}
@@ -175,6 +175,14 @@ html,body{cursor:var(--cur,default);}
 #ctx .ci:hover{background:var(--theme-full);color:#000;}
 #ctx .ci:hover .cc{color:#000;}
 #ctx .cs{border-top:1px solid var(--theme-border);margin:3px 0;}
+#ctx .cr{display:flex;align-items:baseline;gap:10px;padding:2px 12px;color:var(--theme-dim);}
+#ctx .cr .ck{flex:0 0 11ch;color:var(--theme-lo);font-size:10.5px;letter-spacing:0.08em;}
+#ctx .cr .cv{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+#ctx .cr.ro{color:var(--theme-lo);}
+#ctx .cr.ed{cursor:var(--cur-act,pointer);}
+#ctx .cr.ed::after{content:'EDIT';color:var(--theme-lo);font-size:9.5px;letter-spacing:0.12em;}
+#ctx .cr.ed:hover{background:var(--theme-full);color:#000;}
+#ctx .cr.ed:hover .ck,#ctx .cr.ed:hover::after{color:#000;}
 /* Archive view: dashed frame plus an address bar. A running program gets a titled window with a double frame. */
 #t-addr{display:none;flex-shrink:0;align-items:center;gap:8px;padding:8px 28px;min-height:35px;
   font-family:'Share Tech Mono',monospace;font-size:12px;letter-spacing:0.06em;white-space:nowrap;overflow:hidden;
@@ -463,8 +471,9 @@ function typeMs(){var t=typeof CFG_TYPING!=='undefined'&&CFG_TYPING;return (t&&t
 
 // Types text into a line one character at a time. Each character is a span that flashes and fades on its own; once the last
 // one has settled the spans fold back into plain text. delay() is how long to wait after each character.
-async function typeChars(el,text,delay){
-  el.classList.remove('phos'); clearTimeout(el._glowT);   // a typed line does not also glow as a whole
+async function typeChars(el,text,delay,line){
+  line=line||el;
+  line.classList.remove('phos'); clearTimeout(line._glowT);   // a typed line does not also glow as a whole
   for(var i=0;i<text.length;i++){
     if(typingAbort) return;
     var ch=document.createElement('span');ch.className='ch';ch.textContent=text[i];el.appendChild(ch);   // glows, then settles
@@ -494,6 +503,20 @@ async function showLine(el,text){
   if(text) playLineStatic();
   if(!holdScroll) output.scrollTop=output.scrollHeight;
   await sleep(listMs());
+}
+// A line made of colored segments (the boot checks: label, dashes, [STATUS], commit ID). It renders by the same rules
+// as any other line: typed segment by segment with the click sounds, or whole with the static, per its kind.
+async function putDyn(el,dr,kind){
+  if(!dr.parts) return put(el,dr.text,kind);
+  var mode=RENDER[kind||'status']||'type';
+  if(typingAbort) return;
+  if(mode==='whole'){ renderDynLine(el,dr); glow(el); playLineStatic(); if(!holdScroll) output.scrollTop=output.scrollHeight; await sleep(listMs()); return; }
+  playLineStatic();
+  var ms=typeMs(), uniform=function(){return ms;};
+  for(var i=0;i<dr.parts.length;i++){
+    var seg=document.createElement('span'); seg.className='seg-'+(dr.parts[i].cls||'dim'); el.appendChild(seg);
+    await typeChars(seg,dr.parts[i].text,uniform,el);
+  }
 }
 // The one entry point: render text into a line the way its kind says to.
 async function put(el,text,kind){
@@ -553,7 +576,7 @@ async function runScript(){
         await sleep(220);
       }else if(bline.type==='dynamic'){
         var dr0=resolveDynamic(bline);
-        var del0=addLine(dr0.cls||'dim');renderDynLine(del0,dr0);await sleep(80);
+        var del0=addLine(dr0.cls||'dim');await putDyn(del0,dr0,'boot');await sleep(220);
       }
     }
   }else if(!archData){
@@ -601,7 +624,7 @@ async function runScript(){
             await sleep(60);
           }else if(cb.type==='dynamic'){
             var dr1=resolveDynamic(cb);
-            var del1=addLine(dr1.cls||'dim');renderDynLine(del1,dr1);await sleep(30);
+            var del1=addLine(dr1.cls||'dim');await putDyn(del1,dr1,'boot');await sleep(60);
           }else if(cb.type==='command'){
             var cCls=cb.cmd_type==='navigation'?'cmd-nav':cb.cmd_type==='pull'?'cmd-pull':'dim';
             var cEl=addLine(cCls);
@@ -622,12 +645,12 @@ async function runScript(){
       var fbChecks=[['file_status.personality','CREW BEHAVIORAL MATRIX ------'],['file_status.lore','ARCHIVE LOG DATABASE --------'],
         ['file_status.devlogs','DEVELOPMENT RECORDS ---------'],['file_status.nodes','NAVIGATION ARCHITECTURE -----'],['file_status.engine','CORE ENGINE PARAMETERS ------']];
       var fbHead=addLine('dim');await put(fbHead,'> VERIFYING SUBSYSTEM CONNECTIONS...','boot');await sleep(120);
-      fbChecks.forEach(function(c){
+      for(var fbi=0;fbi<fbChecks.length;fbi++){ var c=fbChecks[fbi];
         var r=resolveDynamic({variable:c[0],display_label:c[1],valid_text:'OK',denied_text:'ERROR',label_cls:'full',value_cls:'full'});
-        var fl=addLine(r.cls||'dim');renderDynLine(fl,r);
-      });
+        var fl=addLine(r.cls||'dim');await putDyn(fl,r,'boot');await sleep(60);
+      }
       var fbSt=resolveDynamic({variable:'system.boot_status',valid_text:'FULL ACCESS',denied_text:'DEGRADED',value_cls:'full'});
-      addLine(fbSt.cls||'full').textContent=fbSt.text;
+      await putDyn(addLine(fbSt.cls||'full'),fbSt,'boot');
     }
   }
 
@@ -1359,7 +1382,7 @@ async function renderLogEntryNode(nodeId){
       } else if(b2.type==='dynamic'){
         var dr=resolveDynamic(b2);
         var de=document.createElement('div');de.className='t-line '+(dr.cls||'dim');
-        renderDynLine(de,dr);inner.appendChild(de);await sleep(20);
+        inner.appendChild(de);await putDyn(de,dr,'doc');await sleep(20);
       }
     }
   }
@@ -1396,7 +1419,7 @@ async function renderIntroLines(nodeId){
       if(b.text){playLineStatic();await put(el,b.text,'flavor');}
       await sleep(100);
     }else if(b.type==='dynamic'){
-      var dr=resolveDynamic(b);var del=addLine(dr.cls||'dim',true);renderDynLine(del,dr);await sleep(40);
+      var dr=resolveDynamic(b);var del=addLine(dr.cls||'dim',true);await putDyn(del,dr,'flavor');await sleep(40);
     }else if(b.type==='command'){
       var cCls=b.cmd_type==='navigation'?'cmd-nav':b.cmd_type==='pull'?'cmd-pull':'dim';
       var cEl=addLine(cCls,true);
@@ -1976,12 +1999,22 @@ function ctxOpen(x, y, title, entries){
   var h = document.createElement('div'); h.className = 'ch'; h.textContent = title; m.appendChild(h);
   entries.forEach(function(en){
     if(en === '-'){ var s = document.createElement('div'); s.className = 'cs'; m.appendChild(s); return; }
-    var d = document.createElement('div'); d.className = 'ci';
-    var a = document.createElement('span'); a.textContent = en.label; d.appendChild(a);
-    var b = document.createElement('span'); b.className = 'cc'; b.textContent = en.cmd; d.appendChild(b);
-    d.addEventListener('mouseenter', function(){ if(hoverStash === null) hoverStash = termInput.value; termInput.value = en.cmd; });
-    d.addEventListener('mouseleave', hoverOff);
-    d.addEventListener('click', function(ev){ ev.stopPropagation(); ctxClose(); uiSubmit(en.cmd, en.preset); });
+    var d = document.createElement('div');
+    if(en.info){
+      // A row of facts about the item. With a command it is clickable and starts editing that property.
+      d.className = 'cr ' + (en.cmd ? 'ed' : 'ro');
+      var k = document.createElement('span'); k.className = 'ck'; k.textContent = en.key; d.appendChild(k);
+      var v = document.createElement('span'); v.className = 'cv'; v.textContent = en.value; v.title = en.value; d.appendChild(v);
+    } else {
+      d.className = 'ci';
+      var a = document.createElement('span'); a.textContent = en.label; d.appendChild(a);
+      var b = document.createElement('span'); b.className = 'cc'; b.textContent = en.cmd; d.appendChild(b);
+    }
+    if(en.cmd){
+      d.addEventListener('mouseenter', function(){ if(hoverStash === null) hoverStash = termInput.value; termInput.value = en.cmd; });
+      d.addEventListener('mouseleave', hoverOff);
+      d.addEventListener('click', function(ev){ ev.stopPropagation(); ctxClose(); uiSubmit(en.cmd, en.preset); });
+    }
     m.appendChild(d);
   });
   document.body.appendChild(m);
@@ -1991,11 +2024,13 @@ function ctxOpen(x, y, title, entries){
   ctxEl = m;
 }
 function itemMenuEntries(it){
-  var pre = {target:it.id}, special = it.type === 'program' || it.type === 'gateway', e = [];
+  var pre = {target:it.id}, e = [];
+  // What the item is, one row per property; click a row to change that property.
+  var rows = (authorMod && authorMod.infoRows) ? authorMod.infoRows(it, osItems) : [];
+  rows.forEach(function(r){ e.push({info:true, key:r.k, value:r.v, cmd:r.cmd, preset:r.preset}); });
+  if(rows.length) e.push('-');
   if(!it.stub) e.push({label:'OPEN', cmd:it.alias || '['+it.name+']'});
-  e.push({label:it.stub ? 'MAKE IT A REAL DOC...' : 'EDIT...', cmd:'[EDIT]', preset:pre});
-  e.push({label:'CHANGE ALIAS...', cmd:'[ALIAS]', preset:pre});
-  if(!special && !it.stub) e.push({label:it.hidden ? 'LIST IT (SHOW)' : 'UNLIST IT (HIDE)', cmd:it.hidden ? '[SHOW]' : '[HIDE]', preset:pre});
+  e.push({label:it.stub ? 'MAKE IT A REAL DOC...' : 'EDIT EVERYTHING...', cmd:'[EDIT]', preset:pre});
   e.push({label:'MOVE...', cmd:'[MV]', preset:pre});
   e.push({label:'DELETE...', cmd:'[RM]', preset:pre});
   return e;
@@ -2015,7 +2050,7 @@ document.getElementById('terminal-box').addEventListener('contextmenu', function
       [{label:'NEW FOLDER', cmd:'[MKDIR]'}, {label:'NEW DOC', cmd:'[NEW DOC]'}, {label:'NEW LOG', cmd:'[NEW LOG]'},
        {label:'NEW PROGRAM', cmd:'[NEW PROGRAM]'}, {label:'NEW GATEWAY', cmd:'[NEW GATEWAY]'}].concat(tail));
   } else {
-    ctxOpen(e.clientX, e.clientY, 'THIS PAGE  ' + (cur.alias || cur.name), itemMenuEntries(cur).slice(1).concat(tail));
+    ctxOpen(e.clientX, e.clientY, 'THIS PAGE  ' + (cur.alias || cur.name), itemMenuEntries(cur).filter(function(en){ return !(en && en.label === 'OPEN'); }).concat(tail));
   }
 });
 document.addEventListener('mousedown', function(e){ if(ctxEl && !ctxEl.contains(e.target)) ctxClose(); }, true);
@@ -2095,7 +2130,7 @@ async function renderHelpNode(cmd){
   for(var i=0;i<(node.body||[]).length;i++){
     var b=node.body[i];
     if(b.type==='text'){var el=addLine(b.cls||'dim');if(b.text){playLineStatic();await put(el,b.text,'doc');}await sleep(40);}
-    else if(b.type==='dynamic'){var dr=resolveDynamic(b);var del=addLine(dr.cls||'dim');renderDynLine(del,dr);await sleep(20);}
+    else if(b.type==='dynamic'){var dr=resolveDynamic(b);var del=addLine(dr.cls||'dim');await putDyn(del,dr,'doc');await sleep(20);}
   }
 }
 
@@ -2295,7 +2330,7 @@ async function renderPullInline(nodeId){
       if(b.text){playLineStatic();await put(el,b.text,'doc');}
       await sleep(40);
     }else if(b.type==='dynamic'){
-      var dr=resolveDynamic(b);var del=addLine(dr.cls||'dim',true);renderDynLine(del,dr);await sleep(20);
+      var dr=resolveDynamic(b);var del=addLine(dr.cls||'dim',true);await putDyn(del,dr,'doc');await sleep(20);
     }
   }
   // Subtle separator after inline pull content
@@ -2329,7 +2364,7 @@ function treeLines(full){
   function lab(it){ return (!full && it._parent === null) ? it.name : (it.alias || ('['+it.name+']')); }
   function tag(it){
     if(!full) return '';
-    return (it.stub ? '  ?stub' : it.hidden ? '  ~hidden' : '') + (it.type === 'program' ? '  program:'+it.program+(it.scope === 'folder' ? ' (this folder only)' : '') : it.type === 'gateway' ? '  gateway:'+it.goto : '') + '  T'+it.tier;
+    return (it.stub ? '  ?stub' : it.hidden ? '  ~hidden' : '') + (it.type === 'program' ? '  program:'+it.program+(it.scope === 'folder' ? ' (this folder only)' : '') : it.type === 'gateway' ? '  gateway: '+(osItems[it.goto] ? osItems[it.goto].name+' ('+it.goto+')' : it.goto+' (NOT FOUND)') : '') + '  T'+it.tier;
   }
   function walk(list, prefix, isRoot){
     var vis = list.filter(function(c){ return c.tier <= maxTier && (full || (!c.hidden && !c.stub)); });
