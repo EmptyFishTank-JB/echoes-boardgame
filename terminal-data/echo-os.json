@@ -1,0 +1,828 @@
+{
+  "meta": {
+    "version": "1.0",
+    "description": "ECHO O.S. virtual filesystem",
+    "migrated_from": "nodes.json 2026-05-29T20:04:22.234Z",
+    "locked": false
+  },
+  "layers": {
+    "l1a": {
+      "theme": "blue",
+      "header_title": "ECHO-ARCHIVE",
+      "ambient": "l1a",
+      "_color": "#4fc3f7"
+    },
+    "l1c": {
+      "theme": "blue",
+      "header_title": "TERMINAL CONSOLE",
+      "ambient": "l1a",
+      "_color": "#4fc3f7"
+    },
+    "l2a": {
+      "theme": "amber",
+      "header_title": "ECHO-ARCHIVE",
+      "ambient": "l2a",
+      "_color": "#bf7c0a"
+    },
+    "l2c": {
+      "theme": "amber",
+      "header_title": "ECHO PROTOCOL CONSOLE",
+      "ambient": "l2a",
+      "_color": "#bf7c0a"
+    },
+    "l3a": {
+      "theme": "red",
+      "header_title": "DEEP ARCHIVE",
+      "ambient": "l3a",
+      "_color": "#e05050"
+    },
+    "l3c": {
+      "theme": "red",
+      "header_title": "DEEP ARCHIVE CONSOLE",
+      "ambient": "l3a",
+      "_color": "#e05050"
+    }
+  },
+  "commands": [
+    {
+      "alias": "[HELP]",
+      "kind": "pull",
+      "screen": "GLOBAL_HELP",
+      "scope": null
+    }
+  ],
+  "screens": {
+    "L1C_ROOT": {
+      "layer": "l1c",
+      "node_type": "chat",
+      "is_root": true,
+      "fetch_allowed": false,
+      "title": "TERMINAL CONSOLE",
+      "breadcrumb": "ECHO.ARCHIVE > TERMINAL CONSOLE",
+      "footer": "",
+      "body": [
+        {
+          "type": "text",
+          "text": "ECHOES — SHIP SYSTEM TERMINAL 426",
+          "cls": "low"
+        },
+        {
+          "type": "text",
+          "text": " ",
+          "cls": "full"
+        },
+        {
+          "type": "text",
+          "text": "> TERMINAL ACTIVATED",
+          "cls": "dim"
+        },
+        {
+          "type": "text",
+          "text": "> ──────────────────────────────────",
+          "cls": "low"
+        },
+        {
+          "type": "text",
+          "text": "> VERIFYING SUBSYSTEM CONNECTIONS...",
+          "cls": "dim",
+          "hidden": false
+        },
+        {
+          "type": "text",
+          "text": " ",
+          "cls": "full"
+        },
+        {
+          "type": "dynamic",
+          "variable": "file_status.personality",
+          "display_label": "CREW BEHAVIORAL MATRIX ------",
+          "label_cls": "full",
+          "value_cls": "full",
+          "hidden": false,
+          "valid_text": "OK",
+          "denied_text": "ERROR"
+        },
+        {
+          "type": "dynamic",
+          "variable": "file_status.lore",
+          "display_label": "ARCHIVE LOG DATABASE --------",
+          "label_cls": "full",
+          "value_cls": "full",
+          "valid_text": "OK",
+          "denied_text": "ERROR"
+        },
+        {
+          "type": "dynamic",
+          "variable": "file_status.devlogs",
+          "display_label": "DEVELOPMENT RECORDS ---------",
+          "label_cls": "full",
+          "value_cls": "full",
+          "valid_text": "OK",
+          "denied_text": "ERROR"
+        },
+        {
+          "type": "dynamic",
+          "variable": "file_status.nodes",
+          "display_label": "NAVIGATION ARCHITECTURE -----",
+          "label_cls": "full",
+          "value_cls": "full",
+          "valid_text": "OK",
+          "denied_text": "ERROR"
+        },
+        {
+          "type": "dynamic",
+          "variable": "file_status.engine",
+          "display_label": "CORE ENGINE PARAMETERS ------",
+          "label_cls": "full",
+          "value_cls": "full",
+          "hidden": false,
+          "valid_text": "OK",
+          "denied_text": "ERROR"
+        },
+        {
+          "type": "text",
+          "text": "> ──────────────────────────────────",
+          "cls": "full",
+          "hidden": false
+        },
+        {
+          "type": "text",
+          "text": " ",
+          "cls": "full"
+        },
+        {
+          "type": "dynamic",
+          "variable": "system.boot_status",
+          "display_label": "SYSTEM",
+          "hidden": false,
+          "valid_text": "FULL ACCESS",
+          "denied_text": "DEGRADED",
+          "value_cls": "full",
+          "label_cls": "full"
+        },
+        {
+          "type": "text",
+          "text": " ",
+          "cls": "full"
+        },
+        {
+          "type": "text",
+          "text": "> TYPE [HELP] FOR AVAILABLE COMMANDS",
+          "cls": "low"
+        },
+        {
+          "type": "text",
+          "text": " ",
+          "cls": "full",
+          "hidden": false
+        },
+        {
+          "type": "command",
+          "cmd_type": "navigation",
+          "label": "[L1 ROOT]",
+          "target": "L1A_ROOT",
+          "hidden": false
+        }
+      ],
+      "personality_src": "personality.json"
+    },
+    "L1C_INTRO": {
+      "layer": "l1c",
+      "node_type": "intro",
+      "is_root": false,
+      "fetch_allowed": false,
+      "title": "",
+      "breadcrumb": "L1C_INTRO",
+      "footer": "",
+      "body": []
+    },
+    "L1A_INTRO": {
+      "layer": "l1a",
+      "node_type": "intro",
+      "is_root": false,
+      "fetch_allowed": false,
+      "title": "L1 INTRO",
+      "breadcrumb": "L1 INTRO",
+      "footer": "",
+      "body": [
+        {
+          "type": "text",
+          "text": "",
+          "cls": "blank"
+        },
+        {
+          "type": "text",
+          "text": "> ECHO-ARCHIVE ACCESS GRANTED.",
+          "cls": "full"
+        },
+        {
+          "type": "text",
+          "text": "> ─────────────────────────────────",
+          "cls": "low"
+        },
+        {
+          "type": "text",
+          "text": "",
+          "cls": "blank"
+        }
+      ]
+    },
+    "L2C_ROOT": {
+      "layer": "l2c",
+      "node_type": "chat",
+      "is_root": true,
+      "fetch_allowed": false,
+      "title": "ECHO PROTOCOL CONSOLE",
+      "breadcrumb": "ECHO PROTOCOL CONSOLE",
+      "footer": "",
+      "body": [
+        {
+          "type": "text",
+          "text": "> ECHO PROTOCOL CONSOLE — STUB",
+          "cls": "low"
+        },
+        {
+          "type": "command",
+          "cmd_type": "navigation",
+          "label": "[L2 ROOT]",
+          "target": "L2A_ROOT",
+          "hidden": false
+        }
+      ]
+    },
+    "L2A_INTRO": {
+      "layer": "l2a",
+      "node_type": "intro",
+      "is_root": false,
+      "fetch_allowed": false,
+      "title": "",
+      "breadcrumb": "L2A_INTRO",
+      "footer": "",
+      "body": [
+        {
+          "type": "text",
+          "text": "",
+          "cls": "blank"
+        },
+        {
+          "type": "text",
+          "text": "> INITIATING ECHO PROTOCOL...",
+          "cls": "full"
+        },
+        {
+          "type": "text",
+          "text": "  LOADING SUBSYSTEM...",
+          "cls": "low"
+        },
+        {
+          "type": "text",
+          "text": "  CIPHER ENGINE ONLINE...",
+          "cls": "low"
+        },
+        {
+          "type": "text",
+          "text": "  DEEP LOG CHANNEL OPEN...",
+          "cls": "low"
+        },
+        {
+          "type": "text",
+          "text": "> ECHO PROTOCOL ACTIVE.",
+          "cls": "full"
+        },
+        {
+          "type": "text",
+          "text": "> ─────────────────────────────────",
+          "cls": "low"
+        },
+        {
+          "type": "text",
+          "text": "",
+          "cls": "blank"
+        }
+      ]
+    },
+    "L3C_ROOT": {
+      "layer": "l3c",
+      "node_type": "chat",
+      "is_root": true,
+      "fetch_allowed": false,
+      "title": "DEEP ARCHIVE CONSOLE",
+      "breadcrumb": "DEEP ARCHIVE CONSOLE",
+      "footer": "",
+      "body": [
+        {
+          "type": "text",
+          "text": "> DEEP ARCHIVE CONSOLE — STUB",
+          "cls": "low"
+        },
+        {
+          "type": "command",
+          "cmd_type": "navigation",
+          "label": "[L3 ROOT]",
+          "target": "L3A_ROOT",
+          "hidden": false
+        }
+      ]
+    },
+    "L3A_INTRO": {
+      "layer": "l3a",
+      "node_type": "intro",
+      "is_root": false,
+      "fetch_allowed": false,
+      "title": "L3 INTRO",
+      "breadcrumb": "L3 INTRO",
+      "footer": "",
+      "body": [
+        {
+          "type": "text",
+          "text": "",
+          "cls": "blank"
+        },
+        {
+          "type": "text",
+          "text": "> ACCESSING DEEP ARCHIVE...",
+          "cls": "full"
+        },
+        {
+          "type": "text",
+          "text": "  CHRONO-ZERO PROTOCOL ACTIVE...",
+          "cls": "low"
+        },
+        {
+          "type": "text",
+          "text": "  PRIVATE SECTOR UNLOCKED...",
+          "cls": "low"
+        },
+        {
+          "type": "text",
+          "text": "> DEV.MODE ENGAGED.",
+          "cls": "full"
+        },
+        {
+          "type": "text",
+          "text": "> ─────────────────────────────────",
+          "cls": "low"
+        },
+        {
+          "type": "text",
+          "text": "",
+          "cls": "blank"
+        }
+      ]
+    },
+    "GLOBAL_HELP": {
+      "layer": "l1a",
+      "node_type": "data",
+      "is_root": false,
+      "fetch_allowed": false,
+      "title": "HELP",
+      "breadcrumb": "HELP > HELP",
+      "footer": "",
+      "body": [
+        {
+          "type": "text",
+          "text": "*HELP_COMMANDS DATA NODE*",
+          "cls": "warn"
+        },
+        {
+          "type": "text",
+          "text": "AVAILABLE COMMANDS",
+          "cls": "full"
+        },
+        {
+          "type": "text",
+          "text": "> ─────────────────────────────────",
+          "cls": "low"
+        },
+        {
+          "type": "command",
+          "cmd_type": "pull",
+          "label": "  [HELP]       — display this list",
+          "target": "",
+          "hidden": false
+        },
+        {
+          "type": "command",
+          "cmd_type": "navigation",
+          "label": "  [STATUS]     — vessel system status",
+          "target": "GLOBAL_STATUS",
+          "hidden": false
+        },
+        {
+          "type": "command",
+          "cmd_type": "navigation",
+          "label": "  [SCAN]       — environment scan",
+          "target": "GLOBAL_SCAN",
+          "hidden": false
+        },
+        {
+          "type": "command",
+          "cmd_type": "navigation",
+          "label": "  [CLEAR]",
+          "target": "",
+          "hidden": false
+        },
+        {
+          "type": "text",
+          "text": "> ─────────────────────────────────",
+          "cls": "low"
+        },
+        {
+          "type": "text",
+          "text": "*HELP_COMMANDS DATA NODE*",
+          "cls": "warn"
+        }
+      ]
+    },
+    "GLOBAL_STATUS": {
+      "layer": "l1a",
+      "node_type": "data",
+      "is_root": false,
+      "fetch_allowed": false,
+      "title": "STATUS",
+      "breadcrumb": "HELP > HELP > STATUS",
+      "footer": "",
+      "body": [
+        {
+          "type": "text",
+          "text": "*STATUS DISPLAYED HERE*",
+          "cls": "warn"
+        }
+      ]
+    },
+    "GLOBAL_SCAN": {
+      "layer": "l1a",
+      "node_type": "data",
+      "is_root": false,
+      "fetch_allowed": false,
+      "title": "SCAN",
+      "breadcrumb": "HELP > HELP > SCAN",
+      "footer": "",
+      "body": [
+        {
+          "type": "text",
+          "text": "*SCAN INFO DISPLAYED HERE*",
+          "cls": "warn"
+        }
+      ]
+    }
+  },
+  "tree": {
+    "id": "ROOT",
+    "type": "folder",
+    "name": "/",
+    "alias": null,
+    "tier": 1,
+    "hidden": false,
+    "title": "",
+    "body": [],
+    "commands": [],
+    "children": [
+      {
+        "id": "L1A_ROOT",
+        "type": "folder",
+        "name": "ECHO.ARCHIVE",
+        "alias": "[L1 ROOT]",
+        "tier": 1,
+        "hidden": false,
+        "title": "ECHO.ARCHIVE",
+        "body": [
+          {
+            "type": "text",
+            "text": " ",
+            "cls": "full",
+            "hidden": false
+          },
+          {
+            "type": "text",
+            "text": "> ─────────────────────────────────",
+            "cls": "full",
+            "hidden": false
+          },
+          {
+            "type": "text",
+            "text": " ",
+            "cls": "full",
+            "hidden": false
+          }
+        ],
+        "children": [
+          {
+            "id": "L1A_CREW_MANIFEST",
+            "type": "doc",
+            "name": "CREW MANIFEST",
+            "alias": "[CREW MANIFEST]",
+            "tier": 1,
+            "hidden": false,
+            "title": "CREW MANIFEST — OFFLINE:",
+            "body": [
+              {
+                "type": "text",
+                "text": "> NODE UNAVAILABLE — CREW DATABASE OFFLINE",
+                "cls": "denied"
+              },
+              {
+                "type": "text",
+                "text": " ",
+                "cls": "low"
+              },
+              {
+                "type": "text",
+                "text": "> BIOMETRIC VERIFICATION REQUIRED. HARDWARE NOT PRESENT.",
+                "cls": "low"
+              },
+              {
+                "type": "text",
+                "text": " ",
+                "cls": "full"
+              },
+              {
+                "type": "text",
+                "text": "> ─────────────────────────────────",
+                "cls": "full"
+              },
+              {
+                "type": "text",
+                "text": " ",
+                "cls": "full"
+              }
+            ],
+            "children": [],
+            "commands": []
+          },
+          {
+            "id": "L1A_MISSION_BRIEFING",
+            "type": "doc",
+            "name": "MISSION BRIEFING",
+            "alias": "[MISSION BRIEFING]",
+            "tier": 1,
+            "hidden": false,
+            "title": "MISSION BRIEFING — CORRUPTED:",
+            "body": [
+              {
+                "type": "text",
+                "text": "> DATA CORRUPTED — RECOVERY FAILED",
+                "cls": "denied"
+              },
+              {
+                "type": "text",
+                "text": " ",
+                "cls": "low",
+                "hidden": false
+              },
+              {
+                "type": "text",
+                "text": "> FILE INTEGRITY: 0%. NOTHING RECOVERABLE.",
+                "cls": "low"
+              },
+              {
+                "type": "text",
+                "text": " ",
+                "cls": "full"
+              },
+              {
+                "type": "text",
+                "text": "> ─────────────────────────────────",
+                "cls": "full"
+              },
+              {
+                "type": "text",
+                "text": " ",
+                "cls": "full"
+              }
+            ],
+            "children": [],
+            "commands": []
+          },
+          {
+            "id": "L1A_INCIDENT",
+            "type": "folder",
+            "name": "INCIDENT REPORTS",
+            "alias": "[INCIDENT REPORTS]",
+            "tier": 1,
+            "hidden": false,
+            "title": "INCIDENT REPORTS — PARTIAL RECOVERY (47% INTEGRITY):",
+            "body": [],
+            "children": [
+              {
+                "id": "L1A_BREACH",
+                "type": "doc",
+                "name": "CONTAINMENT BREACH — DAY 31",
+                "alias": "[CONTAINMENT BREACH — DAY 31]",
+                "tier": 1,
+                "hidden": false,
+                "title": "CONTAINMENT BREACH — DAY 31 // PARTIAL RECOVERY:",
+                "body": [
+                  {
+                    "type": "text",
+                    "text": "> ...SPECIMEN ESCAPED CONTAINMENT AT [CORRUPTED]...",
+                    "cls": "warn",
+                    "hidden": false
+                  },
+                  {
+                    "type": "text",
+                    "text": "> ...SECTION [CORRUPTED] SEALED. CASUALTIES: [CORRUPTED]...",
+                    "cls": "warn",
+                    "hidden": false
+                  },
+                  {
+                    "type": "text",
+                    "text": "> ...DR. [CORRUPTED] REPORTS SPECIMEN IS NOT [CORRUPTED]...",
+                    "cls": "warn",
+                    "hidden": false
+                  },
+                  {
+                    "type": "text",
+                    "text": " ",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "> FURTHER DATA REQUIRES DEEPER ARCHIVE ACCESS.",
+                    "cls": "low",
+                    "hidden": false
+                  },
+                  {
+                    "type": "text",
+                    "text": " ",
+                    "cls": "full",
+                    "hidden": false
+                  },
+                  {
+                    "type": "text",
+                    "text": "> ─────────────────────────────────",
+                    "cls": "full",
+                    "hidden": false
+                  },
+                  {
+                    "type": "text",
+                    "text": " ",
+                    "cls": "full",
+                    "hidden": false
+                  }
+                ],
+                "children": [],
+                "commands": [
+                  {
+                    "label": "[INITIATE ECHO PROTOCOL]",
+                    "goto": "L3A_ROOT"
+                  }
+                ]
+              },
+              {
+                "id": "L1A_INCIDENT__STUB_MEDICAL_TRIAGE_DAY_34",
+                "type": "doc",
+                "name": "MEDICAL TRIAGE — DAY 34",
+                "alias": "[MEDICAL TRIAGE — DAY 34]",
+                "tier": 1,
+                "hidden": true,
+                "stub": true,
+                "title": "MEDICAL TRIAGE — DAY 34",
+                "body": [],
+                "children": [],
+                "commands": []
+              },
+              {
+                "id": "L1A_INCIDENT__STUB_EMERGENCY_PROTOCOL_DAY_41",
+                "type": "doc",
+                "name": "EMERGENCY PROTOCOL — DAY 41",
+                "alias": "[EMERGENCY PROTOCOL — DAY 41]",
+                "tier": 1,
+                "hidden": true,
+                "stub": true,
+                "title": "EMERGENCY PROTOCOL — DAY 41",
+                "body": [],
+                "children": [],
+                "commands": []
+              }
+            ],
+            "commands": []
+          },
+          {
+            "id": "L1A_RESTRICTED",
+            "type": "folder",
+            "name": "RESTRICTED FILES",
+            "alias": "[RESTRICTED FILES]",
+            "tier": 1,
+            "hidden": false,
+            "title": "RESTRICTED FILES — PARTIAL KEY DETECTED:",
+            "body": [],
+            "children": [
+              {
+                "id": "L1A_RESTRICTED__STUB_CAPTAIN_S_PRIVATE_LOG",
+                "type": "doc",
+                "name": "CAPTAIN'S PRIVATE LOG",
+                "alias": "[CAPTAIN'S PRIVATE LOG]",
+                "tier": 1,
+                "hidden": true,
+                "stub": true,
+                "title": "CAPTAIN'S PRIVATE LOG",
+                "body": [],
+                "children": [],
+                "commands": []
+              },
+              {
+                "id": "L1A_RESTRICTED__STUB_RESEARCH_NOTES_DR_OSEI",
+                "type": "doc",
+                "name": "RESEARCH NOTES — DR. OSEI",
+                "alias": "[RESEARCH NOTES — DR. OSEI]",
+                "tier": 1,
+                "hidden": true,
+                "stub": true,
+                "title": "RESEARCH NOTES — DR. OSEI",
+                "body": [],
+                "children": [],
+                "commands": []
+              },
+              {
+                "id": "L1A_RESTRICTED__STUB_COMMUNICATION_INTERCEPTS",
+                "type": "doc",
+                "name": "COMMUNICATION INTERCEPTS",
+                "alias": "[COMMUNICATION INTERCEPTS]",
+                "tier": 1,
+                "hidden": true,
+                "stub": true,
+                "title": "COMMUNICATION INTERCEPTS",
+                "body": [],
+                "children": [],
+                "commands": []
+              }
+            ],
+            "commands": []
+          },
+          {
+            "id": "L1A_SYSTEM_LOGS",
+            "type": "doc",
+            "name": "SYSTEM LOGS",
+            "alias": "[SYSTEM LOGS]",
+            "tier": 1,
+            "hidden": false,
+            "title": "SYSTEM LOGS — ACCESS DENIED:",
+            "body": [
+              {
+                "type": "text",
+                "text": "> ACCESS DENIED — CLEARANCE LEVEL: RESTRICTED",
+                "cls": "denied",
+                "hidden": false
+              },
+              {
+                "type": "text",
+                "text": " ",
+                "cls": "low",
+                "hidden": false
+              },
+              {
+                "type": "text",
+                "text": "> COMMAND-LEVEL AUTHORIZATION REQUIRED.",
+                "cls": "low"
+              },
+              {
+                "type": "text",
+                "text": " ",
+                "cls": "full"
+              },
+              {
+                "type": "text",
+                "text": "> ─────────────────────────────────",
+                "cls": "full",
+                "hidden": false
+              },
+              {
+                "type": "text",
+                "text": " ",
+                "cls": "full"
+              }
+            ],
+            "children": [],
+            "commands": []
+          }
+        ],
+        "commands": []
+      },
+      {
+        "id": "L2A_ROOT",
+        "type": "folder",
+        "name": "L2 ROOT",
+        "alias": "[L2 ROOT]",
+        "tier": 2,
+        "hidden": false,
+        "title": "L2 ROOT",
+        "body": [],
+        "children": [],
+        "commands": []
+      },
+      {
+        "id": "L3A_ROOT",
+        "type": "folder",
+        "name": "L3 ROOT",
+        "alias": "[L3 ROOT]",
+        "tier": 3,
+        "hidden": false,
+        "title": "L3 ROOT",
+        "body": [],
+        "children": [],
+        "commands": []
+      }
+    ]
+  }
+}
