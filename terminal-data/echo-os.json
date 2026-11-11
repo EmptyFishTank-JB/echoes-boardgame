@@ -596,7 +596,12 @@
         },
         {
           "type": "text",
-          "text": "  CHRONO-ZERO PROTOCOL ACTIVE...",
+          "text": "  ECH/OES NETWORK ONLINE...",
+          "cls": "low"
+        },
+        {
+          "type": "text",
+          "text": "  SECURE MODE ENGAGED...",
           "cls": "low"
         },
         {
@@ -606,13 +611,8 @@
         },
         {
           "type": "text",
-          "text": "  ECH/OES NETWORK ONLINE...",
-          "cls": "low"
-        },
-        {
-          "type": "text",
-          "text": "  SECURE MODE ENGAGED...",
-          "cls": "low"
+          "text": "  CHRONO-ZERO PROTOCOL ACTIVE...",
+          "cls": "dim"
         },
         {
           "type": "text",

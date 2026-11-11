@@ -81,11 +81,11 @@ async function session(browser, patch = {}) {
     check('typed at L2: lands on the L3 root with the L3 theme and header', st.state === 'L3A_ROOT' && st.level === 3 && st.cls.includes('layer-3a') && (await s.page.$eval('#t-title', e => e.textContent)).includes('DEEP ARCHIVE'), JSON.stringify(st));
     const rec = await s.page.evaluate(() => window.__rec);
     const by = (t) => rec.find(r => r[0] === t) || [];
-    check('the L3 transition text played, typed (flavor), in order', rec.filter(r => r[1] === 'flavor').map(r => r[0]).join('|') === ['> ECH/OES SHIP SYSTEM TERMINAL 426 //', '  SECURITY LEVEL 3 - DEEP ARCHIVE //', '  ACCESS REQUESTED...', '  CHRONO-ZERO PROTOCOL ACTIVE...', '  PRIVATE SECTOR UNLOCKED...',
-      '  ECH/OES NETWORK ONLINE...', '  SECURE MODE ENGAGED...', '  ' + '.'.repeat(30), '  SECURITY LEVEL 3 - DEEP ARCHIVE //', '  ECH/OES SHIP SYSTEM TERMINAL 426 //', '> ACCESS GRANTED...', '> ' + '─'.repeat(33)].join('|'), rec.filter(r => r[1] === 'flavor').map(r => r[0]));
-    check('...with the three styles: bright for the two > lines, dim for the level and request lines, low for the protocol lines and the dots',
+    check('the accepted line and the L3 transition text played, typed (flavor), in order', rec.filter(r => r[1] === 'flavor').map(r => r[0]).join('|') === ['> GATEWAY COMMAND ACCEPTED . . .', '> ECH/OES SHIP SYSTEM TERMINAL 426 //', '  SECURITY LEVEL 3 - DEEP ARCHIVE //', '  ACCESS REQUESTED...', '  ECH/OES NETWORK ONLINE...', '  SECURE MODE ENGAGED...',
+      '  PRIVATE SECTOR UNLOCKED...', '  CHRONO-ZERO PROTOCOL ACTIVE...', '  ' + '.'.repeat(30), '  SECURITY LEVEL 3 - DEEP ARCHIVE //', '  ECH/OES SHIP SYSTEM TERMINAL 426 //', '> ACCESS GRANTED...', '> ' + '─'.repeat(33)].join('|'), rec.filter(r => r[1] === 'flavor').map(r => r[0]));
+    check('...with the three styles: bright for the two > lines, dim for the level and request lines and the closing protocol line, low for the other three and the dots',
       /\bfull\b/.test(by('> ACCESS GRANTED...')[2]) && /\bfull\b/.test(by('> ECH/OES SHIP SYSTEM TERMINAL 426 //')[2]) && /\bdim\b/.test(by('  ACCESS REQUESTED...')[2]) && /\bdim\b/.test(by('  SECURITY LEVEL 3 - DEEP ARCHIVE //')[2]) &&
-      /\blow\b/.test(by('  ECH/OES NETWORK ONLINE...')[2]) && /\blow\b/.test(by('  ' + '.'.repeat(30))[2]), rec.filter(r => r[1] === 'flavor').map(r => r[0].trim().slice(0, 18) + ':' + r[2]));
+      /\blow\b/.test(by('  ECH/OES NETWORK ONLINE...')[2]) && /\bdim\b/.test(by('  CHRONO-ZERO PROTOCOL ACTIVE...')[2]) && /\blow\b/.test(by('  ' + '.'.repeat(30))[2]), rec.filter(r => r[1] === 'flavor').map(r => r[0].trim().slice(0, 18) + ':' + r[2]));
     check('no line of it is wider than a phone fits (40 characters)', rec.filter(r => r[1] === 'flavor').every(r => r[0].length <= 40), Math.max(...rec.filter(r => r[1] === 'flavor').map(r => r[0].length)));
     await s.send('[EXIT]'); st = await s.st(); check('[EXIT] from L3 steps down to L2', st.state === 'L2A_ROOT' && st.level === 2, JSON.stringify(st));
     await s.send('[SYSTEM OVERRIDE]'); await s.send('[TREE]'); o = await s.out();
