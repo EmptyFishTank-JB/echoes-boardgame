@@ -936,17 +936,12 @@
                   },
                   {
                     "type": "text",
-                    "text": "Day thirty-four, by the research phase count. The",
+                    "text": "Day thirty-four of the research phase, by the count the",
                     "cls": "full"
                   },
                   {
                     "type": "text",
-                    "text": "captain's office started that count and nobody has",
-                    "cls": "full"
-                  },
-                  {
-                    "type": "text",
-                    "text": "told us to stop.",
+                    "text": "captain's office started. Nobody has told us to stop it.",
                     "cls": "full"
                   },
                   {
@@ -1040,17 +1035,22 @@
                   },
                   {
                     "type": "text",
-                    "text": "3. On Day forty-one conditions aboard will be reviewed.",
+                    "text": "3. Conditions aboard will be reviewed on Day forty-one of",
                     "cls": "full"
                   },
                   {
                     "type": "text",
-                    "text": "   If they have not improved, the pod bays open to all",
+                    "text": "   the phase, stardate 2143.159. If they have not",
                     "cls": "full"
                   },
                   {
                     "type": "text",
-                    "text": "   personnel on that date.",
+                    "text": "   improved, the pod bays open to all personnel on that",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "   date.",
                     "cls": "full"
                   },
                   {
@@ -1218,22 +1218,32 @@
                   },
                   {
                     "type": "text",
-                    "text": "I wrote on the first day of this phase that we had",
+                    "text": "That wing has kept its doors closed for as long as this",
                     "cls": "full"
                   },
                   {
                     "type": "text",
-                    "text": "everything we needed. I believed it when I wrote it.",
+                    "text": "ship has had programs, and I let this phase keep them",
                     "cls": "full"
                   },
                   {
                     "type": "text",
-                    "text": "I would like that on the record somewhere, that I",
+                    "text": "closed like the others. On the first day of it I wrote",
                     "cls": "full"
                   },
                   {
                     "type": "text",
-                    "text": "believed it.",
+                    "text": "that we had everything we needed. I believed it when I",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "wrote it. I would like that on the record somewhere,",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "that I believed it.",
                     "cls": "full"
                   },
                   {
@@ -1332,22 +1342,32 @@
                   },
                   {
                     "type": "text",
-                    "text": "Baseline run complete. All three calibration sources",
+                    "text": "Baseline for the new phase is done. Same three",
                     "cls": "full"
                   },
                   {
                     "type": "text",
-                    "text": "agree within tolerance. Cross has asked for the wing",
+                    "text": "calibration sources I have used on this wing for years,",
                     "cls": "full"
                   },
                   {
                     "type": "text",
-                    "text": "feed to come off the shared network for the duration.",
+                    "text": "and they agree within tolerance. Cross wants the wing",
                     "cls": "full"
                   },
                   {
                     "type": "text",
-                    "text": "Routine, he says. ECH/OES agrees.",
+                    "text": "feed off the shared network for the duration.",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "Compartmentalized, he says, like the last programs.",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "ECH/OES agrees.",
                     "cls": "full"
                   },
                   {
@@ -1362,22 +1382,22 @@
                   },
                   {
                     "type": "text",
-                    "text": "Run fourteen ended early. Cross says the shielding",
+                    "text": "Run fourteen of this phase ended early. Cross says the",
                     "cls": "full"
                   },
                   {
                     "type": "text",
-                    "text": "tripped. The shielding log shows no trip. I have asked",
+                    "text": "shielding tripped. The shielding log shows no trip. I have",
                     "cls": "full"
                   },
                   {
                     "type": "text",
-                    "text": "him twice for the record and he has said he will find",
+                    "text": "asked him twice for the record and he has said he will",
                     "cls": "full"
                   },
                   {
                     "type": "text",
-                    "text": "it.",
+                    "text": "find it.",
                     "cls": "full"
                   },
                   {
@@ -1437,17 +1457,22 @@
                   },
                   {
                     "type": "text",
-                    "text": "as routine. The readings in the shielding change when",
+                    "text": "as routine. In all my years on this wing no program has",
                     "cls": "full"
                   },
                   {
                     "type": "text",
-                    "text": "that session is active. I cannot tell which is",
+                    "text": "left a session running with nobody at it. The readings",
                     "cls": "full"
                   },
                   {
                     "type": "text",
-                    "text": "following which.",
+                    "text": "in the shielding change when that session is active. I",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "cannot tell which is following which.",
                     "cls": "full"
                   },
                   {
@@ -1551,17 +1576,37 @@
                   },
                   {
                     "type": "text",
-                    "text": "2143.150   OUTBOUND, MARS STATION OPS",
+                    "text": "2143.150   OUTBOUND, MANUAL ENTRY, COMMS OFFICE",
                     "cls": "dim"
                   },
                   {
                     "type": "text",
-                    "text": "CHARON REQUESTS [CORRUPTED]",
+                    "text": "It goes out on the schedule like everything else.",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "Nobody has answered since the second ship docked.",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "Send it anyway.",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "...[CORRUPTED]...",
                     "cls": "warn"
                   },
                   {
                     "type": "text",
                     "text": "QUEUE: ACCEPTED.   REVIEWER: NONE ASSIGNED.",
+                    "cls": "full"
+                  },
+                  {
+                    "type": "text",
+                    "text": "INBOUND MESSAGES SINCE 2109: NONE",
                     "cls": "full"
                   },
                   {
