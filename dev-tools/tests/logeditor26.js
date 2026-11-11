@@ -238,6 +238,12 @@ const LC = require('../log-codes.js');
   await ev(() => saveEntry());
   const ce = await ev((c) => iData[c], ccode);
   check('a classified entry stays classified, with its L1 preview, until changed', ce.type === 'classified' && ce.l1_preview === '[REDACTED]' && /CLASSIFIED/.test(await ev(() => ge('kind-note').textContent)), ce);
+  const curly = mk('2026.140.1200', 'CREATOR\u2019S LOG', 'D-001', 'Curly title.\n\n    \u2014\u2014 Dev. J. Betancourt');
+  curly.text = curly.text.replace('CREATOR\u2019S LOG', 'CREATOR\u2019S LOG \u2014 DAY 100');
+  await ev((a) => parseImp(JSON.stringify({ [a[0]]: a[1] }), 'test'), [LC.generateCode(2026, 5, 20, 12, 0, 1, LC.DEFAULT_SALT, 'D').code, curly]);
+  const curlyRow = await p.$$('.erow'); await curlyRow[curlyRow.length - 1].click();
+  const cl = await ev(() => ({ lt: gv('logtype'), lab: gv('labf') }));
+  check('a curly apostrophe in a loaded title becomes a straight one in the log type and label', cl.lt === "CREATOR'S LOG" && /^CREATOR'S LOG /.test(cl.lab) === (cl.lab.indexOf('\u2019') < 0), cl);
   const cd = await ev(() => entCond({ text: 'something [CORRUPTED] here' }));
   check('a [CORRUPTED] mark in the text reads as PARTIAL, the way the terminal reads it', cd === 'PARTIAL', cd);
 

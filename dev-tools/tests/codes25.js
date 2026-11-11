@@ -5,14 +5,19 @@ const root = path.resolve(__dirname, '..', '..', 'terminal-data');
 let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL ') + n + (!ok && x !== undefined ? '  ' + JSON.stringify(x).slice(0, 300) : '')); if (!ok) fails++; };
 const SALT = LC.DEFAULT_SALT;
 
-// every code made before sections existed: decodes, says no section, and regenerates to the same code
-const old = [];
-for (const f of ['lore.json', 'dev_logs.json']) for (const code of Object.keys(JSON.parse(fs.readFileSync(path.join(root, f), 'utf8')))) if (!/^TEMP0/.test(code)) old.push([f, code]);
-const legacy = old.filter(([, c]) => { const d = LC.decodeEntry(c, SALT); return d.valid && d.section === null; });
-check('existing codes decode with the project salt', old.length > 0 && old.every(([, c]) => LC.decodeEntry(c, SALT).valid || LC.decodeEntry(c, SALT).section), old.filter(([, c]) => !LC.decodeEntry(c, SALT).valid));
-check('...and a code with no section regenerates to exactly the same code', legacy.length > 0 && legacy.every(([, c]) => { const d = LC.decodeEntry(c, SALT); return LC.generateCode(d.year, d.month, d.day, d.hour, d.minute, d.number, SALT).code === c; }), legacy.length);
-const a01 = LC.decodeEntry('1GOXN-58Y5R-VNCUE-MUB0F', SALT);
-check('Captain\'s Log A-01 decodes to 2143.119.1719, number 1, no section', a01.valid && a01.stardate === '2143.119.1719' && a01.number === 1 && a01.section === null, a01);
+// Every code made before sections existed. The data files now carry department codes, so the old ones are listed here: they must
+// still decode, say no section and regenerate to exactly the same code.
+const OLD = { '1GOXN-58Y5R-VNCUE-MUB0F': '2143.119.1719', '1Q3CN-XVPCP-WGX6M-VTV0X': '2143.136.2132', '0DKPV-X47UZ-310W7-6JR03': '2026.135.1429',
+  '0SKDV-LTA3B-3TFYX-RXJ0D': '2026.136.0226', '0YLGV-HS6UQ-384SD-FPN01': '2026.136.2143', '0WLVV-57R9K-3UTR6-KXO02': '2026.137.1719',
+  '02TOV-9H188-3CD4C-3870P': '2026.146.1217', '0FXBV-1AFQH-3098O-G3Y0P': '2026.151.0103', '0UVOV-58FNO-79J1X-EAF04': '2026.315.0004' };
+const dec = Object.entries(OLD).map(([c, sd]) => [c, sd, LC.decodeEntry(c, SALT)]);
+check('the nine codes made before departments existed still decode with the project salt, to their stardates', dec.every(([, sd, d]) => d.valid && d.stardate === sd), dec.filter(([, sd, d]) => !(d.valid && d.stardate === sd)).map((x) => x[0]));
+check('...they carry no section and read as number 1', dec.every(([, , d]) => d.section === null && d.number === 1));
+check('...and each regenerates to exactly the same code', dec.every(([c, , d]) => LC.generateCode(d.year, d.month, d.day, d.hour, d.minute, d.number, SALT).code === c));
+// the codes now in the data files
+let inFiles = 0, bad = [];
+for (const f of ['lore.json', 'dev_logs.json']) for (const code of Object.keys(JSON.parse(fs.readFileSync(path.join(root, f), 'utf8')))) { inFiles++; const d = LC.decodeEntry(code, SALT); if (!(d.valid && d.section)) bad.push(code); }
+check('every code in lore.json and dev_logs.json is a real department code', inFiles > 0 && !bad.length, bad);
 
 // department codes
 const g = LC.generateCode(2143, 5, 6, 6, 14, 114, SALT, 'R'); const d = LC.decodeEntry(g.code, SALT);

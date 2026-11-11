@@ -1,5 +1,5 @@
 const { chromium, launchOptions, BASE } = require('./env.js');
-const LORE1 = '1GOXN-58Y5R-VNCUE-MUB0F', LORE2 = '1Q3CN-XVPCP-WGX6M-VTV0X', DEV = '02TOV-9H188-3CD4C-3870P';
+const LORE1 = '6IYRR-MMDG9-MD13K-M1X0M', LORE2 = '6TD6R-E9HO6-N2MFR-W0G04', DEV = 'LAWTA-PAEGW-4Q2R2-91S09';
 let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL ') + n + (ok ? '' : '  ' + x)); if (!ok) fails++; };
 (async () => {
   const browser = await chromium.launch(launchOptions);
@@ -35,7 +35,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
     await p.click('.le-actions >> text=RECOVERED LOGS'); await p.waitForTimeout(200);
     const rows = await s.rows();
     check('list has one row per entered code, oldest first', rows.length === 2 && rows[0][1] === LORE1 && rows[1][1] === LORE2, JSON.stringify(rows));
-    check('row = [Log header] // code // health // type', rows[0][0] === '[Log A-01 | Stardate 2143.119.1719]' && rows[0][2] === 'INTACT' && rows[0][3] === "CAPTAIN'S LOG", JSON.stringify(rows[0]));
+    check('row = [Log header] // code // health // type', rows[0][0] === '[Log A-014 | Stardate 2143.119.1719]' && rows[0][2] === 'INTACT' && rows[0][3] === "CAPTAIN'S LOG", JSON.stringify(rows[0]));
     const fit = await p.evaluate(() => Array.from(document.querySelectorAll('.le-head, .le-row')).map(r => ({ h: Math.round(r.getBoundingClientRect().height), over: r.scrollWidth > r.clientWidth + 1, cells: Array.from(r.children).map(c => c.scrollWidth > c.clientWidth + 1) })));
     check('list rows fit without wrapping or clipping (one line each)', fit.every(f => f.h < 34 && !f.over && f.cells.every(c => !c)), JSON.stringify(fit));
     await p.fill('.le-code', 'KEEP'); await p.hover('.le-row >> nth=1');
@@ -55,7 +55,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
     check('L3 dev log (92 character lines) fits without wrapping or sideways scroll', !dv.over && dv.wrap === 'pre', JSON.stringify(dv));
     await p.click('.le-actions >> text=RECOVERED LOGS'); await p.waitForTimeout(150);
     const r3 = await s.rows();
-    check('recovered list at L3 shows both the lore and dev logs entered so far, with creator log types', r3.length === 3 && r3.some(r => r[3] === "CREATOR'S LOG" && r[0] === '[Log A-05 | Stardate 2026.146.1217]'), JSON.stringify(r3));
+    check('recovered list at L3 shows both the lore and dev logs entered so far, with creator log types', r3.length === 3 && r3.some(r => r[3] === "CREATOR'S LOG" && r[0] === '[Log D-001 | Stardate 2026.146.1217]'), JSON.stringify(r3));
     await p.click('.le-row >> nth=0'); await p.waitForTimeout(150);
     check('a recovered lore log can be reopened at L3 (you already hold it)', (await s.view()).includes('Day one of the new research phase'));
     check('page errors', s.errs.length === 0, JSON.stringify(s.errs));

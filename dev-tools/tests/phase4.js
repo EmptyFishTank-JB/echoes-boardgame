@@ -2,7 +2,7 @@ const { chromium, launchOptions, BASE } = require('./env.js');
 const URL = BASE + '/terminal.html';
 let fails = 0;
 const check = (name, ok, extra) => { if (!ok) fails++; console.log((ok ? 'PASS ' : 'FAIL ') + name + (extra ? '  ' + extra : '')); };
-const LORE = '1GOXN-58Y5R-VNCUE-MUB0F', DEV = '0DKPV-X47UZ-310W7-6JR03';
+const LORE = '6IYRR-MMDG9-MD13K-M1X0M', DEV = 'LLMTA-DWP3N-4WPJY-CDD0O';
 
 async function session(ctxOrBrowser, patch = {}) {
   const page = await ctxOrBrowser.newPage({ viewport: { width: 1200, height: 900 } });

@@ -2,7 +2,7 @@ const { chromium, launchOptions, BASE } = require('./env.js');
 const URL = BASE + '/terminal.html';
 let fails = 0;
 const check = (name, ok, extra) => { if (!ok) fails++; console.log((ok ? 'PASS ' : 'FAIL ') + name + (extra ? '  ' + extra : '')); };
-const LORE = '1GOXN-58Y5R-VNCUE-MUB0F', DEV = '0DKPV-X47UZ-310W7-6JR03';
+const LORE = '6IYRR-MMDG9-MD13K-M1X0M', DEV = 'LLMTA-DWP3N-4WPJY-CDD0O';
 
 async function session(browser, patch = {}) {
   const page = await browser.newPage({ viewport: { width: 1200, height: 900 } });
@@ -83,7 +83,7 @@ async function session(browser, patch = {}) {
     check('bad format: error, and the window stays open', (await s.msg()).includes('INVALID FORMAT') && await s.winOpen());
     await s.code(LORE.replace(/-/g, ''));
     let v = await s.view(); let st = await s.st();
-    check('valid lore code at L2: entry shown in the window', v.includes('[Log A-01 | Stardate 2143.119.1719]') && v.includes('We have everything we need.') && (await s.msg()).includes('ENTRY RECOVERED'), v.slice(0, 80));
+    check('valid lore code at L2: entry shown in the window', v.includes('[Log A-014 | Stardate 2143.119.1719]') && v.includes('We have everything we need.') && (await s.msg()).includes('ENTRY RECOVERED'), v.slice(0, 80));
     check('...not the dev-log variant, and no "decrypting" header', !v.includes('DECRYPTING'));
     check('discovery recorded', await s.page.evaluate(c => !!JSON.parse(localStorage.getItem('echo_disc') || '{}')[c], LORE));
     await s.page.keyboard.press('Escape'); await s.settle(); st = await s.st(); o = await s.out();

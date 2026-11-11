@@ -1,15 +1,10 @@
 {
-  "1GOXN-58Y5R-VNCUE-MUB0F": {
-    "label": "CAPTAIN'S LOG A-01 | Stardate 2143.119.1719",
+  "6IYRR-MMDG9-MD13K-M1X0M": {
+    "label": "CAPTAIN'S LOG A-014 | Stardate 2143.119.1719",
     "type": "full",
     "clearance": 2,
-    "text": "[Log A-01 | Stardate 2143.119.1719]\nCAPTAIN'S LOG\n\nDay one of the new research phase. The team is settled.\nMorale is good — as good as it gets out here, which is\ngood enough.\n\nWhatever Dr. Cross and his people are working on in the\nresearch wing, the rest of the crew has stopped asking.\nThat's how it usually goes. You get curious and then\nyou get bored of being curious and then you get used to\nthe closed doors.\n\nFourteen months to the next supply ship.\nWe have everything we need.\n\nWe have everything we need.\n\n    —— Capt. E. Harrow\n[END OF LOG]"
-  },
-  "1Q3CN-XVPCP-WGX6M-VTV0X": {
-    "label": "CAPTAIN'S LOG A-15 | Stardate 2143.136.2132",
-    "type": "full",
-    "clearance": 2,
-    "text": "[Log A-15 | Stardate 2143.136.2132]\nCAPTAIN'S LOG\n\nDr. Osei submitted a supplemental sensor report today.\nShe wouldn't say what it was about. Said it was Cross's\ndepartment. I asked Cross.\n\nCross said it was fine.\n\nI've known Harlan Cross for eleven years. I know what\nhis \"fine\" means. It means he's deciding how much\nto tell you.\n\nI told him to keep me informed.\n\nHe said he would.\n\n    —— Capt. E. Harrow\n[END OF LOG]"
+    "author": "A-014",
+    "text": "[Log A-014 | Stardate 2143.119.1719]\nCAPTAIN'S LOG\n\nDay one of the new research phase. The team is settled.\nMorale is good — as good as it gets out here, which is\ngood enough.\n\nWhatever Dr. Cross and his people are working on in the\nresearch wing, the rest of the crew has stopped asking.\nThat's how it usually goes. You get curious and then\nyou get bored of being curious and then you get used to\nthe closed doors.\n\nFourteen months to the next supply ship.\nWe have everything we need.\n\nWe have everything we need.\n\n    —— Capt. E. Harrow\n[END OF LOG]"
   },
   "6RR68-2HTES-9EC73-G1K23": {
     "label": "POD BAY LOG O-066 | Stardate 2143.162.2205",
@@ -17,6 +12,13 @@
     "clearance": 2,
     "author": "O-066",
     "text": "[Log O-066 | Stardate 2143.162.2205]\nPOD BAY LOG\n\nDay forty-four, Sector Seven bay.\n\nFive cradles, five pods, all away by 2140. I released the\nlast one myself. Nobody told me to stay and nobody told me\nto go, so I am writing this and then I am going to sit down.\n\nEach pod seats six. I did not count the people. I counted\nthe empty seats on the way out and stopped at eleven.\n\nThe beacons are dark. I asked three people why and got three\ndifferent reasons. All three were frightened, so I believe\nall three.\n\nIf anyone reads this, the cradles are intact. Whoever left\ndid it clean.\n\n    —— J. Park, Pod Bay Technician\n[END OF LOG]"
+  },
+  "6TD6R-E9HO6-N2MFR-W0G04": {
+    "label": "CAPTAIN'S LOG A-014 | Stardate 2143.136.2132",
+    "type": "full",
+    "clearance": 2,
+    "author": "A-014",
+    "text": "[Log A-014 | Stardate 2143.136.2132]\nCAPTAIN'S LOG\n\nDr. Osei submitted a supplemental sensor report today.\nShe wouldn't say what it was about. Said it was Cross's\ndepartment. I asked Cross.\n\nCross said it was fine.\n\nI've known Harlan Cross for eleven years. I know what\nhis \"fine\" means. It means he's deciding how much\nto tell you.\n\nI told him to keep me informed.\n\nHe said he would.\n\n    —— Capt. E. Harrow\n[END OF LOG]"
   },
   "L1O7J-U38KD-IYXZ4-Y5G29": {
     "label": "RESEARCH LOG R-142 | Stardate 2143.126.0614",

@@ -966,7 +966,8 @@ function stripLegacyHeader(text){
 // Best-effort log type recovery for entries saved before Log Type existed:
 // prefer the title on the text's second line (e.g. "CAPTAIN'S LOG -- DAY 1
 // -- SURVEY VESSEL" -> "CAPTAIN'S LOG"), falling back to the label prefix.
-function guessLogType(text,label){
+function guessLogType(text,label){ return guessLogTypeRaw(text,label).replace(/[\u2018\u2019]/g,"'"); }   // always a straight apostrophe, so CREATOR\u2019S and CREATOR'S do not both appear
+function guessLogTypeRaw(text,label){
   var lines=(text||'').split('\n');
   if(lines.length>1 && /^\[.*\]$/.test((lines[0]||'').trim())){
     var t2=(lines[1]||'').trim();

@@ -84,7 +84,7 @@ this section says so.
 
 ## Suggested edits to the two existing logs
 
-Nothing here is applied. Both stay as they are until you decide.
+Nothing in this table is applied. The text of both stays as it is until you decide.
 
 **CAPTAIN'S LOG A-01 (2143.119.1719)**
 
@@ -99,10 +99,9 @@ day-one date matches the phase start.
 **CAPTAIN'S LOG A-15 (2143.136.2132)**
 
 Accurate. Osei's supplemental report, "Cross's department", "I've known Harlan Cross for eleven years" and "keep me informed"
-all fit. The label number is the open point. Under the Log ID scheme below a log is named for its author, so the Captain's logs
-would all read A-014 and the stardate tells them apart. A-01 and A-15 still carry their old numbers and old-style codes. They work
-unchanged. To move them over, load each in the log editor, pick Capt. E. Harrow, press GENERATE and tick REPLACE THE OLD CODE.
-That changes the code players type, so only do it if neither code has gone out yet.
+all fit. Both Captain's logs are now filed under the Captain's crew ID, A-014, with new codes made in the editor
+(`6IYRR-MMDG9-MD13K-M1X0M` for 2143.119.1719 and `6TD6R-E9HO6-N2MFR-W0G04` for 2143.136.2132). The old numbers A-01 and A-15
+and the old codes are gone. A log's number is its author's number, so the stardate is what tells the Captain's logs apart.
 
 Question for the signature: every log ends `    —— Name`, two em dashes. The prose rules say none outside interrupted
 dialogue. The new logs keep the `——` attribution to match A-01, A-15 and the dev logs, and avoid em dashes in the text.
