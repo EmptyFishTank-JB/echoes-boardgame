@@ -44,8 +44,11 @@ function uid(ctx, prefix, name) {
   while (ctx.os.items[id]) id = base + '_' + n++;
   return id;
 }
+// Programs and gateways never draw a page, so they have no title (see isGlobalType).
 function make(o) {
-  return Object.assign({ hidden: false, title: o.name, footer: '', body: [], children: [], commands: [] }, o);
+  const base = { hidden: false, footer: '', body: [], children: [], commands: [] };
+  if (o.type !== 'program' && o.type !== 'gateway') base.title = o.name;
+  return Object.assign(base, o);
 }
 
 async function ask(ctx, label, placeholder, opts) {
@@ -282,7 +285,7 @@ const handlers = {
     if (!isGlobalType(it)) { const h = await yn(ctx, '> HIDDEN? (Y/N, ENTER = KEEP ' + (it.hidden ? 'Y' : 'N') + '):', it.hidden); if (h === null) return canceled(ctx); hidden = h; }
     const alias = await askAlias(ctx, name || it.name, { parentId: it._parent, global: hidden || isGlobalType(it), exceptId: it.id, program: it.type === 'program' }, it.alias);
     if (alias === null) return canceled(ctx);
-    const title = await ask(ctx, '> TITLE (ENTER = KEEP "' + (it.title || it.name) + '"):', it.title || it.name); if (title === null) return canceled(ctx);
+    const title = isGlobalType(it) ? '' : await ask(ctx, '> TITLE (ENTER = KEEP "' + (it.title || it.name) + '"):', it.title || it.name); if (title === null) return canceled(ctx);
     let body = null;
     if (it.type === 'doc' || it.stub) {
       const rb = it.stub ? true : await yn(ctx, '> RETYPE THE TEXT? (Y/N, ENTER = N):', false);
@@ -427,7 +430,8 @@ async function askDestination(ctx, current, moving, hint) {
 
 // The properties [SET] can change for an item, in the order the right-click menu lists them.
 function fieldKeys(it) {
-  const k = ['NAME', 'ALIAS', 'TITLE'];
+  const k = ['NAME', 'ALIAS'];
+  if (!isGlobalType(it)) k.push('TITLE');
   if (!isGlobalType(it) && !it.stub) k.push('HIDDEN');
   if (!isGlobalType(it)) k.push('FOOTER');
   if (it.type === 'doc' || it.stub) k.push('TEXT');
@@ -509,8 +513,8 @@ function infoRows(it, items) {
     { k: 'TYPE', v: it.type + (it.stub ? ' (stub)' : '') + ', L' + it.tier },
     { k: 'NAME', v: it.name, ...set('NAME') },
     { k: 'ALIAS', v: it.alias || '(none)', cmd: '[ALIAS]', preset: { target: it.id } },
-    { k: 'TITLE', v: it.title || it.name, ...set('TITLE') },
   ];
+  if (!isGlobalType(it)) rows.push({ k: 'TITLE', v: it.title || it.name, ...set('TITLE') });
   if (isGlobalType(it)) rows.push({ k: 'HIDDEN', v: 'always (reached by its alias)' });
   else if (!it.stub) rows.push({ k: 'HIDDEN', v: it.hidden ? 'yes (opens by alias only)' : 'no', cmd: it.hidden ? '[SHOW]' : '[HIDE]', preset: { target: it.id } });
   if (!isGlobalType(it)) rows.push({ k: 'FOOTER', v: it.footer || '(none)', ...set('FOOTER') });

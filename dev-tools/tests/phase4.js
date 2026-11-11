@@ -103,6 +103,7 @@ async function session(ctxOrBrowser, patch = {}) {
   await s.send('[ARCHIVE B]'); await s.run('[RM]', ['FIELD NOTES']); o = await s.out();
   check('[RM] refuses to delete something a gateway points into', o.some(l => l.includes('CANNOT DELETE') && l.includes('GW_PEEK')));
   await s.send('[BACK]'); await s.send('[PEEK]'); st = await s.st(); check('gateway jumps to its destination folder', /FIELD_NOTES/.test(st.state), st.state);
+  check('a gateway made by [NEW GATEWAY] has no title (it never draws a page)', await s.page.evaluate(() => !('title' in osItems.GW_PEEK)));
   await s.send('[ROOT]'); await s.run('[RM]', ['PEEK', 'Y']); await s.send('[ARCHIVE B]'); await s.run('[RM]', ['FIELD NOTES', 'Y']); o = await s.out();
   check('...and deletes it (with its contents) once nothing points into it', o.some(l => l.includes('DELETED 2 ITEM(S)')), o.filter(l => l.includes('DELETE')).join(' | '));
 

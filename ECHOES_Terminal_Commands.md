@@ -97,6 +97,7 @@ These never appear in a listing. The player learns them from the story.
 |---|---|---|
 | `[ECHOES.ARCHIVE]` | The chat | Enters the layer 1 archive. Prints a mount line, then the ECHOES.ARCHIVE root. It is not on the landing screen, not in `[HELP]` and not in the player `[TREE]`: it is printed on a few of the game's Echo cards, and players bring it to the terminal and type it. Its item in `echo-os.json` (the `l1c` root's command) has `"hidden": true`. Typed only: nothing on the chat screen can be clicked to enter. The author `[TREE]` lists it. |
 | `[INITIATE ECHO PROTOCOL]` | Anywhere: the chat or any archive page | Gateway to the L2 root. Plays the L2 flavor text in the layer 1 theme, then changes theme and ambient sound, then draws `L2A_ROOT`. |
+| `[INITIATE CHRONO-ZERO PROTOCOL]` | Any page at L2 or L3 (an unknown command at L1 and in the chat, because the gateway is a level 2 item) | Gateway to the L3 root. Plays the L3 flavor text (`L3A_INTRO`), then changes theme and ambient sound, then draws `L3A_ROOT`. |
 | `[FETCH LOG ENTRY: //]` | Any L2 or L3 page (answers "unavailable" in the chat and at L1) | Program `lore-entry`, shown as **FETCH LOG.EXE** in its own window (see section 3a). |
 
 A hidden item opens only if its level is at or below the level you are in. A program opens only where its
@@ -122,7 +123,7 @@ else it answers "fetch unavailable".
 | `Left` with an empty field | Same as `[BACK]` (on a program prompt, cancels). |
 | `Esc` | Same as `[EXIT]` on an archive page. In a program prompt it cancels. |
 | Hover an item | Highlights it and shows its `[COMMAND]` in the input field. Moving away restores what was typed. |
-| Type a full command | The input field highlights as soon as what you typed is a valid command, listed or not. Hidden commands (`[ECHOES.ARCHIVE]`, `[SYSTEM OVERRIDE]`, `[INITIATE ECHO PROTOCOL]`, hidden items, programs) light it too, so finding one confirms it is real. Author commands light it only once typed in full, and only in author mode. Inside `[SYSTEM OVERRIDE]` only the override menu's own commands light it. |
+| Type a full command | The input field highlights as soon as what you typed is a valid command, listed or not. Hidden commands (`[ECHOES.ARCHIVE]`, `[SYSTEM OVERRIDE]`, `[INITIATE ECHO PROTOCOL]`, `[INITIATE CHRONO-ZERO PROTOCOL]`, hidden items, programs) light it too, so finding one confirms it is real. Author commands light it only once typed in full, and only in author mode. Inside `[SYSTEM OVERRIDE]` only the override menu's own commands light it. |
 | Click an item | Runs it as if typed. Ignored while the terminal is drawing. |
 | Address bar `↰` | Up one level (`[BACK]`). |
 | Address bar path segment | Jumps to that ancestor folder. |
@@ -201,7 +202,7 @@ in `echo-os.json` removes every author command: `[AUTHOR UNLOCK]` then behaves l
 | `[NEW GATEWAY]` | Hidden command that jumps to any folder, at any level. A different level plays the transition. |
 | `[EDIT]` | Changes an item's name, alias, title, hidden flag and text, one question after another. On a stub it turns it into a real doc. |
 | `[LAYER]`, `[LAYER <SETTING>]` | Changes a setting of a whole layer: the one you are standing in (or the one a right-click named). `[LAYER]` lists them and asks; `[LAYER PRIMARY]` goes straight to one. See section 5a. |
-| `[SET]`, `[SET <PROPERTY>]` | Changes one property of an item. `[SET]` asks which; `[SET NAME]` goes straight to it. Properties: `NAME`, `ALIAS`, `TITLE`, `HIDDEN` (toggles), `FOOTER`, `TEXT` (docs and stubs), `LOG` (log items: source and code), `DESTINATION` (gateways), `PROGRAM` and `SCOPE` (programs). Asks which item unless a click or the right-click menu named it. |
+| `[SET]`, `[SET <PROPERTY>]` | Changes one property of an item. `[SET]` asks which; `[SET NAME]` goes straight to it. Properties: `NAME`, `ALIAS`, `TITLE`, `HIDDEN` (toggles), `FOOTER`, `TEXT` (docs and stubs), `LOG` (log items: source and code), `DESTINATION` (gateways), `PROGRAM` and `SCOPE` (programs). Gateways and programs have only `NAME` and `ALIAS` (plus their own): they never draw a page, so they have no title, hidden toggle or footer. Asks which item unless a click or the right-click menu named it. |
 | `[HIDE]`, `[SHOW]` | Unlists an item (it still opens by its alias) or lists it again. Programs and gateways are always hidden. |
 | `[ALIAS]` | Changes an item's `[COMMAND]`. |
 | `[MV]` | Moves an item and everything under it to another folder. `..` means the parent folder. |
@@ -226,7 +227,7 @@ be unique within their folder. Programs may share an alias across levels.
 | Input | Effect |
 |---|---|
 | `(o)` / `(-)` beside an item | Open or closed eye. Click it to list or unlist the item. |
-| Right-click an item | A menu that starts with what the item is, one row per property: `ID`, `TYPE`, `NAME`, `ALIAS`, `TITLE`, `HIDDEN`, `FOOTER`, `CONTAINS` (folders), `TEXT` (docs), `LOG ENTRY` (logs), `DESTINATION` (gateways, shown as name and id, for example `L3 ROOT (L3A_ROOT)`), `PROGRAM` and `SCOPE` (programs). `ID`, `TYPE` and `CONTAINS` are read-only. Click any other row to change that property: it asks only the one question (`[SET NAME]`, `[ALIAS]`, `[SHOW]`/`[HIDE]` and so on). Below the rows: open, edit everything, move, delete. Skips the "which item?" prompt. |
+| Right-click an item | A menu that starts with what the item is, one row per property: `ID`, `TYPE`, `NAME`, `ALIAS`, `TITLE` (not for gateways and programs), `HIDDEN`, `FOOTER`, `CONTAINS` (folders), `TEXT` (docs), `LOG ENTRY` (logs), `DESTINATION` (gateways, shown as name and id, for example `L3 ROOT (L3A_ROOT)`), `PROGRAM` and `SCOPE` (programs). `ID`, `TYPE` and `CONTAINS` are read-only. Click any other row to change that property: it asks only the one question (`[SET NAME]`, `[ALIAS]`, `[SHOW]`/`[HIDE]` and so on). Below the rows: open, edit everything, move, delete. Skips the "which item?" prompt. |
 | Right-click empty space | Menu: the create commands, tree, export, help, lock. At a level root it also offers `LAYER SETTINGS...`. |
 | Right-click the address bar | The same rows as an item's menu, for the page you are on. At a level root it adds the layer's settings (section 5a). |
 | Click a line in `[TREE]` | Jumps straight to that item, across levels. Programs, gateways and stubs land on their folder. |

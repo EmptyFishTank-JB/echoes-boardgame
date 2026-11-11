@@ -571,8 +571,28 @@
         },
         {
           "type": "text",
-          "text": "> ACCESSING DEEP ARCHIVE...",
+          "text": "> ECH/OES SHIP SYSTEM TERMINAL 426 //",
           "cls": "full"
+        },
+        {
+          "type": "text",
+          "text": "  SECURITY LEVEL 3 - DEEP ARCHIVE //",
+          "cls": "dim"
+        },
+        {
+          "type": "text",
+          "text": "",
+          "cls": "blank"
+        },
+        {
+          "type": "text",
+          "text": "  ACCESS REQUESTED...",
+          "cls": "dim"
+        },
+        {
+          "type": "text",
+          "text": "",
+          "cls": "blank"
         },
         {
           "type": "text",
@@ -586,7 +606,47 @@
         },
         {
           "type": "text",
-          "text": "> DEV.MODE ENGAGED.",
+          "text": "  ECH/OES NETWORK ONLINE...",
+          "cls": "low"
+        },
+        {
+          "type": "text",
+          "text": "  SECURE MODE ENGAGED...",
+          "cls": "low"
+        },
+        {
+          "type": "text",
+          "text": "",
+          "cls": "blank"
+        },
+        {
+          "type": "text",
+          "text": "  ..............................",
+          "cls": "low"
+        },
+        {
+          "type": "text",
+          "text": "",
+          "cls": "blank"
+        },
+        {
+          "type": "text",
+          "text": "  SECURITY LEVEL 3 - DEEP ARCHIVE //",
+          "cls": "dim"
+        },
+        {
+          "type": "text",
+          "text": "  ECH/OES SHIP SYSTEM TERMINAL 426 //",
+          "cls": "dim"
+        },
+        {
+          "type": "text",
+          "text": "",
+          "cls": "blank"
+        },
+        {
+          "type": "text",
+          "text": "> ACCESS GRANTED...",
           "cls": "full"
         },
         {
@@ -2161,7 +2221,6 @@
           },
           {
             "hidden": true,
-            "title": "INITIATE ECHO PROTOCOL",
             "footer": "",
             "body": [],
             "children": [],
@@ -2318,7 +2377,6 @@
           },
           {
             "hidden": true,
-            "title": "FETCH LOG ENTRY",
             "footer": "",
             "body": [],
             "children": [],
@@ -2330,6 +2388,19 @@
             "name": "FETCH LOG ENTRY",
             "alias": "[FETCH LOG ENTRY: //]",
             "tier": 2
+          },
+          {
+            "hidden": true,
+            "footer": "",
+            "body": [],
+            "children": [],
+            "commands": [],
+            "id": "GW_INITIATE_CHRONO_ZERO_PROTOCOL",
+            "type": "gateway",
+            "name": "INITIATE CHRONO-ZERO PROTOCOL",
+            "alias": "[INITIATE CHRONO-ZERO PROTOCOL]",
+            "tier": 2,
+            "goto": "L3A_ROOT"
           }
         ],
         "commands": []
@@ -2347,7 +2418,6 @@
         "children": [
           {
             "hidden": true,
-            "title": "FETCH LOG ENTRY",
             "footer": "",
             "body": [],
             "children": [],

@@ -69,6 +69,35 @@ async function session(browser, patch = {}) {
     await s.send('[STATUS]'); o = await s.out(); check('validator: gateway target resolves (no dangling)', o.some(l => /DANGLING TARGETS: 0/.test(l)));
     console.log('   page errors:', s.errs); }
 
+  // ---- B2. [INITIATE CHRONO-ZERO PROTOCOL]: the gateway from L2 into the L3 root ----
+  { const s = await session(browser);
+    await s.send('[INITIATE CHRONO-ZERO PROTOCOL]'); let st = await s.st(); let o = await s.out();
+    check('in the chat (L1) the command is not recognized: it is an L2 item', st.state === 'L1_NORMAL' && st.level === 1 && !o.some(l => l.includes('SECURE MODE ENGAGED')), JSON.stringify(st));
+    await s.send('[ECHOES.ARCHIVE]'); await s.send('[INITIATE CHRONO-ZERO PROTOCOL]'); st = await s.st();
+    check('...nor on an L1 archive page', st.level === 1 && st.state === 'L1A_ROOT', JSON.stringify(st));
+    await s.send('[INITIATE ECHO PROTOCOL]');
+    await s.page.evaluate(() => { window.__rec = []; const o = window.put; window.put = function (el, text, kind) { window.__rec.push([text, kind || 'status', el && el.className]); return o.apply(this, arguments); }; });
+    await s.send('[INITIATE CHRONO-ZERO PROTOCOL]'); st = await s.st();
+    check('typed at L2: lands on the L3 root with the L3 theme and header', st.state === 'L3A_ROOT' && st.level === 3 && st.cls.includes('layer-3a') && (await s.page.$eval('#t-title', e => e.textContent)).includes('DEEP ARCHIVE'), JSON.stringify(st));
+    const rec = await s.page.evaluate(() => window.__rec);
+    const by = (t) => rec.find(r => r[0] === t) || [];
+    check('the L3 transition text played, typed (flavor), in order', rec.filter(r => r[1] === 'flavor').map(r => r[0]).join('|') === ['> ECH/OES SHIP SYSTEM TERMINAL 426 //', '  SECURITY LEVEL 3 - DEEP ARCHIVE //', '  ACCESS REQUESTED...', '  CHRONO-ZERO PROTOCOL ACTIVE...', '  PRIVATE SECTOR UNLOCKED...',
+      '  ECH/OES NETWORK ONLINE...', '  SECURE MODE ENGAGED...', '  ' + '.'.repeat(30), '  SECURITY LEVEL 3 - DEEP ARCHIVE //', '  ECH/OES SHIP SYSTEM TERMINAL 426 //', '> ACCESS GRANTED...', '> ' + '─'.repeat(33)].join('|'), rec.filter(r => r[1] === 'flavor').map(r => r[0]));
+    check('...with the three styles: bright for the two > lines, dim for the level and request lines, low for the protocol lines and the dots',
+      /\bfull\b/.test(by('> ACCESS GRANTED...')[2]) && /\bfull\b/.test(by('> ECH/OES SHIP SYSTEM TERMINAL 426 //')[2]) && /\bdim\b/.test(by('  ACCESS REQUESTED...')[2]) && /\bdim\b/.test(by('  SECURITY LEVEL 3 - DEEP ARCHIVE //')[2]) &&
+      /\blow\b/.test(by('  ECH/OES NETWORK ONLINE...')[2]) && /\blow\b/.test(by('  ' + '.'.repeat(30))[2]), rec.filter(r => r[1] === 'flavor').map(r => r[0].trim().slice(0, 18) + ':' + r[2]));
+    check('no line of it is wider than a phone fits (40 characters)', rec.filter(r => r[1] === 'flavor').every(r => r[0].length <= 40), Math.max(...rec.filter(r => r[1] === 'flavor').map(r => r[0].length)));
+    await s.send('[EXIT]'); st = await s.st(); check('[EXIT] from L3 steps down to L2', st.state === 'L2A_ROOT' && st.level === 2, JSON.stringify(st));
+    await s.send('[SYSTEM OVERRIDE]'); await s.send('[TREE]'); o = await s.out();
+    check('author [TREE] shows the gateway, hidden, with its destination', o.some(l => l.includes('[INITIATE CHRONO-ZERO PROTOCOL]') && l.includes('~hidden') && l.includes('gateway: L3 ROOT (L3A_ROOT)')), o.filter(l => /CHRONO/.test(l)));
+    await s.send('[STATUS]'); o = await s.out(); check('validator: no dangling targets with both gateways', o.some(l => /DANGLING TARGETS: 0/.test(l)));
+    // gateways and programs have no title
+    await s.send('[EXIT]'); await s.send('[AUTHOR UNLOCK]');
+    const keys = await s.page.evaluate(() => ({ gw: authorMod.infoRows(osItems.GW_INITIATE_CHRONO_ZERO_PROTOCOL, osItems).map(r => r.k), doc: authorMod.infoRows(Object.values(osItems).find(i => i.type === 'doc'), osItems).map(r => r.k),
+      none: Object.values(osItems).filter(i => i.type === 'gateway' || i.type === 'program').every(i => !('title' in i)) }));
+    check('the right-click rows of a gateway have no TITLE (a doc still does), and no gateway or program carries a title', !keys.gw.includes('TITLE') && keys.gw.includes('DESTINATION') && keys.doc.includes('TITLE') && keys.none, JSON.stringify(keys));
+    console.log('   page errors:', s.errs); }
+
   // ---- C. lore-entry program ----
   { const s = await session(browser);
     await s.send('[FETCH LOG ENTRY: //]'); let o = await s.out();
