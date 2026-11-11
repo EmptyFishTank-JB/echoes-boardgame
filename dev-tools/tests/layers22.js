@@ -15,7 +15,8 @@ const L = require('./lib.js');
   check('the unreachable layer 2 and 3 chat screens are gone', !d0.screens.L2C_ROOT && !d0.screens.L3C_ROOT, Object.keys(d0.screens));
   const eng = await (await fetch(process.env.ECHOES_URL ? process.env.ECHOES_URL + '/terminal-data/engine_config.json' : 'http://localhost:8803/terminal-data/engine_config.json')).json();
   check('engine_config.json no longer holds theme or ambient sound', !eng.theme && !(eng.audio && eng.audio.ambient) && eng.audio.master_volume > 0, Object.keys(eng));
-  check('the engine paints each layer from its own colors', (await css('--theme-full')) === d0.layers.l1a.colors.primary && (await p.evaluate(() => document.getElementById('theme-overrides').textContent.includes('body.layer-3a{--theme-full:#e05050'))));
+  check('the engine paints each layer from its own colors (the chat on the page, the archive layers by body class)', (await css('--theme-full')) === d0.layers.l1c.colors.primary && (await p.evaluate((c) => document.getElementById('theme-overrides').textContent.includes('body.layer-1a{--theme-full:' + c), d0.layers.l1a.colors.primary)) && (await p.evaluate(() => document.getElementById('theme-overrides').textContent.includes('body.layer-3a{--theme-full:#e05050'))));
+  check('every layer has its own corruption color, and the engine paints it', ['l1c', 'l1a', 'l2a', 'l3a'].every((k) => /^#[0-9a-f]{6}$/i.test(d0.layers[k].colors.glitch)) && (await p.evaluate(() => document.getElementById('theme-overrides').textContent.includes('body.layer-3a{') && /body\.layer-3a\{[^}]*--theme-glitch:#6fe3ff/.test(document.getElementById('theme-overrides').textContent))));
 
   // ---- the right-click menu on the address bar ----
   await send('[ECHOES.ARCHIVE]'); await send('[AUTHOR UNLOCK]');

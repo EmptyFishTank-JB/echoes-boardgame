@@ -25,7 +25,7 @@ const L = require('./lib.js');
     (await input(d, 'NAME').inputValue()) === 'CREW MANIFEST' && (await input(d, 'ALIAS').inputValue()) === '[CREW MANIFEST]' && (await input(d, 'TITLE').count()) === 1 && (await input(d, 'FOOTER').count()) === 1 &&
     (await field(d, 'HIDDEN').locator('button').count()) === 1 && (await d.locator('.ed-ln').count()) >= 3);
   check('the page behind it is still there and usable (not modal)', await p.evaluate(() => !document.querySelector('#prog-layer') && document.getElementById('t-field') && !document.getElementById('t-field').disabled));
-  check('the window wears the theme of the item\'s layer (L1A cyan)', (await css('.ed-dlg', '--theme-full')) === '#4fc3f7', await css('.ed-dlg', '--theme-full'));
+  check('the window wears the theme of the item\'s layer (L1A grey jade)', (await css('.ed-dlg', '--theme-full')) === '#8fbfae', await css('.ed-dlg', '--theme-full'));
 
   // stage changes, then apply
   await input(d, 'NAME').fill('CREW LIST'); await input(d, 'ALIAS').fill('[CREWLIST]'); await input(d, 'TITLE').fill('CREW LIST - OFFLINE');
@@ -106,13 +106,13 @@ const L = require('./lib.js');
   await p.evaluate(() => { window.__snd = []; const pa = window.previewAmbient; window.previewAmbient = function (c, v) { window.__snd.push(['play', c && c.oscillators ? c.oscillators.length : 0, v]); return pa.apply(this, arguments); }; const sa = window.stopAmbientPreview; window.stopAmbientPreview = function (k) { window.__snd.push(['stop', !!k]); return sa.apply(this, arguments); }; });
   await send('[LAYER]'); await p.waitForSelector('.ed-dlg', { timeout: 8000 }); await p.waitForTimeout(300); d = D('LAYER SETTINGS');
   check('[LAYER] opens one window for the layer settings, with a tab for the chat and each archive layer', (await d.locator('.ed-tabs button').allInnerTexts()).join('|') === 'L1C CHAT|L1A|L2A|L3A' && (await d.locator('.ed-bar .sub').textContent()) === 'L1A', await d.locator('.ed-tabs button').allInnerTexts());
-  check('it has a text box for the title, theme chips, a color field for each of four colors, three sliders, the transition text and a sound list',
-    (await input(d, 'TITLE').inputValue()) === 'ECHOES-ARCHIVE' && (await d.locator('.ed-chip').count()) === 11 && (await d.locator('input[type=text].ed-in').count()) >= 5 && (await d.locator('input[type=color]').count()) === 4 && (await d.locator('input[type=range]').count()) >= 4 && (await d.locator('.ed-snd .it').count()) === 8);
+  check('it has a text box for the title, theme chips, a color field for each of five colors (the corruption color too), three sliders, the transition text and a sound list',
+    (await input(d, 'TITLE').inputValue()) === 'ECHOES-ARCHIVE' && (await d.locator('.ed-chip').count()) === 11 && (await d.locator('input[type=text].ed-in').count()) >= 5 && (await d.locator('input[type=color]').count()) === 5 && (await d.locator('input[type=range]').count()) >= 4 && (await d.locator('.ed-snd .it').count()) === 8);
 
   // the chat and the archive have their own colors
-  check('the chat and L1A start out with the same colors, kept separately', (await css('root', '--theme-full')) === '#4fc3f7' && (await css('body', '--theme-full')) === '#4fc3f7' && await p.evaluate(() => document.body.classList.contains('layer-1a') && osData.layers.l1c.colors.primary === '#4fc3f7'));
+  check('the chat keeps the original blue and L1A starts as grey jade, kept separately', (await css('root', '--theme-full')) === '#4fc3f7' && (await css('body', '--theme-full')) === '#8fbfae' && await p.evaluate(() => document.body.classList.contains('layer-1a') && osData.layers.l1c.colors.primary === '#4fc3f7'));
   await d.locator('.ed-chip', { hasText: 'STEEL BLUE' }).click(); await p.waitForTimeout(200);
-  check('a theme chip sets all four colors of L1A at once and the page repaints', (await css('body', '--theme-full')) === '#6ea8d8' && (await css('body', '--theme-bgsolid')) === '#2e4558' && (await data()).layers.l1a.colors.background === '#2e4558', await css('body', '--theme-full'));
+  check('a theme chip sets all the colors of L1A at once and the page repaints', (await css('body', '--theme-full')) === '#6ea8d8' && (await css('body', '--theme-bgsolid')) === '#2e4558' && (await data()).layers.l1a.colors.background === '#2e4558', await css('body', '--theme-full'));
   check('...while the chat keeps its own colors', (await css('root', '--theme-full')) === '#4fc3f7' && (await data()).layers.l1c.colors.primary === '#4fc3f7');
   check('...and the window itself changes to the new colors', (await css('.ed-dlg', '--theme-full')) === '#6ea8d8');
   await input(d, 'PRIMARY').fill('#ff0000zz'); await p.waitForTimeout(100);

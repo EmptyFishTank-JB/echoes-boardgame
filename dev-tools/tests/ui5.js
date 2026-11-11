@@ -49,7 +49,7 @@ const L = require('./lib.js');
   // ---- pointer -------------------------------------------------------------
   let cur = await p.evaluate(() => ({ d: getComputedStyle(document.body).cursor, a: getComputedStyle(document.querySelector('#t-output .t-line.act')).cursor, t: getComputedStyle(document.getElementById('t-field')).cursor, v: document.documentElement.style.getPropertyValue('--cur-act') }));
   check('custom pointers are applied', cur.d.startsWith('url(') && cur.a.startsWith('url(') && cur.t.startsWith('url('), JSON.stringify(cur).slice(0, 200));
-  check('layer 1 pointer uses the layer-1 color', decodeURIComponent(cur.v).includes('#4fc3f7'), decodeURIComponent(cur.v).slice(0, 160));
+  check('layer 1 pointer uses the layer-1 color', decodeURIComponent(cur.v).toLowerCase().includes(await p.evaluate(() => osData.layers.l1a.colors.primary.toLowerCase())), decodeURIComponent(cur.v).slice(0, 160));
   await send('[INITIATE ECHO PROTOCOL]'); await calm();
   cur = await p.evaluate(() => ({ v: document.documentElement.style.getPropertyValue('--cur-act') }));
   check('entering layer 2 recolors the pointer', decodeURIComponent(cur.v).includes('#bf7c0a'), decodeURIComponent(cur.v).slice(0, 160));
