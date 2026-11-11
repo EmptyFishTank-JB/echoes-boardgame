@@ -1,23 +1,37 @@
 // Log data: every entry in lore.json and dev_logs.json is well formed, and the 2143 logs can be fetched and listed.
-const L = require('./lib.js');
+const L = require('./lib.js'), LC = require('../log-codes.js');
 (async () => {
   const t = await L.open(); const { p, send, check } = t;
   const lore = await p.evaluate(() => fetch('./terminal-data/lore.json').then((r) => r.json()));
   const dev = await p.evaluate(() => fetch('./terminal-data/dev_logs.json').then((r) => r.json()));
-  const HEAD = /^\[Log ([A-Z]-\d+) \| Stardate (\d{4}\.\d{3}\.\d{4})\]$/, LABEL = /^(.*?) ([A-Z]-\d+) \| Stardate (\d{4}\.\d{3}\.\d{4})$/;
-  const lint = (name, data) => {
+  const registry = (await p.evaluate(() => fetch('./terminal-data/crew.json').then((r) => r.json())));
+  const HEAD = /^\[Log ([A-Z]-\d{2,3}) \| Stardate (\d{4}\.\d{3}\.\d{4})\]$/, LABEL = /^(.*?) ([A-Z]-\d{2,3}) \| Stardate (\d{4}\.\d{3}\.\d{4})$/;
+  const lint = (name, data, level, dev) => {
     const bad = [];
     for (const [code, e] of Object.entries(data)) {
       const lines = String(e.text || '').split('\n'); const h = HEAD.exec(lines[0] || ''), l = LABEL.exec(e.label || '');
-      if (!/^[A-Z0-9]{5}-[A-Z0-9]{5}-[A-Z0-9]{5}-[A-Z0-9]{5}$/.test(code)) bad.push(code + ': code format');
+      if (!/^[A-Z0-9]{5}-[A-Z0-9]{5}-[A-Z0-9]{5}-[A-Z0-9]{5}$/.test(code) || /^TEMP/.test(code)) bad.push(code + ': code format (or a TEMP placeholder)');
       if (!h || !l || h[1] !== l[2] || h[2] !== l[3]) bad.push(code + ': header and label disagree');
       if (!/^(full|classified|virus)$/.test(e.type)) bad.push(code + ': type');
+      if (e.health && !/^(PARTIAL|DEGRADED|CORRUPTED)$/.test(e.health)) bad.push(code + ': health');
+      if (e.clearance !== level) bad.push(code + ': clearance should be ' + level + ' (the level FETCH LOG reads it at)');
       if (!/^\[END OF LOG\]$/.test(lines[lines.length - 1])) bad.push(code + ': no END OF LOG');
       if (e.label !== e.label.replace(/Creator's/i, (m) => m.toUpperCase()) && /creator/i.test(e.label) && !/CREATOR'S LOG/.test(e.label)) bad.push(code + ': label capitalization');
+      // A code made with a department carries the Log ID, so the ID in the header must be that one, and registered.
+      const d = LC.decodeEntry(code, LC.DEFAULT_SALT);
+      if (d.valid && d.section) {
+        const want = d.section + '-' + String(d.number).padStart(3, '0'), person = registry.crew[want];
+        if (!h || h[1] !== want) bad.push(code + ': the code says ' + want + ' but the header says ' + (h && h[1]));
+        if (h && d.stardate !== h[2]) bad.push(code + ': the code says stardate ' + d.stardate + ' but the header says ' + h[2]);
+        if (!person) bad.push(code + ': ' + want + ' is not in crew.json');
+        else if (e.author !== want) bad.push(code + ': author should be ' + want);
+        else if (!lines.some((x) => x.includes(person.signature))) bad.push(code + ': the sign-off does not use ' + want + "'s signature");
+        if (!!(registry.departments[d.section] || {}).dev !== dev) bad.push(code + ': department ' + d.section + ' is on the wrong side (lore vs dev)');
+      }
     }
-    check(name + ': every entry has a code, a matching header and label, a type and an end marker', !bad.length, bad);
+    check(name + ': every entry has a real code, a matching header and label, a type, level ' + level + ' and an end marker', !bad.length, bad);
   };
-  lint('lore.json', lore); lint('dev_logs.json', dev);
+  lint('lore.json', lore, 2, false); lint('dev_logs.json', dev, 3, true);
   check('codes are unique across both files', new Set([...Object.keys(lore), ...Object.keys(dev)]).size === Object.keys(lore).length + Object.keys(dev).length);
 
   check('the boot checks still read both log files as OK', await p.evaluate(() => FILE_STATUS.lore.state === 'ok' && FILE_STATUS.devlogs.state === 'ok'), await p.evaluate(() => [FILE_STATUS.lore, FILE_STATUS.devlogs]));

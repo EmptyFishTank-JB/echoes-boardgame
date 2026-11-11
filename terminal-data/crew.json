@@ -1,0 +1,117 @@
+{
+  "meta": {
+    "version": "1.0",
+    "status": "provisional",
+    "note": "Crew registry used by the log editor (dev-tools/lore-devlog-editor.html). A log's ID is its department letter and a three digit crew number, written R-118. The number belongs to the person and stays with them: reassignment aboard the Charon is a long process, so the letter usually does too. Numbers are given out in order of assignment and are never reused. The departments and every number here are provisional until the facilities and department list is settled. D is reserved for the real-world developer."
+  },
+  "departments": {
+    "A": {
+      "name": "Command and Administration",
+      "log_type": "CAPTAIN'S LOG"
+    },
+    "C": {
+      "name": "Civilian and General Crew",
+      "log_type": "PERSONAL LOG"
+    },
+    "E": {
+      "name": "Engineering",
+      "log_type": "ENGINEERING LOG"
+    },
+    "H": {
+      "name": "Habitat and Life Support",
+      "log_type": "HABITAT LOG"
+    },
+    "M": {
+      "name": "Medical",
+      "log_type": "MEDICAL LOG"
+    },
+    "O": {
+      "name": "Operations",
+      "log_type": "OPERATIONS LOG"
+    },
+    "P": {
+      "name": "Provisioning and Cargo",
+      "log_type": "SUPPLY LOG"
+    },
+    "R": {
+      "name": "Research",
+      "log_type": "RESEARCH LOG"
+    },
+    "S": {
+      "name": "Security",
+      "log_type": "SECURITY LOG"
+    },
+    "X": {
+      "name": "Ship Systems (ECH/OES)",
+      "log_type": "SYSTEM RECORD"
+    },
+    "D": {
+      "name": "Development (real world)",
+      "log_type": "CREATOR'S LOG",
+      "dev": true
+    }
+  },
+  "crew": {
+    "A-014": {
+      "name": "Capt. E. Harrow",
+      "signature": "Capt. E. Harrow",
+      "role": "Commanding Officer, DSCF Charon",
+      "provisional": true
+    },
+    "D-001": {
+      "name": "Dev. J. Betancourt",
+      "signature": "Dev. J. Betancourt",
+      "role": "The developer",
+      "provisional": false
+    },
+    "E-031": {
+      "name": "Dr. Harlan Cross",
+      "signature": "Dr. H. Cross",
+      "role": "Chief Engineer, and lead of the sealed research team",
+      "provisional": true,
+      "notes": "Still on an Engineering ID while leading Research. Reassignment is slow, so the system still honors his engineering authority."
+    },
+    "E-143": {
+      "name": "M. Okonkwo",
+      "signature": "M. Okonkwo, Engineering",
+      "role": "Technician, rear power supply",
+      "provisional": true
+    },
+    "M-052": {
+      "name": "Dr. Anselm Reyes",
+      "signature": "Dr. A. Reyes, Medical Bay",
+      "role": "Physician, Medical Bay",
+      "provisional": true
+    },
+    "O-066": {
+      "name": "J. Park",
+      "signature": "J. Park, Pod Bay Technician",
+      "role": "Pod Bay Technician, Sector 7",
+      "provisional": true
+    },
+    "R-118": {
+      "name": "Dr. Aisha Osei",
+      "signature": "Dr. A. Osei",
+      "role": "Research Team",
+      "provisional": true
+    },
+    "R-142": {
+      "name": "Dr. Rafael Ibarra",
+      "signature": "Dr. R. Ibarra",
+      "role": "Research Team",
+      "provisional": true
+    },
+    "R-157": {
+      "name": "Dr. Noor Haddad",
+      "signature": "Dr. N. Haddad",
+      "role": "Research Team",
+      "provisional": true
+    },
+    "S-087": {
+      "name": "Officer Dana Whitlock",
+      "signature": "Officer D. Whitlock, Security",
+      "role": "Security Officer",
+      "provisional": true
+    }
+  }
+}

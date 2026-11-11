@@ -79,6 +79,9 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
     const patchLore = j => {
       j['CCCCC-CCCCC-CCCCC-CCCCC'] = { label: 'MEDICAL LOG M-03 | Stardate 2143.130.0800', type: 'classified', clearance: 2, l1_preview: 'PATIENT RECORD\nPARTIAL', text: '[Log M-03 | Stardate 2143.130.0800]\nMEDICAL LOG\n\nFull text here.' };
       j['DDDDD-DDDDD-DDDDD-DDDDD'] = { label: 'INTERCEPT I-02 | Stardate 2143.141.0001', type: 'full', clearance: 1, text: '[Log I-02 | Stardate 2143.141.0001]\nINTERCEPT\n\nSignal [CORRUPTED] begins.' };
+      j['FFFFF-FFFFF-FFFFF-FFFFF'] = { label: 'RESEARCH LOG R-114 | Stardate 2143.133.0341', type: 'full', clearance: 2, health: 'PARTIAL', text: '[Log R-114 | Stardate 2143.133.0341]\nRESEARCH LOG\n\nA clean text with no markers.' };
+      j['GGGGG-GGGGG-GGGGG-GGGGG'] = { label: 'SECURITY LOG S-087 | Stardate 2143.149.0712', type: 'full', clearance: 2, health: 'CORRUPTED', text: '[Log S-087 | Stardate 2143.149.0712]\nSECURITY LOG\n\nMostly gone.' };
+      j['HHHHH-HHHHH-HHHHH-HHHHH'] = { label: 'ENGINEERING LOG E-143 | Stardate 2143.150.2352', type: 'partial', clearance: 2, text: '[Log E-143 | Stardate 2143.150.2352]\nENGINEERING LOG\n\nOlder data saved the condition as the type.' };
       j['EEEEE-EEEEE-EEEEE-EEEEE'] = { label: 'CAPTAIN\'S LOG A-30 | Stardate 2143.150.0100', type: 'full', clearance: 1, health: 'degraded', text: '[Log A-30 | Stardate 2143.150.0100]\nCAPTAIN\'S LOG\n\nShort.' };
     };
     const s = await open({ '**/echo-os.json*': patchOS, '**/lore.json*': patchLore }); const { p } = s;
@@ -86,11 +89,19 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
     await s.code('CCCCC-CCCCC-CCCCC-CCCCC');
     check('classified entry at tier 1: restricted message and preview only', (await s.msg()).includes('ACCESS RESTRICTED') && (await s.view()).includes('PATIENT RECORD') && (await s.view()).includes('elevated access') && !(await s.view()).includes('Full text here'));
     await s.code('DDDDD-DDDDD-DDDDD-DDDDD'); await s.code('EEEEE-EEEEE-EEEEE-EEEEE');
+    await s.code('FFFFF-FFFFF-FFFFF-FFFFF'); const msgF = await s.msg(); await s.code('GGGGG-GGGGG-GGGGG-GGGGG'); const msgG = await s.msg(); await s.code('HHHHH-HHHHH-HHHHH-HHHHH');
     await p.click('.le-actions >> text=RECOVERED LOGS'); await p.waitForTimeout(150);
     const rows = await s.rows(); const by = Object.fromEntries(rows.map(r => [r[1][0], r]));
     check('classified entry: health RESTRICTED, type MEDICAL LOG', by.C && by.C[2] === 'RESTRICTED' && by.C[3] === 'MEDICAL LOG', JSON.stringify(by.C));
     check('entry containing [CORRUPTED]: health PARTIAL, type INTERCEPT', by.D && by.D[2] === 'PARTIAL' && by.D[3] === 'INTERCEPT', JSON.stringify(by.D));
     check('an entry-level "health" field overrides the derived value', by.E && by.E[2] === 'DEGRADED', JSON.stringify(by.E));
+    check('health PARTIAL set on a clean text shows PARTIAL', by.F && by.F[2] === 'PARTIAL' && by.F[3] === 'RESEARCH LOG', JSON.stringify(by.F));
+    check('health CORRUPTED shows CORRUPTED', by.G && by.G[2] === 'CORRUPTED', JSON.stringify(by.G));
+    check('data that saved the condition as the type (partial) still reads as that health', by.H && by.H[2] === 'PARTIAL', JSON.stringify(by.H));
+    check('the status line names a condition that is not intact', msgF.includes('ENTRY RECOVERED: PARTIAL') && msgG.includes('ENTRY RECOVERED: CORRUPTED'), [msgF, msgG]);
+    const colors = await p.evaluate(() => Array.from(document.querySelectorAll('.le-row')).map(r => [r.dataset.h, getComputedStyle(r.querySelectorAll('span')[2]).color]));
+    const col = (h) => (colors.find(c => c[0] === h) || [])[1];
+    check('non-intact rows are colored: partial and degraded differ from intact, corrupted differs from partial', col('PARTIAL') !== col('RESTRICTED') && col('CORRUPTED') !== col('PARTIAL'), colors);
     await p.close(); }
 
   // ===== D. phone width =====

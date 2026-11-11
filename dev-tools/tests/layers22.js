@@ -22,7 +22,7 @@ const L = require('./lib.js');
   await p.click('#t-addr', { button: 'right' }); await p.waitForTimeout(250);
   const rows = () => p.evaluate(() => { const m = document.getElementById('ctx'); return m ? Array.from(m.querySelectorAll('.cr')).map((r) => ({ k: r.querySelector('.ck').textContent, v: r.querySelector('.cv').textContent, ed: r.classList.contains('ed'), sw: !!r.querySelector('.sw') })) : null; });
   let r = await rows(); const by = (k) => (r || []).find((x) => x.k === k);
-  check('right-clicking the address bar at a tier root lists the page and its layer', r && ['ID', 'NAME', 'LAYER', 'TITLE', 'PRIMARY', 'WARN', 'DENIED', 'BACKGROUND', 'DIM', 'LO', 'BORDER', 'INTRO', 'VOLUME', 'SOUND'].every((k) => by(k)), r && r.map((x) => x.k));
+  check('right-clicking the address bar at a level root lists the page and its layer', r && ['ID', 'NAME', 'LAYER', 'TITLE', 'PRIMARY', 'WARN', 'DENIED', 'BACKGROUND', 'DIM', 'LO', 'BORDER', 'INTRO', 'VOLUME', 'SOUND'].every((k) => by(k)), r && r.map((x) => x.k));
   check('colors show a swatch; every layer row except the heading can be edited', ['PRIMARY', 'WARN', 'DENIED', 'BACKGROUND'].every((k) => by(k).sw) && ['TITLE', 'PRIMARY', 'DIM', 'INTRO', 'VOLUME', 'SOUND'].every((k) => by(k).ed) && !by('LAYER').ed, r);
   check('values are the real ones', by('PRIMARY').v === d0.layers.l1a.colors.primary && by('SOUND').v === 'VENTILATION' && by('VOLUME').v === String(d0.layers.l1a.ambient.target_volume), r);
   await p.hover('#ctx .cr.ed:has-text("PRIMARY")'); await p.waitForTimeout(80);

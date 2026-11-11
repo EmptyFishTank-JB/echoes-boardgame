@@ -99,47 +99,59 @@ day-one date matches the phase start.
 **CAPTAIN'S LOG A-15 (2143.136.2132)**
 
 Accurate. Osei's supplemental report, "Cross's department", "I've known Harlan Cross for eleven years" and "keep me informed"
-all fit. One optional change: the number. If log numbers follow the phase day count, 2143.136 is Day 18 and the log would be
-**A-18**. That also lines up with the archive documents (Osei filed the report at 2143.136.1930, two hours before this entry).
-The log code has the entry number baked in, so renumbering means a new code from the editor. Leave it at A-15 if the number is
-a plain sequence.
+all fit. The label number is the open point. Under the Log ID scheme below a log is named for its author, so the Captain's logs
+would all read A-014 and the stardate tells them apart. A-01 and A-15 still carry their old numbers and old-style codes. They work
+unchanged. To move them over, load each in the log editor, pick Capt. E. Harrow, press GENERATE and tick REPLACE THE OLD CODE.
+That changes the code players type, so only do it if neither code has gone out yet.
 
 Question for the signature: every log ends `    —— Name`, two em dashes. The prose rules say none outside interrupted
 dialogue. The new logs keep the `——` attribution to match A-01, A-15 and the dev logs, and avoid em dashes in the text.
 Drop the attribution dashes in all of them if you want the rule applied strictly.
 
+## Log IDs, codes and the crew registry
+
+A log's ID is the ID of whoever wrote it: a department letter and a three digit crew number, always three digits (`R-118`).
+The number belongs to the person and stays with them, because reassigning one aboard the Charon is a slow process. Every log
+a person files carries the same ID and the stardate tells them apart. Each department has up to 999 numbers.
+
+- **The code carries the Log ID.** The 20 character code packs the moment (year to minute), the crew number and the department
+  letter, scrambled with the project salt (`dev-tools/log-codes.js`). Codes made before departments existed carry no letter and
+  read as number 1. They still decode and still work.
+- **The registry is `terminal-data/crew.json`.** Departments (letter, name, usual log type) and crew (ID, name, signature, role).
+  The editor's author list is built from it, and adding a character in the editor writes it back. Every ID in it is provisional
+  until the department list is settled (`provisional: true`).
+- **Dev logs use `D`.** `D-001` is the developer. The letter is reserved for the dev department (`"dev": true` in `crew.json`),
+  and dev logs are never read in a lore context. Avoid `L` as a department letter, it reads like a level (L1, L2, L3).
+- **One level notation.** The terminal and the editor write levels as `L1`, `L2`, `L3`. FETCH LOG.EXE runs at L2 (lore.json)
+  and L3 (dev_logs.json), so the editor sets `clearance` to 2 for a lore log and 3 for a dev log and has no picker.
+- **Condition.** Each log has a `health` of PARTIAL, DEGRADED or CORRUPTED, or none for INTACT. FETCH LOG shows it on the status
+  line and in the RECOVERED LOGS list. Older entries that used `type: partial` still read the same way.
+- **Override.** For a log filed with no valid ID (falsified, stripped or damaged), the editor can damage the ID, the stardate and
+  the sign-off line at levels 0 to 3, seeded so the same log always shows the same gaps. The entry keeps `override.real` (the
+  real ID, moment and sign-off) so the editor can restore it, and the code carries the real ID unless the ID level is 3
+  ("no ID at all"), where the code carries none either.
+
 ## The new logs
 
 Six logs, all `full`, all inside the incident window and on the day count (Day *n* is 2143.(118 + *n*)). I read "the 13" as
-the research team of fourteen without Cross, and the logs use two of them plus four other crew. Names are invented.
+the research team of fourteen without Cross, and the logs use two of them plus four other crew. Names are invented, and so are
+their crew numbers (provisional, see above). The codes are real, made with the project salt.
 
-| Code (temporary) | Log | Stardate (day) | Who | What it carries |
+| Code | Log | Stardate (day) | Who | What it carries |
 |---|---|---|---|---|
-| `TEMP0-R0008-00000-00126` | RESEARCH LOG R-08 | 2143.126.0614 (Day 8) | Dr. R. Ibarra, Research Team | The third program he has worked in the wing. The closed doors are routine. Cross runs the floor. Osei thinks the baseline is too steady. |
-| `TEMP0-R0027-00000-00145` | RESEARCH LOG R-27 | 2143.145.2250 (Day 27) | Dr. N. Haddad, Research Team | The fourteen sleep in the wing "for continuity". The readings "do not drift, they arrive and they stay". The lights dim on a schedule none of them set. |
-| `TEMP0-S0031-00000-00149` | SECURITY LOG S-31 | 2143.149.0712 (Day 31) | Officer D. Whitlock, Security | Four went to the corridor outside the wing on a door alarm ECH/OES classed routine, two walked back. The cameras recorded the whole time and the corridor is empty on every frame. The ring is sealed. |
-| `TEMP0-E0032-00000-00150` | ENGINEERING LOG E-32 | 2143.150.2352 (Day 32) | M. Okonkwo, Engineering | Cross and six people at the aft hub with a written order. The cells are emptied by hand, a bank at a time, onto carts. He told her where they are going and asked her to put it out of her head. The reactor bus keeps the air, the lights that matter, the pods and the spin. |
-| `TEMP0-M0034-00000-00152` | MEDICAL LOG M-34 | 2143.152.0618 (Day 34) | Dr. A. Reyes, Medical Bay | The author of the triage record. Eleven forms with the same one word for the cause, "corridor". Blood for two days and a battery that outlasts it. Patients asking about the hubs. |
-| `TEMP0-P0044-00000-00162` | POD BAY LOG P-44 | 2143.162.2205 (Day 44) | J. Park, Pod Bay Technician | Sector Seven bay: five pods, all away by 2140, the last released by the author. Six seats each, empty seats counted on the way out. The beacons are dark and three frightened people gave three reasons. |
+| `L1O7J-U38KD-IYXZ4-Y5G29` | RESEARCH LOG R-142 | 2143.126.0614 (Day 8) | Dr. R. Ibarra, Research Team | The third program he has worked in the wing. The closed doors are routine. Cross runs the floor. Osei thinks the baseline is too steady. |
+| `LN5QJ-X2M7G-JKS6E-4X02I` | RESEARCH LOG R-157 | 2143.145.2250 (Day 27) | Dr. N. Haddad, Research Team | The fourteen sleep in the wing "for continuity". The readings "do not drift, they arrive and they stay". The lights dim on a schedule none of them set. |
+| `QTI6N-J595F-ATCV7-THZ2F` | SECURITY LOG S-087 | 2143.149.0712 (Day 31) | Officer D. Whitlock, Security | Four went to the corridor outside the wing on a door alarm ECH/OES classed routine, two walked back. The cameras recorded the whole time and the corridor is empty on every frame. The ring is sealed. |
+| `R7SY6-BA3LI-OBD0J-AXP03` | ENGINEERING LOG E-143 | 2143.150.2352 (Day 32) | M. Okonkwo, Engineering | Cross and six people at the aft hub with a written order. The cells are emptied by hand, a bank at a time, onto carts. He told her where they are going and asked her to put it out of her head. The reactor bus keeps the air, the lights that matter, the pods and the spin. |
+| `WRY30-WJAXL-Q5U7U-9O61D` | MEDICAL LOG M-052 | 2143.152.0618 (Day 34) | Dr. A. Reyes, Medical Bay | The author of the triage record. Eleven forms with the same one word for the cause, "corridor". Blood for two days and a battery that outlasts it. Patients asking about the hubs. |
+| `6RR68-2HTES-9EC73-G1K23` | POD BAY LOG O-066 | 2143.162.2205 (Day 44) | J. Park, Pod Bay Technician | Sector Seven bay: five pods, all away by 2140, the last released by the author. Six seats each, empty seats counted on the way out. The beacons are dark and three frightened people gave three reasons. |
+
+The pod bay technician is on an Operations ID (`O-066`) because I was not sure about `P` for the pod bay. His log type is still
+POD BAY LOG. Move him with the editor's EDIT button if you settle on a different department.
 
 They pair with the archive documents. Reyes wrote the triage board (the document only says `DR. [CORRUPTED]`). Whitlock is the
 security side of the Day 31 breach. The night of 2143.150 now has a sequence: Cross tells the Captain (2301), the protocol is filed
 (2318), Okonkwo is at the aft hub (2352).
-
-**Codes.** The codes above are placeholders (`TEMP0-...`, the series, number and day inside them). The terminal accepts them,
-but the real codes come from your log editor, which uses your salt. For each, enter year 2143 and:
-
-| Log | Month | Day | Hour | Minute | Entry ID |
-|---|---|---|---|---|---|
-| R-08 | 5 | 6 | 6 | 14 | 8 |
-| R-27 | 5 | 25 | 22 | 50 | 27 |
-| S-31 | 5 | 29 | 7 | 12 | 31 |
-| E-32 | 5 | 30 | 23 | 52 | 32 |
-| M-34 | 6 | 1 | 6 | 18 | 34 |
-| P-44 | 6 | 11 | 22 | 5 | 44 |
-
-Replace each key in `lore.json` with the generated code. Entry ID is the log number, as for A-01 and A-15 (check that
-against how you set A-15).
 
 ## Left unwritten on purpose
 

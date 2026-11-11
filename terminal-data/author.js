@@ -14,10 +14,10 @@ const HELP = [
   ['[NEW DOC]', 'new page with its own text'],
   ['[NEW LOG]', 'new page showing a lore.json / dev_logs.json entry'],
   ['[NEW PROGRAM]', 'register a program from terminal-data/programs'],
-  ['[NEW GATEWAY]', 'hidden command that jumps to another folder or tier'],
+  ['[NEW GATEWAY]', 'hidden command that jumps to another folder or level'],
   ['[EDIT]', 'change an item: name, alias, title, hidden, text'],
   ['[SET] [SET NAME]', 'change one property of an item (right-click an item to see them all)'],
-  ['[LAYER] [LAYER PRIMARY]', 'colors, title, intro text and sound of a layer (right-click a tier root)'],
+  ['[LAYER] [LAYER PRIMARY]', 'colors, title, intro text and sound of a layer (right-click a level root)'],
   ['[HIDE] [SHOW]', 'unlist an item (still opens by alias) / list it again'],
   ['[ALIAS]', 'change an item\'s [COMMAND]'],
   ['[MV]', 'move an item to another folder'],
@@ -32,6 +32,8 @@ const bracket = (s) => { s = s.trim().toUpperCase(); return /^\[.*\]$/.test(s) ?
 const bare = (s) => bracket(s).slice(1, -1);
 const slug = (s) => s.toUpperCase().replace(/[^A-Z0-9]+/g, '_').replace(/^_+|_+$/g, '') || 'ITEM';
 const all = (ctx) => Object.values(ctx.os.items);
+// A program's scope is stored as 'tier' or 'folder'; people see LEVEL or FOLDER.
+const scopeWord = (s) => (s === 'folder' ? 'FOLDER' : 'LEVEL');
 const isGlobalType = (it) => it.type === 'program' || it.type === 'gateway';
 // A destination is stored as the folder's id (L3A_ROOT: tier 3, Archive root). Show the name beside it.
 const destLabel = (items, id) => { const d = items[id]; return d ? d.name + ' (' + id + ')' : id + ' (NOT FOUND)'; };
@@ -201,7 +203,7 @@ const handlers = {
     const id = pid.trim().toLowerCase();
     if (!(await ctx.os.loadProgram(id))) { ctx.denied(); await ctx.say('> NO PROGRAM FILE terminal-data/programs/' + id + '.js (OR IT FAILS TO LOAD)', 'denied'); return canceled(ctx); }
     const n = await nameHiddenAlias(ctx, f, 'PROGRAM', { forceHidden: true, program: true }); if (!n) return canceled(ctx);
-    const sc = await ask(ctx, '> SCOPE: TIER = ANY PAGE OF THIS TIER, FOLDER = ONLY THIS FOLDER (ENTER = TIER):', 'TIER / FOLDER');
+    const sc = await ask(ctx, '> SCOPE: LEVEL = ANY PAGE OF THIS LEVEL, FOLDER = ONLY THIS FOLDER (ENTER = LEVEL):', 'LEVEL / FOLDER');
     if (sc === null) return canceled(ctx);
     const scope = sc === 'FOLDER' ? 'folder' : 'tier';
     return add(ctx, f, make({ id: uid(ctx, 'L' + f.tier + 'A_PROG_', n.name), type: 'program', program: id, scope, name: n.name, alias: n.alias, tier: f.tier, hidden: true }), 'PROGRAM');
@@ -216,7 +218,7 @@ const handlers = {
 
   async '[EDIT]'(ctx) {
     const it = await target(ctx, 'EDIT WHICH ITEM'); if (!it) return canceled(ctx);
-    await ctx.say('> ' + it.id + '  (' + it.type + ', T' + it.tier + (it.stub ? ', STUB' : '') + ')  ' + (it.alias || ''), 'low');
+    await ctx.say('> ' + it.id + '  (' + it.type + ', L' + it.tier + (it.stub ? ', STUB' : '') + ')  ' + (it.alias || ''), 'low');
     if (it.stub) await ctx.say('> THIS IS A STUB PLACEHOLDER. EDITING IT TURNS IT INTO A REAL DOC.', 'warn');
     const name = await ask(ctx, '> NAME (ENTER = KEEP ' + it.name + '):', it.name); if (name === null) return canceled(ctx);
     let hidden = it.hidden;
@@ -231,7 +233,7 @@ const handlers = {
       if (rb) { body = await readBody(ctx); if (body === null) return canceled(ctx); }
     }
     if (it.type === 'gateway') { const d = await askDestination(ctx, it.goto); if (d === null) return canceled(ctx); it.goto = d.id; }
-    if (it.type === 'program') { const sc = await ask(ctx, '> SCOPE (TIER / FOLDER, ENTER = KEEP ' + it.scope.toUpperCase() + '):', 'TIER / FOLDER'); if (sc === null) return canceled(ctx); if (sc) it.scope = sc === 'FOLDER' ? 'folder' : 'tier'; }
+    if (it.type === 'program') { const sc = await ask(ctx, '> SCOPE (LEVEL / FOLDER, ENTER = KEEP ' + scopeWord(it.scope) + '):', 'LEVEL / FOLDER'); if (sc === null) return canceled(ctx); if (sc) it.scope = sc === 'FOLDER' ? 'folder' : 'tier'; }
     if (name) it.name = name;
     it.alias = alias; it.hidden = hidden; if (title) it.title = title; if (body) it.body = body;
     if (it.stub) { it.stub = false; it.type = 'doc'; }
@@ -290,7 +292,7 @@ const handlers = {
       ctx.denied(); await ctx.say('> ' + dest.id + ' ALREADY HAS AN ITEM WITH THE ALIAS ' + it.alias, 'denied'); return canceled(ctx);
     }
     if (dest.tier !== it.tier) {
-      const ok = await yn(ctx, '> ' + dest.id + ' IS TIER ' + dest.tier + '; THIS MOVES ' + (1 + descendants(it).length) + ' ITEM(S) FROM TIER ' + it.tier + '. CONTINUE? (Y/N)', false);
+      const ok = await yn(ctx, '> ' + dest.id + ' IS L' + dest.tier + '; THIS MOVES ' + (1 + descendants(it).length) + ' ITEM(S) FROM L' + it.tier + '. CONTINUE? (Y/N)', false);
       if (!ok) return canceled(ctx);
     }
     const src = parentList(ctx, it);
@@ -358,7 +360,7 @@ async function askDestination(ctx, current, moving, hint) {
     if (q === null) return null;
     if (q === '' && current) return ctx.os.items[current];
     if (q === '') return null;
-    if (q === '..') { const p = parentOf(ctx, ctx.os.items[ctx.cwd]); if (p) return p; await ctx.say('> THIS IS ALREADY A TIER ROOT', 'denied'); continue; }
+    if (q === '..') { const p = parentOf(ctx, ctx.os.items[ctx.cwd]); if (p) return p; await ctx.say('> THIS IS ALREADY A LEVEL ROOT', 'denied'); continue; }
     const hits = findFolder(ctx, q, moving);
     if (hits.length === 1) return hits[0];
     ctx.denied();
@@ -425,9 +427,9 @@ async function setField(ctx, it, key) {
       return done('DESTINATION IS NOW ' + destLabel(ctx.os.items, d.id));
     }
     case 'SCOPE': {
-      const sc = await ask(ctx, keep('SCOPE (TIER = ANY PAGE OF THIS TIER, FOLDER = ONLY THE FOLDER IT SITS IN)', (it.scope || 'tier').toUpperCase()), 'TIER / FOLDER'); if (sc === null) return canceled(ctx);
+      const sc = await ask(ctx, keep('SCOPE (LEVEL = ANY PAGE OF THIS LEVEL, FOLDER = ONLY THE FOLDER IT SITS IN)', scopeWord(it.scope)), 'LEVEL / FOLDER'); if (sc === null) return canceled(ctx);
       if (sc) it.scope = sc === 'FOLDER' ? 'folder' : 'tier';
-      return done('SCOPE IS NOW ' + it.scope.toUpperCase());
+      return done('SCOPE IS NOW ' + scopeWord(it.scope));
     }
     case 'PROGRAM': {
       const pid = await ask(ctx, keep('PROGRAM ID', it.program), it.program, { mask: 'free' }); if (pid === null) return canceled(ctx);
@@ -447,7 +449,7 @@ function infoRows(it, items) {
   const first = (lines.find((b) => b.text) || {}).text || '';
   const rows = [
     { k: 'ID', v: it.id },
-    { k: 'TYPE', v: it.type + (it.stub ? ' (stub)' : '') + ', tier ' + it.tier },
+    { k: 'TYPE', v: it.type + (it.stub ? ' (stub)' : '') + ', L' + it.tier },
     { k: 'NAME', v: it.name, ...set('NAME') },
     { k: 'ALIAS', v: it.alias || '(none)', cmd: '[ALIAS]', preset: { target: it.id } },
     { k: 'TITLE', v: it.title || it.name, ...set('TITLE') },
@@ -461,7 +463,7 @@ function infoRows(it, items) {
   if (it.type === 'gateway') rows.push({ k: 'DESTINATION', v: destLabel(items, it.goto), ...set('DESTINATION') });
   if (it.type === 'program') {
     rows.push({ k: 'PROGRAM', v: it.program, ...set('PROGRAM') });
-    rows.push({ k: 'SCOPE', v: it.scope === 'folder' ? 'folder (only where it sits)' : 'tier (any page of tier ' + it.tier + ')', ...set('SCOPE') });
+    rows.push({ k: 'SCOPE', v: it.scope === 'folder' ? 'folder (only where it sits)' : 'level (any page of L' + it.tier + ')', ...set('SCOPE') });
   }
   return rows;
 }

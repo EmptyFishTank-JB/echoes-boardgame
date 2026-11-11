@@ -922,7 +922,7 @@ var DATA_CHECKS = {
   nodes: function(d){
     if(!isObj(d)) return stBad('MUST BE AN OBJECT');
     if(!isObj(d.tree) || !Array.isArray(d.tree.children)) return stBad('tree.children IS MISSING');
-    if(!d.tree.children.some(function(c){ return isObj(c) && c.tier === 1 && c.type === 'folder'; })) return stBad('NO TIER 1 ARCHIVE ROOT');
+    if(!d.tree.children.some(function(c){ return isObj(c) && c.tier === 1 && c.type === 'folder'; })) return stBad('NO LEVEL 1 ARCHIVE ROOT');
     var issues = [], ids = {}, dup = 0, items = [];
     (function walk(it){ if(!isObj(it)) return; if(it.id){ if(ids[it.id]) dup++; ids[it.id] = true; } items.push(it); (it.children || []).forEach(walk); })(d.tree);
     var dangling = items.filter(function(it){ return it.type === 'gateway' && !ids[it.goto]; }).length;
@@ -1833,7 +1833,7 @@ async function showAuthorMessages(msgs){
 async function printAuthorLs(){
   var cur = osItems[termState];
   if(!cur){ await authorSay('> NOT IN A FOLDER. OPEN THE ARCHIVE FIRST.', 'warn'); return; }
-  var lines = [{text:(cur.title || cur.name)+'  ('+cur.type+', T'+cur.tier+')', cls:'full'}, {text:SEP, cls:'low'}];
+  var lines = [{text:(cur.title || cur.name)+'  ('+cur.type+', L'+cur.tier+')', cls:'full'}, {text:SEP, cls:'low'}];
   (cur.children || []).forEach(function(c){
     lines.push({text:'  '+glyphOf(c.type)+' '+(c.alias || '['+c.name+']')+'  '+c.type+(c.stub ? '  ?stub' : c.hidden ? '  ~hidden' : ''), cls:c.hidden || c.stub ? 'low' : 'dim'});
   });
@@ -1860,8 +1860,8 @@ function rowCols(b, kind){
     var d = it.log_ref && (it.log_ref.source === 'dev' ? devLogs : loreData), e = d && (d[it.log_ref.code] || d[it.log_ref.code.replace(/-/g, '')]);
     size = e ? plural((e.text || '').split('\n').filter(function(t){ return t.trim(); }).length, 'LINE', 'LINES') : '--';
   }
-  else if(it && it.type === 'program'){ type = 'EXE'; size = it.scope === 'folder' ? 'LOCAL' : 'TIER ' + it.tier; }
-  else if(it && it.type === 'gateway'){ type = 'GATE'; var gt = osItems[it.goto]; size = '-> T' + (gt ? gt.tier : '?'); }
+  else if(it && it.type === 'program'){ type = 'EXE'; size = it.scope === 'folder' ? 'LOCAL' : 'L' + it.tier; }
+  else if(it && it.type === 'gateway'){ type = 'GATE'; var gt = osItems[it.goto]; size = '-> L' + (gt ? gt.tier : '?'); }
   else { var t2 = kindOfTarget(b.target); type = t2 === 'folder' ? 'DIR' : t2 === 'doc' ? 'DOC' : t2 === 'log' ? 'LOG' : ''; }
   return type.padEnd(6) + size.padEnd(12);
 }
@@ -1869,7 +1869,7 @@ function pageStatus(it, rows){
   var bits = [];
   if(it.type === 'folder') bits.push(plural(rows, 'ITEM', 'ITEMS'));
   else if(it.type === 'log' || it.type === 'doc') bits.push(it.type.toUpperCase());
-  bits.push('TIER ' + it.tier);
+  bits.push('L' + it.tier);
   if(authorMode) bits.push('AUTHOR');
   return bits.join('   ');
 }
@@ -1887,7 +1887,7 @@ function renderAddr(id){
     var seg = span('seg' + (last ? ' cur' : ''), (c.name || c.title || '').toUpperCase(), last ? '' : c.id);
     if(!last) seg.title = 'Go to ' + (c.name || c.title);
   });
-  span('tag', 'T' + it.tier);
+  span('tag', 'L' + it.tier);
 }
 document.getElementById('t-addr').addEventListener('click', function(e){
   var t = e.target.closest && e.target.closest('.go'); if(!t || !uiReady()) return;
@@ -2412,7 +2412,7 @@ function treeLines(full){
   function lab(it){ return (!full && it._parent === null) ? it.name : (it.alias || ('['+it.name+']')); }
   function tag(it){
     if(!full) return '';
-    return (it.stub ? '  ?stub' : it.hidden ? '  ~hidden' : '') + (it.type === 'program' ? '  program:'+it.program+(it.scope === 'folder' ? ' (this folder only)' : '') : it.type === 'gateway' ? '  gateway: '+(osItems[it.goto] ? osItems[it.goto].name+' ('+it.goto+')' : it.goto+' (NOT FOUND)') : '') + '  T'+it.tier;
+    return (it.stub ? '  ?stub' : it.hidden ? '  ~hidden' : '') + (it.type === 'program' ? '  program:'+it.program+(it.scope === 'folder' ? ' (this folder only)' : '') : it.type === 'gateway' ? '  gateway: '+(osItems[it.goto] ? osItems[it.goto].name+' ('+it.goto+')' : it.goto+' (NOT FOUND)') : '') + '  L'+it.tier;
   }
   function walk(list, prefix, isRoot){
     var vis = list.filter(function(c){ return c.tier <= maxTier && (full || (!c.hidden && !c.stub)); });

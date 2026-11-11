@@ -19,16 +19,16 @@ const L = require('./lib.js');
   check('listing has a TYPE / SIZE / NAME header', o.some(l => /^TYPE\s+SIZE\s+NAME$/.test(l)));
   const cols = await p.evaluate(() => Array.from(document.querySelectorAll('#t-output .t-line.act .col')).map(e => e.textContent.replace(/\s+/g, ' ').trim()));
   check('row columns are TYPE then SIZE', JSON.stringify(cols) === JSON.stringify(['DOC 3 LINES', 'DOC 3 LINES', 'DIR 3 ITEMS', 'DIR 2 ITEMS', 'DOC 3 LINES', 'DIR 3 ITEMS', 'UP']), JSON.stringify(cols));
-  check('status line under the list', o.some(l => l === '6 ITEMS   TIER 1'), JSON.stringify(o.slice(-4)));
+  check('status line under the list', o.some(l => l === '6 ITEMS   L1'), JSON.stringify(o.slice(-4)));
 
   // ---- archive frame and address bar ------------------------------------------
   const frame = () => p.evaluate(() => ({ arch: document.body.classList.contains('in-archive'), border: getComputedStyle(document.getElementById('terminal-box')).borderTopStyle, addr: getComputedStyle(document.getElementById('t-addr')).display, path: document.getElementById('t-addr').textContent, crumb: getComputedStyle(document.getElementById('t-breadcrumb')).opacity }));
   let f = await frame();
   check('archive: dashed frame, address bar shown, header breadcrumb hidden', f.arch && f.border === 'dashed' && f.addr === 'flex' && f.crumb === '0', JSON.stringify(f));
-  check('address bar reads like a path', f.path.includes('ECHOES:') && f.path.includes('ECHOES.ARCHIVE') && f.path.endsWith('T1'), f.path);
+  check('address bar reads like a path', f.path.includes('ECHOES:') && f.path.includes('ECHOES.ARCHIVE') && f.path.endsWith('L1'), f.path);
   await p.click('#t-output .t-line.act:has(.lb:text-is("[INCIDENT REPORTS]"))'); await calm();
   f = await frame();
-  check('address bar follows the folder', f.path.replace(/\s/g, '') === 'ECHOES:\\ECHOES.ARCHIVE\\INCIDENTREPORTST1' || /INCIDENT REPORTS/.test(f.path), f.path);
+  check('address bar follows the folder', f.path.replace(/\s/g, '') === 'ECHOES:\\ECHOES.ARCHIVE\\INCIDENTREPORTSL1' || /INCIDENT REPORTS/.test(f.path), f.path);
   await p.click('#t-addr .seg.go'); await calm();
   check('clicking a path segment jumps there', (await st()) === 'L1A_ROOT', await st());
   await p.click('#t-output .t-line.act:has(.lb:text-is("[INCIDENT REPORTS]"))'); await calm();
@@ -36,7 +36,7 @@ const L = require('./lib.js');
   check('the up arrow in the address bar goes back one level', (await st()) === 'L1A_ROOT', await st());
   await p.click('#t-output .t-line.act:has(.lb:text-is("[CREW MANIFEST]"))'); await calm();
   o = await out();
-  check('a doc page shows its status line', o.some(l => l === 'DOC   TIER 1'), JSON.stringify(o.slice(-4)));
+  check('a doc page shows its status line', o.some(l => l === 'DOC   L1'), JSON.stringify(o.slice(-4)));
   await p.click('#t-addr .seg.go'); await calm();
 
   // ---- unmount line and plain chat frame ----------------------------------------

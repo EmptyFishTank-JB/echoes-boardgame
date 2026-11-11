@@ -13,7 +13,7 @@ const L = require('./lib.js');
   let r = await rows();
   const by = (k) => (r || []).find((x) => x.k === k);
   check('a doc\'s menu lists id, type, name, alias, title, hidden, footer and text', r && ['ID', 'TYPE', 'NAME', 'ALIAS', 'TITLE', 'HIDDEN', 'FOOTER', 'TEXT'].every((k) => by(k)), r && r.map((x) => x.k));
-  check('...with the real values', by('ID').v === 'L1A_CREW_MANIFEST' && by('NAME').v === 'CREW MANIFEST' && by('ALIAS').v === '[CREW MANIFEST]' && /^doc, tier 1/.test(by('TYPE').v), r);
+  check('...with the real values', by('ID').v === 'L1A_CREW_MANIFEST' && by('NAME').v === 'CREW MANIFEST' && by('ALIAS').v === '[CREW MANIFEST]' && /^doc, L1/.test(by('TYPE').v), r);
   check('id and type are read-only; name, alias, title, hidden, footer and text can be edited', !by('ID').ed && !by('TYPE').ed && ['NAME', 'ALIAS', 'TITLE', 'HIDDEN', 'FOOTER', 'TEXT'].every((k) => by(k).ed));
   await p.evaluate(() => { window.__title0 = osItems.L1A_CREW_MANIFEST.title; });
   await p.hover('#ctx .cr.ed:has-text("NAME")'); await p.waitForTimeout(80);

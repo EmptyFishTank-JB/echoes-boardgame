@@ -186,15 +186,6 @@ select option{background:#001220;color:var(--blue);}
 .salt-row input{flex:1;}
 .salt-row input[readonly]{color:var(--dim);cursor:default;background:rgba(255,255,255,0.02);}
 
-/* CODE GENERATED DISPLAY (inline) */
-#code-out-row{display:flex;gap:8px;align-items:center;margin-top:4px;}
-#code-out-disp{flex:1;font-size:15px;letter-spacing:0.16em;color:var(--blue);
-  padding:8px 10px;border:1px solid rgba(79,195,247,0.14);
-  background:rgba(79,195,247,0.02);text-align:center;min-height:42px;
-  display:flex;align-items:center;justify-content:center;}
-#code-out-disp.empty{color:rgba(79,195,247,0.20);font-size:12px;letter-spacing:0.06em;}
-#code-out-disp.error{color:var(--red);font-size:12px;}
-
 /* ENTRY ID ROW */
 .eid-row{display:flex;gap:8px;align-items:center;}
 .eid-row input{width:90px;flex-shrink:0;}
@@ -204,6 +195,7 @@ select option{background:#001220;color:var(--blue);}
 /* COLLAPSIBLE BOX — shared by TEMPLATE and TEMPLATE EDITOR */
 .collapsible-box{border:1px solid rgba(79,195,247,0.10);background:rgba(79,195,247,0.015);padding:9px 11px;display:flex;flex-direction:column;gap:8px;}
 .collapsible-box.collapsed .tpl-content{display:none!important;}
+#char-form.collapsed{display:none;}
 .tpl-ed-hdr{font-size:12px;color:var(--dim);letter-spacing:0.08em;
   display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none;}
 .tpl-ed-hdr:hover{color:var(--blue);}
@@ -218,14 +210,35 @@ select option{background:#001220;color:var(--blue);}
 
 /* LOG FIELDS */
 #logtxt{resize:vertical;min-height:150px;max-height:320px;line-height:1.75;}
-#l1pre{resize:vertical;min-height:65px;line-height:1.7;}
-#l1preg{display:none;}
 .cct{font-size:11px;color:var(--dim);text-align:right;margin-top:2px;}
 #type-badge{font-size:12px;padding:3px 9px;border:1px solid var(--bdr);color:var(--dim);flex-shrink:0;}
 #type-badge.full{border-color:rgba(79,195,247,0.24);color:var(--blue);}
+#type-badge.partial,#type-badge.degraded{border-color:rgba(191,124,10,0.42);color:var(--amber);}
+#type-badge.corrupted{border-color:rgba(224,80,80,0.42);color:var(--red);}
 #type-badge.classified{border-color:rgba(191,124,10,0.42);color:var(--amber);}
 #type-badge.virus{border-color:rgba(224,80,80,0.42);color:var(--red);}
-#clr-badge{font-size:12px;padding:3px 9px;border:1px solid rgba(79,195,247,0.13);color:var(--dim);flex-shrink:0;}
+
+/* EDITOR STEPS */
+.stp{display:inline-block;min-width:18px;height:18px;line-height:17px;text-align:center;border:1px solid rgba(79,195,247,0.30);color:var(--blue);font-size:11px;margin-right:7px;}
+.chk{font-size:12px;color:var(--dim);display:flex;align-items:flex-start;gap:7px;cursor:pointer;line-height:1.5;}
+.chk input{width:auto;accent-color:var(--blue);flex-shrink:0;margin-top:2px;}
+.tools-title{font-size:11px;letter-spacing:0.14em;color:rgba(79,195,247,0.34);padding:8px 2px 0;border-top:1px solid var(--bdr);margin-top:6px;}
+.auth-card{font-size:12px;line-height:1.7;color:var(--dim);padding:7px 9px;border:1px solid rgba(79,195,247,0.09);background:rgba(79,195,247,0.02);}
+.auth-card b{color:var(--blue);font-weight:normal;}
+.auth-card .prov{color:var(--amber);}
+.acc-line{font-size:12px;line-height:1.7;color:var(--dim);}
+.acc-line .lv{color:var(--blue);}
+.acc-line.ok{color:var(--green);}
+.acc-line.wn{color:var(--amber);}
+.ready-list{font-size:12px;line-height:1.8;color:var(--dim);}
+.ready-list .ok{color:var(--green);}
+.ready-list .no{color:var(--red);}
+.ready-list .wn{color:var(--amber);}
+.sub-fl.bad{color:var(--red);}
+#sdin{letter-spacing:0.1em;}
+#sdin.bad{border-color:rgba(224,80,80,0.55);}
+#lidl.locked,#lidn.locked{color:var(--dim);background:rgba(255,255,255,0.02);cursor:default;}
+button:disabled{opacity:0.28;cursor:not-allowed;}
 
 /* DECODE SECTION */
 #dec-sec{border:1px solid rgba(79,195,247,0.10);background:rgba(79,195,247,0.015);}
@@ -306,6 +319,9 @@ select option{background:#001220;color:var(--blue);}
     <span id="fstat-dev" class="fstat none">NO DEVLOG FILE</span>
     <button class="hbtn" onclick="loadFromGitHub('dev')">&#8681; DEVLOGS (GITHUB)</button>
     <button class="hbtn" onclick="openFile('dev')">&#8213; OPEN DEVLOG FILE</button>
+    <span id="fstat-crew" class="fstat none">NO CREW FILE</span>
+    <button class="hbtn" onclick="openCrewFile()">&#8213; OPEN CREW FILE</button>
+    <button class="hbtn" onclick="dlCrew()">&#8595; CREW</button>
   </div>
 </div>
 
@@ -348,22 +364,12 @@ select option{background:#001220;color:var(--blue);}
   <div class="ephdr">&#9658; ENTRY EDITOR</div>
   <div id="escroll">
 
-    <!-- ECHOES DAY COUNTER -->
-    <div class="psec">
-      <div class="psec-title">ECHOES &#8212; DAY COUNTER</div>
-      <div class="fr" style="flex-wrap:wrap;gap:16px;">
-        <div><div class="sub-fl">DAY 1</div><div id="ec-day1" style="font-size:13px;color:var(--blue);">10/23/2025</div></div>
-        <div><div class="sub-fl">DAY COUNTER</div><div id="ec-daycount" style="font-size:13px;color:var(--blue);">&#8212;</div></div>
-        <div><div class="sub-fl">STARDATE</div><div id="ec-stardate" style="font-size:13px;color:var(--blue);">&#8212;</div></div>
-        <div><div class="sub-fl">REAL TIME (CST)</div><div id="ec-realtime" style="font-size:13px;color:var(--blue);">&#8212;</div></div>
-      </div>
-    </div>
+    <!-- 1 · WHO WROTE IT -->
+    <div class="psec" id="sec-author">
+      <div class="psec-title"><span class="stp">1</span> WHO WROTE IT</div>
 
-    <!-- CLASSIFICATION -->
-    <div class="psec">
-      <div class="psec-title">CLASSIFICATION</div>
       <div class="fg">
-        <div class="fl">ENTRY MODE</div>
+        <div class="fl">DATASET</div>
         <div class="tgg" id="mtg">
           <button class="tg on" data-v="lore" onclick="setMode('lore')">LORE ENTRY</button>
           <button class="tg"    data-v="dev"  onclick="setMode('dev')">DEV LOG</button>
@@ -371,54 +377,115 @@ select option{background:#001220;color:var(--blue);}
       </div>
 
       <div class="fg">
-        <div class="fl">ENTRY CONDITION</div>
-        <div class="tgg" id="ttg">
-          <button class="tg on" data-v="full"       onclick="setTyp('full')">FULL</button>
-          <button class="tg"    data-v="partial"    onclick="setTyp('partial')">PARTIAL</button>
-          <button class="tg"    data-v="degraded"   onclick="setTyp('degraded')">DEGRAD.</button>
-          <button class="tg"    data-v="corrupted"  onclick="setTyp('corrupted')">CORRUPT</button>
-          <button class="tg"    data-v="classified" onclick="setTyp('classified')">CLASS.</button>
-          <button class="tg"    data-v="virus"      onclick="setTyp('virus')">VIRUS</button>
+        <div class="fl">AUTHOR &#8212; sets the log ID, the signature and the usual log type</div>
+        <div class="fr">
+          <select id="authsel" onchange="onAuthorPick()"></select>
+          <button class="btn sm" style="flex-shrink:0" onclick="openCharForm('new')">&#43; NEW</button>
+          <button class="btn sm" style="flex-shrink:0" id="char-edit-btn" onclick="openCharForm('edit')">EDIT</button>
         </div>
       </div>
 
-      <div class="fg" id="clrg">
-        <div class="fl">CLEARANCE LEVEL</div>
-        <div class="tgg" id="ctg">
-          <button class="tg on" data-v="1" onclick="setClr(1)">L1 &#8212; STANDARD</button>
-          <button class="tg"    data-v="2" onclick="setClr(2)">L2 &#8212; RESTRICTED</button>
+      <div id="auth-card" class="auth-card"></div>
+
+      <div id="char-form" class="collapsible-box collapsed">
+        <div class="tpl-ed-hdr" style="cursor:default">
+          <span id="cf-title">&#9658; NEW CHARACTER</span>
+        </div>
+        <div class="tpl-content" style="display:flex;flex-direction:column;gap:8px;">
+          <div class="fr">
+            <div style="flex:1"><div class="sub-fl">DEPARTMENT</div><select id="cf-dept" onchange="cfDeptChanged()"></select></div>
+            <div style="width:90px"><div class="sub-fl">NUMBER</div><input type="text" id="cf-num" maxlength="3" placeholder="001" oninput="this.value=this.value.replace(/\D/g,'').slice(0,3);cfIdLine()"></div>
+          </div>
+          <div id="cf-idline" class="sub-fl"></div>
+          <div class="fg"><div class="sub-fl">NAME</div><input type="text" id="cf-name" placeholder="Dr. Aisha Osei" autocomplete="off"></div>
+          <div class="fg"><div class="sub-fl">SIGNATURE &#8212; how they sign a log</div><input type="text" id="cf-sig" placeholder="Dr. A. Osei" autocomplete="off"></div>
+          <div class="fg"><div class="sub-fl">ROLE</div><input type="text" id="cf-role" placeholder="Research Team" autocomplete="off"></div>
+          <label class="chk"><input type="checkbox" id="cf-prov"> PROVISIONAL &#8212; the ID can still change</label>
+          <div class="btn-row">
+            <button class="btn sm g" onclick="saveChar()">&#10003; SAVE CHARACTER</button>
+            <button class="btn sm" onclick="closeCharForm()">CANCEL</button>
+            <button class="btn sm r" id="cf-del" onclick="delChar()">&#8722; DELETE</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="fg">
+        <div class="fl">LOG ID &#8212; department letter, then three digits</div>
+        <div class="fr" style="align-items:center;gap:8px">
+          <input type="text" id="lidl" maxlength="1" placeholder="R"
+                 style="width:44px;flex-shrink:0;text-align:center;text-transform:uppercase;letter-spacing:0.14em"
+                 oninput="fmtLid()" autocomplete="off">
+          <span style="color:var(--dim);font-size:14px;flex-shrink:0">&#8211;</span>
+          <input type="text" id="lidn" maxlength="3" placeholder="000"
+                 style="width:62px;flex-shrink:0;text-align:center;letter-spacing:0.12em"
+                 oninput="fmtLid()" autocomplete="off">
+          <span id="lid-note" style="font-size:11px;color:var(--dim)"></span>
+        </div>
+      </div>
+
+      <div class="fg">
+        <label class="chk"><input type="checkbox" id="ovr" onchange="onOverride()"> ID OVERRIDE &#8212; filed without a valid ID (falsified, stripped or damaged)</label>
+        <div id="ovr-opts" style="display:none;gap:8px;flex-direction:column">
+          <div class="fr" style="gap:8px;flex-direction:column">
+            <div style="flex:1"><div class="sub-fl">LOG ID</div><select id="ovr-id" onchange="onOverride()"></select></div>
+            <div style="flex:1"><div class="sub-fl">STARDATE</div><select id="ovr-time" onchange="onOverride()"></select></div>
+            <div style="flex:1"><div class="sub-fl">SIGN-OFF LINE</div><select id="ovr-sign" onchange="onOverride()"></select></div>
+          </div>
+          <div class="sub-fl">The real ID and moment stay in the code and in the entry; only the text that players read is obscured. Uncheck and retype the sign-off to undo it.</div>
+          <div class="sub-fl" id="ovr-note"></div>
         </div>
       </div>
     </div>
 
-    <!-- ENTRY IDENTITY -->
-    <div class="psec">
-      <div class="psec-title">ENTRY IDENTITY</div>
-
-      <div class="fg">
-        <div class="fl">LOG ID (A-00)</div>
-        <div class="fr" style="align-items:center;gap:8px">
-          <input type="text" id="lidl" maxlength="1" placeholder="A"
-                 style="width:44px;flex-shrink:0;text-align:center;text-transform:uppercase;letter-spacing:0.14em"
-                 oninput="fmtLid()" autocomplete="off">
-          <span style="color:var(--dim);font-size:14px;flex-shrink:0">&#8212;</span>
-          <input type="text" id="lidn" maxlength="2" placeholder="00"
-                 style="width:50px;flex-shrink:0;text-align:center;letter-spacing:0.12em"
-                 oninput="fmtLid()" autocomplete="off">
-          <button class="btn sm" style="flex-shrink:0;margin-left:auto" onclick="autoLbl()">AUTO LABEL</button>
-        </div>
-      </div>
-
+    <!-- 2 · WHAT KIND OF LOG -->
+    <div class="psec" id="sec-kind">
+      <div class="psec-title"><span class="stp">2</span> WHAT KIND OF LOG</div>
       <div class="fg">
         <div class="fl">LOG TYPE &#8212; e.g. CAPTAIN'S LOG, MEDICAL LOG, INTERCEPTED TRANSMISSION</div>
         <input type="text" id="logtype" list="logtype-list" placeholder="CAPTAIN'S LOG"
-               oninput="updHeader();updJ();" autocomplete="off">
+               oninput="onTypeInput()" autocomplete="off">
         <datalist id="logtype-list"></datalist>
       </div>
+      <div class="fg">
+        <div class="fl">START FROM A TEMPLATE &#8212; sets the log type and fills the text (it replaces what is there)</div>
+        <div class="fr">
+          <select id="tpls" onchange="onTplChange()"></select>
+          <button class="btn sm" style="flex-shrink:0" onclick="applyTpl()">APPLY</button>
+        </div>
+      </div>
+    </div>
 
+    <!-- 3 · WHEN -->
+    <div class="psec" id="sec-when">
+      <div class="psec-title"><span class="stp">3</span> WHEN</div>
+      <div class="fg">
+        <div class="fl">STARDATE &#8212; type it, or set the date and time below</div>
+        <div class="fr">
+          <input type="text" id="sdin" placeholder="2143.126.0614" autocomplete="off" spellcheck="false"
+                 oninput="onSdInput()" onblur="syncSdBox()">
+        </div>
+      </div>
+      <div>
+        <div class="dt5">
+          <div><div class="sub-fl">YEAR</div>
+            <input type="number" id="dt-year" min="1900" max="2500" value="2026" oninput="onDtChange()"></div>
+          <div><div class="sub-fl">MONTH</div>
+            <input type="number" id="dt-month" min="1" max="12" value="1" oninput="onDtChange()"></div>
+          <div><div class="sub-fl">DAY</div>
+            <input type="number" id="dt-day" min="1" max="31" value="1" oninput="onDtChange()"></div>
+          <div><div class="sub-fl">HOUR</div>
+            <input type="number" id="dt-hour" min="0" max="23" value="0" oninput="onDtChange()"></div>
+          <div><div class="sub-fl">MIN</div>
+            <input type="number" id="dt-min" min="0" max="59" value="0" oninput="onDtChange()"></div>
+        </div>
+        <div class="btn-row" style="margin-top:5px;">
+          <button class="btn sm" onclick="fillNow()">USE NOW</button>
+        </div>
+      </div>
+      <div id="doy-line">&#8212;</div>
       <div class="fg">
         <div class="eid-row">
-          <label><input type="checkbox" id="trkday" onchange="toggleTrackDay()"> TRACK DAY #</label>
+          <label><input type="checkbox" id="trkday" onchange="toggleTrackDay()"> TRACK DAY # (adds &#8212; DAY n to the log type line)</label>
         </div>
         <div id="daystart-row" class="fr" style="align-items:center;gap:8px;display:none;">
           <span style="font-size:12px;color:var(--dim);flex-shrink:0">START DATE</span>
@@ -428,98 +495,121 @@ select option{background:#001220;color:var(--blue);}
           <span id="dayct" style="font-size:13px;color:var(--blue);min-width:40px;text-align:center;">&#8212;</span>
         </div>
       </div>
+    </div>
 
-      <div>
-        <div class="fl" style="margin-bottom:5px;">DATE &amp; TIME &#8212; sets the stardate used in the header and code</div>
-        <div class="dt5">
-          <div><div class="sub-fl">YEAR</div>
-            <input type="number" id="dt-year" min="1900" max="2500" value="2026"
-                   oninput="onDtChange()"></div>
-          <div><div class="sub-fl">MONTH</div>
-            <input type="number" id="dt-month" min="1" max="12" value="1"
-                   oninput="onDtChange()"></div>
-          <div><div class="sub-fl">DAY</div>
-            <input type="number" id="dt-day" min="1" max="31" value="1"
-                   oninput="onDtChange()"></div>
-          <div><div class="sub-fl">HOUR</div>
-            <input type="number" id="dt-hour" min="0" max="23" value="0"
-                   oninput="onDtChange()"></div>
-          <div><div class="sub-fl">MIN</div>
-            <input type="number" id="dt-min" min="0" max="59" value="0"
-                   oninput="onDtChange()"></div>
-        </div>
-        <div class="btn-row" style="margin-top:5px;">
-          <button class="btn sm" onclick="fillNow()">USE NOW</button>
-          <button class="btn sm r" onclick="clearDtFields()">CLEAR DATE</button>
+    <!-- 4 · CONDITION AND ACCESS -->
+    <div class="psec" id="sec-cond">
+      <div class="psec-title"><span class="stp">4</span> CONDITION AND ACCESS</div>
+      <div class="fg">
+        <div class="fl">CONDITION &#8212; shown as the log's health in FETCH LOG.EXE</div>
+        <div class="tgg" id="ctg">
+          <button class="tg on" data-v="INTACT"    onclick="setCond('INTACT')">INTACT</button>
+          <button class="tg"    data-v="PARTIAL"   onclick="setCond('PARTIAL')">PARTIAL</button>
+          <button class="tg"    data-v="DEGRADED"  onclick="setCond('DEGRADED')">DEGRADED</button>
+          <button class="tg"    data-v="CORRUPTED" onclick="setCond('CORRUPTED')">CORRUPTED</button>
         </div>
       </div>
+      <div class="fg">
+        <div class="fl">KIND</div>
+        <div class="tgg" id="ktg">
+          <button class="tg on" data-v="full"  onclick="setKind('full')">NORMAL</button>
+          <button class="tg"    data-v="virus" onclick="setKind('virus')">VIRUS</button>
+        </div>
+        <div class="sub-fl" id="kind-note">A virus log plays the virus sequence and resets the terminal (lore entries only).</div>
+      </div>
+      <div class="fg">
+        <div class="fl">ACCESS &#8212; fixed by the dataset</div>
+        <div id="acc-line" class="acc-line"></div>
+      </div>
+    </div>
 
-      <div id="doy-line">&#8212;</div>
+    <!-- 5 · THE LOG -->
+    <div class="psec" id="sec-text">
+      <div class="psec-title"><span class="stp">5</span> THE LOG</div>
 
       <div id="hdprev">
         <div class="hdprev-top">
-          <span class="fl">LIVE HEADER PREVIEW</span>
+          <span class="fl">HEADER &#8212; made from the author, log type and date</span>
           <div class="hdprev-btns">
-            <button class="inj a" onclick="injSD()">&#8595; STARDATE ONLY</button>
+            <button class="inj a" onclick="injSD()">&#8595; STARDATE</button>
+            <button class="inj a" onclick="injSign()">&#8595; SIGN-OFF</button>
           </div>
         </div>
         <div id="hp-line1">&#8212;</div>
         <div id="hp-line2">&#8212;</div>
       </div>
 
-      <!-- CODE FIELD -->
       <div class="fg">
-        <div class="fl">ENTRY CODE &#8212; XXXXX-XXXXX-XXXXX-XXXXX</div>
-        <input type="text" id="codef" maxlength="24"
-               placeholder="Generate below or enter manually"
-               autocomplete="off" spellcheck="false">
-        <div id="codest">Enter or generate a 20-character code</div>
-      </div>
-    </div>
-
-    <!-- CONTENT -->
-    <div class="psec">
-      <div class="psec-title">CONTENT</div>
-      <div class="fg">
-        <div class="fl">CONDITION &#160;&#160; LABEL &#8212; INTERNAL REFERENCE</div>
-        <div class="fr" style="align-items:center;gap:6px">
-          <span id="type-badge" class="full" style="flex-shrink:0">FULL</span>
-          <span id="clr-badge" style="flex-shrink:0">L1</span>
-          <input type="text" id="labf"
-                 placeholder="Log A-00 | Stardate 2026.139.1431"
-                 autocomplete="off" oninput="updJ()" style="flex:1">
-        </div>
-      </div>
-
-      <!-- LOG TEXT -->
-      <div class="fg">
-        <div class="fl">LOG TEXT &#8212; body only, the header above is generated automatically</div>
+        <div class="fl">LOG TEXT &#8212; body only, the header above is added for you</div>
         <textarea id="logtxt"
           placeholder="[Your entry here]&#10;&#10;    &#8212;&#8212; Dev. J. Betancourt"></textarea>
         <div class="cct"><span id="cct">0</span> CHARS</div>
       </div>
 
-      <!-- L1 PREVIEW (classified) -->
-      <div class="fg" id="l1preg">
-        <div class="fl">L1 REDACTED PREVIEW &#8212; SHOWN BEFORE FULL L2 ACCESS</div>
-        <textarea id="l1pre"
-          placeholder="[REDACTED] discovered something on day [REDACTED]. L2 access required."></textarea>
+      <div class="fg">
+        <div class="fl">LABEL &#8212; the name in the recovered list. Follows the fields above until you edit it.</div>
+        <div class="fr" style="align-items:center;gap:6px">
+          <span id="type-badge" class="full" style="flex-shrink:0">INTACT</span>
+          <input type="text" id="labf" placeholder="RESEARCH LOG R-118 | Stardate 2143.126.0614"
+                 autocomplete="off" oninput="onLabelInput()" style="flex:1">
+          <button class="btn sm" style="flex-shrink:0" onclick="autoLbl(true)">AUTO</button>
+        </div>
       </div>
     </div>
 
-    <!-- TEMPLATE (collapsible) -->
-    <div id="tpl-sec" class="collapsible-box collapsed">
-      <div class="tpl-ed-hdr" onclick="toggleTplSec()">
-        <span id="tpl-sec-arrow">&#9658; TEMPLATE</span>
-      </div>
-      <div class="tpl-content" style="display:flex;flex-direction:column;gap:8px;">
-        <div class="fg">
-          <div class="fl">LOG TEMPLATE</div>
-          <div class="fr">
-            <select id="tpls" onchange="onTplChange()"></select>
-            <button class="btn sm" style="flex-shrink:0" onclick="applyTpl()">APPLY</button>
-          </div>
+    <!-- 6 · CODE -->
+    <div class="psec" id="sec-code">
+      <div class="psec-title"><span class="stp">6</span> CODE</div>
+      <div id="code-says" class="acc-line"></div>
+      <div class="fg">
+        <div class="fl">ENTRY CODE &#8212; XXXXX-XXXXX-XXXXX-XXXXX</div>
+        <div class="fr">
+          <input type="text" id="codef" maxlength="24"
+                 placeholder="Press GENERATE, or enter a code"
+                 autocomplete="off" spellcheck="false">
+          <button class="btn g" style="flex-shrink:0" onclick="doGenerate()">&#9654; GENERATE</button>
+          <button class="btn sm" style="flex-shrink:0" id="cp-gen-btn" onclick="cpCode()">COPY</button>
         </div>
+        <div id="codest">Generate a code from the log ID and date, or enter one</div>
+        <div id="rekey-row" style="display:none">
+          <label class="chk"><input type="checkbox" id="rekey" onchange="updReady()"> REPLACE THE OLD CODE &#8212; this entry's code changed; save it under the new one and remove the old key</label>
+        </div>
+      </div>
+      <div id="salt-sec">
+        <div class="salt-hdr" onclick="toggleSalt()">
+          <span id="salt-arrow">&#9658; SALT</span>
+          <span id="salt-disp" style="font-size:11px;color:rgba(79,195,247,0.30)">SALT: &#8212;</span>
+        </div>
+        <div class="salt-body hidden" id="salt-body">
+          <div class="fl" style="margin-bottom:4px;">SALT KEY &#8212; fixed project-wide (in log-codes.js). Needed to decode any code.</div>
+          <div class="salt-row"><input type="number" id="salt-in" min="1" max="999999999" readonly></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 7 · SAVE -->
+    <div class="psec" id="sec-save">
+      <div class="psec-title"><span class="stp">7</span> SAVE</div>
+      <div id="ready-list" class="ready-list"></div>
+      <div class="btn-row">
+        <button class="btn g" onclick="saveEntry()">&#8629; SAVE ENTRY</button>
+        <button class="btn" onclick="updPrev()">&#9658; PREVIEW</button>
+        <button class="btn a" onclick="cpJSON()">&#8853; COPY JSON</button>
+        <button class="btn r" onclick="clrForm()">&#10005; CLEAR ALL</button>
+      </div>
+      <div class="sub-fl">SAVE ENTRY puts the log in the list on the left. SAVE TO FILE (top) writes the file; DOWNLOAD gives you the JSON to commit.</div>
+    </div>
+
+    <!-- TOOLS -->
+    <div class="tools-title">TOOLS</div>
+    <!-- ECHOES DAY COUNTER -->
+    <div class="psec">
+      <div class="psec-title">ECHOES &#8212; DAY COUNTER</div>
+      <div class="fr" style="flex-wrap:wrap;gap:16px;">
+        <div><div class="sub-fl">DAY 1</div><div id="ec-day1" style="font-size:13px;color:var(--blue);">10/23/2025</div></div>
+        <div><div class="sub-fl">DAY COUNTER</div><div id="ec-daycount" style="font-size:13px;color:var(--blue);">&#8212;</div></div>
+        <div><div class="sub-fl">STARDATE</div><div id="ec-stardate" style="font-size:13px;color:var(--blue);">&#8212;</div></div>
+        <div><div class="sub-fl">REAL TIME (CST)</div><div id="ec-realtime" style="font-size:13px;color:var(--blue);">&#8212;</div></div>
       </div>
     </div>
 
@@ -556,32 +646,6 @@ select option{background:#001220;color:var(--blue);}
       </div>
     </div>
 
-    <!-- CODE GENERATOR (collapsible) -->
-    <div id="salt-sec">
-      <div class="salt-hdr" onclick="toggleSalt()">
-        <span id="salt-arrow">&#9660; CODE GENERATOR</span>
-        <span id="salt-disp" style="font-size:11px;color:rgba(79,195,247,0.30)">SALT: &#8212;</span>
-      </div>
-      <div class="salt-body" id="salt-body">
-        <div>
-          <div class="fl" style="margin-bottom:4px;">SALT KEY &#8212; fixed project-wide. Required to decode any code from this file.</div>
-          <div class="salt-row">
-            <input type="number" id="salt-in" min="1" max="999999999" readonly>
-          </div>
-        </div>
-
-        <input type="hidden" id="eid" value="1">
-
-        <button class="btn lg g" onclick="doGenerate()">&#9654; GENERATE CODE</button>
-
-        <div id="code-out-row">
-          <div id="code-out-disp" class="empty">&#8212;</div>
-          <button class="btn sm" onclick="cpGenCode()" id="cp-gen-btn" disabled>COPY</button>
-          <button class="btn sm g" onclick="useGenCode()" id="use-gen-btn" disabled>USE</button>
-        </div>
-      </div>
-    </div>
-
     <!-- DECODE / VALIDATE (collapsible) -->
     <div id="dec-sec">
       <div class="dec-hdr" onclick="toggleDec()">
@@ -613,17 +677,11 @@ select option{background:#001220;color:var(--blue);}
           Same inputs + same salt always produce the same code. Change the salt and all codes become unreadable.<br><br>
           <span>CODE LENGTH:</span> 20 chars (XXXXX-XXXXX-XXXXX-XXXXX)<br>
           <span>YEAR RANGE:</span> 1900 &#8211; 2500<br>
-          <span>ENTRY IDs:</span> 0 &#8211; 999 unique codes per minute<br>
+          <span>LOG ID:</span> a department letter and a number 0 &#8211; 999 are packed into the code<br>
+          <span>OLD CODES:</span> made before departments existed, they carry no letter and read as number 1<br>
           <span>LEAP YEARS:</span> handled automatically
         </div>
       </div>
-    </div>
-
-    <!-- BUTTONS -->
-    <div id="brow">
-      <button class="btn" onclick="updPrev()">&#9658; PREVIEW</button>
-      <button class="btn a" onclick="cpJSON()">&#8853; COPY JSON</button>
-      <button class="btn r" onclick="clrForm()">&#10005; CLEAR ALL</button>
     </div>
 
     <!-- LOAD JSON -->
@@ -642,7 +700,6 @@ select option{background:#001220;color:var(--blue);}
           oninput="tryImp(this.value)"></textarea>
       </div>
     </div>
-
   </div>
 </div>
 
@@ -673,138 +730,18 @@ select option{background:#001220;color:var(--blue);}
 <input type="file" id="fit" accept=".json" style="display:none">
 <div id="toast"></div>
 
+<script src="log-codes.js"></script>
 <script>
 'use strict';
 
-// ── ALGORITHM ────────────────────────────────────────────────────────────────
-var CHARS  = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-var BASE   = 36;
-var M      = 2147483647;
-var LCG_A  = 1664525;
-var LCG_C  = 1013904223;
-var BASE_YEAR = 1900; // year range: 1900-2500
-
-function lcgStep(s) { return (LCG_A * s + LCG_C) % M; }
-function lcgInt(s, max) { var ns = lcgStep(s); return { val: Math.floor((ns/M)*max), seed: ns }; }
-
-function encodeB36(n, w) {
-  if (n < 0) n = 0;
-  var r = '', v = Math.floor(n);
-  if (!v) { r = '0'; } else { while (v > 0) { r = CHARS[v%BASE]+r; v = Math.floor(v/BASE); } }
-  while (r.length < w) r = '0' + r;
-  return r;
-}
-function decodeB36(s) {
-  var r = 0;
-  for (var i = 0; i < s.length; i++) {
-    var c = CHARS.indexOf(s[i]);
-    if (c < 0) return -1;
-    r = r * BASE + c;
-  }
-  return r;
-}
-
-// Day of year using Date.UTC — DST safe, leap-year aware. Jan 1 = day 1.
-function dayOfYear(year, month, day) {
-  return Math.floor((Date.UTC(year, month-1, day) - Date.UTC(year, 0, 1)) / 86400000) + 1;
-}
-
-// Pack: year*12*31*24*60*1000 chain. Max ~3.2e11 < 36^9 (~1e14) ✓
-function packData(yo, mo, d, h, mi, eid) {
-  var n = yo;
-  n = n * 12   + (mo - 1);
-  n = n * 31   + (d - 1);
-  n = n * 24   + h;
-  n = n * 60   + mi;
-  n = n * 1000 + eid;
-  return n;
-}
-function unpackData(n) {
-  var eid = n % 1000;         n = Math.floor(n / 1000);
-  var mi  = n % 60;           n = Math.floor(n / 60);
-  var h   = n % 24;           n = Math.floor(n / 24);
-  var d   = (n % 31) + 1;    n = Math.floor(n / 31);
-  var mo  = (n % 12) + 1;    n = Math.floor(n / 12);
-  return { yearOff: n, month: mo, day: d, hour: h, minute: mi, entryId: eid };
-}
-
-function genPermutation(salt, n) {
-  var perm = []; for (var i = 0; i < n; i++) perm.push(i);
-  var seed = Math.abs(Math.floor(salt)) % M;
-  if (!seed) seed = 987654321;
-  seed = lcgStep(seed);
-  for (var i = n-1; i > 0; i--) {
-    var r = lcgInt(seed, i+1); seed = r.seed;
-    var t = perm[i]; perm[i] = perm[r.val]; perm[r.val] = t;
-  }
-  return perm;
-}
-
-function computeChecksum(ds, fs) {
-  var val = 0, s = ds + fs;
-  for (var i = 0; i < s.length; i++) val = (val * 31 + CHARS.indexOf(s[i]) * (i+1)) % (BASE*BASE);
-  return encodeB36(val, 2);
-}
-
-function genFillerSeed(packNum, salt) {
-  var a = packNum % M, b = Math.abs(Math.floor(salt)) % M;
-  var seed = (a * 31337 + b * 1000003) % M;
-  return seed || 111222333;
-}
-
-function generateCode(year, month, day, hour, minute, entryId, salt) {
-  var yearOff = year - BASE_YEAR;
-  if (yearOff < 0 || yearOff > 600)    return { error: 'Year must be 1900–2500' };
-  if (month < 1  || month > 12)        return { error: 'Month must be 1–12' };
-  if (day < 1    || day > 31)          return { error: 'Day must be 1–31' };
-  if (hour < 0   || hour > 23)         return { error: 'Hour must be 0–23' };
-  if (minute < 0 || minute > 59)       return { error: 'Minute must be 0–59' };
-  if (entryId < 0 || entryId > 999)    return { error: 'Entry ID must be 0–999' };
-  if (!salt || salt < 1)               return { error: 'Set and save a salt first' };
-
-  var packNum = packData(yearOff, month, day, hour, minute, entryId);
-  var ds      = encodeB36(packNum, 9);
-  var fSeed   = genFillerSeed(packNum, salt);
-  var fil = '';
-  for (var i = 0; i < 9; i++) { fSeed = lcgStep(fSeed); fil += CHARS[Math.floor((fSeed/M)*BASE)]; }
-  var ck  = computeChecksum(ds, fil);
-  var raw = ds + fil + ck;
-  var perm = genPermutation(salt, 20);
-  var sh = new Array(20);
-  for (var i = 0; i < 20; i++) sh[perm[i]] = raw[i];
-  var flat = sh.join('');
-  return { code: flat.slice(0,5)+'-'+flat.slice(5,10)+'-'+flat.slice(10,15)+'-'+flat.slice(15,20) };
-}
-
-function decodeEntry(code, salt) {
-  var raw = code.replace(/-/g,'').toUpperCase().trim();
-  if (raw.length !== 20) return { valid: false, error: 'Must be 20 characters (excluding hyphens)' };
-  for (var i = 0; i < 20; i++) if (CHARS.indexOf(raw[i]) < 0) return { valid: false, error: 'Invalid character: '+raw[i] };
-  if (!salt || salt < 1) return { valid: false, error: 'Salt must be a positive integer' };
-  var perm = genPermutation(salt, 20);
-  var us = new Array(20);
-  for (var i = 0; i < 20; i++) us[i] = raw[perm[i]]; // encode: sh[perm[i]]=raw[i] → raw[i]=sh[perm[i]]
-  var u = us.join('');
-  var ds = u.slice(0,9), fil = u.slice(9,18), ck = u.slice(18,20);
-  if (ck !== computeChecksum(ds, fil)) return { valid: false, error: 'Invalid checksum — wrong salt or corrupted code' };
-  var packNum = decodeB36(ds);
-  if (packNum < 0) return { valid: false, error: 'Could not decode data segment' };
-  var fSeed = genFillerSeed(packNum, salt);
-  var ef = '';
-  for (var i = 0; i < 9; i++) { fSeed = lcgStep(fSeed); ef += CHARS[Math.floor((fSeed/M)*BASE)]; }
-  if (fil !== ef) return { valid: false, error: 'Filler mismatch — wrong salt or corrupted code' };
-  var d = unpackData(packNum);
-  var year = d.yearOff + BASE_YEAR;
-  var doy  = dayOfYear(year, d.month, d.day);
-  return { valid: true, year: year, month: d.month, day: d.day,
-           hour: d.hour, minute: d.minute, entryId: d.entryId,
-           doy: doy, stardate: buildSD(year, doy, d.hour, d.minute) };
-}
+// ── CODES ────────────────────────────────────────────────────────────────────
+// The algorithm lives in log-codes.js (shared with the tests). A code packs the moment, a crew number and an optional
+// department letter, then scrambles it with the project salt. Codes made before departments existed still decode.
+var generateCode = LogCodes.generateCode, decodeEntry = LogCodes.decodeEntry, dayOfYear = LogCodes.dayOfYear;
+var CHARS_ALL = LogCodes.CHARS;
 
 // ── STARDATE ─────────────────────────────────────────────────────────────────
-function buildSD(year, doy, hour, min) {
-  return year + '.' + p3(doy) + '.' + p2(hour) + p2(min);
-}
+function buildSD(year, doy, hour, min) { return LogCodes.buildSD(year, doy, hour, min); }
 function getSDFromFields() {
   var y  = iv('dt-year')  || new Date().getFullYear();
   var mo = iv('dt-month') || new Date().getMonth()+1;
@@ -816,13 +753,12 @@ function getSDFromFields() {
 }
 
 // ── STATE ─────────────────────────────────────────────────────────────────────
-var mode = 'lore', typ = 'full', clr = 1;
+var mode = 'lore', cond = 'INTACT', kind = 'full', loadedEntry = null;
 var iData = {}, fileHandle = null, activeCode = null;
 var saltValue = 0;
 var lastGenCode = '';
 var PROJECT_START_DEFAULT = '2025-10-23';
 var hist = [], histIdx = -1;
-var CHARS_ALL = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
 // Lore and Dev Logs are two independent, simultaneously-loaded datasets -
 // each with its own data, undo/redo history, and file handle - so editing
@@ -870,12 +806,36 @@ document.addEventListener('keydown',function(e){
 var ecolOpen = true;
 function toggleEcol(){ecolOpen=!ecolOpen;document.getElementById('ecol').classList.toggle('collapsed',!ecolOpen);document.getElementById('etgl-btn').innerHTML=ecolOpen?'&#9664;':'&#9654;';}
 
+// ── SMALL HELPERS ─────────────────────────────────────────────────────────────
+function ge(id){ return document.getElementById(id); }
+function gv(id){ return ge(id).value; }
+
 // ── DATE/TIME FIELDS ──────────────────────────────────────────────────────────
 function iv(id){ return parseInt(document.getElementById(id).value,10)||0; }
 function p2(n){ return String(n).padStart(2,'0'); }
 function p3(n){ return String(n).padStart(3,'0'); }
 
-function onDtChange() { updDoyLine(); updDayCt(); updHeader(); updJ(); }
+function onDtChange() { syncSdBox(); updDoyLine(); updDayCt(); refresh(); }
+
+// The stardate box and the five date fields describe the same moment. Typing in one rewrites the other.
+function syncSdBox() {
+  var b = ge('sdin');
+  if (document.activeElement !== b) { b.value = getSDFromFields(); b.classList.remove('bad'); }
+}
+function onSdInput() {
+  var v = gv('sdin').trim(), p = LogCodes.parseSD(v);
+  ge('sdin').classList.toggle('bad', !!v && !p);
+  if (!p) return;
+  ge('dt-year').value = p.year; ge('dt-month').value = p.month; ge('dt-day').value = p.day;
+  ge('dt-hour').value = p.hour; ge('dt-min').value = p.minute;
+  updDoyLine(); updDayCt(); refresh();
+}
+function dateOk() {
+  var y = iv('dt-year'), mo = iv('dt-month'), d = iv('dt-day'), h = iv('dt-hour'), mi = iv('dt-min');
+  if (y < 1900 || y > 2500 || mo < 1 || mo > 12 || d < 1 || d > 31 || h > 23 || mi > 59) return false;
+  var t = new Date(Date.UTC(y, mo - 1, d));
+  return t.getUTCMonth() === mo - 1 && t.getUTCDate() === d;
+}
 
 function updDoyLine() {
   var y  = iv('dt-year')||2026, mo = iv('dt-month')||1, d = iv('dt-day')||1;
@@ -898,29 +858,97 @@ function fillNow() {
   document.getElementById('dt-min').value   = now.getMinutes();
   onDtChange();
 }
-function clearDtFields() {
-  ['dt-year','dt-month','dt-day','dt-hour','dt-min'].forEach(function(id){document.getElementById(id).value='';});
-  document.getElementById('doy-line').textContent='—';
-  updHeader();
+
+// ── LOG ID, AS WRITTEN ─────────────────────────────────────────────────────────
+// The Log ID is a department letter and three digits, R-118. It names the person who wrote the log.
+function getLid(){
+  var l = gv('lidl').toUpperCase() || '?';
+  var n = gv('lidn');
+  return l + '-' + (n === '' ? '000' : p3(parseInt(n,10) || 0));
+}
+
+// ── OVERRIDE: what a log shows when it was filed without a valid ID ───────────────────────
+// The real ID, moment and sign-off stay in the entry (and the code); only the text a player reads is damaged.
+// The damage is seeded by the ID and the moment, so the same log always shows the same gaps.
+var HIDE = '█';
+function ovrOn(){ return ge('ovr').checked; }
+function ovrLv(id){ return ovrOn() ? (parseInt(gv(id),10) || 0) : 0; }
+function mkRnd(str){
+  var h = 1779033703 ^ str.length;
+  for (var i = 0; i < str.length; i++) { h = Math.imul(h ^ str.charCodeAt(i), 3432918353); h = (h << 13) | (h >>> 19); }
+  return function(){
+    h = Math.imul(h ^ (h >>> 16), 2246822507); h = Math.imul(h ^ (h >>> 13), 3266489909); h ^= h >>> 16;
+    return (h >>> 0) / 4294967296;
+  };
+}
+function seedStr(){ return getLid() + '|' + getSDFromFields(); }
+function shownId(){
+  var lv = ovrLv('ovr-id'), l = gv('lidl').toUpperCase() || '?', n = p3(parseInt(gv('lidn'),10) || 0);
+  if (!lv) return l + '-' + n;
+  if (lv === 1) { var i = Math.floor(mkRnd(seedStr() + 'id')() * 3); return l + '-' + n.slice(0,i) + HIDE + n.slice(i+1); }
+  if (lv === 2) return l + '-' + HIDE + HIDE + HIDE;
+  return HIDE + '-' + HIDE + HIDE + HIDE;
+}
+function shownSD(){
+  var sd = getSDFromFields(), lv = ovrLv('ovr-time');
+  if (!lv) return sd;
+  var y = sd.slice(0,4), d = sd.slice(5,8), t = sd.slice(9,13), H = HIDE;
+  if (lv === 1) return y + '.' + d + '.' + t.slice(0,2) + H + H;
+  if (lv === 2) return y + '.' + H + H + H + '.' + H + H + H + H;
+  return H + H + H + H + '.' + H + H + H + '.' + H + H + H + H;
+}
+var SIGN_RE = /^(\s*)(——|--|—)\s*(\S.*)$/;
+function findSignIdx(lines){ for (var i = lines.length - 1; i >= 0; i--) if (SIGN_RE.test(lines[i])) return i; return -1; }
+function obfSign(line, lv){
+  var m = SIGN_RE.exec(line);
+  if (!m || !lv) return line;
+  var lead = m[1], dash = m[2], name = m[3], out;
+  if (lv === 1) {
+    var rnd = mkRnd(seedStr() + 'sg');
+    out = name.replace(/[A-Za-z]+(?![A-Za-z.])/g, function(w){ var r = w.charAt(0); for (var i = 1; i < w.length; i++) r += rnd() < 0.65 ? HIDE : w.charAt(i); return r; });
+  } else if (lv === 2) out = '[UNVERIFIED]';
+  else out = name.replace(/\S/g, HIDE);
+  return lead + dash + ' ' + out;
+}
+function signedBody(body){
+  var lv = ovrLv('ovr-sign');
+  if (!lv) return body;
+  var lines = body.split('\n'), i = findSignIdx(lines);
+  if (i < 0) return body;
+  lines[i] = obfSign(lines[i], lv);
+  return lines.join('\n');
+}
+function onOverride(){
+  ge('ovr-opts').style.display = ovrOn() ? 'flex' : 'none';
+  if (ovrOn() && ovrLv('ovr-sign') && findSignIdx(gv('logtxt').split('\n')) < 0)
+    ge('ovr-note').textContent = 'No sign-off line found in the text (a line starting with ——), so there is nothing to damage there.';
+  else ge('ovr-note').textContent = '';
+  refresh();
+}
+function fillOvrSelects(){
+  var sets = {
+    'ovr-id':   ['as filed', 'one digit damaged', 'digits missing', 'no ID at all (the code carries none either)'],
+    'ovr-time': ['as filed', 'minutes missing', 'day and time missing', 'all missing'],
+    'ovr-sign': ['as typed', 'partly damaged', '[UNVERIFIED]', 'blacked out']
+  };
+  Object.keys(sets).forEach(function(id){
+    ge(id).innerHTML = sets[id].map(function(t, i){ return '<option value="'+i+'">'+i+' · '+t+'</option>'; }).join('');
+  });
 }
 
 // ── LIVE HEADER PREVIEW ─────────────────────────────────────────────────────────────────────────────────
-function updHeader() {
-  var id  = getLid();
-  var sd  = getSDFromFields();
-  var lt  = (document.getElementById('logtype').value||'').trim().toUpperCase() || (mode==='dev'?"CREATOR'S LOG":'LOG');
-  var line1 = '[Log '+id+' | Stardate '+sd+']';
-  var day = getEntryDay();
-  var line2 = day!==null ? (lt+' \u2014 DAY '+day) : lt;
-  document.getElementById('hp-line1').textContent = line1;
-  document.getElementById('hp-line2').textContent = line2;
+function curLogType(){
+  return (document.getElementById('logtype').value||'').trim().toUpperCase() || (mode==='dev'?"CREATOR'S LOG":'LOG');
+}
+function headerLines() {
+  var day = getEntryDay(), lt = curLogType();
+  return ['[Log '+shownId()+' | Stardate '+shownSD()+']', day!==null ? (lt+' — DAY '+day) : lt];
 }
 function getFullText(){
   var body = document.getElementById('logtxt').value;
   if(!body.trim()) return '';
-  var h1 = document.getElementById('hp-line1').textContent;
-  var h2 = document.getElementById('hp-line2').textContent;
-  return h1+'\n'+h2+'\n\n'+body;
+  var h = headerLines();
+  return h[0]+'\n'+h[1]+'\n\n'+signedBody(body);
 }
 // Strip a legacy baked-in header (bracketed line + title line + blank line)
 // off entries loaded from JSON so the Log Text box holds body-only content.
@@ -963,24 +991,32 @@ function getEntryDay(){
 }
 function updDayCt(){
   var d = getEntryDay();
-  document.getElementById('dayct').textContent = d===null ? '\u2014' : d;
+  document.getElementById('dayct').textContent = d===null ? '—' : d;
 }
 function toggleTrackDay(){
   var on = document.getElementById('trkday').checked;
   document.getElementById('daystart-row').style.display = on?'flex':'none';
-  updDayCt(); updHeader(); updJ();
+  updDayCt(); refresh();
 }
 
 function injSD() {
-  var sd = getSDFromFields();
-  injIntoLog(sd); toast('Stardate inserted');
+  injIntoLog(shownSD()); toast('Stardate inserted');
+}
+// Add (or replace) the author's sign-off at the end of the text.
+function injSign() {
+  var sig = curSignature();
+  if (!sig) { toast('Pick an author first, or type the sign-off yourself'); return; }
+  var ta = ge('logtxt'), lines = ta.value.split('\n'), i = findSignIdx(lines), line = '    —— ' + sig;
+  if (i >= 0) lines[i] = line;
+  else { var t = ta.value.replace(/\s+$/, ''); lines = (t ? t + '\n\n' : '').concat(line).split('\n'); }
+  ta.value = lines.join('\n'); updCct(); onOverride(); toast('Sign-off added');
 }
 function injIntoLog(text) {
   var ta = document.getElementById('logtxt');
   var s = ta.selectionStart, e = ta.selectionEnd;
   ta.value = ta.value.substring(0,s) + text + ta.value.substring(e);
   ta.selectionStart = ta.selectionEnd = s + text.length;
-  ta.focus(); updCct(); updJ();
+  ta.focus(); updCct(); refresh();
 }
 
 // ── ECHOES DAY COUNTER (global, live, read-only) ────────────────────
@@ -1000,136 +1036,368 @@ function updEchoesClock(){
 }
 
 // ── SALT ──────────────────────────────────────────────────────────────────────
-var LOCKED_SALT = 106473093;
+var LOCKED_SALT = LogCodes.DEFAULT_SALT;
 function loadSalt(){
   saltValue=LOCKED_SALT;
   document.getElementById('salt-in').value=saltValue;
   document.getElementById('salt-disp').textContent='SALT: '+saltValue;
 }
-var saltOpen=true;
+var saltOpen=false;
 function toggleSalt(){
   saltOpen=!saltOpen;
   document.getElementById('salt-body').classList.toggle('hidden',!saltOpen);
-  document.getElementById('salt-arrow').innerHTML=(saltOpen?'&#9660;':'&#9658;')+' SALT CODE GENERATOR';
+  document.getElementById('salt-arrow').innerHTML=(saltOpen?'&#9660;':'&#9658;')+' SALT';
 }
 
-// ── GENERATE ──────────────────────────────────────────────────────────────────
-function doGenerate(){
-  var saltIn = parseInt(document.getElementById('salt-in').value,10);
-  if(!saltIn||saltIn<1){toast('Set and save a salt first');return;}
-  saltValue=saltIn;
-  var y  = iv('dt-year'), mo = iv('dt-month'), d  = iv('dt-day');
-  var h  = iv('dt-hour'), mi = iv('dt-min');
-  var eid = 1;
-  if(!y){toast('Enter a year first');return;}
-  var result = generateCode(y, mo||1, d||1, h, mi, eid, saltValue);
-  var disp = document.getElementById('code-out-disp');
-  if(result.error){disp.textContent=result.error;disp.className='error';document.getElementById('cp-gen-btn').disabled=true;document.getElementById('use-gen-btn').disabled=true;lastGenCode='';return;}
-  lastGenCode=result.code;
-  disp.textContent=result.code;
-  disp.className='';
-  document.getElementById('cp-gen-btn').disabled=false;
-  document.getElementById('use-gen-btn').disabled=false;
-  toast('Code generated');
+// ── CREW REGISTRY ─────────────────────────────────────────────────────────────
+// terminal-data/crew.json: departments (letter, name, usual log type) and the crew (ID -> name, signature, role).
+// A log's ID is the ID of whoever wrote it. The registry is shared by lore and dev logs; dev departments carry "dev": true.
+var crewDB = { meta: {}, departments: {}, crew: {} };
+var crewHandle = null, crewDirty = false, crewSrc = 'none';
+var CREW_FALLBACK = { D: { name: 'Development (real world)', log_type: "CREATOR'S LOG", dev: true } };
+function deptKeys(){ return Object.keys(crewDB.departments); }
+function deptAllowed(dk){ var d = crewDB.departments[dk]; return !!d && !!d.dev === (mode === 'dev'); }
+function idNum(id){ return parseInt(String(id).split('-')[1], 10) || 0; }
+function nextFreeNumber(dk){
+  var used = {}, max = 0;
+  Object.keys(crewDB.crew).forEach(function(id){ if (id.charAt(0) === dk) { var n = idNum(id); used[n] = 1; if (n > max) max = n; } });
+  if (max < 999) return max + 1;
+  for (var i = 1; i <= 999; i++) if (!used[i]) return i;
+  return 999;
 }
-function cpGenCode(){
-  if(!lastGenCode)return;
-  navigator.clipboard.writeText(lastGenCode).then(function(){toast('Code copied');}).catch(function(){toast('Copy failed');});
+function sortedCrew(){
+  var o = {}; Object.keys(crewDB.crew).sort().forEach(function(k){ o[k] = crewDB.crew[k]; }); crewDB.crew = o;
 }
-function useGenCode(){
-  if(!lastGenCode)return;
-  setCode(lastGenCode);
-  toast('Code applied to entry');
+function setCrew(data, src){
+  crewDB = { meta: data.meta || {}, departments: data.departments || {}, crew: data.crew || {} };
+  if (!Object.keys(crewDB.departments).length) crewDB.departments = JSON.parse(JSON.stringify(CREW_FALLBACK));
+  crewSrc = src; sortedCrew(); updCrewChip();
+}
+function updCrewChip(){
+  var el = ge('fstat-crew'), n = Object.keys(crewDB.crew).length;
+  var tag = ' CREW: ' + n + (crewDirty ? ' · UNSAVED' : '');
+  if (crewHandle)        { el.className = 'fstat rw';  el.textContent = '✓' + tag; }
+  else if (crewSrc === 'none') { el.className = 'fstat none'; el.textContent = 'NO CREW FILE'; }
+  else                   { el.className = 'fstat ro';  el.textContent = '●' + tag; }
+}
+function crewCanon(d){ var c = {}; Object.keys(d.crew || {}).sort().forEach(function(k){ c[k] = d.crew[k]; }); return JSON.stringify({ meta: d.meta || {}, departments: d.departments || {}, crew: c }); }
+function crewLocalRead(){ try { var s = JSON.parse(localStorage.getItem('echo_crew') || 'null'); return s && s.dirty && s.data ? s.data : null; } catch (e) { return null; } }
+function crewLocalWrite(){ try { localStorage.setItem('echo_crew', JSON.stringify({ dirty: true, data: crewDB })); } catch (e) {} }
+function crewLocalClear(){ try { localStorage.removeItem('echo_crew'); } catch (e) {} }
+function loadCrew(){
+  var get = function(url){ return fetch(url + '?v=' + Date.now()).then(function(r){ return r.ok ? r.json() : Promise.reject(new Error('HTTP ' + r.status)); }); };
+  return get('../terminal-data/crew.json')
+    .catch(function(){ return get(GH_RAW_BASE + 'crew.json'); })
+    .then(function(data){
+      var local = crewLocalRead();
+      if (local && crewCanon(local) !== crewCanon(data)) { setCrew(local, 'file'); crewDirty = true; updCrewChip(); toast('Crew: your unsaved changes were restored'); }
+      else { crewLocalClear(); setCrew(data, 'file'); }
+    })
+    .catch(function(){
+      var local = crewLocalRead();
+      if (local) { setCrew(local, 'file'); crewDirty = true; updCrewChip(); }
+      else { setCrew({}, 'none'); }
+    })
+    .then(afterCrewLoad);
+}
+function afterCrewLoad(){
+  rebuildAuthors();
+  if (pendingAuthor) { setIdFields(pendingAuthor); pendingAuthor = null; }
+  else if (mode === 'dev' && !gv('authsel') && !gv('lidl')) defaultDevAuthor();
+  refresh();
+}
+function defaultDevAuthor(){
+  var ids = Object.keys(crewDB.crew).filter(function(id){ return deptAllowed(id.charAt(0)); });
+  if (ids.length) { ge('authsel').value = ids[0]; onAuthorPick(); }
+}
+async function openCrewFile(){
+  if (!window.showOpenFilePicker) { toast('Not supported here. Use the crew.json download instead.'); return; }
+  try {
+    var picks = await window.showOpenFilePicker({ types: [{ description: 'JSON', accept: { 'application/json': ['.json'] } }], multiple: false });
+    var file = await picks[0].getFile(), data = JSON.parse(await file.text());
+    if (!data.crew || !data.departments) { toast('That is not a crew file (needs "departments" and "crew")'); return; }
+    crewHandle = picks[0]; crewDirty = false; crewLocalClear(); setCrew(data, 'file'); afterCrewLoad();
+    toast('Opened crew file: ' + file.name + ' (changes save to it automatically)');
+  } catch (e) { if (e.name !== 'AbortError') toast('Error: ' + e.message); }
+}
+function crewJson(){ sortedCrew(); return JSON.stringify(crewDB, null, 2) + '\n'; }
+async function writeCrew(){
+  if (!crewHandle) return;
+  try { var w = await crewHandle.createWritable(); await w.write(crewJson()); await w.close(); crewDirty = false; crewLocalClear(); updCrewChip(); }
+  catch (e) { toast('Crew file save failed: ' + e.message); }
+}
+function dlCrew(){
+  var blob = new Blob([crewJson()], { type: 'application/json' });
+  var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'crew.json';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a); toast('Downloaded crew.json (put it in terminal-data/ and commit it)');
+}
+function crewChanged(){ crewDirty = true; crewLocalWrite(); updCrewChip(); if (crewHandle) writeCrew(); }
+
+// ── AUTHOR ────────────────────────────────────────────────────────────────────
+var pendingAuthor = null, logtypeAuto = true, labelAuto = true;
+function rebuildAuthors(){
+  var sel = ge('authsel'), cur = sel.value;
+  var html = '<option value="">— not in the registry (type the ID) —</option>';
+  deptKeys().forEach(function(dk){
+    if (!deptAllowed(dk)) return;
+    var ids = Object.keys(crewDB.crew).filter(function(id){ return id.charAt(0) === dk; }).sort();
+    if (!ids.length) return;
+    html += '<optgroup label="' + esc(dk + ' — ' + crewDB.departments[dk].name) + '">' +
+      ids.map(function(id){ return '<option value="' + id + '">' + id + ' · ' + esc(crewDB.crew[id].name) + '</option>'; }).join('') + '</optgroup>';
+  });
+  sel.innerHTML = html;
+  sel.value = crewDB.crew[cur] && deptAllowed(cur.charAt(0)) ? cur : '';
+  setIdLocked(!!sel.value);
+  updAuthCard();
+}
+function curSignature(){ var p = crewDB.crew[gv('authsel')]; return p ? (p.signature || p.name) : ''; }
+function setIdLocked(on){
+  ['lidl', 'lidn'].forEach(function(id){ ge(id).readOnly = on; ge(id).classList.toggle('locked', on); });
+}
+function onAuthorPick(){
+  var id = gv('authsel'), p = crewDB.crew[id], wasLocked = ge('lidl').readOnly;
+  setIdLocked(!!p);
+  if (!p && wasLocked) { ge('lidl').value = ''; ge('lidn').value = ''; }   // leaving the registry: start a free ID from blank
+  if (p) {
+    ge('lidl').value = id.charAt(0); ge('lidn').value = p3(idNum(id));
+    var d = crewDB.departments[id.charAt(0)];
+    if (d && d.log_type && logtypeAuto) ge('logtype').value = d.log_type;
+  }
+  updAuthCard(); refresh();
+}
+// Fill the ID boxes from a written ID ("R-118", or an old "A-01") and pick the registry person when there is one.
+function setIdFields(idStr){
+  var m = /^([A-Za-z])-(\d{1,3})$/.exec(String(idStr || '').trim());
+  var l = m ? m[1].toUpperCase() : '', n = m ? p3(parseInt(m[2], 10)) : '', id = m ? l + '-' + n : '';
+  ge('lidl').value = l; ge('lidn').value = n;
+  var reg = id && crewDB.crew[id] && deptAllowed(l);
+  ge('authsel').value = reg ? id : '';
+  setIdLocked(!!reg);
+  updAuthCard();
+}
+function updAuthCard(){
+  var id = gv('authsel'), p = crewDB.crew[id], el = ge('auth-card'), eb = ge('char-edit-btn');
+  eb.disabled = !p;
+  if (p) {
+    var d = crewDB.departments[id.charAt(0)] || {};
+    el.innerHTML = '<b>' + esc(id) + '</b> · ' + esc(p.name) + (p.provisional ? ' <span class="prov">[PROVISIONAL ID]</span>' : '') +
+      '<br>' + esc(p.role || '') + ' · ' + esc(d.name || '') + '<br>signs: “' + esc(p.signature || p.name) + '”' +
+      (p.notes ? '<br><span style="opacity:.75">' + esc(p.notes) + '</span>' : '');
+    ge('lid-note').textContent = 'from the registry';
+  } else {
+    el.innerHTML = Object.keys(crewDB.crew).length
+      ? 'No author picked. Choose one above, add the person with <b>+ NEW</b>, or type a Log ID by hand.'
+      : 'No crew file loaded, so the author list is empty. Type a Log ID by hand, or use OPEN CREW FILE at the top.';
+    ge('lid-note').textContent = gv('lidl') && gv('lidn') ? 'not in the registry' : '';
+  }
+}
+// Typing an ID that matches a registry person picks that person.
+function fmtLid(){
+  ge('lidn').value = gv('lidn').replace(/\D/g, '').slice(0, 3);
+  ge('lidl').value = gv('lidl').replace(/[^A-Za-z]/g, '').toUpperCase().slice(0, 1);
+  if (!gv('authsel') && gv('lidl') && gv('lidn').length === 3) {
+    var id = gv('lidl') + '-' + gv('lidn');
+    if (crewDB.crew[id] && deptAllowed(gv('lidl'))) { ge('authsel').value = id; onAuthorPick(); return; }
+  }
+  updAuthCard(); refresh();
 }
 
-// ── MODE / TYPE / CLEARANCE ───────────────────────────────────────────────────
+// ── CHARACTER FORM (new / edit) ───────────────────────────────────────────────
+var cfOrig = null;
+function cfFillDepts(sel){
+  var h = '';
+  deptKeys().forEach(function(dk){ if (deptAllowed(dk)) h += '<option value="' + dk + '">' + dk + ' — ' + esc(crewDB.departments[dk].name) + '</option>'; });
+  ge('cf-dept').innerHTML = h || '<option value="">(no departments in the crew file)</option>';
+  if (sel && deptAllowed(sel)) ge('cf-dept').value = sel;
+}
+function openCharForm(m){
+  var box = ge('char-form');
+  if (m === 'edit') {
+    var id = gv('authsel'), p = crewDB.crew[id];
+    if (!p) { toast('Pick an author from the list first'); return; }
+    cfOrig = id; cfFillDepts(id.charAt(0));
+    ge('cf-num').value = p3(idNum(id)); ge('cf-name').value = p.name || ''; ge('cf-sig').value = p.signature || '';
+    ge('cf-role').value = p.role || ''; ge('cf-prov').checked = !!p.provisional;
+    ge('cf-title').textContent = '► EDIT ' + id; ge('cf-del').style.display = '';
+  } else {
+    cfOrig = null;
+    var dk = deptAllowed(gv('lidl')) ? gv('lidl') : (deptKeys().filter(deptAllowed)[0] || '');
+    cfFillDepts(dk);
+    ge('cf-num').value = dk ? p3(nextFreeNumber(dk)) : '';
+    ['cf-name', 'cf-sig', 'cf-role'].forEach(function(i){ ge(i).value = ''; });
+    ge('cf-prov').checked = true;
+    ge('cf-title').textContent = '► NEW CHARACTER'; ge('cf-del').style.display = 'none';
+  }
+  box.classList.remove('collapsed'); cfIdLine();
+  ge('cf-name').focus();
+}
+function closeCharForm(){ ge('char-form').classList.add('collapsed'); }
+function cfDeptChanged(){ if (!cfOrig && gv('cf-dept')) ge('cf-num').value = p3(nextFreeNumber(gv('cf-dept'))); cfIdLine(); }
+function cfId(){ var n = parseInt(gv('cf-num'), 10); return gv('cf-dept') && n >= 1 && n <= 999 ? gv('cf-dept') + '-' + p3(n) : ''; }
+function cfIdLine(){
+  var id = cfId(), el = ge('cf-idline');
+  if (!id) { el.textContent = 'ID: pick a department and a number from 001 to 999'; el.className = 'sub-fl bad'; return; }
+  var other = crewDB.crew[id] && id !== cfOrig ? crewDB.crew[id] : null;
+  if (other) { el.textContent = 'ID ' + id + ' already belongs to ' + other.name; el.className = 'sub-fl bad'; return; }
+  el.className = 'sub-fl';
+  el.textContent = 'ID ' + id + (cfOrig && id !== cfOrig ? ' (was ' + cfOrig + '. Logs already filed keep the old ID in their text.)' : ' is free');
+}
+function saveChar(){
+  var id = cfId(), name = gv('cf-name').trim();
+  if (!id) { toast('Pick a department and a number from 001 to 999'); return; }
+  if (crewDB.crew[id] && id !== cfOrig) { toast(id + ' already belongs to ' + crewDB.crew[id].name); return; }
+  if (!name) { toast('The character needs a name'); return; }
+  var rec = { name: name, signature: gv('cf-sig').trim() || name, role: gv('cf-role').trim(), provisional: ge('cf-prov').checked };
+  if (cfOrig && crewDB.crew[cfOrig] && crewDB.crew[cfOrig].notes) rec.notes = crewDB.crew[cfOrig].notes;
+  if (cfOrig && cfOrig !== id) delete crewDB.crew[cfOrig];
+  crewDB.crew[id] = rec; sortedCrew(); crewChanged();
+  closeCharForm(); rebuildAuthors(); ge('authsel').value = id; onAuthorPick();
+  toast('Saved ' + id + ' · ' + name);
+}
+function delChar(){
+  if (!cfOrig || !crewDB.crew[cfOrig]) return;
+  if (!confirm('Remove ' + cfOrig + ' (' + crewDB.crew[cfOrig].name + ') from the registry? Logs already written are not changed.')) return;
+  delete crewDB.crew[cfOrig]; crewChanged(); closeCharForm(); rebuildAuthors(); ge('authsel').value = ''; onAuthorPick();
+  toast('Removed ' + cfOrig);
+}
+
+// ── MODE / CONDITION / KIND / ACCESS ──────────────────────────────────────────
+function accessLevel(){ return mode === 'dev' ? 3 : 2; }
 function setMode(m){
   switchStore(m);
   document.querySelectorAll('#mtg .tg, #etgmode .tg').forEach(function(b){b.classList.toggle('on',b.dataset.v===m);});
   var mb=document.getElementById('mbadge'), pv=document.getElementById('preview'), tf=document.getElementById('tgtf');
-  if(m==='dev'){mb.className='dev';mb.textContent='DEV LOG';pv.classList.add('dv');tf.textContent='\u2192 dev_logs.json';}
-  else{mb.className='lore';mb.textContent='LORE';pv.classList.remove('dv');tf.textContent='\u2192 lore.json';}
+  if(m==='dev'){mb.className='dev';mb.textContent='DEV LOG';pv.classList.add('dv');tf.textContent='→ dev_logs.json';}
+  else{mb.className='lore';mb.textContent='LORE';pv.classList.remove('dv');tf.textContent='→ lore.json';}
+  rebuildAuthors();
   resetEditorForm();
   syncAll();
-  updHeader(); updJ();
+  refresh();
 }
 function resetEditorForm(){
-  ['codef','labf','logtxt','l1pre','lidn','lidl','logtype'].forEach(function(id){document.getElementById(id).value='';});
+  ['codef','labf','logtxt','lidn','lidl','logtype','sdin'].forEach(function(id){document.getElementById(id).value='';});
+  activeCode = null; loadedEntry = null; logtypeAuto = true; labelAuto = true;
+  ge('authsel').value = ''; setIdLocked(false); closeCharForm();
+  ge('ovr').checked = false; ['ovr-id', 'ovr-time', 'ovr-sign'].forEach(function(i){ ge(i).value = '0'; }); ge('ovr-opts').style.display = 'none'; ge('ovr-note').textContent = '';
+  ge('rekey').checked = false;
+  setCond('INTACT', true); setKind('full', true);
   document.getElementById('trkday').checked = (mode==='dev');
   document.getElementById('daystart').value = (mode==='dev') ? PROJECT_START_DEFAULT : '';
   toggleTrackDay();
-  document.getElementById('codest').textContent='Enter or generate a 20-character code';
+  ge('tpls').value = '';
+  document.getElementById('codest').textContent='Generate a code from the log ID and date, or enter one';
   document.getElementById('codest').className='';
   document.getElementById('codef').className='';
-  document.getElementById('jo').textContent='// Fill in code and log text to generate snippet';
-  document.getElementById('preview').innerHTML='<span class="pd">Fill in a code and log text, then click PREVIEW</span>';
   document.getElementById('cct').textContent='0';
-  document.getElementById('code-out-disp').textContent='\u2014';document.getElementById('code-out-disp').className='empty';
-  document.getElementById('cp-gen-btn').disabled=true;document.getElementById('use-gen-btn').disabled=true;
-  lastGenCode='';
+  ge('rekey-row').style.display = 'none';
+  syncSdBox(); updAuthCard();
+  if (mode === 'dev' && Object.keys(crewDB.crew).length) defaultDevAuthor();
+  else { var dflt = mode === 'dev' ? "CREATOR'S LOG" : ''; ge('logtype').value = dflt; }
 }
-function setTyp(t){
-  typ=t;
-  document.querySelectorAll('#ttg .tg').forEach(function(b){b.classList.remove('on','a','r');
-    if(b.dataset.v===t){b.classList.add('on');if(t==='classified')b.classList.add('a');if(t==='virus')b.classList.add('r');}
+var COND_CLS = { INTACT: 'full', PARTIAL: 'partial', DEGRADED: 'degraded', CORRUPTED: 'corrupted' };
+function setCond(c, quiet){
+  cond = c;
+  document.querySelectorAll('#ctg .tg').forEach(function(b){
+    b.classList.remove('on','a','r');
+    if (b.dataset.v === c) { b.classList.add('on'); if (c === 'PARTIAL' || c === 'DEGRADED') b.classList.add('a'); if (c === 'CORRUPTED') b.classList.add('r'); }
   });
-  document.getElementById('l1preg').style.display=t==='classified'?'flex':'none';
-  if(t==='classified')setClr(2);
-  var tb=document.getElementById('type-badge');tb.className=t;tb.textContent=t.toUpperCase();updJ();
+  if (!quiet) refresh();
 }
-function setClr(v){
-  clr=v;
-  document.querySelectorAll('#ctg .tg').forEach(function(b){b.classList.toggle('on',parseInt(b.dataset.v)===v);});
-  document.getElementById('clr-badge').textContent='L'+v;updJ();
+function setKind(k, quiet){
+  if (k === 'virus' && mode === 'dev') { toast('Virus logs only exist as lore entries'); return; }
+  kind = k;
+  document.querySelectorAll('#ktg .tg').forEach(function(b){
+    b.classList.remove('on','r'); if (b.dataset.v === k) { b.classList.add('on'); if (k === 'virus') b.classList.add('r'); }
+  });
+  ge('kind-note').textContent = k === 'classified'
+    ? 'This entry is marked CLASSIFIED (an old setting that only matters at level 1, where FETCH LOG does not run). It is kept as is until you pick NORMAL or VIRUS.'
+    : mode === 'dev' ? 'Dev logs are always normal.' : 'A virus log plays the virus sequence and resets the terminal.';
+  if (!quiet) refresh();
+}
+function updAccess(){
+  var n = accessLevel();
+  ge('acc-line').innerHTML = '<span class="lv">L' + n + '</span> &#8212; ' +
+    (mode === 'dev' ? 'dev log (dev_logs.json), read with FETCH LOG.EXE at level 3' : 'lore log (lore.json), read with FETCH LOG.EXE at level 2') +
+    '. Once recovered, it can be reopened from the RECOVERED LOGS list at any level.';
+  var tb = ge('type-badge'); tb.className = COND_CLS[cond] || 'full'; tb.textContent = cond;
 }
 
-// ── LOG ID ────────────────────────────────────────────────────────────────────
-function fmtLid(){
-  document.getElementById('lidn').value=document.getElementById('lidn').value.replace(/\D/g,'').slice(0,2);
-  document.getElementById('lidl').value=document.getElementById('lidl').value.replace(/[^A-Za-z]/g,'').toUpperCase().slice(0,1);
-  updHeader();updJ();
+// ── CODE ──────────────────────────────────────────────────────────────────────
+// A code carries the log ID (department letter and number) and the moment. The ID override "no ID at all" leaves the ID out.
+function codeIdentity(){
+  if (ovrOn() && ovrLv('ovr-id') === 3) return { section: null, number: 0, none: true };
+  return { section: gv('lidl').toUpperCase() || null, number: parseInt(gv('lidn'), 10) || 0 };
 }
-function getLid(){
-  var l=document.getElementById('lidl').value.toUpperCase()||'A';
-  var n=document.getElementById('lidn').value||'00';
-  return l+'-'+n.padStart(2,'0');
+function doGenerate(){
+  var idn = codeIdentity();
+  if (!saltValue) { toast('No salt'); return; }
+  if (!idn.section && !idn.none) { toast('Pick an author or enter a Log ID first'); return; }
+  if (!dateOk()) { toast('The date is not valid'); return; }
+  var r = generateCode(iv('dt-year'), iv('dt-month'), iv('dt-day'), iv('dt-hour'), iv('dt-min'), idn.number, saltValue, idn.section);
+  if (r.error) { ge('codest').textContent = r.error; ge('codest').className = 'bad'; return; }
+  var changed = activeCode && r.code !== activeCode;
+  setCode(r.code);
+  if (changed) ge('rekey').checked = true;
+  updReady();
+  toast(changed ? 'New code generated. It replaces the old one when you save.' : 'Code generated');
 }
-
-// ── CODE FIELD ────────────────────────────────────────────────────────────────
+function cpCode(){
+  var c = getFmt(); if (!c) { toast('No code yet'); return; }
+  navigator.clipboard.writeText(c).then(function(){toast('Code copied');}).catch(function(){toast('Copy failed');});
+}
 document.getElementById('codef').addEventListener('input',function(){
   var raw=this.value.replace(/[^A-Z0-9]/gi,'').toUpperCase().slice(0,20);
   var f='';for(var i=0;i<raw.length;i++){if(i>0&&i%5===0)f+='-';f+=raw[i];}
-  this.value=f;valC(raw);updJ();
+  this.value=f;valC(raw);refresh();
 });
 function valC(raw){
-  var el=document.getElementById('codest'),inp=document.getElementById('codef');
-  inp.classList.remove('valid','dupe');
-  if(!raw){el.textContent='Enter or generate a 20-character code';el.className='';return;}
+  var el=ge('codest'),inp=ge('codef'),rk=ge('rekey-row');
+  inp.classList.remove('valid','dupe'); rk.style.display='none';
+  if(!raw){el.textContent='Generate a code from the log ID and date, or enter one';el.className='';return;}
   if(raw.length<20){el.textContent=raw.length+'/20 characters';el.className='';return;}
   var fc=fmtC(raw);
   if(activeCode && fc!==activeCode){
-    el.textContent='\u26a0 Code changed \u2014 SAVE will be blocked. Use NEW ENTRY to add a separate one.';
-    el.className='bad';inp.classList.add('dupe');return;
+    rk.style.display='block';
+    if(iData.hasOwnProperty(fc)){el.textContent='⚠ That code already belongs to another entry';el.className='bad';inp.classList.add('dupe');}
+    else{el.textContent='A different code from the one this entry has ('+activeCode+'). Tick REPLACE THE OLD CODE to move the entry to it.';el.className='bad';}
+    return;
   }
+  if(activeCode) ge('rekey').checked=false;
   var dup=iData.hasOwnProperty(fc);
   if(dup){var editing=activeCode===fc;
-    el.textContent='\u26a0 '+(editing?'Currently editing':'EXISTS \u2014 saving will overwrite');
+    el.textContent=editing?'Editing this entry':'⚠ EXISTS — saving will overwrite it';
     el.className=editing?'ok':'bad';inp.classList.add(editing?'valid':'dupe');}
-  else{el.textContent='\u2713 Available: '+fc;el.className='ok';inp.classList.add('valid');}
+  else{el.textContent='✓ Available: '+fc;el.className='ok';inp.classList.add('valid');}
 }
 function fmtC(r){r=r.slice(0,20);return[r.slice(0,5),r.slice(5,10),r.slice(10,15),r.slice(15,20)].join('-');}
 function getRaw(){return document.getElementById('codef').value.replace(/-/g,'');}
 function getFmt(){var r=getRaw();return r.length===20?fmtC(r):null;}
-function setCode(c){document.getElementById('codef').value=c;valC(c.replace(/-/g,''));updJ();}
-
-// ── AUTO LABEL ────────────────────────────────────────────────────────────────
-function autoLbl(){
-  var id=getLid(), sd=getSDFromFields();
-  var lt=(document.getElementById('logtype').value||'').trim() || (mode==='dev'?"Creator's Log":'Log');
-  var tt=typ!=='full'?' | '+typ.toUpperCase():'';
-  document.getElementById('labf').value=lt+' '+id+' | Stardate '+sd+tt;
-  updJ();
+function setCode(c){document.getElementById('codef').value=c;valC(c.replace(/-/g,''));refresh();}
+// What the code itself says, set against the fields.
+function updCodeSays(){
+  var el = ge('code-says'), raw = getRaw();
+  if (raw.length !== 20) { el.className = 'acc-line'; el.innerHTML = 'The code carries the Log ID and the date. Set the author and the date, then press GENERATE.'; return; }
+  var d = decodeEntry(raw, saltValue), idn = codeIdentity(), sd = getSDFromFields();
+  if (!d.valid) { el.className = 'acc-line wn'; el.textContent = 'Not a code this tool made. It still works as a lookup key, but it carries no ID or date. Press GENERATE for a real one.'; return; }
+  var said = (d.section ? d.section + '-' + p3(d.number) : 'no department (old-style code)');
+  if (!d.section) { el.className = 'acc-line wn'; el.textContent = 'Old-style code: ' + said + ', stardate ' + d.stardate + '. Press GENERATE to give this log its department ID.'; return; }
+  var sameId = (d.section === idn.section && d.number === idn.number) || (idn.none && !d.section);
+  var sameWhen = d.stardate === sd;
+  if (sameId && sameWhen) { el.className = 'acc-line ok'; el.textContent = '✓ The code matches the fields: ' + said + ', stardate ' + d.stardate; return; }
+  el.className = 'acc-line wn';
+  el.textContent = 'The code says ' + said + ', stardate ' + d.stardate + ', but the fields say ' + (idn.none ? 'no ID' : getLid()) + ', stardate ' + sd + '. Press GENERATE to match them.';
 }
+
+// ── LABEL ─────────────────────────────────────────────────────────────────────
+// The label is the log's name in lists. It follows the fields until you type your own.
+function autoLabelValue(){
+  var lt = (gv('logtype') || '').trim().toUpperCase() || (mode === 'dev' ? "CREATOR'S LOG" : 'LOG');
+  return lt + ' ' + getLid() + ' | Stardate ' + getSDFromFields();
+}
+function syncLabel(){ if (labelAuto) ge('labf').value = autoLabelValue(); }
+function onLabelInput(){ labelAuto = gv('labf') === autoLabelValue(); refresh(); }
+function autoLbl(force){ labelAuto = true; ge('labf').value = autoLabelValue(); refresh(); if (force) toast('Label follows the fields'); }
+function onTypeInput(){ logtypeAuto = gv('logtype').trim() === ''; refresh(); }
 
 // ── TEMPLATES ───────────────────────────────────────────────────────────────────────────────────────────
 var TPLS={
@@ -1171,18 +1439,20 @@ function onTplChange(){
 function applyTpl(){
   var k=document.getElementById('tpls').value;
   if(!k){toast('Select a template first');return;}
+  if(gv('logtxt').trim() && !confirm('Replace the log text with the template?'))return;
   var t=TPLS[k];
   var body=document.getElementById('tpl-body').value||t.body;
-  if(t.logType)document.getElementById('logtype').value=t.logType;
+  if(t.logType){document.getElementById('logtype').value=t.logType;logtypeAuto=false;}
   if(typeof t.trackDay==='boolean'){
     document.getElementById('trkday').checked=t.trackDay;
     document.getElementById('daystart').value=t.startDate||(mode==='dev'?PROJECT_START_DEFAULT:'');
     toggleTrackDay();
   }
-  var id=getLid(), sd=getSDFromFields(), day=getEntryDay()||'';
-  document.getElementById('logtxt').value=body
-    .replace(/\{ID\}/g,id).replace(/\{SD\}/g,sd).replace(/\{DAY\}/g,day);
-  updCct();autoLbl();updHeader();updJ();toast('Template applied');
+  var id=getLid(), sd=getSDFromFields(), day=getEntryDay()||'', sig=curSignature();
+  body=body.replace(/\{ID\}/g,id).replace(/\{SD\}/g,sd).replace(/\{DAY\}/g,day);
+  if(sig) body=body.replace(/(?:(?:Capt\.|Dr\.|Chief Engineer|Medical Officer|Dev\.|Officer)\s+)?\[Signature\]/g,function(){return sig;});
+  document.getElementById('logtxt').value=body;
+  updCct();labelAuto=true;onOverride();toast('Template applied');
 }
 function saveTpl(){
   var k=document.getElementById('tpls').value;
@@ -1217,11 +1487,6 @@ function dlTpls(){
   var blob=new Blob([JSON.stringify(TPLS,null,2)],{type:'application/json'});
   var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='entry_templates.json';
   document.body.appendChild(a);a.click();document.body.removeChild(a);toast('Downloaded entry_templates.json');
-}
-function toggleTplSec(){
-  var el=document.getElementById('tpl-sec');
-  var isCollapsed=el.classList.toggle('collapsed');
-  document.getElementById('tpl-sec-arrow').innerHTML=(isCollapsed?'&#9658;':'&#9660;')+' TEMPLATE';
 }
 function toggleTplEditor(){
   var tpl=document.getElementById('tpl-editor'),arrow=document.getElementById('tpl-arrow');
@@ -1270,7 +1535,7 @@ function doDecode(){
     dr('DATE',p2(result.day)+'/'+p2(result.month)+'/'+result.year+(isLeap?' (LEAP)':''))+
     dr('TIME',p2(result.hour)+':'+p2(result.minute))+
     dr('DAY OF YEAR',p3(result.doy)+' of '+(isLeap?366:365))+
-    dr('ENTRY ID','#'+result.entryId)+
+    dr('LOG ID',result.section?result.section+'-'+p3(result.number):'none (old-style code, number '+result.number+')')+
     dr('STARDATE',result.stardate)+
     dr('SALT USED',''+useSalt)+
     dr('IN JSON',inJsonTxt,inJsonCls)+
@@ -1283,7 +1548,7 @@ function doDecode(){
     document.getElementById('dt-day').value=result.day;
     document.getElementById('dt-hour').value=result.hour;
     document.getElementById('dt-min').value=result.minute;
-    document.getElementById('eid').value=result.entryId;
+    if(result.section)setIdFields(result.section+'-'+p3(result.number));
     document.getElementById('codef').value=fmtCode;
     valC(normRaw);
     onDtChange();updJ();
@@ -1301,95 +1566,138 @@ function clearDecode(){
   document.getElementById('dec-load-btn').style.display='none';
 }
 
-// ── PREVIEW ───────────────────────────────────────────────────────────────────
-function updPrev(){
-  var code=getFmt(),text=getFullText();
-  var pv=document.getElementById('preview'),isDev=mode==='dev';
-  if(!code&&!text){pv.innerHTML='<span class="pd">Fill in a code and log text, then click PREVIEW</span>';updJ();return;}
-  var SEP='\u2014'.repeat(36),ls=[];
-  if(code){ls.push({t:'ARCHIVE QUERY: '+code,c:'pq'});ls.push({t:SEP,c:'ps'});}
-  if(isDev){ls.push({t:'> DECRYPTING ENTRY\u2026',c:'pdc'});ls.push({t:'> STATUS: PARTIAL RESTORATION',c:'pdc'});ls.push({t:'',c:''});}
-  if(typ==='classified'){
-    var l1=document.getElementById('l1pre').value.trim();
-    ls.push({t:'CLASSIFICATION: L2 CLEARANCE REQUIRED',c:'pd'},{t:'',c:''});
-    if(l1)l1.split('\n').forEach(function(ln){ls.push({t:ln,c:'pd'});});
-    ls.push({t:'',c:''},{t:'> Full entry requires elevated access.',c:'pd'},{t:'> Use [ECHOES.ARCHIVE] to access ECHO PROTOCOL.',c:'pd'});
-  }else if(typ==='virus'){
-    var vl=text.split('\n').filter(function(l){return l.trim();});
-    vl.slice(0,3).forEach(function(ln){ls.push({t:ln,c:'pdc'});});
-    ls.push({t:'',c:''});
-    ['> WARNING: UNAUTHORIZED PROCESS DETECTED','> FOREIGN SIGNAL INJECTED INTO ARCHIVE READ','> SIGNAL ORIGIN: UNKNOWN','> SYSTEM INTEGRITY: CRITICAL']
-      .forEach(function(t){ls.push({t:t,c:'pe'});});
-    ls.push({t:'',c:''},{t:'> SESSION TERMINATED \u2014 EXTERNAL INTERFERENCE',c:'pe'},{t:'',c:''},{t:'[TERMINAL RETURNS TO POWER ON SCREEN]',c:'pd'});
-  }else{
-    if(text)text.split('\n').forEach(function(ln){ls.push({t:ln,c:'nc'});});
-  }
-  if(code||text)ls.push({t:SEP,c:'ps'});
-  pv.innerHTML=ls.map(function(l){var a=(l.c&&l.c!=='nc')?' class="'+l.c+'"':'';return '<div'+a+'>'+esc(l.t||'\u00a0')+'</div>';}).join('');
-  updJ();
+// ── ONE REFRESH FOR EVERYTHING THAT DEPENDS ON THE FIELDS ─────────────────────────────────────────────
+function refresh(){
+  var h = headerLines();
+  ge('hp-line1').textContent = h[0]; ge('hp-line2').textContent = h[1];
+  syncLabel(); updAccess(); updPrev(); updSnip(); updReady(); updCodeSays(); autoSave();
+}
+function updHeader(){ refresh(); }
+function updJ(){ refresh(); }
+
+// ── READY TO SAVE ─────────────────────────────────────────────────────────────
+function problems(){
+  var p = [], l = gv('lidl'), n = parseInt(gv('lidn'), 10);
+  if (!/^[A-Z]$/.test(l) || !(n >= 1 && n <= 999)) p.push('Log ID: a department letter and a number from 001 to 999');
+  if (!dateOk()) p.push('Date: not a real date');
+  if (!gv('logtxt').trim()) p.push('Log text: empty');
+  if (!getFmt()) p.push('Code: needs 20 characters (press GENERATE)');
+  if (activeCode && getFmt() && getFmt() !== activeCode && !ge('rekey').checked) p.push('Code: it changed. Tick REPLACE THE OLD CODE, or use NEW ENTRY to add a separate log');
+  return p;
+}
+function updReady(){
+  var rows = [], l = gv('lidl'), n = parseInt(gv('lidn'), 10), code = getFmt();
+  var chk = function(ok, text, warn){ rows.push('<div class="' + (ok ? 'ok' : warn ? 'wn' : 'no') + '">' + (ok ? '✓ ' : warn ? '△ ' : '✗ ') + esc(text) + '</div>'); };
+  chk(/^[A-Z]$/.test(l) && n >= 1 && n <= 999, 'Log ID ' + getLid());
+  chk(!!gv('logtype').trim(), 'Log type ' + (gv('logtype').trim() || '(none, the header will say LOG)'), true);
+  chk(dateOk(), 'Stardate ' + (dateOk() ? getSDFromFields() : '(not a real date)'));
+  chk(!!gv('logtxt').trim(), 'Log text' + (gv('logtxt').trim() ? ' (' + gv('logtxt').length + ' characters)' : ' is empty'));
+  chk(!!code, code ? 'Code ' + code : 'Code (needs 20 characters)');
+  if (code && activeCode && code !== activeCode) chk(ge('rekey').checked, ge('rekey').checked ? 'The old code ' + activeCode + ' is removed on save' : 'The code changed: tick REPLACE THE OLD CODE');
+  if (!labelAuto && gv('labf') !== autoLabelValue()) chk(false, 'The label does not follow the fields (press AUTO to refresh it)', true);
+  ge('ready-list').innerHTML = rows.join('');
 }
 
-// ── JSON SNIPPET ──────────────────────────────────────────────────────────────
+// ── PREVIEW ───────────────────────────────────────────────────────────────────
+// Shaped like the FETCH LOG window: the code, the status line, then the log.
+function updPrev(){
+  var code = getFmt(), text = getFullText();
+  var pv = document.getElementById('preview'), isDev = mode === 'dev';
+  if (!code && !text) { pv.innerHTML = '<span class="pd">Fill in a log ID, a date, a code and the text and the log shows here as the terminal prints it.</span>'; return; }
+  var SEP = '—'.repeat(36), ls = [];
+  ls.push({ t: 'ENTRY CODE   ' + (code || '—'), c: 'pq' }, { t: SEP, c: 'ps' });
+  if (kind === 'virus' && !isDev) {
+    var vl = text.split('\n').filter(function(l){ return l.trim(); });
+    vl.slice(0, 3).forEach(function(ln){ ls.push({ t: ln, c: 'pdc' }); });
+    ls.push({ t: '', c: '' });
+    ['> WARNING: UNAUTHORIZED PROCESS DETECTED', '> FOREIGN SIGNAL INJECTED INTO ARCHIVE READ', '> SIGNAL ORIGIN: UNKNOWN', '> SYSTEM INTEGRITY: CRITICAL']
+      .forEach(function(t){ ls.push({ t: t, c: 'pe' }); });
+    ls.push({ t: '', c: '' }, { t: '> SESSION TERMINATED — EXTERNAL INTERFERENCE', c: 'pe' }, { t: '', c: '' }, { t: '[TERMINAL RETURNS TO POWER ON SCREEN]', c: 'pd' });
+  } else {
+    ls.push({ t: cond === 'INTACT' ? '> ENTRY RECOVERED' : '> ENTRY RECOVERED: ' + cond, c: cond === 'CORRUPTED' ? 'pe' : cond === 'INTACT' ? 'pd' : 'pq' });
+    ls.push({ t: '', c: '' });
+    if (isDev) ls.push({ t: '> DECRYPTING ENTRY…', c: 'pdc' }, { t: '> STATUS: PARTIAL RESTORATION', c: 'pdc' }, { t: '', c: '' });
+    if (text) text.split('\n').forEach(function(ln){ ls.push({ t: ln, c: 'nc' }); });
+  }
+  ls.push({ t: SEP, c: 'ps' });
+  pv.innerHTML = ls.map(function(l){ var a = (l.c && l.c !== 'nc') ? ' class="' + l.c + '"' : ''; return '<div' + a + '>' + esc(l.t || ' ') + '</div>'; }).join('');
+}
+
+// ── THE ENTRY, AS SAVED ───────────────────────────────────────────────────────
+// type is the kind (full or virus), health the condition (left out when INTACT), clearance the level that reads it.
+// author and override are only written when they apply. Fields this editor does not know are kept from the loaded entry.
+var KNOWN = ['label', 'type', 'health', 'clearance', 'author', 'override', 'text', 'l1_preview'];
+function buildEntry(){
+  var text = getFullText().trim();
+  if (!text) return null;
+  var o = {};
+  o.label = gv('labf').trim() || autoLabelValue();
+  o.type = kind;
+  if (cond !== 'INTACT') o.health = cond;
+  o.clearance = accessLevel();
+  if (gv('authsel')) o.author = gv('authsel');
+  if (ovrOn() && (ovrLv('ovr-id') || ovrLv('ovr-time') || ovrLv('ovr-sign'))) {
+    var ov = { id: ovrLv('ovr-id'), time: ovrLv('ovr-time'), sign: ovrLv('ovr-sign'), real: { id: getLid(), stardate: getSDFromFields() } };
+    var lines = gv('logtxt').split('\n'), si = findSignIdx(lines);
+    if (ov.sign && si >= 0) ov.real.sign = lines[si];
+    o.override = ov;
+  }
+  if (kind === 'classified' && loadedEntry && loadedEntry.l1_preview) o.l1_preview = loadedEntry.l1_preview;
+  o.text = text;
+  if (loadedEntry) Object.keys(loadedEntry).forEach(function(k){ if (KNOWN.indexOf(k) < 0 && !(k in o)) o[k] = loadedEntry[k]; });
+  return o;
+}
 function buildSnip(){
-  var code=getFmt(),lbl=document.getElementById('labf').value.trim();
-  var text=getFullText();
-  if(!code||!text)return null;
-  var o={label:lbl||''};
-  if(mode==='lore'){o.type=typ;o.clearance=clr;if(typ==='classified')o.l1_preview=document.getElementById('l1pre').value.trim()||'[REDACTED]';}
-  else{o.type=typ;}
-  o.text=text;
-  var ls=['  '+JSON.stringify(code)+': {'];
-  Object.keys(o).forEach(function(k){ls.push('    '+JSON.stringify(k)+': '+(typeof o[k]==='number'?o[k]:JSON.stringify(o[k]))+',');});
-  ls[ls.length-1]=ls[ls.length-1].replace(/,$/,'');
+  var code = getFmt(), o = buildEntry();
+  if (!code || !o) return null;
+  var ls = ['  ' + JSON.stringify(code) + ': {'];
+  Object.keys(o).forEach(function(k){ ls.push('    ' + JSON.stringify(k) + ': ' + JSON.stringify(o[k]) + ','); });
+  ls[ls.length - 1] = ls[ls.length - 1].replace(/,$/, '');
   ls.push('  }');
   return ls.join('\n');
 }
-function updJ(){document.getElementById('jo').textContent=buildSnip()||'// Fill in code and log text to generate snippet';autoSave();}
-function cpJSON(){updPrev();var snip=buildSnip();if(!snip){toast('Fill in code and log text first');return;}
+function updSnip(){ document.getElementById('jo').textContent = buildSnip() || '// Fill in the code and the log text to get the JSON'; }
+function cpJSON(){ var snip = buildSnip(); if (!snip) { toast('Fill in the code and the log text first'); return; }
   navigator.clipboard.writeText(snip).then(function(){toast('Copied');}).catch(function(){var t=document.createElement('textarea');t.value=snip;document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t);toast('Copied');});}
 function updCct(){document.getElementById('cct').textContent=document.getElementById('logtxt').value.length;}
-document.getElementById('logtxt').addEventListener('input',function(){updCct();updJ();});
-document.getElementById('labf').addEventListener('input',updJ);
+document.getElementById('logtxt').addEventListener('input',function(){updCct();if(ovrOn())onOverride();else refresh();});
 
 // ── ENTRY MANAGEMENT ─────────────────────────────────────────────────────────
 function saveEntry(){
-  var code=getFmt();if(!code){toast('Enter a valid 20-character code first');return;}
-  var text=getFullText().trim();if(!text){toast('Log text cannot be empty');return;}
-  // While editing an existing (loaded) entry, Save always overwrites that
-  // same entry - it never silently adds a second one just because the code
-  // field changed. Use NEW ENTRY first to deliberately start a fresh one.
-  if(activeCode && code!==activeCode){
-    toast('Code doesn’t match the loaded entry — use NEW ENTRY to add a separate one');
-    return;
-  }
-  var saveKey=activeCode||code;
-  var isUp=iData.hasOwnProperty(saveKey);pushHist();
-  var entry={label:document.getElementById('labf').value.trim()||''};
-  entry.type=typ;entry.clearance=clr;
-  if(typ==='classified')entry.l1_preview=document.getElementById('l1pre').value.trim()||'[REDACTED]';
-  entry.text=text;
-  iData[saveKey]=entry;activeCode=saveKey;syncAll();highlightRow(saveKey);
-  toast((isUp?'Updated':'Added')+': '+saveKey);
+  var miss = problems();
+  if (miss.length) { toast(miss[0]); return; }
+  var code = getFmt(), entry = buildEntry();
+  var changed = !!activeCode && code !== activeCode;
+  if (changed && iData.hasOwnProperty(code)) { toast('That code already belongs to another entry'); return; }
+  if (!activeCode && iData.hasOwnProperty(code) && !confirm('An entry with this code already exists. Overwrite it?')) return;
+  var isUp = iData.hasOwnProperty(changed ? activeCode : code);
+  pushHist();
+  if (changed) delete iData[activeCode];
+  iData[code] = entry; activeCode = code; loadedEntry = JSON.parse(JSON.stringify(entry));
+  ge('rekey').checked = false; valC(code.replace(/-/g, ''));
+  syncAll(); highlightRow(code); refresh();
+  toast((changed ? 'Moved to the new code: ' : isUp ? 'Updated: ' : 'Added: ') + code);
 }
 function newEntry(){
   var hasContent=document.getElementById('codef').value.trim()||document.getElementById('logtxt').value.trim();
   if(hasContent && !confirm('Start a new entry? Unsaved changes will be lost.'))return;
+  var keepAuthor = gv('authsel');
   resetEditorForm();
-  activeCode=null;
+  if (keepAuthor && crewDB.crew[keepAuthor] && deptAllowed(keepAuthor.charAt(0))) { ge('authsel').value = keepAuthor; onAuthorPick(); }
   document.querySelectorAll('.erow').forEach(function(r){r.classList.remove('active');});
-  updHeader();
-  try{localStorage.removeItem('echo_ed28');}catch(e){}
+  refresh();
+  try{localStorage.removeItem('echo_ed30');}catch(e){}
   toast('New entry');
 }
 function removeEntry(){
-  var code=getFmt();if(!code){toast('No code in field');return;}
+  var code=activeCode||getFmt();if(!code){toast('No entry selected');return;}
   if(!iData.hasOwnProperty(code)){toast(code+' not in JSON');return;}
   if(!confirm('Remove '+code+'? (Undoable)'))return;
-  pushHist();delete iData[code];if(activeCode===code)activeCode=null;syncAll();toast('Removed: '+code);
+  pushHist();delete iData[code];if(activeCode===code){activeCode=null;loadedEntry=null;}syncAll();toast('Removed: '+code);
 }
 function rmRow(code){
   if(!confirm('Remove '+code+'? (Undoable)'))return;
-  pushHist();delete iData[code];if(activeCode===code)activeCode=null;syncAll();toast('Removed: '+code);
+  pushHist();delete iData[code];if(activeCode===code){activeCode=null;loadedEntry=null;}syncAll();toast('Removed: '+code);
 }
 
 // ── FILE OPS ──────────────────────────────────────────────────────────────────
@@ -1491,8 +1799,18 @@ function getSDFromLabel(lbl){
 // ── ENTRY BROWSER ─────────────────────────────────────────────────────────────
 var filterText='';
 function filterEnts(){filterText=document.getElementById('esrch').value.toUpperCase().trim();renderEnts();}
-function updCounts(){var n=Object.keys(iData).length;document.getElementById('ect').textContent='\u2014 '+n;var ec=document.getElementById('ecount');if(n){ec.style.display='';ec.textContent=n+' entries \u2014 '+(sortAsc?'oldest first':'newest first');}else{ec.style.display='none';}}
-function mkBadge(t){var tc=(['virus','classified','partial','degraded','corrupted'].indexOf(t)>=0)?t:'full';return '<span class="etbadge '+tc+'"><span class="bt">'+t.toUpperCase()+'</span></span>';}
+function updCounts(){var n=Object.keys(iData).length;document.getElementById('ect').textContent='— '+n;var ec=document.getElementById('ecount');if(n){ec.style.display='';ec.textContent=n+' entries — '+(sortAsc?'oldest first':'newest first');}else{ec.style.display='none';}}
+// The condition of one saved entry, read the way the terminal reads it: the health field, else an old partial/degraded/corrupted
+// type, else a [CORRUPTED] mark in the text means PARTIAL, else INTACT.
+function entCond(e){
+  var t = String(e.type || '').toLowerCase();
+  if (e.health) return String(e.health).toUpperCase();
+  if (t === 'partial' || t === 'degraded' || t === 'corrupted') return t.toUpperCase();
+  if (/\[CORRUPTED\]/.test(e.text || '')) return 'PARTIAL';
+  return 'INTACT';
+}
+function entKind(e){ var t = String(e.type || '').toLowerCase(); return t === 'virus' ? 'virus' : t === 'classified' ? 'classified' : 'full'; }
+function mkBadge(text, cls){ return '<span class="etbadge '+cls+'"><span class="bt">'+text+'</span></span>'; }
 function renderEnts(){
   var list=document.getElementById('elist');list.innerHTML='';
   var keys=Object.keys(iData).sort(function(a,b){
@@ -1511,12 +1829,13 @@ function renderEnts(){
     shown++;
     var row=document.createElement('div');
     row.className='erow'+(activeCode===code?' active':'');row.dataset.code=code;
-    var rm=document.createElement('button');rm.className='erm';rm.textContent='\u00d7';rm.title='Remove';
+    var rm=document.createElement('button');rm.className='erm';rm.textContent='×';rm.title='Remove';
     rm.onclick=function(ev){ev.stopPropagation();rmRow(code);};
-    var t=e.type||'full';
-    row.innerHTML='<div class="er-code">'+code+'</div>'+
-      '<div class="er-mid">'+mkBadge(t)+'<span style="font-size:10px;color:rgba(79,195,247,0.24);">L'+(e.clearance||1)+'</span></div>'+
-      '<div class="er-lbl">'+esc(e.label||'\u2014')+'</div>';
+    var c=entCond(e), k=entKind(e);
+    var badges=mkBadge(c,COND_CLS[c]||'full')+(k!=='full'?mkBadge(k.toUpperCase(),k):'');
+    row.innerHTML='<div class="er-code">'+esc(code)+'</div>'+
+      '<div class="er-mid">'+badges+'<span style="font-size:10px;color:rgba(79,195,247,0.24);">L'+(e.clearance||(mode==='dev'?3:2))+'</span></div>'+
+      '<div class="er-lbl">'+esc(e.label||'—')+'</div>';
     row.appendChild(rm);row.onclick=function(){lodEnt(code,e);};
     list.appendChild(row);
   });
@@ -1524,35 +1843,45 @@ function renderEnts(){
   updCounts();
 }
 function highlightRow(code){document.querySelectorAll('.erow').forEach(function(r){r.classList.toggle('active',r.dataset.code===code);});}
+// Load a saved entry into the form. Everything is set first and the preview is drawn last, so the first click shows the right header.
 function lodEnt(code,e){
-  activeCode=code;
-  document.getElementById('codef').value=code;
-  document.getElementById('labf').value=e.label||'';
-  document.getElementById('logtxt').value=stripLegacyHeader(e.text||'');
-  document.getElementById('l1pre').value=e.l1_preview||'';
-  valC(code.replace(/-/g,''));
-  if(e.type)setTyp(e.type);if(e.clearance)setClr(e.clearance);
-  updCct();updPrev();highlightRow(code);
-  // Parse log ID letter/number from label
-  var idM=(e.label||'').match(/([A-Z])-(\d+)/i);
-  if(idM){document.getElementById('lidl').value=idM[1].toUpperCase();document.getElementById('lidn').value=idM[2];}
-  document.getElementById('logtype').value=guessLogType(e.text||'',e.label||'');
-  document.getElementById('trkday').checked=(mode==='dev');
-  document.getElementById('daystart').value=(mode==='dev')?PROJECT_START_DEFAULT:'';
+  activeCode=code; loadedEntry=JSON.parse(JSON.stringify(e));
+  var ov=e.override||null, real=ov&&ov.real?ov.real:{};
+  ge('codef').value=code; ge('rekey').checked=false; ge('tpls').value='';
+  // Text. When the sign-off was damaged on purpose, bring the original line back.
+  var body=stripLegacyHeader(e.text||'');
+  if(ov&&real.sign){var bl=body.split('\n'),si=findSignIdx(bl);if(si>=0){bl[si]=real.sign;body=bl.join('\n');}}
+  ge('logtxt').value=body;
+  // Condition, kind, override
+  setCond(entCond(e),true); setKind(entKind(e),true);
+  ge('ovr').checked=!!ov;
+  ge('ovr-id').value=String(ov?ov.id||0:0); ge('ovr-time').value=String(ov?ov.time||0:0); ge('ovr-sign').value=String(ov?ov.sign||0:0);
+  ge('ovr-opts').style.display=ov?'flex':'none'; ge('ovr-note').textContent='';
+  // Log ID: the override's real ID, else the author, else the ID in the label or the header line
+  var firstLine=(e.text||'').split('\n')[0]||'';
+  var idM=(real.id?[0,real.id]:null)||(e.author?[0,e.author]:null)||/\b([A-Z]-\d+)\b/.exec(e.label||'')||/^\[Log ([A-Z]-\d+)\b/.exec(firstLine);
+  setIdFields(idM?idM[1]:'');
+  ge('logtype').value=guessLogType(e.text||'',e.label||''); logtypeAuto=false;
+  ge('trkday').checked=(mode==='dev');
+  ge('daystart').value=(mode==='dev')?PROJECT_START_DEFAULT:'';
   toggleTrackDay();
-  // Decode code to backfill date/time fields if salt is set
-  if(saltValue&&saltValue>=1){
-    var dec=decodeEntry(code,saltValue);
-    if(dec.valid){
-      document.getElementById('dt-year').value=dec.year;
-      document.getElementById('dt-month').value=dec.month;
-      document.getElementById('dt-day').value=dec.day;
-      document.getElementById('dt-hour').value=dec.hour;
-      document.getElementById('dt-min').value=dec.minute;
-      onDtChange();
-    }
+  // Date and time: the override's real moment, the stardate in the label, the stardate in the header, then the code. Never the last entry's.
+  var when=null;
+  if(real.stardate)when=LogCodes.parseSD(real.stardate);
+  if(!when){var sd=getSDFromLabel(e.label||'')||((/^\[Log [^|]*\|\s*Stardate\s+(\d{4}\.\d{3}\.\d{4})/.exec(firstLine))||[])[1];if(sd)when=LogCodes.parseSD(sd);}
+  if(!when&&saltValue){var dec=decodeEntry(code,saltValue);if(dec.valid)when=dec;}
+  if(when){
+    ge('dt-year').value=when.year; ge('dt-month').value=when.month; ge('dt-day').value=when.day;
+    ge('dt-hour').value=when.hour; ge('dt-min').value=when.minute;
   }
-  updHeader();
+  ge('labf').value=e.label||'';
+  syncSdBox(); updDoyLine(); updDayCt(); updCct();
+  labelAuto=(gv('labf')===autoLabelValue());
+  valC(code.replace(/-/g,''));
+  updAuthCard(); closeCharForm();
+  refresh();          // last, so the header, label and preview all show this entry
+  highlightRow(code);
+  ge('escroll').scrollTop=0;
   toast('Loaded: '+code);
 }
 
@@ -1560,10 +1889,9 @@ function lodEnt(code,e){
 function clrForm(){
   if(!confirm('Clear all fields?'))return;
   resetEditorForm();
-  activeCode=null;
   document.querySelectorAll('.erow').forEach(function(r){r.classList.remove('active');});
-  updHeader();
-  try{localStorage.removeItem('echo_ed28');}catch(e){}
+  refresh();
+  try{localStorage.removeItem('echo_ed30');}catch(e){}
 }
 
 // ── AUTOSAVE ──────────────────────────────────────────────────────────────────
@@ -1571,17 +1899,19 @@ var asT=null;
 function autoSave(){
   clearTimeout(asT);
   asT=setTimeout(function(){
-    try{localStorage.setItem('echo_ed28',JSON.stringify({
-      mode:mode,typ:typ,clr:clr,
+    try{localStorage.setItem('echo_ed30',JSON.stringify({
+      mode:mode,cond:cond,kind:kind,
       code:document.getElementById('codef').value,
-      lbl:document.getElementById('labf').value,
+      active:activeCode,
+      lbl:document.getElementById('labf').value,labAuto:labelAuto,
       text:document.getElementById('logtxt').value,
-      l1p:document.getElementById('l1pre').value,
+      auth:gv('authsel'),
       lidn:document.getElementById('lidn').value,
       lidl:document.getElementById('lidl').value,
-      logtype:document.getElementById('logtype').value,
+      logtype:document.getElementById('logtype').value,logtypeAuto:logtypeAuto,
       trkday:document.getElementById('trkday').checked,
       daystart:document.getElementById('daystart').value,
+      ovr:ovrOn(),ovrId:gv('ovr-id'),ovrTime:gv('ovr-time'),ovrSign:gv('ovr-sign'),
       dty:document.getElementById('dt-year').value,
       dtmo:document.getElementById('dt-month').value,
       dtd:document.getElementById('dt-day').value,
@@ -1592,15 +1922,19 @@ function autoSave(){
     }catch(e){}},1200);
 }
 function restore(){
-  try{var s=JSON.parse(localStorage.getItem('echo_ed28')||'{}');
-    if(s.mode)setMode(s.mode);if(s.typ)setTyp(s.typ);if(s.clr)setClr(s.clr);
-    if(s.code){document.getElementById('codef').value=s.code;valC(s.code.replace(/-/g,''));}
+  try{
+    var s=JSON.parse(localStorage.getItem('echo_ed30')||'null');
+    var old=false;
+    if(!s){s=JSON.parse(localStorage.getItem('echo_ed28')||'null');old=!!s;}   // a draft from before this rebuild
+    if(!s)return;
+    if(s.mode)setMode(s.mode);
+    var c=s.cond||(old&&/^(partial|degraded|corrupted)$/.test(s.typ||'')?s.typ.toUpperCase():'INTACT');
+    setCond(c,true); setKind(s.kind||(s.typ==='virus'?'virus':'full'),true);
+    if(s.code){document.getElementById('codef').value=s.code;}
     if(s.lbl)document.getElementById('labf').value=s.lbl;
     if(s.text)document.getElementById('logtxt').value=s.text;
-    if(s.l1p)document.getElementById('l1pre').value=s.l1p;
-    if(s.lidn)document.getElementById('lidn').value=s.lidn;
-    if(s.lidl)document.getElementById('lidl').value=s.lidl;
     if(s.logtype)document.getElementById('logtype').value=s.logtype;
+    logtypeAuto=s.logtypeAuto!==undefined?!!s.logtypeAuto:!s.logtype;
     if(typeof s.trkday==='boolean')document.getElementById('trkday').checked=s.trkday;
     if(s.daystart)document.getElementById('daystart').value=s.daystart;
     toggleTrackDay();
@@ -1609,7 +1943,14 @@ function restore(){
     if(s.dtd)document.getElementById('dt-day').value=s.dtd;
     if(s.dth)document.getElementById('dt-hour').value=s.dth;
     if(s.dtmi)document.getElementById('dt-min').value=s.dtmi;
-    updCct();updJ();onDtChange();
+    // The ID boxes now, the registry person once the crew file has loaded
+    if(s.lidl)ge('lidl').value=s.lidl; if(s.lidn)ge('lidn').value=s.lidn;
+    pendingAuthor=s.auth||(s.lidl&&s.lidn?s.lidl+'-'+s.lidn:null);
+    if(s.ovr){ge('ovr').checked=true;ge('ovr-id').value=s.ovrId||'0';ge('ovr-time').value=s.ovrTime||'0';ge('ovr-sign').value=s.ovrSign||'0';ge('ovr-opts').style.display='flex';}
+    syncSdBox(); updDoyLine(); updCct();
+    labelAuto=s.labAuto!==undefined?!!s.labAuto:!s.lbl;
+    if(s.code)valC(s.code.replace(/-/g,''));
+    refresh();
     if(s.text||s.code)toast('Session restored');
   }catch(e){}
 }
@@ -1627,9 +1968,13 @@ document.getElementById('stf-btn').disabled=true;
 updUrUI();
 loadSalt();
 lodTplsLocal();
+fillOvrSelects();
+setCond('INTACT',true);
+setKind('full',true);
 fillNow();
 restore();
-updHeader();
+loadCrew();
+refresh();
 updEchoesClock();
 setInterval(updEchoesClock, 15000);
 

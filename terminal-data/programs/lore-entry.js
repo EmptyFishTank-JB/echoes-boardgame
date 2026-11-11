@@ -4,8 +4,9 @@
 // echo-os.json (the program items' tier and scope), not here.
 // RECOVERED LOGS lists every code entered so far (kept in the browser by the engine), oldest first, as
 //   [Log header]  //  CODE  //  HEALTH  //  TYPE
-// Health is INTACT, PARTIAL (text contains [CORRUPTED]) or RESTRICTED (classified, viewed at level 1). An entry in
-// lore.json / dev_logs.json can set its own "health" field to override that.
+// Health is the entry's condition: INTACT, PARTIAL, DEGRADED or CORRUPTED, from the entry's own "health" field in
+// lore.json / dev_logs.json (the log editor writes it). With no field, text containing [CORRUPTED] reads PARTIAL, a
+// classified entry viewed at level 1 reads RESTRICTED, and anything else is INTACT.
 const CODE_RE = /^[A-Z0-9]{5}-[A-Z0-9]{5}-[A-Z0-9]{5}-[A-Z0-9]{5}$/;
 
 // Sized in character cells so a full log line (the longest is 92 characters) and a full list row fit without wrapping.
@@ -30,6 +31,9 @@ const CSS = `
 .le-row:hover,.le-row:focus-visible{background:var(--theme-full);color:#02070c;outline:none;}
 .le-row:hover span::before,.le-row:focus-visible span::before{color:#02070c;}
 .le-row.gone{color:var(--theme-lo);}
+.le-row[data-h="PARTIAL"] span:nth-child(3),.le-row[data-h="DEGRADED"] span:nth-child(3){color:var(--theme-warn);}
+.le-row[data-h="CORRUPTED"] span:nth-child(3){color:var(--theme-denied);}
+.le-row:hover[data-h] span:nth-child(3){color:#02070c;}
 @media(max-width:768px){
   .le-view{white-space:pre-wrap;}
   .le-head{display:none;}
@@ -39,6 +43,15 @@ const CSS = `
 `;
 
 const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+
+// The condition of one entry. Older data saved the condition as the entry type (partial, degraded, corrupted); it still reads.
+function healthOf(ctx, entry) {
+  const t = String(entry.type || '').toLowerCase();
+  if (entry.health) return String(entry.health).toUpperCase();
+  if (t === 'partial' || t === 'degraded' || t === 'corrupted') return t.toUpperCase();
+  if (/\[CORRUPTED\]/.test(entry.text || '')) return 'PARTIAL';
+  return entry.type === 'classified' && ctx.level === 1 ? 'RESTRICTED' : 'INTACT';
+}
 
 // Everything the list needs about one code, from whichever file holds it.
 function describe(ctx, code) {
@@ -50,8 +63,7 @@ function describe(ctx, code) {
   const header = /^\[Log .*\]$/.test((lines[0] || '').trim()) ? lines[0].trim() : '[' + (entry.label || 'UNKNOWN ENTRY') + ']';
   let type = (/^(.*?)\s+[A-Z]-\d+\b/.exec(entry.label || '') || [])[1];
   if (!type && lines[1]) type = lines[1].split(/\s+(?:--|—)\s+/)[0];
-  const health = entry.health || (/\[CORRUPTED\]/.test(entry.text || '') ? 'PARTIAL' : entry.type === 'classified' && ctx.level === 1 ? 'RESTRICTED' : 'INTACT');
-  return { src: hit[0], entry, header, type: (type || 'LOG').toUpperCase(), health: String(health).toUpperCase() };
+  return { src: hit[0], entry, header, type: (type || 'LOG').toUpperCase(), health: healthOf(ctx, entry) };
 }
 
 export default {
@@ -87,7 +99,8 @@ export default {
           { text: '> Full entry requires elevated access.', cls: 'low' }]);
         return;
       }
-      say('> ENTRY RECOVERED', '');
+      const h = healthOf(ctx, entry);
+      say(h === 'INTACT' ? '> ENTRY RECOVERED' : '> ENTRY RECOVERED: ' + h, h === 'CORRUPTED' ? 'denied' : h === 'INTACT' ? '' : 'warn');
       const head = isDev ? [{ text: '> DECRYPTING ENTRY...', cls: 'dim' }, { text: '> STATUS: PARTIAL RESTORATION', cls: 'dim' }, { text: '' }] : [];
       setView([...head, ...(entry.text || '').split('\n').map((t) => ({ text: t }))]);
     };
@@ -140,6 +153,7 @@ export default {
       const rows = recs.map((r) => {
         const info = describe(ctx, r.code);
         const row = el('button', 'le-row' + (info ? '' : ' gone'));
+        if (info) row.dataset.h = info.health;
         [info ? info.header : '[UNKNOWN ENTRY]', r.code, info ? info.health : 'LOST', info ? info.type : '--'].forEach((t) => row.appendChild(el('span', '', t)));
         let stash = null;   // hovering a row shows its code in the field, like hovering a command in the terminal
         row.addEventListener('mouseenter', () => { stash = input.value; input.value = r.code; });

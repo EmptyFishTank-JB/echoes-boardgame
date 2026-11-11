@@ -8,7 +8,7 @@ const ROOT = path.resolve(__dirname, '..', '..');
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.json': 'application/json', '.css': 'text/css', '.png': 'image/png', '.svg': 'image/svg+xml', '.md': 'text/markdown' };
 
 const SUITES = [
-  ['newfeatures', 'built-ins, hidden items, tier rules, override tree, validator'],
+  ['newfeatures', 'built-ins, hidden items, level rules, override tree, validator'],
   ['phase3', 'programs and the FETCH LOG window, gateways, layer jumps'],
   ['phase4', 'author mode: create, edit, move, delete, export, draft'],
   ['ui5', 'item glyphs, eye toggle, hover and click, right-click menus, cursor'],
@@ -29,6 +29,8 @@ const SUITES = [
   ['pace16', 'what types and what lands whole, speeds, sounds'],
   ['layers22', 'per-layer settings: colors, title, intro, sound'],
   ['editor23', 'engine editor: no theme or per-layer sound sections'],
+  ['codes25', 'log code module: existing codes unchanged, department codes round trip'],
+  ['logeditor26', 'log editor: sections in order, authors and crew, Log ID in the code, condition, override, first-click preview'],
   ['logs24', 'log data lint (lore.json, dev_logs.json) and fetching the 2143 logs'],
 ];
 

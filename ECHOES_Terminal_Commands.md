@@ -25,6 +25,8 @@ command that is missing from it. Run it before committing terminal changes. The 
 - Anything typed in the chat that is not a command is free text and gets a response from `personality.json`.
 - While the terminal is drawing a page or running a sequence, typing is ignored. Nothing is queued.
 - Clicking works everywhere typing does (see section 3).
+- Levels are written **L1, L2, L3** everywhere: the address bar badge, the status line, the author tree, prompts, and
+  `[JUMP L2]`. The data files store the same number in a field called `tier`.
 
 **How output renders.** Every line the terminal prints has a kind, and one table (`RENDER`, in `terminal.html`)
 says how each kind appears. To change what types and what lands whole, change a kind's mode in that table.
@@ -60,7 +62,7 @@ address bar) renders again as new lines.
 | Command | What it does |
 |---|---|
 | `[HELP]` | Lists the commands. The list is the `help` block in `echo-os.json`. |
-| `[TREE]` | Prints the file tree. Available to everyone, locked or not. Players see only what the archive shows them: hidden items, stubs, programs, gateways and deeper tiers are left out, and a tier root appears by name only (no `[COMMAND]`). In author mode (`[AUTHOR UNLOCK]`) every hidden item appears, with its marks. |
+| `[TREE]` | Prints the file tree. Available to everyone, locked or not. Players see only what the archive shows them: hidden items, stubs, programs, gateways and deeper levels are left out, and a level root appears by name only (no `[COMMAND]`). In author mode (`[AUTHOR UNLOCK]`) every hidden item appears, with its marks. |
 | `[CLEAR]` | Clears the screen. |
 | `[SYSTEM OVERRIDE]` | Hardcoded recovery menu (section 4). Works from any state, even mid-draw, and cannot be blocked by data. |
 
@@ -75,14 +77,14 @@ and the admin keywords (`admin`, `root`, `sudo`, `bypass`, `superuser`, `adminis
 logged" style response. A bracket command the chat really defines wins over the keyword scan. An unknown
 bracket that contains a keyword still draws the admin response.
 
-### Archive pages (any tier)
+### Archive pages (any level)
 
 | Command | What it does |
 |---|---|
 | `[LS]` | Redraws the current folder. In author mode it lists everything, with `~hidden` and `?stub` marks. |
-| `[BACK]` | Up one level. At a tier root it leaves the tier, same as `[EXIT]`. |
-| `[ROOT]` | Jumps to the root of the current tier. |
-| `[EXIT]` | Leaves the tier: L3 to the L2 root, L2 to the L1 root, L1 back to the chat. |
+| `[BACK]` | Up one level. At a level root it leaves the level, same as `[EXIT]`. |
+| `[ROOT]` | Jumps to the root of the current level. |
+| `[EXIT]` | Leaves the level: L3 to the L2 root, L2 to the L1 root, L1 back to the chat. |
 | `[<ITEM NAME>]` | Opens any item listed on the page, for example `[INCIDENT REPORTS]`. |
 
 Items listed on a page are the visible children of that folder. Aliases come from `echo-os.json`.
@@ -95,10 +97,10 @@ These never appear in a listing. The player learns them from the story.
 |---|---|---|
 | `[ECHOES.ARCHIVE]` | The chat | Enters the layer 1 archive. Prints a mount line, then the ECHOES.ARCHIVE root. It is not on the landing screen, not in `[HELP]` and not in the player `[TREE]`: it is printed on a few of the game's Echo cards, and players bring it to the terminal and type it. Its item in `echo-os.json` (the `l1c` root's command) has `"hidden": true`. Typed only: nothing on the chat screen can be clicked to enter. The author `[TREE]` lists it. |
 | `[INITIATE ECHO PROTOCOL]` | Anywhere: the chat or any archive page | Gateway to the L2 root. Plays the L2 flavor text in the layer 1 theme, then changes theme and ambient sound, then draws `L2A_ROOT`. |
-| `[FETCH LOG ENTRY: //]` | Any tier 2 or tier 3 page (answers "unavailable" in the chat and at tier 1) | Program `lore-entry`, shown as **FETCH LOG.EXE** in its own window (see section 3a). |
+| `[FETCH LOG ENTRY: //]` | Any L2 or L3 page (answers "unavailable" in the chat and at L1) | Program `lore-entry`, shown as **FETCH LOG.EXE** in its own window (see section 3a). |
 
-A hidden item opens only if its tier is at or below the tier you are in. A program opens only where its
-`scope` allows (`tier` means any page of that tier, `folder` means only the folder it sits in). Anywhere
+A hidden item opens only if its level is at or below the level you are in. A program opens only where its
+`scope` allows (`tier` in the data, shown as LEVEL in prompts, means any page of that level; `folder` means only the folder it sits in). Anywhere
 else it answers "fetch unavailable".
 
 ### Defined but not reachable
@@ -148,11 +150,18 @@ Each recovered row reads `[Log header]  //  CODE  //  HEALTH  //  TYPE`:
 | Column | Where it comes from |
 |---|---|
 | Log header | First line of the entry's text, for example `[Log A-15 \| Stardate 2143.136.2132]` (falls back to the entry's `label`). |
-| Health | `INTACT`, `PARTIAL` (the text contains `[CORRUPTED]`), `RESTRICTED` (classified and viewed at tier 1). An entry can set its own `health` field in `lore.json` or `dev_logs.json` to override it. A code whose entry no longer exists shows `LOST`. |
+| Health | The entry's own `health` field: `PARTIAL`, `DEGRADED` or `CORRUPTED` (the log editor writes it, and the same word shows on the status line when the log opens). With no field, text containing `[CORRUPTED]` reads `PARTIAL`, older entries that used `type: partial`, `degraded` or `corrupted` read the same, a classified entry viewed at L1 reads `RESTRICTED`, and anything else is `INTACT`. A code whose entry no longer exists shows `LOST`. |
 | Type | The wording before the log number in the entry's `label` (`CAPTAIN'S LOG`, `MEDICAL LOG`, `INTERCEPT`, ...). |
 
 Typed codes follow the layer rule (L3 reads `dev_logs.json`, L2 reads `lore.json`). A log already in the recovered
 list can be reopened from any layer.
+
+**Writing the logs.** `lore.json` and `dev_logs.json` are written with `dev-tools/lore-devlog-editor.html`. Each entry is
+`"CODE": { label, type, health?, clearance, author?, text }`: `type` is `full` or `virus`, `health` is left out when the
+log is intact, and `clearance` is 2 for a lore log and 3 for a dev log (the level FETCH LOG reads it at). A log's ID is its
+author's ID, a department letter and three digits (`R-118`), taken from `terminal-data/crew.json`, and the 20 character code
+carries that ID and the moment the log was filed. Dev logs use the reserved department `D`. See the lore-log section of
+`ECHOES_Terminal_Content_Notes.md` for the details.
 
 The mouse pointer is drawn in JavaScript from the active layer color: an arrow, a bracket reticle over
 anything clickable, and an I-beam over the input.
@@ -167,8 +176,8 @@ Type `[SYSTEM OVERRIDE]` anywhere. The screen goes black and green. These work i
 |---|---|
 | `[STATUS]` | Runs the data validator: file status, dangling targets, unknown command or node types, orphaned nodes, stub items. |
 | `[LEGEND]` | Explains the boot check labels (`OK`, `WARN`, `INVALID`, `BROKEN`, `MISSING`), the status line, and which label belongs to which file. Built from the live label strings, so it matches the boot screen even if you rename them. |
-| `[TREE]` | The full author view of the tree (hidden items, stubs, tiers, programs, gateways). |
-| `[JUMP L1]`, `[JUMP L2]`, `[JUMP L3]` | Jumps to that tier's archive root with the theme and ambient sound for it. |
+| `[TREE]` | The full author view of the tree (hidden items, stubs, levels, programs, gateways). |
+| `[JUMP L1]`, `[JUMP L2]`, `[JUMP L3]` | Jumps to that level's archive root with the theme and ambient sound for it. |
 | `[EXIT]` | Leaves the override and restores the screen you were on. |
 
 ---
@@ -187,7 +196,7 @@ in `echo-os.json` removes every author command: `[AUTHOR UNLOCK]` then behaves l
 | `[NEW DOC]` | New page with its own text. Lines can start with `/dim`, `/low`, `/warn` or `/denied` to set a style. `[DONE]` finishes, `Esc` aborts. Capitalization and indentation are kept. |
 | `[NEW LOG]` | New page that shows a `lore.json` (`LORE`) or `dev_logs.json` (`DEV`) entry by code. |
 | `[NEW PROGRAM]` | Registers a program from `terminal-data/programs/<id>.js` as a hidden item. Asks for its scope. |
-| `[NEW GATEWAY]` | Hidden command that jumps to any folder, in any tier. A different tier plays the transition. |
+| `[NEW GATEWAY]` | Hidden command that jumps to any folder, at any level. A different level plays the transition. |
 | `[EDIT]` | Changes an item's name, alias, title, hidden flag and text, one question after another. On a stub it turns it into a real doc. |
 | `[LAYER]`, `[LAYER <SETTING>]` | Changes a setting of a whole layer: the one you are standing in (or the one a right-click named). `[LAYER]` lists them and asks; `[LAYER PRIMARY]` goes straight to one. See section 5a. |
 | `[SET]`, `[SET <PROPERTY>]` | Changes one property of an item. `[SET]` asks which; `[SET NAME]` goes straight to it. Properties: `NAME`, `ALIAS`, `TITLE`, `HIDDEN` (toggles), `FOOTER`, `TEXT` (docs and stubs), `LOG` (log items: source and code), `DESTINATION` (gateways), `PROGRAM` and `SCOPE` (programs). Asks which item unless a click or the right-click menu named it. |
@@ -200,15 +209,15 @@ in `echo-os.json` removes every author command: `[AUTHOR UNLOCK]` then behaves l
 
 Every prompt can be canceled with `Esc`. Edits are autosaved to the draft and offered back on the next unlock.
 
-**Ids.** Every item has an id the engine stores in links. `L3A_ROOT` reads as tier 3, Archive, root: `A` means archive
-(the chat screens use `C`, as in `L1C_ROOT`). Gateways are `GW_...` and programs `L<tier>A_PROG_...`. A gateway's
+**Ids.** Every item has an id the engine stores in links. `L3A_ROOT` reads as level 3, Archive, root: `A` means archive
+(the chat screens use `C`, as in `L1C_ROOT`). Gateways are `GW_...` and programs `L<n>A_PROG_...` (n is the level). A gateway's
 destination is stored as the destination folder's id, so it keeps working if the folder is renamed; the menus and the
 author `[TREE]` show it as name and id.
 
 **Alias rules.** An alias cannot shadow a built-in or reserved name (`[HELP]`, `[TREE]`, `[LS]`, `[BACK]`,
 `[ROOT]`, `[EXIT]`, `[CLEAR]`, `[SYSTEM OVERRIDE]`, `[AUTHOR UNLOCK]`, `[AUTHOR LOCK]`, `[STATUS]`, `[SCAN]`,
 `[OPEN ...]`, or any author command). Hidden aliases must be unique everywhere. Visible aliases only need to
-be unique within their folder. Programs may share an alias across tiers.
+be unique within their folder. Programs may share an alias across levels.
 
 **Author-only mouse features.**
 
@@ -216,9 +225,9 @@ be unique within their folder. Programs may share an alias across tiers.
 |---|---|
 | `(o)` / `(-)` beside an item | Open or closed eye. Click it to list or unlist the item. |
 | Right-click an item | A menu that starts with what the item is, one row per property: `ID`, `TYPE`, `NAME`, `ALIAS`, `TITLE`, `HIDDEN`, `FOOTER`, `CONTAINS` (folders), `TEXT` (docs), `LOG ENTRY` (logs), `DESTINATION` (gateways, shown as name and id, for example `L3 ROOT (L3A_ROOT)`), `PROGRAM` and `SCOPE` (programs). `ID`, `TYPE` and `CONTAINS` are read-only. Click any other row to change that property: it asks only the one question (`[SET NAME]`, `[ALIAS]`, `[SHOW]`/`[HIDE]` and so on). Below the rows: open, edit everything, move, delete. Skips the "which item?" prompt. |
-| Right-click empty space | Menu: the create commands, tree, export, help, lock. At a tier root it also offers `LAYER SETTINGS...`. |
-| Right-click the address bar | The same rows as an item's menu, for the page you are on. At a tier root it adds the layer's settings (section 5a). |
-| Click a line in `[TREE]` | Jumps straight to that item, across tiers. Programs, gateways and stubs land on their folder. |
+| Right-click empty space | Menu: the create commands, tree, export, help, lock. At a level root it also offers `LAYER SETTINGS...`. |
+| Right-click the address bar | The same rows as an item's menu, for the page you are on. At a level root it adds the layer's settings (section 5a). |
+| Click a line in `[TREE]` | Jumps straight to that item, across levels. Programs, gateways and stubs land on their folder. |
 
 ---
 
@@ -237,8 +246,8 @@ and sound of `l1a`. Everything that makes a layer look and sound the way it does
 | `VOLUME` | The ambient sound level for the layer. | 0 to 1 |
 | `SOUND` | The ambient sound itself. `VENTILATION` (layer 1), `CHORD` (layer 2), `SUB-BASS` (layer 3) or `SILENT`. A preset also sets its default volume. | Name |
 
-Where to find them: right-click the address bar at a tier root (rows with swatches, click one to edit it), or type
-`[LAYER]` while standing in that tier. Colors, title and sound apply as soon as the change is made, and `[EXPORT]` carries
+Where to find them: right-click the address bar at a level root (rows with swatches, click one to edit it), or type
+`[LAYER]` while standing in that level. Colors, title and sound apply as soon as the change is made, and `[EXPORT]` carries
 them. What the sounds are made of (oscillators, filters) is in the `ambient` block of the layer, for anyone who wants a
 custom sound in the JSON. The mount and unmount lines between the chat and layer 1 are `layer_mount` and
 `layer_unmount` under `terminal_strings` in `engine_config.json`.
@@ -267,7 +276,7 @@ The last line reads `FULL ACCESS`, `FULL ACCESS — n WARNING(S)`, or `DEGRADED 
 | CREW BEHAVIORAL MATRIX | `personality.json` | Not an object, or `easter_eggs`, `denied` or `admin_triggers` (`keywords` and `responses` lists) is missing or the wrong type. | Some easter eggs lack `keys` or `variants`. |
 | ARCHIVE LOG DATABASE | `lore.json` | Not an object of entries, or no entry has `text` and a `type` of `full`, `classified` or `virus`. | The file has no entries, some entries are malformed, or a code is not in the `XXXXX-XXXXX-XXXXX-XXXXX` format. |
 | DEVELOPMENT RECORDS | `dev_logs.json` | Same as `lore.json`. | Same as `lore.json`. |
-| NAVIGATION ARCHITECTURE | `echo-os.json` | No `tree.children`, or no tier 1 folder. | No layer 1 chat (landing) screen, duplicate item ids, a gateway that points nowhere, or no colors for layer `l1a`, `l2a` or `l3a` (the built-in colors are used). |
+| NAVIGATION ARCHITECTURE | `echo-os.json` | No `tree.children`, or no level 1 folder. | No layer 1 chat (landing) screen, duplicate item ids, a gateway that points nowhere, or no colors for layer `l1a`, `l2a` or `l3a` (the built-in colors are used). |
 | CORE ENGINE PARAMETERS | `engine_config.json` | Not an object, or `typing` or `timing` is missing. | `idle_messages` is not a list. |
 
 Examples that now report `INVALID`: `lore.json` containing `["not", "an", "object"]`, `dev_logs.json` containing
@@ -311,7 +320,7 @@ programs), `echo_l3_visited`.
 ## 8. Writing a program
 
 A program is `terminal-data/programs/<id>.js` with `export default { id, title, exe, async run(ctx) {} }`, plus a
-`program` item in `echo-os.json` (or `[NEW PROGRAM]` in author mode) that sets its alias, tier and scope.
+`program` item in `echo-os.json` (or `[NEW PROGRAM]` in author mode) that sets its alias, level and scope.
 
 | `ctx` member | Use |
 |---|---|
@@ -319,7 +328,7 @@ A program is `terminal-data/programs/<id>.js` with `export default { id, title, 
 | `ctx.sound.click / backspace / enter / denied / line / tone` | The terminal's sound effects. |
 | `ctx.recovered()` | Codes entered so far: `[{code, sd, ts}]`, oldest first. |
 | `ctx.discovered(code)` | Records a recovered code. |
-| `ctx.level`, `ctx.lore`, `ctx.devLogs`, `ctx.strings` | Current tier, the two log files, system messages. |
+| `ctx.level`, `ctx.lore`, `ctx.devLogs`, `ctx.strings` | Current level, the two log files, system messages. |
 | `ctx.virus(entry)` | Runs the virus sequence. Close the window first, then return `'reset'`. |
 
 `run` returns `'stay'` when it is done (a windowed program leaves the page untouched) or `'reset'` after
