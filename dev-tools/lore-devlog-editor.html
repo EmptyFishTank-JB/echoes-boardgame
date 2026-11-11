@@ -517,8 +517,12 @@ button:disabled{opacity:0.28;cursor:not-allowed;}
         </div>
         <div class="sub-fl" id="kind-note">A virus log plays the virus sequence and resets the terminal (lore entries only).</div>
       </div>
-      <div class="fg">
-        <div class="fl">ACCESS &#8212; fixed by the dataset</div>
+      <div class="fg" id="accg">
+        <div class="fl">ACCESS &#8212; the level that can open it with FETCH LOG.EXE</div>
+        <div class="tgg" id="atg">
+          <button class="tg on" data-v="2" onclick="setAccess(2)">L2 &#8212; PLAYERS</button>
+          <button class="tg"    data-v="3" onclick="setAccess(3)">L3 &#8212; DEEPEST</button>
+        </div>
         <div id="acc-line" class="acc-line"></div>
       </div>
     </div>
@@ -753,7 +757,7 @@ function getSDFromFields() {
 }
 
 // ── STATE ─────────────────────────────────────────────────────────────────────
-var mode = 'lore', cond = 'INTACT', kind = 'full', loadedEntry = null;
+var mode = 'lore', cond = 'INTACT', kind = 'full', accLvl = 2, loadedEntry = null;
 var iData = {}, fileHandle = null, activeCode = null;
 var saltValue = 0;
 var lastGenCode = '';
@@ -1263,7 +1267,13 @@ function delChar(){
 }
 
 // ── MODE / CONDITION / KIND / ACCESS ──────────────────────────────────────────
-function accessLevel(){ return mode === 'dev' ? 3 : 2; }
+// A dev log is always level 3. A lore log is level 2 (what players read) or level 3 (for example the creature's own logs).
+function accessLevel(){ return mode === 'dev' ? 3 : accLvl; }
+function setAccess(n, quiet){
+  if (mode === 'dev') { if (!quiet) toast('Dev logs are always level 3'); return; }
+  accLvl = n === 3 ? 3 : 2;
+  if (!quiet) refresh();
+}
 function setMode(m){
   switchStore(m);
   document.querySelectorAll('#mtg .tg, #etgmode .tg').forEach(function(b){b.classList.toggle('on',b.dataset.v===m);});
@@ -1281,7 +1291,7 @@ function resetEditorForm(){
   ge('authsel').value = ''; setIdLocked(false); closeCharForm();
   ge('ovr').checked = false; ['ovr-id', 'ovr-time', 'ovr-sign'].forEach(function(i){ ge(i).value = '0'; }); ge('ovr-opts').style.display = 'none'; ge('ovr-note').textContent = '';
   ge('rekey').checked = false;
-  setCond('INTACT', true); setKind('full', true);
+  setCond('INTACT', true); setKind('full', true); accLvl = 2;
   document.getElementById('trkday').checked = (mode==='dev');
   document.getElementById('daystart').value = (mode==='dev') ? PROJECT_START_DEFAULT : '';
   toggleTrackDay();
@@ -1317,9 +1327,16 @@ function setKind(k, quiet){
 }
 function updAccess(){
   var n = accessLevel();
-  ge('acc-line').innerHTML = '<span class="lv">L' + n + '</span> &#8212; ' +
-    (mode === 'dev' ? 'dev log (dev_logs.json), read with FETCH LOG.EXE at level 3' : 'lore log (lore.json), read with FETCH LOG.EXE at level 2') +
-    '. Once recovered, it can be reopened from the RECOVERED LOGS list at any level.';
+  document.querySelectorAll('#atg .tg').forEach(function(b){
+    var v = parseInt(b.dataset.v, 10);
+    b.classList.toggle('on', v === n);
+    b.disabled = mode === 'dev' && v === 2;
+  });
+  ge('acc-line').innerHTML = mode === 'dev'
+    ? '<span class="lv">L3</span> &#8212; dev log (dev_logs.json). Only level 3 opens it.'
+    : n === 3
+      ? '<span class="lv">L3</span> &#8212; lore log (lore.json) for level 3 only, such as a log the creature writes through Terminal 426. At level 2 its code answers ACCESS RESTRICTED.'
+      : '<span class="lv">L2</span> &#8212; lore log (lore.json). Opens at level 2 and level 3. Once recovered, it can be reopened from the RECOVERED LOGS list at any level.';
   var tb = ge('type-badge'); tb.className = COND_CLS[cond] || 'full'; tb.textContent = cond;
 }
 
@@ -1854,7 +1871,7 @@ function lodEnt(code,e){
   if(ov&&real.sign){var bl=body.split('\n'),si=findSignIdx(bl);if(si>=0){bl[si]=real.sign;body=bl.join('\n');}}
   ge('logtxt').value=body;
   // Condition, kind, override
-  setCond(entCond(e),true); setKind(entKind(e),true);
+  setCond(entCond(e),true); setKind(entKind(e),true); accLvl=(mode==='lore'&&e.clearance>=3)?3:2;
   ge('ovr').checked=!!ov;
   ge('ovr-id').value=String(ov?ov.id||0:0); ge('ovr-time').value=String(ov?ov.time||0:0); ge('ovr-sign').value=String(ov?ov.sign||0:0);
   ge('ovr-opts').style.display=ov?'flex':'none'; ge('ovr-note').textContent='';
@@ -1901,7 +1918,7 @@ function autoSave(){
   clearTimeout(asT);
   asT=setTimeout(function(){
     try{localStorage.setItem('echo_ed30',JSON.stringify({
-      mode:mode,cond:cond,kind:kind,
+      mode:mode,cond:cond,kind:kind,acc:accLvl,
       code:document.getElementById('codef').value,
       active:activeCode,
       lbl:document.getElementById('labf').value,labAuto:labelAuto,
@@ -1930,7 +1947,7 @@ function restore(){
     if(!s)return;
     if(s.mode)setMode(s.mode);
     var c=s.cond||(old&&/^(partial|degraded|corrupted)$/.test(s.typ||'')?s.typ.toUpperCase():'INTACT');
-    setCond(c,true); setKind(s.kind||(s.typ==='virus'?'virus':'full'),true);
+    setCond(c,true); setKind(s.kind||(s.typ==='virus'?'virus':'full'),true); accLvl=s.acc===3?3:2;
     if(s.code){document.getElementById('codef').value=s.code;}
     if(s.lbl)document.getElementById('labf').value=s.lbl;
     if(s.text)document.getElementById('logtxt').value=s.text;

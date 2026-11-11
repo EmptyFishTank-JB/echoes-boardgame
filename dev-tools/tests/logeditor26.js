@@ -36,7 +36,8 @@ const LC = require('../log-codes.js');
     const t = document.querySelector('.tools-title'), s = document.getElementById('sec-save');
     return !!(s.compareDocumentPosition(t) & Node.DOCUMENT_POSITION_FOLLOWING) && ['tpl-editor', 'dec-sec', 'dz'].every((i) => !!(t.compareDocumentPosition(document.getElementById(i)) & Node.DOCUMENT_POSITION_FOLLOWING));
   }));
-  check('there is no classified toggle or L1 preview box, and no clearance picker', await ev(() => !document.getElementById('l1pre') && !document.querySelector('#ctg [data-v="classified"]') && !document.getElementById('clrg')));
+  check('there is no classified toggle or L1 preview box', await ev(() => !document.getElementById('l1pre') && !document.querySelector('#ctg [data-v="classified"]') && !document.getElementById('clrg')));
+  check('access offers L2 and L3 only', JSON.stringify(await ev(() => [...document.querySelectorAll('#atg .tg')].map((b) => b.dataset.v))) === '["2","3"]');
   check('the condition buttons are INTACT, PARTIAL, DEGRADED, CORRUPTED', JSON.stringify(await ev(() => [...document.querySelectorAll('#ctg .tg')].map((b) => b.dataset.v))) === '["INTACT","PARTIAL","DEGRADED","CORRUPTED"]');
 
   // ---------- author selector ----------
@@ -133,6 +134,11 @@ const LC = require('../log-codes.js');
   const e2 = await ev(() => buildEntry());
   check('an intact log carries no health field', !('health' in e2) && e2.type === 'full', e2);
   check('the access line says level 2 for lore', /L2/.test(await ev(() => ge('acc-line').textContent)) && !(await ev(() => document.querySelector('#acc-line button, #acc-line input'))));
+  await p.click('#atg [data-v="3"]');
+  const a3 = await ev(() => ({ c: buildEntry().clearance, line: ge('acc-line').textContent }));
+  check('a lore log can be set to L3 (for example the creature\'s own logs), and the line says what that means', a3.c === 3 && /ACCESS RESTRICTED/.test(a3.line), a3);
+  await p.click('#atg [data-v="2"]');
+  check('...and back to L2', (await ev(() => buildEntry().clearance)) === 2);
   await p.click('#ktg [data-v="virus"]');
   check('a lore log can be a virus', (await ev(() => buildEntry().type)) === 'virus');
   await p.click('#ktg [data-v="full"]');
@@ -159,6 +165,7 @@ const LC = require('../log-codes.js');
   check('a dev log code carries the D department', ddec.valid && ddec.section === 'D' && ddec.number === 1, ddec);
   await ev(() => saveEntry());
   const de = await ev(() => iData[Object.keys(iData)[0]]);
+  check('in dev mode access is L3 and the L2 button is off', await ev(() => accessLevel() === 3 && document.querySelector('#atg [data-v="2"]').disabled));
   check('a dev log is saved at level 3 with its author', de.clearance === 3 && de.author === 'D-001' && de.type === 'full' && /CREATOR'S LOG — DAY \d+$/.test(de.text.split('\n')[1]), de);
   await ev(() => setMode('lore'));
 

@@ -153,12 +153,14 @@ Each recovered row reads `[Log header]  //  CODE  //  HEALTH  //  TYPE`:
 | Health | The entry's own `health` field: `PARTIAL`, `DEGRADED` or `CORRUPTED` (the log editor writes it, and the same word shows on the status line when the log opens). With no field, text containing `[CORRUPTED]` reads `PARTIAL`, older entries that used `type: partial`, `degraded` or `corrupted` read the same, a classified entry viewed at L1 reads `RESTRICTED`, and anything else is `INTACT`. A code whose entry no longer exists shows `LOST`. |
 | Type | The wording before the log number in the entry's `label` (`CAPTAIN'S LOG`, `MEDICAL LOG`, `INTERCEPT`, ...). |
 
-Typed codes follow the layer rule (L3 reads `dev_logs.json`, L2 reads `lore.json`). A log already in the recovered
-list can be reopened from any layer.
+A typed code is looked up in `lore.json`, and at L3 in `dev_logs.json` first. An entry with `"clearance": 3` (every dev log, and any
+lore log meant for L3 only, such as the ones the creature writes through Terminal 426) opens only at L3. At L2 its code answers
+`ACCESS RESTRICTED` and is not added to the recovered list. A dev log shows the `DECRYPTING ENTRY` lines, a lore log never does. A log
+already in the recovered list can be reopened from any layer.
 
 **Writing the logs.** `lore.json` and `dev_logs.json` are written with `dev-tools/lore-devlog-editor.html`. Each entry is
 `"CODE": { label, type, health?, clearance, author?, text }`: `type` is `full` or `virus`, `health` is left out when the
-log is intact, and `clearance` is 2 for a lore log and 3 for a dev log (the level FETCH LOG reads it at). A log's ID is its
+log is intact, and `clearance` is 2 for a lore log players read, 3 for a dev log or a lore log for L3 only (the level that can open it). A log's ID is its
 author's ID, a department letter and three digits (`R-118`), taken from `terminal-data/crew.json`, and the 20 character code
 carries that ID and the moment the log was filed. Dev logs use the reserved department `D`. See the lore-log section of
 `ECHOES_Terminal_Content_Notes.md` for the details.

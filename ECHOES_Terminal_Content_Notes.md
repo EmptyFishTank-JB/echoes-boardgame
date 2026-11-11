@@ -121,8 +121,10 @@ a person files carries the same ID and the stardate tells them apart. Each depar
   until the department list is settled (`provisional: true`).
 - **Dev logs use `D`.** `D-001` is the developer. The letter is reserved for the dev department (`"dev": true` in `crew.json`),
   and dev logs are never read in a lore context. Avoid `L` as a department letter, it reads like a level (L1, L2, L3).
-- **One level notation.** The terminal and the editor write levels as `L1`, `L2`, `L3`. FETCH LOG.EXE runs at L2 (lore.json)
-  and L3 (dev_logs.json), so the editor sets `clearance` to 2 for a lore log and 3 for a dev log and has no picker.
+- **One level notation.** The terminal and the editor write levels as `L1`, `L2`, `L3`. FETCH LOG.EXE runs at L2 and L3. At L2 it
+  reads `lore.json`. At L3 it reads `dev_logs.json` and `lore.json`. An entry's `clearance` says which level opens it: 2 opens at L2
+  and L3, 3 opens only at L3 (every dev log, and lore logs meant for L3, such as the creature's own logs through Terminal 426).
+  The editor sets it: a dev log is always 3, a lore log is 2 or 3 by the L2 / L3 buttons.
 - **Condition.** Each log has a `health` of PARTIAL, DEGRADED or CORRUPTED, or none for INTACT. FETCH LOG shows it on the status
   line and in the RECOVERED LOGS list. Older entries that used `type: partial` still read the same way.
 - **Override.** For a log filed with no valid ID (falsified, stripped or damaged), the editor can damage the ID, the stardate and
@@ -235,9 +237,9 @@ The `ARCHIVE QUERY:` lines and the dashed rules copy the terminal's old display.
 Nothing else in the novel is an entry code log. The only logs players can fetch are the two Captain's logs. What else is in it:
 
 - **Five `VESSEL INTERNAL LOG` blocks** (2175.150.0255, .0445, .0600, .0715 and .0900), written in the terminal's own voice and marked
-  `CLEARANCE: L3`. These would suit author `X` (ship systems) in the registry, with log type SYSTEM RECORD. They are not in the data
-  because of one engine rule: FETCH LOG reads `dev_logs.json` at L3, so an L3 entry from the terminal has no file to live in. Adding
-  them takes either a decision to let L3 also read `lore.json`, or putting them in `dev_logs.json`.
+  `CLEARANCE: L3`. These would suit author `X` (ship systems) in the registry, with log type SYSTEM RECORD. FETCH LOG now reads
+  `lore.json` at L3, so they can go there with `clearance` 3. They are not added yet: their text carries the novel's `FLAG-FIX` notes,
+  so the dates and the drive change entry need your call first.
 - **In-world screens** (the start screen, the Sector 7 pod bay display, the Cargo Bay C inventory screen). They are screens, not logs.
   The terminal's document tree already holds the pod bay and cargo material as documents.
 - **The novel's own flags.** The `FLAG-FIX` comments in the novel still say the transmission cut and the cell pull move from .159 and

@@ -104,6 +104,29 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
     check('non-intact rows are colored: partial and degraded differ from intact, corrupted differs from partial', col('PARTIAL') !== col('RESTRICTED') && col('CORRUPTED') !== col('PARTIAL'), colors);
     await p.close(); }
 
+  // ===== E. level 3 also reads lore.json; clearance 3 opens only at level 3 =====
+  { const patchLore = j => { j['3AAAA-AAAAA-AAAAA-AAAAA'] = { label: 'SYSTEM RECORD X-001 | Stardate 2143.150.0001', type: 'full', clearance: 3, text: '[Log X-001 | Stardate 2143.150.0001]\nSYSTEM RECORD\n\nThe cells were moved.\n[END OF LOG]' }; };
+    const s = await open({ '**/lore.json*': patchLore }); const { p } = s;
+    await s.jump(2); await s.openProg(); await s.code('3AAAA-AAAAA-AAAAA-AAAAA');
+    check('at L2 a lore entry marked clearance 3 answers ACCESS RESTRICTED and does not show its text', (await s.view()).includes('ACCESS RESTRICTED') && (await s.view()).includes('level 3') && !(await s.view()).includes('The cells were moved'), await s.view());
+    await p.click('.le-actions >> text=RECOVERED LOGS'); await p.waitForTimeout(120);
+    check('...and a restricted code is not added to the recovered list', (await s.rows()).length === 0, JSON.stringify(await s.rows()));
+    await s.code(LORE1);
+    check('at L2 an ordinary lore entry still opens', (await s.view()).includes('Day one of the new research phase'));
+    await p.keyboard.press('Escape'); await p.waitForTimeout(250); await s.ready();
+    await s.jump(3); await s.openProg(); await s.code('3AAAA-AAAAA-AAAAA-AAAAA');
+    const l3 = await s.view();
+    check('at L3 the same entry opens, as a lore log (no decrypting lines)', l3.includes('The cells were moved') && !l3.includes('> DECRYPTING ENTRY...') && (await s.msg()).includes('ENTRY RECOVERED'), l3.slice(0, 90));
+    await s.code(LORE1);
+    check('at L3 an ordinary lore entry opens too', (await s.view()).includes('Day one of the new research phase'));
+    await s.code(DEV);
+    check('...and a dev log still opens with its decrypting lines', (await s.view()).includes('> DECRYPTING ENTRY...'));
+    await p.click('.le-actions >> text=RECOVERED LOGS'); await p.waitForTimeout(150);
+    const r = await s.rows();
+    check('the list at L3 holds all three, the system record typed as a SYSTEM RECORD', r.length === 3 && r.some(x => x[3] === 'SYSTEM RECORD' && x[2] === 'INTACT'), JSON.stringify(r));
+    check('page errors', s.errs.length === 0, JSON.stringify(s.errs));
+    await p.close(); }
+
   // ===== D. phone width =====
   { const s = await open({}, { width: 390, height: 800 }); const { p } = s;
     await s.jump(2); await s.openProg(); await s.code(LORE1); await p.click('.le-actions >> text=RECOVERED LOGS'); await p.waitForTimeout(150);

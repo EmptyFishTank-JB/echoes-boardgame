@@ -6,7 +6,7 @@ const L = require('./lib.js'), LC = require('../log-codes.js');
   const dev = await p.evaluate(() => fetch('./terminal-data/dev_logs.json').then((r) => r.json()));
   const registry = (await p.evaluate(() => fetch('./terminal-data/crew.json').then((r) => r.json())));
   const HEAD = /^\[Log ([A-Z]-\d{2,3}) \| Stardate (\d{4}\.\d{3}\.\d{4})\]$/, LABEL = /^(.*?) ([A-Z]-\d{2,3}) \| Stardate (\d{4}\.\d{3}\.\d{4})$/;
-  const lint = (name, data, level, dev) => {
+  const lint = (name, data, levels, dev) => {
     const bad = [];
     for (const [code, e] of Object.entries(data)) {
       const lines = String(e.text || '').split('\n'); const h = HEAD.exec(lines[0] || ''), l = LABEL.exec(e.label || '');
@@ -14,7 +14,7 @@ const L = require('./lib.js'), LC = require('../log-codes.js');
       if (!h || !l || h[1] !== l[2] || h[2] !== l[3]) bad.push(code + ': header and label disagree');
       if (!/^(full|classified|virus)$/.test(e.type)) bad.push(code + ': type');
       if (e.health && !/^(PARTIAL|DEGRADED|CORRUPTED)$/.test(e.health)) bad.push(code + ': health');
-      if (e.clearance !== level) bad.push(code + ': clearance should be ' + level + ' (the level FETCH LOG reads it at)');
+      if (!levels.includes(e.clearance)) bad.push(code + ': clearance should be ' + levels.join(' or ') + ' (the level that can open it)');
       if (!/^\[END OF LOG\]$/.test(lines[lines.length - 1])) bad.push(code + ': no END OF LOG');
       if (e.label !== e.label.replace(/Creator's/i, (m) => m.toUpperCase()) && /creator/i.test(e.label) && !/CREATOR'S LOG/.test(e.label)) bad.push(code + ': label capitalization');
       // A code made with a department carries the Log ID, so the ID in the header must be that one, and registered.
@@ -29,9 +29,9 @@ const L = require('./lib.js'), LC = require('../log-codes.js');
         if (!!(registry.departments[d.section] || {}).dev !== dev) bad.push(code + ': department ' + d.section + ' is on the wrong side (lore vs dev)');
       }
     }
-    check(name + ': every entry has a real code, a matching header and label, a type, level ' + level + ' and an end marker', !bad.length, bad);
+    check(name + ': every entry has a real code, a matching header and label, a type, a level (' + levels.join(' or ') + ') and an end marker', !bad.length, bad);
   };
-  lint('lore.json', lore, 2, false); lint('dev_logs.json', dev, 3, true);
+  lint('lore.json', lore, [2, 3], false); lint('dev_logs.json', dev, [3], true);
   check('codes are unique across both files', new Set([...Object.keys(lore), ...Object.keys(dev)]).size === Object.keys(lore).length + Object.keys(dev).length);
 
   check('the boot checks still read both log files as OK', await p.evaluate(() => FILE_STATUS.lore.state === 'ok' && FILE_STATUS.devlogs.state === 'ok'), await p.evaluate(() => [FILE_STATUS.lore, FILE_STATUS.devlogs]));

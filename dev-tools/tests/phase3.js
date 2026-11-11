@@ -98,7 +98,7 @@ async function session(browser, patch = {}) {
     v = await s.view(); check('L3 archive: dev logs, with the decrypting header', v.includes('> DECRYPTING ENTRY...') && v.includes('CREATOR'), v.slice(0, 100));
     await s.page.keyboard.press('Escape'); await s.settle();
     await s.prog(); await s.code(LORE);
-    v = await s.view(); check('L3 does not read lore.json (a lore code is not found there)', v.includes('NO MATCHING ENTRY FOUND.'));
+    v = await s.view(); check('L3 reads lore.json as well: a lore code opens, without the dev log decrypting lines', v.includes('Day one of the new research phase') && !v.includes('> DECRYPTING ENTRY...'), v.slice(0, 100));
     await s.page.keyboard.press('Escape'); await s.settle();
     console.log('   page errors:', s.errs); }
 

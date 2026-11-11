@@ -1,7 +1,9 @@
 // FETCH LOG.EXE: lore code entry, in its own window.
 // Layout: code field on top, the fetched log in the middle, then FETCH NEW LOG and RECOVERED LOGS.
-// Level 3 reads dev_logs.json, every other allowed level reads lore.json. Where the program can run is set in
-// echo-os.json (the program items' tier and scope), not here.
+// A typed code is looked up in lore.json, and at level 3 in dev_logs.json first. An entry with "clearance": 3 (a developer log,
+// or a lore log such as one the creature writes through Terminal 426) only opens at level 3; at level 2 its code answers
+// ACCESS RESTRICTED. Every other entry opens wherever the program runs. Where the program can run is set in echo-os.json
+// (the program items' tier and scope), not here.
 // RECOVERED LOGS lists every code entered so far (kept in the browser by the engine), oldest first, as
 //   [Log header]  //  CODE  //  HEALTH  //  TYPE
 // Health is the entry's condition: INTACT, PARTIAL, DEGRADED or CORRUPTED, from the entry's own "health" field in
@@ -91,6 +93,7 @@ export default {
     let pendingVirus = null;
 
     // ---- showing an entry ----
+    // Entries are shown by where they came from: a developer log gets the decrypting lines, a lore log does not, at any level.
     const showEntry = (code, entry, isDev) => {
       input.value = code;
       if (!isDev && entry.type === 'classified' && ctx.level === 1) {
@@ -109,12 +112,19 @@ export default {
     const fetchCode = (raw) => {
       const code = raw.trim();
       if (!CODE_RE.test(code)) { snd.denied(); say(S.error_fetch_format, 'denied'); input.focus(); return; }
-      const isDev = ctx.level === 3, data = isDev ? ctx.devLogs : ctx.lore;
-      if (!data) { snd.denied(); say(S.error_nav_offline, 'denied'); return; }
-      const entry = data[code] || data[code.replace(/-/g, '')];
+      const sources = (ctx.level === 3 ? [['dev', ctx.devLogs], ['lore', ctx.lore]] : [['lore', ctx.lore]]).filter(([, d]) => d);
+      if (!sources.length) { snd.denied(); say(S.error_nav_offline, 'denied'); return; }
+      const key = code.replace(/-/g, '');
+      const hit = sources.find(([, d]) => d[code] || d[key]);
+      const entry = hit && (hit[1][code] || hit[1][key]), isDev = !!hit && hit[0] === 'dev';
       if (!entry) {
         snd.denied(); say('> ENTRY: ' + code, 'denied');
         setView([{ text: 'NO MATCHING ENTRY FOUND.', cls: 'denied' }, { text: 'Verify code and try again.', cls: 'low' }]);
+        return;
+      }
+      if (entry.clearance >= 3 && ctx.level < 3) {
+        snd.denied(); say('> ENTRY: ' + code, 'denied');
+        setView([{ text: 'ACCESS RESTRICTED.', cls: 'denied' }, { text: 'This entry needs level 3 clearance.', cls: 'low' }]);
         return;
       }
       if (!isDev && entry.type === 'virus') { pendingVirus = entry; win.close(); return; }
