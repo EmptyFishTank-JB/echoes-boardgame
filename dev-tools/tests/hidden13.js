@@ -1,0 +1,21 @@
+const L = require('./lib.js');
+(async () => {
+  const t = await L.open({ stubs: true }); const { p, send, out, check } = t;
+  let o = await out();
+  check('landing: no [ECHOES.ARCHIVE] line, and no clickable command', !o.some(l => l.includes('ECHOES.ARCHIVE')) && (await p.$$('#t-output .t-line.act')).length === 0, o.slice(-6));
+  check('landing still ends with the HELP hint and the prompt', o.some(l => l.includes('TYPE [HELP] FOR AVAILABLE COMMANDS')) && o[o.length - 1] === '> AWAITING INPUT');
+  await send('[HELP]'); o = await out();
+  check('[HELP] does not mention it either', !o.some(l => l.includes('ECHOES.ARCHIVE')));
+  await send('[TREE]'); o = await out();
+  const tree = o.slice(o.lastIndexOf('ECHOES O.S. FILE TREE'));
+  check('player [TREE] lists the root by name only, without its [COMMAND]', tree.some(l => l.includes('ECHOES.ARCHIVE')) && !tree.some(l => l.includes('[ECHOES.ARCHIVE]')) && !tree.some(l => l.includes('[L2 ROOT]')), tree.slice(0, 6));
+  check('player [TREE] hides hidden items: no gateway, no stubs, no programs', !tree.some(l => /INITIATE|STUB|PLANNED RECORD|FETCH LOG|gateway:|program:/i.test(l)), tree);
+  await send('[ECHOES.ARCHIVE]');
+  check('typing the hidden command enters the archive', (await p.evaluate(() => termState)) === 'L1A_ROOT');
+  await send('[EXIT]'); await send('[ECHOES.ARCHIVE]');
+  check('and again after returning to the chat (no listed command was needed)', (await p.evaluate(() => termState)) === 'L1A_ROOT');
+  await send('[AUTHOR UNLOCK]'); await send('[TREE]'); o = await out();
+  const fi = o.map(l => l.startsWith('ECHOES O.S. FILE TREE')).lastIndexOf(true); const full = o.slice(fi);
+  check('author tree shows the full alias and every hidden item (gateway, program, stubs)', full.some(l => l.includes('[ECHOES.ARCHIVE]')) && full.some(l => l.includes('[INITIATE ECHO PROTOCOL]')) && full.some(l => l.includes('[FETCH LOG ENTRY: //]')) && full.some(l => l.includes('?stub')), full.slice(0, 30));
+  await t.done();
+})();

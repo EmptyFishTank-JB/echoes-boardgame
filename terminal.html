@@ -168,7 +168,7 @@ html,body{cursor:var(--cur,default);}
 #power-btn,.t-line.act,.t-line .eye,#ctx .ci{cursor:var(--cur-act,pointer);}
 #t-field{cursor:var(--cur-txt,text);}
 /* Author context menu */
-#ctx{position:fixed;z-index:60;min-width:210px;max-width:440px;background:rgba(2,6,10,0.98);
+#ctx{position:fixed;z-index:60;min-width:210px;max-width:440px;max-height:calc(100vh - 12px);overflow-y:auto;background:rgba(2,6,10,0.98);
   border:1px solid var(--theme-bc);box-shadow:0 0 18px rgba(0,0,0,0.7),0 0 16px var(--theme-glow-a);
   font-family:'Share Tech Mono',monospace;font-size:12px;letter-spacing:0.04em;padding:4px 0;}
 #ctx .ch{color:var(--theme-lo);padding:4px 12px 3px;font-size:10.5px;letter-spacing:0.12em;border-bottom:1px solid var(--theme-border);margin-bottom:3px;}
@@ -181,6 +181,7 @@ html,body{cursor:var(--cur,default);}
 #ctx .cr .ck{flex:0 0 11ch;color:var(--theme-lo);font-size:10.5px;letter-spacing:0.08em;}
 #ctx .cr .cv{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 #ctx .cr.ro{color:var(--theme-lo);}
+#ctx .cr .sw{display:inline-block;width:10px;height:10px;margin-right:7px;border:1px solid rgba(255,255,255,0.35);vertical-align:-1px;}
 #ctx .cr.ed{cursor:var(--cur-act,pointer);}
 #ctx .cr.ed::after{content:'EDIT';color:var(--theme-lo);font-size:9.5px;letter-spacing:0.12em;}
 #ctx .cr.ed:hover{background:var(--theme-full);color:#000;}
@@ -377,8 +378,15 @@ function _buildL3Amb(ctx){
   return{master:master,stop:function(){try{osc.stop();}catch(e){}}};
 }
 
+// A layer's ambient sound: its own settings in echo-os.json (layers.<id>.ambient), else the legacy engine_config block,
+// else the built-in sound for that layer.
+function ambientCfg(lvKey){
+  var L = (typeof osData !== 'undefined' && osData && osData.layers && osData.layers[lvKey]) || null;
+  if(L && L.ambient) return L.ambient;
+  return (typeof CFG_AMBIENT !== 'undefined' && CFG_AMBIENT && CFG_AMBIENT[lvKey]) || null;
+}
 function buildAmbFromConfig(ctx, lvKey){
-  var lvCfg = typeof CFG_AMBIENT !== 'undefined' && CFG_AMBIENT && CFG_AMBIENT[lvKey];
+  var lvCfg = ambientCfg(lvKey);
   if(!lvCfg||!lvCfg.oscillators||!lvCfg.oscillators.length){
     if(lvKey==='l1a') return _buildL1Amb(ctx);
     if(lvKey==='l2a') return _buildL2Amb(ctx);
@@ -403,7 +411,7 @@ function crossfadeAmbient(level){
   try{
     var ctx=getCtx();var prev=ambNodes;var lvKey=level===1?'l1a':level===2?'l2a':'l3a';
     var fresh=buildAmbFromConfig(ctx,lvKey);
-    var lvCfg=typeof CFG_AMBIENT!=='undefined'&&CFG_AMBIENT&&CFG_AMBIENT[lvKey];
+    var lvCfg=ambientCfg(lvKey);
     var target=lvCfg&&lvCfg.target_volume!=null?lvCfg.target_volume:(level===1?0.18:level===2?0.12:0.05);
     if(typeof CFG_VOLUME!=='undefined'&&CFG_VOLUME!=null) VOL=CFG_VOLUME;
     fresh.master.gain.setTargetAtTime(target,ctx.currentTime,0.7);
@@ -791,7 +799,8 @@ var CFG_IDLE_FADE    = null;
 var CFG_SLOW_WORDS   = null;
 var CFG_TYPING       = null;
 var CFG_VOLUME       = null;
-var CFG_AMBIENT      = null;
+var CFG_AMBIENT      = null;   // legacy: engine_config audio.ambient, used only for a layer that has no ambient of its own
+var CFG_THEME_LEGACY = null;   // legacy: engine_config theme, used only for a layer that has no colors of its own
 var CFG_TIMING       = null;
 var CFG_POWER_BTN    = null;
 var CFG_VERSION      = null;
@@ -919,16 +928,16 @@ var DATA_CHECKS = {
     var dangling = items.filter(function(it){ return it.type === 'gateway' && !ids[it.goto]; }).length;
     var landing = isObj(d.screens) && Object.keys(d.screens).some(function(k){ var sc = d.screens[k]; return sc && sc.node_type === 'chat' && sc.layer === 'l1c' && sc.is_root; });
     if(!landing) issues.push('NO LAYER 1 CHAT (LANDING) SCREEN');
+    var noColors = ['l1a','l2a','l3a'].filter(function(k){ return !isObj(d.layers) || !isObj(d.layers[k]) || !isObj(d.layers[k].colors) || !d.layers[k].colors.primary; });
+    if(noColors.length) issues.push('COLORS MISSING FOR '+noColors.join(', ').toUpperCase()+' (BUILT-IN COLORS USED)');
     if(dup) issues.push(dup+' DUPLICATE ID(S)');
     if(dangling) issues.push(dangling+' GATEWAY(S) POINT NOWHERE');
     return issues.length ? stWarn(issues) : stOk();
   },
   engine: function(d){
     if(!isObj(d)) return stBad('MUST BE AN OBJECT');
-    if(!isObj(d.typing) || !isObj(d.timing) || !isObj(d.theme)) return stBad('typing, timing AND theme ARE REQUIRED');
+    if(!isObj(d.typing) || !isObj(d.timing)) return stBad('typing AND timing ARE REQUIRED');
     var issues = [];
-    var noTheme = ['l1a','l2a','l3a'].filter(function(k){ return !isObj(d.theme[k]) || !d.theme[k].primary; });
-    if(noTheme.length) issues.push('THEME MISSING FOR '+noTheme.join(', ').toUpperCase());
     if(!Array.isArray(d.idle_messages)) issues.push('idle_messages SHOULD BE A LIST');
     return issues.length ? stWarn(issues) : stOk();
   }
@@ -949,7 +958,7 @@ function loadDataFile(key, file, apply){
 }
 function fetchAllData(){
   loadDataFile('engine', 'engine_config.json', function(d){ engineConfig = d; applyEngineConfig(d); _engReady = true; });
-  loadDataFile('nodes', 'echo-os.json', function(d){ osData = d; archData = d ? buildArchFromOS(d) : null; _archReady = true; });
+  loadDataFile('nodes', 'echo-os.json', function(d){ osData = d; archData = d ? buildArchFromOS(d) : null; _archReady = true; refreshLayerStyles(); });
   loadDataFile('lore', 'lore.json', function(d){ loreData = d; _lorReady = true; });
   loadDataFile('devlogs', 'dev_logs.json', function(d){ devLogs = d; _devReady = true; });
   loadDataFile('personality', 'personality.json', function(d){ personality = d; applyPersonality(d); _perReady = true; });
@@ -963,7 +972,7 @@ function applyEngineConfig(c){
   if(c.slow_words)        CFG_SLOW_WORDS   = c.slow_words;
   if(c.typing)            CFG_TYPING       = c.typing;
   if(c.audio&&c.audio.master_volume) CFG_VOLUME  = c.audio.master_volume;
-  if(c.audio&&c.audio.ambient)       CFG_AMBIENT = c.audio.ambient;
+  if(c.audio&&c.audio.ambient)       CFG_AMBIENT = c.audio.ambient;   // legacy
   if(c.timing)            CFG_TIMING       = c.timing;
   if(c.power_button_text) CFG_POWER_BTN    = c.power_button_text;
   if(c.version_string)    CFG_VERSION      = c.version_string;
@@ -980,8 +989,24 @@ function applyEngineConfig(c){
   var ver=document.getElementById('t-version');if(ver&&_commitVer) ver.textContent=_commitVer;
   var ttl=document.getElementById('t-title');if(ttl&&CFG_TITLE) ttl.textContent=CFG_TITLE;
   if(typeof updPhosphorCSS==='function') updPhosphorCSS();
-  // Apply theme colors from engine config
-  if(c.theme) applyThemeColors(c.theme);
+  // Colors and ambient sound belong to each layer (echo-os.json, layers); a legacy theme block still fills in for a layer with none.
+  if(c.theme) CFG_THEME_LEGACY = c.theme;
+  refreshLayerStyles();
+}
+
+// After an author edit: the header shows the title of the layer you are in (the chat keeps terminal_title).
+function refreshHeaderTitle(){ if(termState !== 'L1_NORMAL' && !overrideActive) titleEl.textContent = getLayerTitle('l'+currentLevel+'a',''); }
+// The colors for each layer (l1a is the page, l2a and l3a override it by body class) from layers.<id>.colors in echo-os.json.
+// Called after either data file loads and after every author edit, so a change shows at once.
+var LAYER_STYLE_KEYS = ['l1a','l2a','l3a'];
+function refreshLayerStyles(){
+  var theme = {};
+  LAYER_STYLE_KEYS.forEach(function(k){
+    var L = osData && osData.layers && osData.layers[k];
+    var t = (L && L.colors && L.colors.primary) ? L.colors : (CFG_THEME_LEGACY && CFG_THEME_LEGACY[k]);
+    if(t && t.primary) theme[k] = t;
+  });
+  applyThemeColors(theme);
 }
 
 function applyThemeColors(theme){
@@ -990,13 +1015,10 @@ function applyThemeColors(theme){
   var varMap={l1a:'',l2a:'body.layer-2a',l3a:'body.layer-3a'};
   var existing=document.getElementById('theme-overrides');if(existing)existing.remove();
   var css='';
-  Object.keys(theme).forEach(function(lv){
-    var t=theme[lv];var p=t.primary;if(!p)return;
+  LAYER_STYLE_KEYS.forEach(function(lv){
+    var t=theme[lv];if(!t)return;var p=t.primary;if(!p)return;
     var rgb=hexToRgb(p);
-    // l1a is :root; every other layer key gets its own body.layer-<suffix> block —
-    // this must stay per-key (not a hardcoded 3-way branch), or any extra keys
-    // beyond l1a/l2a/l3a (e.g. unused l4/l5 placeholders) silently collide on
-    // the same selector and clobber each other's CSS in object-key order.
+    // l1a is :root; the others get their own body.layer-<suffix> block.
     var selector=lv==='l1a'?':root':'body.layer-'+lv.slice(1);
     var dimOp=t.dim_opacity||0.70;var loOp=t.lo_opacity||0.40;var bdrOp=t.border_opacity||0.12;
     css+=selector+'{';
@@ -1189,7 +1211,7 @@ function buildArchFromOS(os){
     (it.children || []).forEach(function(c){ walk(c, it.id, crumb+' > '+(c.title || c.name)); });
   }
   ((os.tree && os.tree.children) || []).forEach(function(r){
-    var lyr = os.layers && os.layers['l'+r.tier+'c'];
+    var lyr = os.layers && (os.layers['l'+r.tier+'c'] || os.layers['l'+r.tier+'a']);
     walk(r, null, ((lyr && lyr.header_title) ? lyr.header_title+' > ' : '') + (r.title || r.name));
   });
   return {layers:os.layers || {}, nodes:nodes};
@@ -1743,8 +1765,10 @@ function makeAuthorCtx(){
     get data(){ return osData; },
     get items(){ return osItems; },
     snapshot: osSnapshot,
-    commit: function(){ archData = buildArchFromOS(osData); try{ localStorage.setItem('echo_os_draft', osSnapshot()); }catch(e){} },
-    replace: function(d){ osData = d; archData = buildArchFromOS(osData); },
+    commit: function(){ archData = buildArchFromOS(osData); refreshLayerStyles(); refreshHeaderTitle(); try{ localStorage.setItem('echo_os_draft', osSnapshot()); }catch(e){} },
+    replace: function(d){ osData = d; archData = buildArchFromOS(osData); refreshLayerStyles(); },
+    // After a layer's ambient sound changed: if that layer is the one on screen, restart its sound now.
+    audioChanged: function(layerId){ if(layerId === 'l'+currentLevel+'a') crossfadeAmbient(currentLevel); },
     download: function(name, text){
       var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], {type:'application/json'}));
       a.download = name; document.body.appendChild(a); a.click(); document.body.removeChild(a);
@@ -2014,7 +2038,9 @@ function ctxOpen(x, y, title, entries){
       // A row of facts about the item. With a command it is clickable and starts editing that property.
       d.className = 'cr ' + (en.cmd ? 'ed' : 'ro');
       var k = document.createElement('span'); k.className = 'ck'; k.textContent = en.key; d.appendChild(k);
-      var v = document.createElement('span'); v.className = 'cv'; v.textContent = en.value; v.title = en.value; d.appendChild(v);
+      var v = document.createElement('span'); v.className = 'cv'; v.textContent = en.value; v.title = en.value;
+      if(en.swatch){ var sw = document.createElement('i'); sw.className = 'sw'; sw.style.background = en.swatch; v.insertBefore(sw, v.firstChild); }
+      d.appendChild(v);
     } else {
       d.className = 'ci';
       var a = document.createElement('span'); a.textContent = en.label; d.appendChild(a);
@@ -2039,6 +2065,11 @@ function itemMenuEntries(it){
   var rows = (authorMod && authorMod.infoRows) ? authorMod.infoRows(it, osItems) : [];
   rows.forEach(function(r){ e.push({info:true, key:r.k, value:r.v, cmd:r.cmd, preset:r.preset}); });
   if(rows.length) e.push('-');
+  // A tier root also stands for its layer: colors, title, intro text and sound.
+  if(it._parent === null && authorMod && authorMod.layerRows && LAYER_STYLE_KEYS.indexOf('l'+it.tier+'a') >= 0){
+    authorMod.layerRows('l'+it.tier+'a', makeAuthorCtx()).forEach(function(r){ e.push({info:true, key:r.k, value:r.v, cmd:r.cmd, preset:r.preset, swatch:r.swatch}); });
+    e.push('-');
+  }
   if(!it.stub) e.push({label:'OPEN', cmd:it.alias || '['+it.name+']'});
   e.push({label:it.stub ? 'MAKE IT A REAL DOC...' : 'EDIT EVERYTHING...', cmd:'[EDIT]', preset:pre});
   e.push({label:'MOVE...', cmd:'[MV]', preset:pre});
@@ -2052,13 +2083,20 @@ document.getElementById('terminal-box').addEventListener('contextmenu', function
   var line = e.target.closest && e.target.closest('.t-line');
   var hit = line && line.dataset.id && osItems[line.dataset.id];
   var cur = osItems[termState];
+  // The address bar stands for this page: right-click it for the page's own properties (and, at a tier root, its layer's settings).
+  if(!hit && e.target.closest && e.target.closest('#t-addr')){
+    ctxOpen(e.clientX, e.clientY, 'THIS PAGE  ' + (cur.alias || cur.name), itemMenuEntries(cur).filter(function(en){ return !(en && en.label === 'OPEN'); }));
+    return;
+  }
   if(hit){ ctxOpen(e.clientX, e.clientY, (hit.alias || hit.name) + '  ' + hit.type, itemMenuEntries(hit)); return; }
   var tail = ['-', {label:'SHOW THE TREE', cmd:'[TREE]'}, {label:'EXPORT THE FILE', cmd:'[EXPORT]'},
               {label:'AUTHOR HELP', cmd:'[AUTHOR HELP]'}, {label:'LEAVE AUTHOR MODE', cmd:'[AUTHOR LOCK]'}];
   if(cur.type === 'folder'){
     ctxOpen(e.clientX, e.clientY, 'IN ' + (cur.title || cur.name),
       [{label:'NEW FOLDER', cmd:'[MKDIR]'}, {label:'NEW DOC', cmd:'[NEW DOC]'}, {label:'NEW LOG', cmd:'[NEW LOG]'},
-       {label:'NEW PROGRAM', cmd:'[NEW PROGRAM]'}, {label:'NEW GATEWAY', cmd:'[NEW GATEWAY]'}].concat(tail));
+       {label:'NEW PROGRAM', cmd:'[NEW PROGRAM]'}, {label:'NEW GATEWAY', cmd:'[NEW GATEWAY]'}]
+      .concat(cur._parent === null ? ['-', {label:'LAYER SETTINGS... (right-click the address bar)', cmd:'[LAYER]', preset:{layer:'l'+cur.tier+'a'}}] : [])
+      .concat(tail));
   } else {
     ctxOpen(e.clientX, e.clientY, 'THIS PAGE  ' + (cur.alias || cur.name), itemMenuEntries(cur).filter(function(en){ return !(en && en.label === 'OPEN'); }).concat(tail));
   }

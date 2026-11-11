@@ -139,7 +139,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;heigh
 <div id="editor">
   <div class="ephdr" id="ed-hdr">&#9658; ENGINE EDITOR</div>
   <div id="escroll">
-    <div id="no-sel">Load engine_config.json to begin.<br><br>Optionally load echo-os.json to sync layers.</div>
+    <div id="no-sel">Load engine_config.json to begin.<br><br>Layer colors, titles, intro text and sound are edited in the terminal (author mode, right-click the address bar).</div>
     <div id="sec-form" style="display:none;flex-direction:column;gap:10px;"></div>
   </div>
 </div>
@@ -171,9 +171,8 @@ var SECTIONS = [
   {id:'idle',     label:'IDLE BEHAVIOR',    hint:'Idle messages + timing'},
   {id:'behavior', label:'BEHAVIOR FLAGS',   hint:'Slow words'},
   {id:'typing',   label:'TYPING SPEED',     hint:'Typewriter parameters'},
-  {id:'audio',    label:'AUDIO',            hint:'Volume + ambient oscillators per layer'},
+  {id:'audio',    label:'AUDIO',            hint:'Master volume (layer sounds are set in the terminal)'},
   {id:'timing',   label:'VISUAL TIMING',    hint:'Fades, phosphor, crossfade'},
-  {id:'colors',   label:'TERMINAL COLORS',  hint:'Theme colors per layer'},
   {id:'power',    label:'POWER OVERLAY',    hint:'Title, button text'},
   {id:'strings',  label:'TERMINAL STRINGS', hint:'Engine error and UI messages'}
 ];
@@ -196,10 +195,9 @@ var curOscs = {};
 var advOpen = {}, levelOpen = {};
 
 // ── LAYER HELPERS ─────────────────────────────────────────────────────────────
-function getLayerList(){
-  if(nodesData&&nodesData.layers) return Object.keys(nodesData.layers);
-  return FALLBACK_LAYERS.slice();
-}
+// Colors, header title, intro text and ambient sound now belong to each layer in echo-os.json and are edited in the
+// terminal itself (author mode: right-click the address bar, or type [LAYER]). This editor no longer lists layers.
+function getLayerList(){ return []; }
 function getLayerColor(lid){
   if(nodesData&&nodesData.layers&&nodesData.layers[lid]&&nodesData.layers[lid]._color)
     return nodesData.layers[lid]._color;
@@ -209,6 +207,7 @@ function getLayerLabel(lid){return lid.toUpperCase();}
 
 // Auto-populate engine_config with entries for any layer missing from audio/theme
 function syncLayersToConfig(){
+  return;   // layer settings live in echo-os.json now
   if(!cfg) return;
   var lids = getLayerList();
   if(!cfg.audio) cfg.audio={};
@@ -601,7 +600,6 @@ function saveSection(){
   } else if(id==='audio'){
     if(!cfg.audio)cfg.audio={};
     cfg.audio.master_volume=parseFloat(document.getElementById('a-vol').value)||0.18;
-    if(!cfg.audio.ambient)cfg.audio.ambient={};
     getLayerList().forEach(function(lid){
       if(!cfg.audio.ambient[lid])cfg.audio.ambient[lid]={};
       cfg.audio.ambient[lid].target_volume=parseFloat(document.getElementById('tv-'+lid).value)||0.10;

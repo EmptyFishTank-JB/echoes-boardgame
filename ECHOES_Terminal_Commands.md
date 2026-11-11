@@ -5,7 +5,8 @@ Last verified against the code on 2026-11-10.
 
 **Keeping this current.** When a command is added, renamed or removed, update this file in the same
 commit. `node dev-tools/check-command-doc.js` compares the code and data against this file and lists any
-command that is missing from it. Run it before committing terminal changes.
+command that is missing from it. Run it before committing terminal changes. The browser tests are in
+`dev-tools/tests` (`node dev-tools/tests/run-all.js`; see the README there).
 
 | Command source | File |
 |---|---|
@@ -104,7 +105,6 @@ else it answers "fetch unavailable".
 
 | Command | Status |
 |---|---|
-| `[L2 ROOT]`, `[L3 ROOT]` | Exist on the L2 and L3 chat screens (stubs). The engine never routes to those screens. |
 | `[STATUS]`, `[SCAN]` | Reserved names for future programs. Nothing defines them yet, and an alias cannot take them. (`[STATUS]` does exist inside the override menu, section 4.) |
 
 ---
@@ -189,6 +189,7 @@ in `echo-os.json` removes every author command: `[AUTHOR UNLOCK]` then behaves l
 | `[NEW PROGRAM]` | Registers a program from `terminal-data/programs/<id>.js` as a hidden item. Asks for its scope. |
 | `[NEW GATEWAY]` | Hidden command that jumps to any folder, in any tier. A different tier plays the transition. |
 | `[EDIT]` | Changes an item's name, alias, title, hidden flag and text, one question after another. On a stub it turns it into a real doc. |
+| `[LAYER]`, `[LAYER <SETTING>]` | Changes a setting of a whole layer: the one you are standing in (or the one a right-click named). `[LAYER]` lists them and asks; `[LAYER PRIMARY]` goes straight to one. See section 5a. |
 | `[SET]`, `[SET <PROPERTY>]` | Changes one property of an item. `[SET]` asks which; `[SET NAME]` goes straight to it. Properties: `NAME`, `ALIAS`, `TITLE`, `HIDDEN` (toggles), `FOOTER`, `TEXT` (docs and stubs), `LOG` (log items: source and code), `DESTINATION` (gateways), `PROGRAM` and `SCOPE` (programs). Asks which item unless a click or the right-click menu named it. |
 | `[HIDE]`, `[SHOW]` | Unlists an item (it still opens by its alias) or lists it again. Programs and gateways are always hidden. |
 | `[ALIAS]` | Changes an item's `[COMMAND]`. |
@@ -215,10 +216,32 @@ be unique within their folder. Programs may share an alias across tiers.
 |---|---|
 | `(o)` / `(-)` beside an item | Open or closed eye. Click it to list or unlist the item. |
 | Right-click an item | A menu that starts with what the item is, one row per property: `ID`, `TYPE`, `NAME`, `ALIAS`, `TITLE`, `HIDDEN`, `FOOTER`, `CONTAINS` (folders), `TEXT` (docs), `LOG ENTRY` (logs), `DESTINATION` (gateways, shown as name and id, for example `L3 ROOT (L3A_ROOT)`), `PROGRAM` and `SCOPE` (programs). `ID`, `TYPE` and `CONTAINS` are read-only. Click any other row to change that property: it asks only the one question (`[SET NAME]`, `[ALIAS]`, `[SHOW]`/`[HIDE]` and so on). Below the rows: open, edit everything, move, delete. Skips the "which item?" prompt. |
-| Right-click empty space | Menu: the create commands, tree, export, help, lock. |
+| Right-click empty space | Menu: the create commands, tree, export, help, lock. At a tier root it also offers `LAYER SETTINGS...`. |
+| Right-click the address bar | The same rows as an item's menu, for the page you are on. At a tier root it adds the layer's settings (section 5a). |
 | Click a line in `[TREE]` | Jumps straight to that item, across tiers. Programs, gateways and stubs land on their folder. |
 
 ---
+
+### 5a. Layer settings
+
+There are four layers: the chat (`l1c`) and three archive layers (`l1a`, `l2a`, `l3a`). The chat shares the colors
+and sound of `l1a`. Everything that makes a layer look and sound the way it does lives in `layers.<id>` in `echo-os.json`
+(plus its intro screen), and every setting is editable in author mode with a live result.
+
+| Setting | What it changes | Value |
+|---|---|---|
+| `TITLE` | The header text while you are in the layer. | Text |
+| `PRIMARY`, `WARN`, `DENIED`, `BACKGROUND` | The layer's colors. `DIM` and `LO` are made from `PRIMARY`. | Hex, `#RGB` or `#RRGGBB` |
+| `DIM`, `LO`, `BORDER` | How strong the dim, low and border tints are. | 0 to 1 (a percentage works too) |
+| `INTRO` | The text shown while the terminal moves into the layer (the `L<n>A_INTRO` screen). Prints the current text, then you retype it; the rule line after it is added for you. Styles work as in `[NEW DOC]` (`/dim`, `/low`, `/warn`, `/denied`). | Lines, `[DONE]` finishes |
+| `VOLUME` | The ambient sound level for the layer. | 0 to 1 |
+| `SOUND` | The ambient sound itself. `VENTILATION` (layer 1), `CHORD` (layer 2), `SUB-BASS` (layer 3) or `SILENT`. A preset also sets its default volume. | Name |
+
+Where to find them: right-click the address bar at a tier root (rows with swatches, click one to edit it), or type
+`[LAYER]` while standing in that tier. Colors, title and sound apply as soon as the change is made, and `[EXPORT]` carries
+them. What the sounds are made of (oscillators, filters) is in the `ambient` block of the layer, for anyone who wants a
+custom sound in the JSON. The mount and unmount lines between the chat and layer 1 are `layer_mount` and
+`layer_unmount` under `terminal_strings` in `engine_config.json`.
 
 ## 6. Boot checks
 
@@ -244,8 +267,8 @@ The last line reads `FULL ACCESS`, `FULL ACCESS — n WARNING(S)`, or `DEGRADED 
 | CREW BEHAVIORAL MATRIX | `personality.json` | Not an object, or `easter_eggs`, `denied` or `admin_triggers` (`keywords` and `responses` lists) is missing or the wrong type. | Some easter eggs lack `keys` or `variants`. |
 | ARCHIVE LOG DATABASE | `lore.json` | Not an object of entries, or no entry has `text` and a `type` of `full`, `classified` or `virus`. | The file has no entries, some entries are malformed, or a code is not in the `XXXXX-XXXXX-XXXXX-XXXXX` format. |
 | DEVELOPMENT RECORDS | `dev_logs.json` | Same as `lore.json`. | Same as `lore.json`. |
-| NAVIGATION ARCHITECTURE | `echo-os.json` | No `tree.children`, or no tier 1 folder. | No layer 1 chat (landing) screen, duplicate item ids, or a gateway that points nowhere. |
-| CORE ENGINE PARAMETERS | `engine_config.json` | Not an object, or `typing`, `timing` or `theme` is missing. | A theme is missing for layer 1, 2 or 3, or `idle_messages` is not a list. |
+| NAVIGATION ARCHITECTURE | `echo-os.json` | No `tree.children`, or no tier 1 folder. | No layer 1 chat (landing) screen, duplicate item ids, a gateway that points nowhere, or no colors for layer `l1a`, `l2a` or `l3a` (the built-in colors are used). |
+| CORE ENGINE PARAMETERS | `engine_config.json` | Not an object, or `typing` or `timing` is missing. | `idle_messages` is not a list. |
 
 Examples that now report `INVALID`: `lore.json` containing `["not", "an", "object"]`, `dev_logs.json` containing
 `{"hello": "world"}`, `personality.json` containing `{"easter_eggs": "text", "admin_triggers": 7}`. Before this
@@ -275,7 +298,8 @@ two rows of the `art` item in `echo-os.json`: a heading and a spacer). The heade
 | Lock switch | `terminal-data/echo-os.json` (`meta.locked`) |
 | Lore entries (code lookup) | `terminal-data/lore.json`, `terminal-data/dev_logs.json` |
 | Chat personality, easter eggs, admin responses | `terminal-data/personality.json` |
-| Timing, audio, themes, system messages | `terminal-data/engine_config.json` (edited with `dev-tools/terminal-engine-editor.html`) |
+| Colors, header title, intro text and ambient sound, per layer | `terminal-data/echo-os.json` (`layers`, and the `L<n>A_INTRO` screens). Edited in the terminal: see section 5a. |
+| Timing, typing, master volume, idle messages, system messages | `terminal-data/engine_config.json` (edited with `dev-tools/terminal-engine-editor.html`) |
 
 The `self_destruct` block in `personality.json` is data only. The terminal does not run it.
 
