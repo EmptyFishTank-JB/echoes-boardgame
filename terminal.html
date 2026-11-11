@@ -826,6 +826,8 @@ var CFG_STRINGS = {
   layer_enter_confirmed:       '',
   layer_exit_confirmed:        '',
   layer_mount:                 '> MOUNTING ECHOES:\\ . . .',
+  layer_entry_l2:              '> GATEWAY COMMAND ACCEPTED . . .',
+  layer_entry_l3:              '> GATEWAY COMMAND ACCEPTED . . .',
   layer_unmount:               '> ECHOES:\\ UNMOUNTED'
 };
 
@@ -1473,31 +1475,29 @@ function getLayerTitle(layerId,fallback){
     :fallback;
 }
 
+// Every move into a layer plays one sequence: the command is accepted (a typed line, in the layer you are leaving), the screen
+// clears, the layer's transition text types on the clear screen, and only then do the theme, the header title and the ambient
+// sound switch. The caller draws the layer's root page afterward. The accepted line is layer_mount for the chat to the archive
+// (L1C to L1A) and layer_entry_l2 / layer_entry_l3 between archive levels; the transition text is the L<n>A_INTRO screen.
+// holdMs is the pause between the last transition line and the switch.
+async function playLayerTransition(level,holdMs){
+  var accepted = level===1 ? CFG_STRINGS.layer_mount : CFG_STRINGS['layer_entry_l'+level];
+  if(level>1){ playAlert(); await sleep(200); }
+  if(accepted){ var mt=addLine('full'); await put(mt,accepted,'flavor'); await sleep(450); }
+  output.classList.add('dim-out');await sleep(getFade());output.innerHTML='';cursorEl=null;output.classList.remove('dim-out');await sleep(40);
+  await renderIntroLines('L'+level+'A_INTRO');
+  await sleep(holdMs);
+  applyLayerClass(level);setHeaderTitle(getLayerTitle('l'+level+'a',''));if(level>1) crossfadeAmbient(level);
+  await sleep(450);
+}
 async function enterEchoArchive(){
   if(l1ChatBackup===null) l1ChatBackup=snapOutput();
-  if(CFG_STRINGS.layer_mount){var mt=addLine('full');await put(mt,CFG_STRINGS.layer_mount,'flavor');await sleep(450);}
-  output.classList.add('dim-out');await sleep(getFade());output.innerHTML='';cursorEl=null;output.classList.remove('dim-out');
-  setHeaderTitle(getLayerTitle('l1a',''));applyLayerClass(1);await sleep(40);
-  await renderIntroLines('L1A_INTRO');
+  await playLayerTransition(1,400);
 }
-// The flavor text plays in the layer you are leaving. The theme, header and ambient change only
-// after the last line, right before the destination is drawn.
-async function transitionToL2(){
-  playAlert();
-  await sleep(200);
-  await renderIntroLines('L2A_INTRO');
-  await sleep(400);await sleep(1100);
-  applyLayerClass(2);setHeaderTitle(getLayerTitle('l2a',''));crossfadeAmbient(2);
-  await sleep(450);
-}
+async function transitionToL2(){ await playLayerTransition(2,1500); }
 async function transitionToL3(){
-  playAlert();
-  await sleep(200);
-  await renderIntroLines('L3A_INTRO');
+  await playLayerTransition(3,400);
   if(!l3Visited){l3Visited=true;try{localStorage.setItem('echo_l3_visited','1');}catch(e){}}
-  await sleep(400);
-  applyLayerClass(3);setHeaderTitle(getLayerTitle('l3a',''));crossfadeAmbient(3);
-  await sleep(450);
 }
 
 // ── EXIT / BACK / ROOT ────────────────────────────────────────────────────────

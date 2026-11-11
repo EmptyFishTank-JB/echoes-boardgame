@@ -539,6 +539,8 @@ var STRING_KEYS = [
   {key:'layer_enter_confirmed',       label:'Layer entry confirmation (leave blank = silent)'},
   {key:'layer_exit_confirmed',        label:'Layer exit confirmation (leave blank = silent)'},
   {key:'layer_mount',                 label:'Archive mount line, shown when entering ECHOES.ARCHIVE'},
+  {key:'layer_entry_l2',              label:'Level 2 entry line, shown before the screen clears for the L2 transition'},
+  {key:'layer_entry_l3',              label:'Level 3 entry line, shown before the screen clears for the L3 transition'},
   {key:'layer_unmount',               label:'Archive unmount line, shown when leaving to the chat'}
 ];
 var DEFAULT_STRINGS = {
@@ -560,6 +562,8 @@ var DEFAULT_STRINGS = {
   layer_enter_confirmed:      '',
   layer_exit_confirmed:       '',
   layer_mount:                '> MOUNTING ECHOES:\\ . . .',
+  layer_entry_l2:             '> GATEWAY COMMAND ACCEPTED . . .',
+  layer_entry_l3:             '> GATEWAY COMMAND ACCEPTED . . .',
   layer_unmount:              '> ECHOES:\\ UNMOUNTED'
 };
 function mkStringsEditor(){

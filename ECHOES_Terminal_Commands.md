@@ -95,9 +95,9 @@ These never appear in a listing. The player learns them from the story.
 
 | Command | Where | What it does |
 |---|---|---|
-| `[ECHOES.ARCHIVE]` | The chat | Enters the layer 1 archive. Prints a mount line, then the ECHOES.ARCHIVE root. It is not on the landing screen, not in `[HELP]` and not in the player `[TREE]`: it is printed on a few of the game's Echo cards, and players bring it to the terminal and type it. Its item in `echo-os.json` (the `l1c` root's command) has `"hidden": true`. Typed only: nothing on the chat screen can be clicked to enter. The author `[TREE]` lists it. |
-| `[INITIATE ECHO PROTOCOL]` | Anywhere: the chat or any archive page | Gateway to the L2 root. Plays the L2 flavor text in the layer 1 theme, then changes theme and ambient sound, then draws `L2A_ROOT`. |
-| `[INITIATE CHRONO-ZERO PROTOCOL]` | Any page at L2 or L3 (an unknown command at L1 and in the chat, because the gateway is a level 2 item) | Gateway to the L3 root. Plays the L3 flavor text (`L3A_INTRO`), then changes theme and ambient sound, then draws `L3A_ROOT`. |
+| `[ECHOES.ARCHIVE]` | The chat | Enters the layer 1 archive with the transition sequence (below): the mount line, a cleared screen, the L1 transition text, then the theme switch and the ECHOES.ARCHIVE root. It is not on the landing screen, not in `[HELP]` and not in the player `[TREE]`: it is printed on a few of the game's Echo cards, and players bring it to the terminal and type it. Its item in `echo-os.json` (the `l1c` root's command) has `"hidden": true`. Typed only: nothing on the chat screen can be clicked to enter. The author `[TREE]` lists it. |
+| `[INITIATE ECHO PROTOCOL]` | Anywhere: the chat or any archive page | Gateway to the L2 root. Plays the transition sequence with the L2 transition text (`L2A_INTRO`), then draws `L2A_ROOT`. |
+| `[INITIATE CHRONO-ZERO PROTOCOL]` | Any page at L2 or L3 (an unknown command at L1 and in the chat, because the gateway is a level 2 item) | Gateway to the L3 root. Plays the transition sequence with the L3 transition text (`L3A_INTRO`), then draws `L3A_ROOT`. |
 | `[FETCH LOG ENTRY: //]` | Any L2 or L3 page (answers "unavailable" in the chat and at L1) | Program `lore-entry`, shown as **FETCH LOG.EXE** in its own window (see section 3a). |
 
 A hidden item opens only if its level is at or below the level you are in. A program opens only where its
@@ -270,8 +270,14 @@ player would see typed: the transition text when `[LAYER INTRO]` opens and on `[
 Where to find them: right-click the address bar at a level root (rows with swatches, click one to edit it), or type
 `[LAYER]` while standing in that level. Colors, title and sound apply as soon as the change is made, and `[EXPORT]` carries
 them. What the sounds are made of (oscillators, filters) is in the `ambient` block of the layer, for anyone who wants a
-custom sound in the JSON. The mount and unmount lines between the chat and layer 1 are `layer_mount` and
-`layer_unmount` under `terminal_strings` in `engine_config.json`.
+custom sound in the JSON.
+
+**The transition sequence.** Every move into a layer (chat to L1, L1 to L2, L2 to L3, by command or gateway) plays the same
+steps: (1) the command is accepted, a typed line in the layer you are leaving; (2) the screen clears; (3) the layer's transition
+text (`L1A_INTRO`, `L2A_INTRO`, `L3A_INTRO`) types on the clear screen, still in the old theme; (4) the theme, header title and
+ambient sound switch; (5) the layer's root page is drawn. Moving up (`[EXIT]`) clears and switches without text. The accepted
+lines are strings under `terminal_strings` in `engine_config.json`: `layer_mount` (chat to L1, default `> MOUNTING ECHOES:\ . . .`),
+`layer_entry_l2` and `layer_entry_l3` (default `> GATEWAY COMMAND ACCEPTED . . .`), and `layer_unmount` (leaving to the chat).
 
 ## 6. Boot checks
 
