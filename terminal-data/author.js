@@ -120,18 +120,74 @@ function parentOf(ctx, it) { return it._parent ? ctx.os.items[it._parent] : null
 function parentList(ctx, it) { const p = parentOf(ctx, it); return p ? p.children : ctx.os.data.tree.children; }
 function retier(it, tier) { it.tier = tier; (it.children || []).forEach((c) => retier(c, tier)); }
 
-async function readBody(ctx, existing) {
-  await ctx.say('> TYPE THE TEXT, ONE LINE PER ENTRY (BLANK ENTRY = BLANK LINE).', 'low');
-  await ctx.say('> START A LINE WITH /DIM /LOW /WARN /DENIED FOR A STYLE. [DONE] FINISHES. ESC ABORTS.', 'low');
-  const lines = [];
+// Line by line text entry, shared by [NEW DOC], [EDIT], [SET TEXT] and [LAYER INTRO]. Type a line to add it at the end. Commands, each
+// typed alone on a line: [BACK] takes the last line away, [LIST] numbers the lines, [PREVIEW] plays them as a player sees them,
+// [EDIT n] [INS n] [DEL n] change one line, [CLEAR] starts over, [LOAD] brings in the text that is saved now, [DONE] finishes.
+//   opts.lines     lines to start with (the transition text opens with its current lines)
+//   opts.existing  the saved text, for [LOAD] (a document starts empty so it can be retyped, and [LOAD] edits it instead)
+//   opts.kind      how [PREVIEW] renders: 'flavor' types the lines (a transition), 'page' lands them whole (a page)
+//   opts.wrap      turns the lines into the whole body for [PREVIEW] (the transition adds blank lines and a rule around its text)
+const BLANK = () => ({ type: 'text', text: '', cls: 'blank' });
+const lineOf = (raw) => {
+  const m = /^\/(dim|low|warn|denied|full)\s?(.*)$/i.exec(raw);
+  const text = m ? m[2] : raw, cls = m ? m[1].toLowerCase() : 'full';
+  return text === '' ? BLANK() : { type: 'text', text, cls };
+};
+const lineText = (l) => (l.cls === 'blank' ? '' : (l.cls && l.cls !== 'full' ? '/' + l.cls + ' ' : '') + l.text);
+const textBody = (it) => (it.body || []).filter((b) => b.type === 'text').map((b) => Object.assign({}, b));
+const BODY_CMD = /^\[(DONE|BACK|LIST|PREVIEW|CLEAR|LOAD|EDIT|INS|DEL)(?:\s+(\d+))?\]$/;
+
+async function readBody(ctx, opts = {}) {
+  const lines = (opts.lines || []).map((l) => Object.assign({}, l));
+  const list = () => ctx.lines(lines.length ? lines.map((l, i) => ({ text: String(i + 1).padStart(3) + '  ' + (lineText(l) || '(blank)'), cls: 'dim' })) : [{ text: '  (NO LINES YET)', cls: 'low' }]);
+  const preview = async () => { if (!lines.length) return ctx.say('> NOTHING TO PREVIEW YET', 'warn'); await ctx.preview(opts.wrap ? opts.wrap(lines) : lines, opts.kind); await ctx.say('> END OF PREVIEW', 'low'); };
+  const bad = async (msg) => { ctx.denied(); await ctx.say('> ' + msg, 'denied'); };
+  await ctx.say('> TYPE A LINE TO ADD IT AT THE END (BLANK ENTRY = BLANK LINE). START A LINE WITH /DIM /LOW /WARN /DENIED FOR A STYLE.', 'low');
+  await ctx.say('> [BACK] REMOVES THE LAST LINE. [LIST] NUMBERS THE LINES. [PREVIEW] PLAYS THEM. [EDIT 3] [INS 3] [DEL 3] CHANGE ONE LINE.', 'low');
+  await ctx.say('> [CLEAR] STARTS OVER.' + (opts.existing ? ' [LOAD] BRINGS IN THE SAVED TEXT TO EDIT.' : '') + ' [DONE] SAVES. ESC ABORTS.', 'low');
+  if (lines.length) { await ctx.say('> ' + lines.length + ' LINE(S) LOADED. HERE THEY ARE AS A PLAYER SEES THEM:', 'low'); await preview(); }
   for (;;) {
-    const raw = await ctx.ask({ placeholder: 'text...   ([DONE] to finish)', mask: 'free', sticky: true });
+    const raw = await ctx.ask({ placeholder: 'text...   ([DONE] saves, [BACK] undoes a line)', mask: 'free', sticky: true });
     if (raw === null) { if (await yn(ctx, '> DISCARD THIS TEXT? (Y/N)', false)) return null; continue; }
-    if (raw.trim().toUpperCase() === '[DONE]') break;
-    ctx.echo(raw);
-    const m = /^\/(dim|low|warn|denied|full)\s?(.*)$/i.exec(raw);
-    const text = m ? m[2] : raw, cls = m ? m[1].toLowerCase() : 'full';
-    lines.push(text === '' ? { type: 'text', text: '', cls: 'blank' } : { type: 'text', text, cls });
+    const cm = BODY_CMD.exec(raw.trim().toUpperCase());
+    if (!cm) {
+      ctx.echo(raw); lines.push(lineOf(raw));
+      continue;
+    }
+    const cmd = cm[1], n = cm[2] ? parseInt(cm[2], 10) : 0;
+    if (cmd === 'DONE') break;
+    ctx.echo(raw.trim());
+    if (cmd === 'BACK') {
+      if (!lines.length) { await ctx.say('> NOTHING TO GO BACK TO', 'warn'); continue; }
+      const gone = lines.pop();
+      await ctx.say('> REMOVED LINE ' + (lines.length + 1) + ': ' + (lineText(gone) || '(blank)'), 'dim');
+    } else if (cmd === 'LIST') await list();
+    else if (cmd === 'PREVIEW') await preview();
+    else if (cmd === 'CLEAR') { if (await yn(ctx, '> REMOVE ALL ' + lines.length + ' LINE(S)? (Y/N)', false)) { lines.length = 0; await ctx.say('> CLEARED', 'dim'); } }
+    else if (cmd === 'LOAD') {
+      if (!opts.existing || !opts.existing.length) { await ctx.say('> NOTHING SAVED TO LOAD', 'warn'); continue; }
+      if (lines.length && !(await yn(ctx, '> THIS REPLACES THE ' + lines.length + ' LINE(S) YOU HAVE. CONTINUE? (Y/N)', false))) continue;
+      lines.length = 0; opts.existing.forEach((l) => lines.push(Object.assign({}, l)));
+      await ctx.say('> LOADED ' + lines.length + ' LINE(S)', 'dim'); await list();
+    } else if (!n || n > lines.length + (cmd === 'INS' ? 1 : 0)) {
+      await bad(cmd + ' NEEDS A LINE NUMBER FROM 1 TO ' + (lines.length + (cmd === 'INS' ? 1 : 0)) + ', FOR EXAMPLE [' + cmd + ' ' + Math.max(1, Math.min(2, lines.length)) + ']. [LIST] SHOWS THEM.');
+    } else if (cmd === 'DEL') {
+      const gone = lines.splice(n - 1, 1)[0];
+      await ctx.say('> REMOVED LINE ' + n + ': ' + (lineText(gone) || '(blank)'), 'dim');
+    } else if (cmd === 'EDIT') {
+      await ctx.say('> LINE ' + n + ' IS: ' + (lineText(lines[n - 1]) || '(blank)'), 'dim');
+      await ctx.say('> TYPE THE NEW LINE (ENTER = KEEP, [BLANK] = BLANK LINE, ESC = CANCEL):', 'low');
+      const v = await ctx.ask({ placeholder: 'new line ' + n, mask: 'free' });
+      if (v === null || v === '') { await ctx.say('> LINE ' + n + ' KEPT', 'low'); continue; }
+      lines[n - 1] = v.trim().toUpperCase() === '[BLANK]' ? BLANK() : lineOf(v);
+      await ctx.say('> LINE ' + n + ' IS NOW: ' + (lineText(lines[n - 1]) || '(blank)'), 'dim');
+    } else if (cmd === 'INS') {
+      await ctx.say('> TYPE THE LINE TO INSERT BEFORE LINE ' + n + (n > lines.length ? ' (AT THE END)' : '') + ' (BLANK ENTRY = BLANK LINE, ESC = CANCEL):', 'low');
+      const v = await ctx.ask({ placeholder: 'line to insert at ' + n, mask: 'free' });
+      if (v === null) { await ctx.say('> NOTHING INSERTED', 'low'); continue; }
+      lines.splice(n - 1, 0, lineOf(v));
+      await ctx.say('> INSERTED AS LINE ' + n + ': ' + (lineText(lines[n - 1]) || '(blank)'), 'dim');
+    }
   }
   return lines;
 }
@@ -162,6 +218,7 @@ const handlers = {
     await ctx.lines([{ text: 'AUTHOR COMMANDS', cls: 'full' }, { text: ctx.sep, cls: 'low' },
       ...HELP.map(([a, d]) => ({ text: '  ' + a.padEnd(34) + '- ' + d, cls: 'dim' })), { text: ctx.sep, cls: 'low' },
       { text: '  Edits apply to the folder you are standing in. Esc cancels any prompt.', cls: 'low' },
+      { text: '  Typing a text: [BACK] [LIST] [PREVIEW] [EDIT n] [INS n] [DEL n] [CLEAR] [LOAD] [DONE].', cls: 'low' },
       { text: '  Right-click an item for its menu, empty space for the create commands.', cls: 'low' },
       { text: '  The (o) / (-) eye beside an item lists / unlists it. Click it to toggle.', cls: 'low' }]);
     return 'stay';
@@ -178,7 +235,7 @@ const handlers = {
     const f = await cwdFolder(ctx); if (!f) return 'stay';
     const n = await nameHiddenAlias(ctx, f, 'DOC'); if (!n) return canceled(ctx);
     const title = await askTitle(ctx, n.name); if (title === null) return canceled(ctx);
-    const body = await readBody(ctx); if (body === null) return canceled(ctx);
+    const body = await readBody(ctx, { kind: 'page' }); if (body === null) return canceled(ctx);
     return add(ctx, f, make({ id: uid(ctx, 'L' + f.tier + 'A_', n.name), type: 'doc', name: n.name, alias: n.alias, tier: f.tier, hidden: n.hidden, title, body }), 'DOC');
   },
 
@@ -230,7 +287,7 @@ const handlers = {
     if (it.type === 'doc' || it.stub) {
       const rb = it.stub ? true : await yn(ctx, '> RETYPE THE TEXT? (Y/N, ENTER = N):', false);
       if (rb === null) return canceled(ctx);
-      if (rb) { body = await readBody(ctx); if (body === null) return canceled(ctx); }
+      if (rb) { body = await readBody(ctx, { kind: 'page', existing: textBody(it) }); if (body === null) return canceled(ctx); }
     }
     if (it.type === 'gateway') { const d = await askDestination(ctx, it.goto); if (d === null) return canceled(ctx); it.goto = d.id; }
     if (it.type === 'program') { const sc = await ask(ctx, '> SCOPE (LEVEL / FOLDER, ENTER = KEEP ' + scopeWord(it.scope) + '):', 'LEVEL / FOLDER'); if (sc === null) return canceled(ctx); if (sc) it.scope = sc === 'FOLDER' ? 'folder' : 'tier'; }
@@ -404,7 +461,7 @@ async function setField(ctx, it, key) {
       return done(it.footer ? 'FOOTER IS NOW ' + it.footer : 'FOOTER CLEARED');
     }
     case 'TEXT': {
-      const body = await readBody(ctx); if (body === null) return canceled(ctx);
+      const body = await readBody(ctx, { kind: 'page', existing: textBody(it) }); if (body === null) return canceled(ctx);
       it.body = body;
       if (it.stub) { it.stub = false; it.type = 'doc'; }
       return done('TEXT UPDATED (' + body.length + ' LINES)');
@@ -546,15 +603,19 @@ async function setLayerProp(ctx, id, prop) {
     }
   }
   if (prop === 'INTRO') {
-    const cur = introLines(ctx, id);
-    await ctx.say('> THE TEXT SHOWN WHILE THE TERMINAL MOVES INTO ' + id.toUpperCase() + '. CURRENT TEXT:', 'low');
-    for (const b of cur) await ctx.say('  ' + b.text, 'dim');
-    await ctx.say('> RETYPE IT BELOW. THE RULE LINE AFTER IT IS ADDED FOR YOU.', 'low');
-    const body = await readBody(ctx); if (body === null) return canceled(ctx);
+    // The lines players see, without the blank line before, the rule after and the blank line after, which are added on save.
+    const full = ((ctx.os.data.screens || {})[introId(id)] || { body: [] }).body.filter((b) => b.type === 'text');
+    const cur = full.map((b) => Object.assign({}, b));
+    if (cur.length && cur[0].cls === 'blank') cur.shift();
+    if (cur.length && cur[cur.length - 1].cls === 'blank') cur.pop();
+    if (cur.length && /^> ─+$/.test(cur[cur.length - 1].text)) cur.pop();
+    const rule = { type: 'text', text: '> ' + '─'.repeat(33), cls: 'low' };
+    const wrap = (ls) => [BLANK(), ...ls, rule, BLANK()];
+    await ctx.say('> THE TEXT SHOWN WHILE THE TERMINAL MOVES INTO ' + id.toUpperCase() + '. THE RULE LINE AFTER IT IS ADDED FOR YOU.', 'low');
+    const body = await readBody(ctx, { kind: 'flavor', lines: cur, wrap }); if (body === null) return canceled(ctx);
     const screens = ctx.os.data.screens = ctx.os.data.screens || {};
-    const blank = { type: 'text', text: '', cls: 'blank' };
     screens[introId(id)] = Object.assign(screens[introId(id)] || { layer: id, node_type: 'intro', is_root: false, title: '', breadcrumb: introId(id), footer: '' },
-      { body: [blank, ...body, { type: 'text', text: '> ' + '─'.repeat(33), cls: 'low' }, blank] });
+      { body: wrap(body) });
     return done('INTRO TEXT UPDATED (' + body.length + ' LINES)');
   }
   if (prop === 'VOLUME') {

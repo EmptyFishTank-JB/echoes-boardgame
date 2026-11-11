@@ -1442,21 +1442,26 @@ async function renderIntegrityPage(node){
 // Renders body[] of an intro node (text + dynamic lines only — no nav options)
 async function renderIntroLines(nodeId){
   if(!archData||!archData.nodes||!archData.nodes[nodeId]) return;
-  var node=archData.nodes[nodeId];
-  for(var i=0;i<(node.body||[]).length;i++){
-    var b=node.body[i];
+  await renderIntroBody(archData.nodes[nodeId].body||[]);
+}
+// The lines themselves. kind is how they render ('flavor' types them, as a transition does). Author mode previews a text through this
+// same function, so what the author sees is what the player gets.
+async function renderIntroBody(body,kind){
+  kind=kind||'flavor';
+  for(var i=0;i<body.length;i++){
+    var b=body[i];
     if(b.hidden) continue;
     if(b.type==='text'){
       var el=addLine(b.cls||'full',true);
-      if(b.text){playLineStatic();await put(el,b.text,'flavor');}
+      if(b.text){playLineStatic();await put(el,b.text,kind);}
       await sleep(100);
     }else if(b.type==='dynamic'){
-      var dr=resolveDynamic(b);var del=addLine(dr.cls||'dim',true);await putDyn(del,dr,'flavor');await sleep(40);
+      var dr=resolveDynamic(b);var del=addLine(dr.cls||'dim',true);await putDyn(del,dr,kind);await sleep(40);
     }else if(b.type==='command'){
       var cCls=b.cmd_type==='navigation'?'cmd-nav':b.cmd_type==='pull'?'cmd-pull':'dim';
       var cEl=addLine(cCls,true);
       var lbl=(b.label||'').trim();
-      if(lbl){playLineStatic();await put(cEl,lbl,'flavor');}
+      if(lbl){playLineStatic();await put(cEl,lbl,kind);}
       await sleep(60);
     }
   }
@@ -1761,6 +1766,10 @@ function makeAuthorCtx(){
   c.cwd = termState; c.tier = currentLevel;
   c.notes = [];
   c.note = function(text, cls){ c.notes.push({text:text, cls:cls || 'full'}); };   // shown under the redrawn page
+  // Author mode talks to the author, not the player: its prompts, answers and info lines land whole instead of typing. Only a preview
+  // of text a player will read (a transition, a page) goes through the real renderer, typed or whole as that text would be.
+  c.say = async function(text, cls){ var el = addLine(cls || 'dim', true); await put(el, text, 'list'); };
+  c.preview = function(body, kind){ return renderIntroBody(body, kind === 'page' ? 'page' : 'flavor'); };
   c.os = {
     get data(){ return osData; },
     get items(){ return osItems; },
@@ -1779,7 +1788,7 @@ function makeAuthorCtx(){
   };
   return c;
 }
-async function authorSay(text, cls){ var el = addLine(cls || 'dim', true); await put(el, text,'status'); }
+async function authorSay(text, cls){ var el = addLine(cls || 'dim', true); await put(el, text,'list'); }   // author mode lines land whole
 // True = handled. Unknown commands fall through to normal handling.
 var authorPreset = null;   // {target:itemId}: set by a click or the context menu so the command skips its "which item?" prompt
 async function handleAuthorInput(val){

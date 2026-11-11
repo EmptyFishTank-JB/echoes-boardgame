@@ -59,7 +59,7 @@ const L = require('./lib.js');
   // ---- intro text ----
   await send('[LAYER INTRO]'); await prompt(); o = await out();
   check('INTRO shows the current text first', o.some((l) => l.includes('ECHOES-ARCHIVE ACCESS GRANTED')), o.slice(-6));
-  await answer('FLAVOR ONE'); await answer('/dim flavor two'); await answer('[DONE]'); await calm();
+  await answer('[CLEAR]'); await answer('Y'); await answer('FLAVOR ONE'); await answer('/dim flavor two'); await answer('[DONE]'); await calm();
   const sc = (await data()).screens.L1A_INTRO.body;
   check('the intro text is replaced, with the blank lines and rule kept around it', sc.length === 5 && sc[0].cls === 'blank' && sc[1].text === 'FLAVOR ONE' && sc[2].text === 'flavor two' && sc[2].cls === 'dim' && /^> ─+$/.test(sc[3].text) && sc[4].cls === 'blank', sc.map((b) => b.text));
 

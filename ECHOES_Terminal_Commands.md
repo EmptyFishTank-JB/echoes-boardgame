@@ -37,10 +37,10 @@ says how each kind appears. To change what types and what lands whole, change a 
 | `boot` | The landing screen's text: the intro, `> VERIFYING SUBSYSTEM CONNECTIONS...`, the `FULL ACCESS` / `DEGRADED` verdict, the fallback boot text. | Typed, uniform speed. |
 | `check` | The five subsystem check lines (label, dashes, `[STATUS]`, commit ID, colors kept). | Whole line with the static sound, a short beat between lines. |
 | `flavor` | Transition text between layers, the mount and unmount lines, layer enter and exit confirmations, the `[SYSTEM OVERRIDE]` banner, the self-destruct sequence. | Typed, uniform speed. |
-| `status` | One-line system messages: errors, `<NAME>.EXE CLOSED`, author messages, command headings, validation summary. | Typed, uniform speed. |
+| `status` | One-line system messages: errors, `<NAME>.EXE CLOSED`, command headings, validation summary. | Typed, uniform speed. |
 | `doc` | Body text of a document printed inline. | Typed, uniform speed. |
 | `prompt` | `> AWAITING INPUT`. | Typed, uniform speed. |
-| `list` | `[HELP]` entries, `[LEGEND]` rows, `[STATUS]` results, `[TREE]`, the author `[LS]`, the echo of what you typed. | Whole line, a short pause between lines. |
+| `list` | `[HELP]` entries, `[LEGEND]` rows, `[STATUS]` results, `[TREE]`, the author `[LS]`, the echo of what you typed, and everything author mode says to the author (prompts, answers, info lines, errors). | Whole line, a short pause between lines. |
 | `page` | Archive pages (folders, documents, logs). | Whole line, a shorter pause between lines. |
 
 Settings in `engine_config.json`, under `typing`: `base_ms` is the uniform typing speed (default 38 ms per
@@ -195,7 +195,7 @@ in `echo-os.json` removes every author command: `[AUTHOR UNLOCK]` then behaves l
 | `[AUTHOR LOCK]` | Turns it off. |
 | `[AUTHOR HELP]` | Lists the author commands. |
 | `[MKDIR]` | New folder in the folder you are standing in. |
-| `[NEW DOC]` | New page with its own text. Lines can start with `/dim`, `/low`, `/warn` or `/denied` to set a style. `[DONE]` finishes, `Esc` aborts. Capitalization and indentation are kept. |
+| `[NEW DOC]` | New page with its own text, typed a line at a time (see "Typing a text" below). Lines can start with `/dim`, `/low`, `/warn` or `/denied` to set a style. `[DONE]` finishes, `Esc` aborts. Capitalization and indentation are kept. |
 | `[NEW LOG]` | New page that shows a `lore.json` (`LORE`) or `dev_logs.json` (`DEV`) entry by code. |
 | `[NEW PROGRAM]` | Registers a program from `terminal-data/programs/<id>.js` as a hidden item. Asks for its scope. |
 | `[NEW GATEWAY]` | Hidden command that jumps to any folder, at any level. A different level plays the transition. |
@@ -244,9 +244,27 @@ and sound of `l1a`. Everything that makes a layer look and sound the way it does
 | `TITLE` | The header text while you are in the layer. | Text |
 | `PRIMARY`, `WARN`, `DENIED`, `BACKGROUND` | The layer's colors. `DIM` and `LO` are made from `PRIMARY`. | Hex, `#RGB` or `#RRGGBB` |
 | `DIM`, `LO`, `BORDER` | How strong the dim, low and border tints are. | 0 to 1 (a percentage works too) |
-| `INTRO` | The text shown while the terminal moves into the layer (the `L<n>A_INTRO` screen). Prints the current text, then you retype it; the rule line after it is added for you. Styles work as in `[NEW DOC]` (`/dim`, `/low`, `/warn`, `/denied`). | Lines, `[DONE]` finishes |
+| `INTRO` | The text shown while the terminal moves into the layer (the `L<n>A_INTRO` screen). Opens with the current lines loaded and plays them typed, as a player sees them. Add lines at the end, or change one line with `[EDIT n]` (see "Typing a text" below). The blank lines and the rule line around it are added for you. | Lines, `[DONE]` saves |
 | `VOLUME` | The ambient sound level for the layer. | 0 to 1 |
 | `SOUND` | The ambient sound itself. `VENTILATION` (layer 1), `CHORD` (layer 2), `SUB-BASS` (layer 3) or `SILENT`. A preset also sets its default volume. | Name |
+
+**Typing a text.** [NEW DOC], [EDIT], `[SET TEXT]` and `[LAYER INTRO]` take a text one line per entry. Type a line to add it at the end
+(a blank entry is a blank line). These commands, each typed alone, work while you are typing:
+
+| Command | What it does |
+|---|---|
+| `[BACK]` | Removes the last line, and says which one it was. |
+| `[LIST]` | Prints the lines with their numbers (a styled line shows its `/dim` and so on). |
+| `[PREVIEW]` | Plays the text as a player sees it: a transition types, a page lands whole, with the blank lines and rule the transition adds. |
+| `[EDIT n]` | Shows line *n* and asks for a replacement. `Enter` keeps it, `[BLANK]` makes it a blank line, `Esc` cancels. Only that line changes. |
+| `[INS n]` | Asks for one line and inserts it before line *n* (`[INS 5]` on a four line text adds it at the end). |
+| `[DEL n]` | Removes line *n*. |
+| `[CLEAR]` | Removes every line, after a Y/N. |
+| `[LOAD]` | Brings in the saved text of a document to edit line by line (a document starts empty so it can be retyped). The transition text always opens loaded. |
+| `[DONE]` | Saves. `Esc` asks whether to discard. |
+
+Author mode's own lines (prompts, answers, line numbers, errors) land whole. The only typed lines in author mode are the ones a
+player would see typed: the transition text when `[LAYER INTRO]` opens and on `[PREVIEW]`.
 
 Where to find them: right-click the address bar at a level root (rows with swatches, click one to edit it), or type
 `[LAYER]` while standing in that level. Colors, title and sound apply as soon as the change is made, and `[EXPORT]` carries
