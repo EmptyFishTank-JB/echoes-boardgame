@@ -19,13 +19,14 @@ const L = require('./lib.js');
   await p.hover('#ctx .cr.ed:has-text("NAME")'); await p.waitForTimeout(80);
   check('hovering the name row shows [SET NAME] in the field', (await p.inputValue('#t-field')) === '[SET NAME]', await p.inputValue('#t-field'));
 
-  await p.click('#ctx .cr.ed:has-text("NAME")'); await prompt();
-  let o = await out();
-  check('clicking the name row asks for the name straight away (no "which item")', o.some((l) => l.includes('> NAME (ENTER = KEEP CREW MANIFEST)')) && !o.some((l) => /WHICH (ITEM|PROPERTY)/.test(l)), o.slice(-6));
-  await answer('Ship Roster'); await calm();
+  await p.click('#ctx .cr.ed:has-text("NAME")'); await p.waitForSelector('.ed-dlg'); await p.waitForTimeout(250);
+  let o;
+  check('clicking the name row opens the item\'s window on the name box straight away (no "which item")', await p.evaluate(() => { const a = document.activeElement; return !!a && !!a.closest('.ed-row') && a.closest('.ed-row').querySelector('.ed-lbl').textContent === 'NAME' && a.value === 'CREW MANIFEST'; }));
+  await p.fill('.ed-dlg .ed-row:has(.ed-lbl:text-is("NAME")) input', 'Ship Roster'); await p.click('.ed-dlg button:text-is("APPLY")'); await calm();
   const it = await p.evaluate(() => { const i = osItems.L1A_CREW_MANIFEST; return { name: i.name, alias: i.alias, title: i.title, title0: window.__title0 }; });
-  check('the name changed, the alias and title did not', it.name === 'SHIP ROSTER' && it.alias === '[CREW MANIFEST]' && it.title === it.title0, JSON.stringify(it));
-  o = await out(); check('and the page says so', o.some((l) => l.includes('NAME IS NOW SHIP ROSTER')), o.slice(-6));
+  check('the name changed (in capitals), the alias and title did not', it.name === 'SHIP ROSTER' && it.alias === '[CREW MANIFEST]' && it.title === it.title0, JSON.stringify(it));
+  check('and the window says so', (await p.textContent('.ed-dlg .ed-foot .msg')).includes('APPLIED'), await p.textContent('.ed-dlg .ed-foot .msg'));
+  await p.click('.ed-dlg .ed-bar .x');
 
   // typed form works the same way
   await send('[SET TITLE]'); await prompt(); o = await out();
@@ -55,10 +56,11 @@ const L = require('./lib.js');
   const gwLine = await p.$('#t-output .t-line.act:has(.lb:has-text("INITIATE ECHO PROTOCOL"))');
   if (gwLine) { await gwLine.click({ button: 'right' }); await p.waitForTimeout(200); r = await rows();
     check('a gateway\'s menu has a DESTINATION row with name and id', r && by('DESTINATION') && by('DESTINATION').v === 'L3 ROOT (L3A_ROOT)' && by('DESTINATION').ed, r && r.map((x) => x.k + '=' + x.v));
-    await p.click('#ctx .cr.ed:has-text("DESTINATION")'); await prompt(); o = await out();
-    check('clicking it asks for the destination, showing the current one by name', o.some((l) => l.includes('ENTER = KEEP L3 ROOT (L3A_ROOT)')), o.slice(-3));
-    await answer('L2 ROOT'); await calm();
+    await p.click('#ctx .cr.ed:has-text("DESTINATION")'); await p.waitForSelector('.ed-dlg'); await p.waitForTimeout(250);
+    check('clicking it opens the gateway\'s window with where it goes chosen from a list, showing the current one', (await p.inputValue('.ed-dlg .ed-row:has(.ed-lbl:text-is("GOES TO")) select')) === 'L3A_ROOT' && (await p.$eval('.ed-dlg .ed-bar .ttl', (e) => e.textContent)) === 'EDIT GATEWAY');
+    await p.selectOption('.ed-dlg .ed-row:has(.ed-lbl:text-is("GOES TO")) select', 'L2A_ROOT'); await p.click('.ed-dlg button:text-is("APPLY")'); await calm();
     check('and it can be repointed', await p.evaluate(() => osItems[window.__gw].goto === 'L2A_ROOT'));
+    await p.click('.ed-dlg .ed-bar .x');
   } else check('the INITIATE gateway is listed in the author view', false);
   console.log('page errors:', JSON.stringify(t.errs)); await t.done();
 })();

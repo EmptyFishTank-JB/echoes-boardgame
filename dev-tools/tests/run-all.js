@@ -31,6 +31,7 @@ const SUITES = [
   ['editor23', 'engine editor: no theme or per-layer sound sections'],
   ['codes25', 'log code module: existing codes unchanged, department codes round trip'],
   ['transition28', 'layer transitions: accepted line, clear, transition text, then theme and sound switch'],
+  ['dialog29', 'author editing windows: movable themed dialogs, fields by type, layer colors, sound list with preview'],
   ['textedit27', 'author mode: tool lines land whole, line by line text editing and preview'],
   ['logeditor26', 'log editor: sections in order, authors and crew, Log ID in the code, condition, override, first-click preview'],
   ['logs24', 'log data lint (lore.json, dev_logs.json) and fetching the 2143 logs'],

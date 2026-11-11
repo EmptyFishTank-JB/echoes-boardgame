@@ -200,11 +200,11 @@ in `echo-os.json` removes every author command: `[AUTHOR UNLOCK]` then behaves l
 | `[NEW LOG]` | New page that shows a `lore.json` (`LORE`) or `dev_logs.json` (`DEV`) entry by code. |
 | `[NEW PROGRAM]` | Registers a program from `terminal-data/programs/<id>.js` as a hidden item. Asks for its scope. |
 | `[NEW GATEWAY]` | Hidden command that jumps to any folder, at any level. A different level plays the transition. |
-| `[EDIT]` | Changes an item's name, alias, title, hidden flag and text, one question after another. On a stub it turns it into a real doc. |
-| `[LAYER]`, `[LAYER <SETTING>]` | Changes a setting of a whole layer: the one you are standing in (or the one a right-click named). `[LAYER]` lists them and asks; `[LAYER PRIMARY]` goes straight to one. See section 5a. |
-| `[SET]`, `[SET <PROPERTY>]` | Changes one property of an item. `[SET]` asks which; `[SET NAME]` goes straight to it. Properties: `NAME`, `ALIAS`, `TITLE`, `HIDDEN` (toggles), `FOOTER`, `TEXT` (docs and stubs), `LOG` (log items: source and code), `DESTINATION` (gateways), `PROGRAM` and `SCOPE` (programs). Gateways and programs have only `NAME` and `ALIAS` (plus their own): they never draw a page, so they have no title, hidden toggle or footer. Asks which item unless a click or the right-click menu named it. |
+| `[EDIT]` | Opens the item's editing window (section 5b): name, alias, title, hidden, footer, text and whatever else fits its type. On a stub it turns it into a real doc once it has text. |
+| `[LAYER]`, `[LAYER <SETTING>]` | Opens the layer window (sections 5a and 5b) on the layer you are standing in, or the one a right-click named, with a tab for each of the chat and the three archive layers. `[LAYER PRIMARY]` opens it scrolled to that setting. |
+| `[SET]`, `[SET <PROPERTY>]` | Opens the item's window on one property: `[SET NAME]` puts the cursor in the name box. Properties: `NAME`, `ALIAS`, `TITLE`, `HIDDEN`, `FOOTER`, `TEXT` (docs and stubs), `LOG` (log items), `DESTINATION` (gateways), `PROGRAM` and `SCOPE` (programs). Gateways and programs have only the ones that apply to them: they never draw a page, so no title, hidden toggle or footer. Asks which item unless a click or the right-click menu named it. |
 | `[HIDE]`, `[SHOW]` | Unlists an item (it still opens by its alias) or lists it again. Programs and gateways are always hidden. |
-| `[ALIAS]` | Changes an item's `[COMMAND]`. |
+| `[ALIAS]` | Opens the item's window on its alias, which is checked as you type. |
 | `[MV]` | Moves an item and everything under it to another folder. `..` means the parent folder. |
 | `[RM]` | Deletes an item and everything under it. Refuses if a gateway points into it. |
 | `[EXPORT]` | Downloads `echo-os.json` and clears the draft. Hand the file over to commit. |
@@ -236,41 +236,45 @@ be unique within their folder. Programs may share an alias across levels.
 
 ### 5a. Layer settings
 
-There are four layers: the chat (`l1c`) and three archive layers (`l1a`, `l2a`, `l3a`). The chat shares the colors
-and sound of `l1a`. Everything that makes a layer look and sound the way it does lives in `layers.<id>` in `echo-os.json`
-(plus its intro screen), and every setting is editable in author mode with a live result.
+There are four layers: the chat (`l1c`) and three archive layers (`l1a`, `l2a`, `l3a`). Each has its own colors, so the archive's
+first level can look different from the chat. The chat shares the sound and the transition text of `l1a`. Everything that makes a
+layer look and sound the way it does lives in `layers.<id>` in `echo-os.json` (plus its transition screen `L<n>A_INTRO`), and every
+setting is edited in the layer window with a live result.
 
-| Setting | What it changes | Value |
+| Setting | What it changes | Control |
 |---|---|---|
-| `TITLE` | The header text while you are in the layer. | Text |
-| `PRIMARY`, `WARN`, `DENIED`, `BACKGROUND` | The layer's colors. `DIM` and `LO` are made from `PRIMARY`. | Hex, `#RGB` or `#RRGGBB` |
-| `DIM`, `LO`, `BORDER` | How strong the dim, low and border tints are. | 0 to 1 (a percentage works too) |
-| `INTRO` | The text shown while the terminal moves into the layer (the `L<n>A_INTRO` screen). Opens with the current lines loaded and plays them typed, as a player sees them. Add lines at the end, or change one line with `[EDIT n]` (see "Typing a text" below). The blank lines and the rule line around it are added for you. | Lines, `[DONE]` saves |
-| `VOLUME` | The ambient sound level for the layer. | 0 to 1 |
-| `SOUND` | The ambient sound itself. `VENTILATION` (layer 1), `CHORD` (layer 2), `SUB-BASS` (layer 3) or `SILENT`. A preset also sets its default volume. | Name |
+| Title | The header text while you are in the layer. | Text box |
+| Colors | `PRIMARY`, `WARN`, `DENIED` and `BACKGROUND` (the glow around the screen). The dim, low and border tints are made from `PRIMARY`. | A color picker and a hex box each, and a row of theme chips that set all four at once |
+| Strength | How strong the `DIM`, `LO` and `BORDER` tints are. | Sliders |
+| Transition text | The text shown while the terminal moves into the layer (the `L<n>A_INTRO` screen). The blank lines and the rule line around it are added for you. | A line editor with a style per line, and a typed preview |
+| Sound | The ambient sound of the layer. | A list you can listen to, and a volume slider |
 
-**Typing a text.** [NEW DOC], [EDIT], `[SET TEXT]` and `[LAYER INTRO]` take a text one line per entry. Type a line to add it at the end
-(a blank entry is a blank line). These commands, each typed alone, work while you are typing:
+**Theme chips.** `CYAN` (the original blue), `STEEL`, `CYAN ON STEEL`, `PEWTER`, `COBALT`, `STEEL BLUE`, `PERIWINKLE`, `SILVER`, `GREY JADE`,
+`AMBER` and `RED` (layers 2 and 3 as they were). One click sets the four colors, so any layer can be tried in any palette and set back.
+
+**Sounds.** `VENTILATION`, `CHORD`, `SUB-BASS`, `REACTOR HUM`, `COLD AIR`, `SIGNAL`, `DEEP PULSE` and `SILENT`. The play button
+previews a sound (the layer's own sound ducks meanwhile and a preview stops by itself after 12 seconds), a click on the name
+chooses it and sets its default volume, and the volume slider changes it afterward. What a sound is made of (oscillators, filters)
+is in the `ambient` block of the layer, for anyone who wants a custom sound in the JSON.
+
+**Typing a text.** `[NEW DOC]` takes its text one line per entry. Type a line to add it at the end (a blank entry is a blank line).
+These commands, each typed alone, work while you are typing:
 
 | Command | What it does |
 |---|---|
 | `[BACK]` | Removes the last line, and says which one it was. |
 | `[LIST]` | Prints the lines with their numbers (a styled line shows its `/dim` and so on). |
-| `[PREVIEW]` | Plays the text as a player sees it: a transition types, a page lands whole, with the blank lines and rule the transition adds. |
+| `[PREVIEW]` | Plays the text as a page lands, whole. |
 | `[EDIT n]` | Shows line *n* and asks for a replacement. `Enter` keeps it, `[BLANK]` makes it a blank line, `Esc` cancels. Only that line changes. |
 | `[INS n]` | Asks for one line and inserts it before line *n* (`[INS 5]` on a four line text adds it at the end). |
 | `[DEL n]` | Removes line *n*. |
 | `[CLEAR]` | Removes every line, after a Y/N. |
-| `[LOAD]` | Brings in the saved text of a document to edit line by line (a document starts empty so it can be retyped). The transition text always opens loaded. |
 | `[DONE]` | Saves. `Esc` asks whether to discard. |
 
-Author mode's own lines (prompts, answers, line numbers, errors) land whole. The only typed lines in author mode are the ones a
-player would see typed: the transition text when `[LAYER INTRO]` opens and on `[PREVIEW]`.
+An existing text (a document, or a layer's transition text) is edited in its window instead, as lines with a style each.
 
-Where to find them: right-click the address bar at a level root (rows with swatches, click one to edit it), or type
-`[LAYER]` while standing in that level. Colors, title and sound apply as soon as the change is made, and `[EXPORT]` carries
-them. What the sounds are made of (oscillators, filters) is in the `ambient` block of the layer, for anyone who wants a
-custom sound in the JSON.
+Where to find the layer window: right-click the address bar at a level root (rows with swatches, click one to open the window on it), or
+type `[LAYER]` while standing in that level. Colors, title and sound apply as soon as the change is made, and `[EXPORT]` carries them.
 
 **The transition sequence.** Every move into a layer (chat to L1, L1 to L2, L2 to L3, by command or gateway) plays the same
 steps: (1) the command is accepted, a typed line in the layer you are leaving; (2) the screen clears; (3) the layer's transition
@@ -278,6 +282,25 @@ text (`L1A_INTRO`, `L2A_INTRO`, `L3A_INTRO`) types on the clear screen, still in
 ambient sound switch; (5) the layer's root page is drawn. Moving up (`[EXIT]`) clears and switches without text. The accepted
 lines are strings under `terminal_strings` in `engine_config.json`: `layer_mount` (chat to L1, default `> MOUNTING ECHOES:\ . . .`),
 `layer_entry_l2` and `layer_entry_l3` (default `> GATEWAY COMMAND ACCEPTED . . .`), and `layer_unmount` (leaving to the chat).
+
+### 5b. The editing windows
+
+`[EDIT]`, `[SET ...]`, `[ALIAS]`, `[LAYER ...]`, a click on a row of the right-click menu and "EDIT EVERYTHING..." all open a floating
+window instead of asking questions one at a time. The window is not modal (the page behind it still works), moves by its title bar
+(mouse or touch) and stays on the screen, wears the colors of the layer it edits (the layer window changes as you change the colors), and
+there is one per item. `Esc` or `[X]` closes it, and so does `[AUTHOR LOCK]`.
+
+| Window | Controls |
+|---|---|
+| Folder, doc, log | Name, alias (checked as you type), title (with a "= NAME" button), a hidden toggle, footer. A doc or stub also has its text as lines: a style per line, move up and down, delete, `+ LINE`, `+ BLANK`, `PASTE...` (replaces all lines, `/dim` and so on read as styles) and `PLAY` (types the lines into a preview). A log has `LORE` / `DEV` and the entry code, with the entry's label, clearance and health shown as you type. A folder shows how many items it holds. |
+| Gateway | Name, alias and where it goes, chosen from a list of folders by level. |
+| Program | Name, alias, the program file (it must load) and where it works: any page of the level, or only its folder. |
+| Layer | Tabs for the chat and L1A, L2A, L3A. Title, theme chips, colors, strengths, transition text and the sound list (section 5a). |
+
+Item windows write on `APPLY` (nothing changes before it, the footer says `UNAPPLIED CHANGES`, and `Enter` in a text box applies), then
+redraw the page behind them. An alias that shadows a built-in or is already used is refused. `REVERT` puts the fields back. Names and titles are kept
+in capitals. In the layer window colors, strengths, title and sound apply as you change them; the transition text has its own
+`SAVE THE TRANSITION TEXT`; `REVERT THIS LAYER` puts the layer back to how it was when the window opened.
 
 ## 6. Boot checks
 

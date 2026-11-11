@@ -87,10 +87,9 @@ const L = require('./lib.js');
   await p.mouse.move(5, 5); await p.waitForTimeout(100);
   check('Escape closes the menu and does not leave the folder', !(await p.$('#ctx')) && (await st()) === 'L1A_ROOT' && (await val()) === '', await val());
   await p.click(itemSel('[CREW MANIFEST]'), { button: 'right' });
-  await p.click('#ctx .ci:has-text("[EDIT]")'); await prompt();
-  let all = await out();
-  check('EDIT from the menu skips the "which item" question', all.some(l => l.includes('L1A_CREW_MANIFEST') && l.includes('doc')) && all.some(l => l.includes('> NAME (ENTER = KEEP')) && !all.some(l => l.includes('EDIT WHICH ITEM')), JSON.stringify(all.slice(-6)));
-  await p.press('#t-field', 'Escape'); await calm();
+  await p.click('#ctx .ci:has-text("[EDIT]")'); await p.waitForSelector('.ed-dlg'); await p.waitForTimeout(250);
+  check('EDIT from the menu skips the "which item" question and opens that item\'s window', (await p.$$eval('.ed-dlg', (e) => e.length)) === 1 && (await p.$eval('.ed-dlg .ed-bar .sub', (e) => e.textContent)).includes('L1A_CREW_MANIFEST'));
+  await p.click('.ed-dlg .ed-bar .x'); await calm();
 
   // ---- context menu: empty space -------------------------------------------
   const box = await p.evaluate(() => { const r = document.getElementById('t-output').getBoundingClientRect(); return { x: r.x, y: r.y, w: r.width, h: r.height }; });

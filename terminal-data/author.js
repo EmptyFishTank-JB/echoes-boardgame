@@ -276,61 +276,32 @@ const handlers = {
     return add(ctx, f, make({ id: uid(ctx, 'GW_', n.name), type: 'gateway', name: n.name, alias: n.alias, tier: f.tier, hidden: true, goto: dest.id }), 'GATEWAY -> ' + destLabel(ctx.os.items, dest.id));
   },
 
+  // Editing opens a floating window (author-dialog.js): every property of the item at once, with the controls that fit it.
+  // [EDIT] opens it on the name, [SET <PROPERTY>] and [ALIAS] open it on that property (a click on a row of the right-click menu sends these).
   async '[EDIT]'(ctx) {
     const it = await target(ctx, 'EDIT WHICH ITEM'); if (!it) return canceled(ctx);
-    await ctx.say('> ' + it.id + '  (' + it.type + ', L' + it.tier + (it.stub ? ', STUB' : '') + ')  ' + (it.alias || ''), 'low');
-    if (it.stub) await ctx.say('> THIS IS A STUB PLACEHOLDER. EDITING IT TURNS IT INTO A REAL DOC.', 'warn');
-    const name = await ask(ctx, '> NAME (ENTER = KEEP ' + it.name + '):', it.name); if (name === null) return canceled(ctx);
-    let hidden = it.hidden;
-    if (!isGlobalType(it)) { const h = await yn(ctx, '> HIDDEN? (Y/N, ENTER = KEEP ' + (it.hidden ? 'Y' : 'N') + '):', it.hidden); if (h === null) return canceled(ctx); hidden = h; }
-    const alias = await askAlias(ctx, name || it.name, { parentId: it._parent, global: hidden || isGlobalType(it), exceptId: it.id, program: it.type === 'program' }, it.alias);
-    if (alias === null) return canceled(ctx);
-    const title = isGlobalType(it) ? '' : await ask(ctx, '> TITLE (ENTER = KEEP "' + (it.title || it.name) + '"):', it.title || it.name); if (title === null) return canceled(ctx);
-    let body = null;
-    if (it.type === 'doc' || it.stub) {
-      const rb = it.stub ? true : await yn(ctx, '> RETYPE THE TEXT? (Y/N, ENTER = N):', false);
-      if (rb === null) return canceled(ctx);
-      if (rb) { body = await readBody(ctx, { kind: 'page', existing: textBody(it) }); if (body === null) return canceled(ctx); }
-    }
-    if (it.type === 'gateway') { const d = await askDestination(ctx, it.goto); if (d === null) return canceled(ctx); it.goto = d.id; }
-    if (it.type === 'program') { const sc = await ask(ctx, '> SCOPE (LEVEL / FOLDER, ENTER = KEEP ' + scopeWord(it.scope) + '):', 'LEVEL / FOLDER'); if (sc === null) return canceled(ctx); if (sc) it.scope = sc === 'FOLDER' ? 'folder' : 'tier'; }
-    if (name) it.name = name;
-    it.alias = alias; it.hidden = hidden; if (title) it.title = title; if (body) it.body = body;
-    if (it.stub) { it.stub = false; it.type = 'doc'; }
-    ctx.os.commit();
-    ctx.note('> UPDATED ' + it.alias);
-    return 'redraw';
+    (await dialogs()).openItem(ctx, it, 'NAME');
+    return 'stay';
   },
 
-  // One property at a time. [SET NAME] names it; plain [SET] asks. The right-click menu sends [SET <PROPERTY>] with the item.
   async '[SET]'(ctx, key) {
     const it = await target(ctx, 'CHANGE A PROPERTY OF'); if (!it) return canceled(ctx);
     const keys = fieldKeys(it);
-    if (!key) {
-      await ctx.say('> PROPERTIES: ' + keys.join(', '), 'low');
-      const q = await ask(ctx, '> WHICH PROPERTY?', keys[0] + ' / ...'); if (!q) return canceled(ctx);
-      key = q.trim();
-    }
-    return setField(ctx, it, key.toUpperCase());
+    key = (key || 'NAME').toUpperCase();
+    if (!keys.includes(key)) { ctx.denied(); await ctx.say('> ' + it.id + ' HAS NO ' + key + '. IT HAS: ' + keys.join(', '), 'denied'); return canceled(ctx); }
+    (await dialogs()).openItem(ctx, it, key);
+    return 'stay';
   },
 
-  // Settings that belong to a whole layer: colors, header title, intro text, ambient sound. [LAYER] lists them;
-  // [LAYER PRIMARY] goes straight to one. The layer is the tier you are standing in (or the one a right-click named).
+  // Settings that belong to a whole layer: colors, header title, transition text, ambient sound. They open in one window with a tab
+  // per layer (the chat, L1A, L2A, L3A). The layer is the one you are standing in, or the one a right-click named.
   async '[LAYER]'(ctx, prop) {
     let id = ctx.preset && ctx.preset.layer; if (ctx.preset) ctx.preset.layer = null;
-    if (!id) { const cur = ctx.os.items[ctx.cwd]; id = cur ? 'l' + cur.tier + 'a' : null; }
-    if (!id) {
-      const q = await ask(ctx, '> WHICH LAYER? (L1A, L2A, L3A):', 'L1A / L2A / L3A'); if (!q) return canceled(ctx);
-      id = q.trim().toLowerCase();
-    }
-    if (!LAYER_IDS.includes(id)) { ctx.denied(); await ctx.say('> NO SUCH LAYER. THE LAYERS ARE L1A, L2A AND L3A.', 'denied'); return canceled(ctx); }
-    const keys = layerKeys(id);
-    if (!prop) {
-      await ctx.lines(layerSummary(ctx, id));
-      const q = await ask(ctx, '> WHICH SETTING?', keys[0] + ' / ...'); if (!q) return canceled(ctx);
-      prop = q.trim();
-    }
-    return setLayerProp(ctx, id, prop.toUpperCase());
+    if (!id) { const cur = ctx.os.items[ctx.cwd]; id = cur ? 'l' + cur.tier + 'a' : 'l1a'; }
+    prop = prop ? prop.toUpperCase() : null;
+    if (prop && !layerKeys().includes(prop)) { ctx.denied(); await ctx.say('> THE LAYER SETTINGS ARE: ' + layerKeys().join(', '), 'denied'); return canceled(ctx); }
+    (await dialogs()).openLayer(ctx, LAYER_IDS.includes(id) ? id : 'l1a', prop);
+    return 'stay';
   },
 
   async '[HIDE]'(ctx) { return setHidden(ctx, true); },
@@ -338,11 +309,8 @@ const handlers = {
 
   async '[ALIAS]'(ctx) {
     const it = await target(ctx, 'CHANGE THE ALIAS OF'); if (!it) return canceled(ctx);
-    const alias = await askAlias(ctx, it.name, { parentId: it._parent, global: it.hidden || isGlobalType(it), exceptId: it.id, program: it.type === 'program' }, it.alias);
-    if (alias === null) return canceled(ctx);
-    it.alias = alias; ctx.os.commit();
-    ctx.note('> ALIAS IS NOW ' + alias);
-    return 'redraw';
+    (await dialogs()).openItem(ctx, it, 'ALIAS');
+    return 'stay';
   },
 
   async '[MV]'(ctx) {
@@ -441,68 +409,6 @@ function fieldKeys(it) {
   return k;
 }
 
-async function setField(ctx, it, key) {
-  const keys = fieldKeys(it);
-  if (!keys.includes(key)) { ctx.denied(); await ctx.say('> ' + it.id + ' HAS NO ' + key + '. IT HAS: ' + keys.join(', '), 'denied'); return canceled(ctx); }
-  const done = (msg) => { ctx.os.commit(); ctx.note('> ' + msg); return 'redraw'; };
-  const keep = (what, cur) => '> ' + what + ' (ENTER = KEEP ' + cur + '):';
-  switch (key) {
-    case 'NAME': {
-      const v = await ask(ctx, keep('NAME', it.name), it.name); if (v === null) return canceled(ctx);
-      if (v) it.name = v;
-      return done('NAME IS NOW ' + it.name);
-    }
-    case 'ALIAS': ctx.preset.target = it.id; return handlers['[ALIAS]'](ctx);
-    case 'HIDDEN': ctx.preset.target = it.id; return setHidden(ctx, !it.hidden);
-    case 'TITLE': {
-      const v = await ask(ctx, keep('TITLE', '"' + (it.title || it.name) + '"'), it.title || it.name); if (v === null) return canceled(ctx);
-      if (v) it.title = v;
-      return done('TITLE IS NOW ' + (it.title || it.name));
-    }
-    case 'FOOTER': {
-      const v = await ask(ctx, '> FOOTER LINE (ENTER = KEEP ' + (it.footer ? '"' + it.footer + '"' : 'NONE') + ', - = CLEAR):', 'footer', { mask: 'free' }); if (v === null) return canceled(ctx);
-      if (v === '-') it.footer = ''; else if (v) it.footer = v;
-      return done(it.footer ? 'FOOTER IS NOW ' + it.footer : 'FOOTER CLEARED');
-    }
-    case 'TEXT': {
-      const body = await readBody(ctx, { kind: 'page', existing: textBody(it) }); if (body === null) return canceled(ctx);
-      it.body = body;
-      if (it.stub) { it.stub = false; it.type = 'doc'; }
-      return done('TEXT UPDATED (' + body.length + ' LINES)');
-    }
-    case 'LOG': {
-      const cur = it.log_ref || {};
-      const src = await ask(ctx, keep('SOURCE (LORE = lore.json, DEV = dev_logs.json)', (cur.source || 'LORE').toUpperCase()), 'LORE / DEV'); if (src === null) return canceled(ctx);
-      const source = (src || cur.source || 'lore').toLowerCase();
-      if (!/^(lore|dev)$/.test(source)) { ctx.denied(); await ctx.say('> SOURCE MUST BE LORE OR DEV', 'denied'); return canceled(ctx); }
-      const code = await ask(ctx, keep('ENTRY CODE', cur.code || 'NONE'), 'XXXXX-XXXXX-XXXXX-XXXXX', { mask: 'code' }); if (code === null) return canceled(ctx);
-      const c = code || cur.code;
-      const data = source === 'dev' ? ctx.devLogs : ctx.lore;
-      if (!c || !data || !(data[c] || data[c.replace(/-/g, '')])) { ctx.denied(); await ctx.say('> NO ENTRY ' + c + ' IN ' + (source === 'dev' ? 'dev_logs' : 'lore') + '.json', 'denied'); return canceled(ctx); }
-      it.log_ref = { source, code: c };
-      return done('LOG IS NOW ' + source.toUpperCase() + ' ' + c);
-    }
-    case 'DESTINATION': {
-      const d = await askDestination(ctx, it.goto); if (d === null) return canceled(ctx);
-      it.goto = d.id;
-      return done('DESTINATION IS NOW ' + destLabel(ctx.os.items, d.id));
-    }
-    case 'SCOPE': {
-      const sc = await ask(ctx, keep('SCOPE (LEVEL = ANY PAGE OF THIS LEVEL, FOLDER = ONLY THE FOLDER IT SITS IN)', scopeWord(it.scope)), 'LEVEL / FOLDER'); if (sc === null) return canceled(ctx);
-      if (sc) it.scope = sc === 'FOLDER' ? 'folder' : 'tier';
-      return done('SCOPE IS NOW ' + scopeWord(it.scope));
-    }
-    case 'PROGRAM': {
-      const pid = await ask(ctx, keep('PROGRAM ID', it.program), it.program, { mask: 'free' }); if (pid === null) return canceled(ctx);
-      const id = (pid || it.program).trim().toLowerCase();
-      if (!/^[a-z0-9-]+$/.test(id) || !(await ctx.os.loadProgram(id))) { ctx.denied(); await ctx.say('> NO PROGRAM FILE terminal-data/programs/' + id + '.js (OR IT FAILS TO LOAD)', 'denied'); return canceled(ctx); }
-      it.program = id;
-      return done('PROGRAM IS NOW ' + id);
-    }
-  }
-  return canceled(ctx);
-}
-
 // What the right-click menu shows about an item. A row with a command can be clicked to change that property.
 function infoRows(it, items) {
   const set = (k) => ({ cmd: '[SET ' + k + ']', preset: { target: it.id } });
@@ -532,122 +438,77 @@ function infoRows(it, items) {
 // ---- layers ---------------------------------------------------------------------------------------------------
 // layers.<id> in echo-os.json: header_title, colors {primary, warn, denied, background, dim_opacity, lo_opacity,
 // border_opacity} and ambient {target_volume, oscillators[]}. The chat (l1c) shares the colors and sound of l1a.
-const LAYER_IDS = ['l1a', 'l2a', 'l3a'];
+const LAYER_IDS = ['l1c', 'l1a', 'l2a', 'l3a'];   // the chat, then the three archive layers
 const COLOR_KEYS = { PRIMARY: 'primary', WARN: 'warn', DENIED: 'denied', BACKGROUND: 'background' };
 const OPACITY_KEYS = { DIM: 'dim_opacity', LO: 'lo_opacity', BORDER: 'border_opacity' };
 const layerKeys = () => ['TITLE', ...Object.keys(COLOR_KEYS), ...Object.keys(OPACITY_KEYS), 'INTRO', 'VOLUME', 'SOUND'];
 
-// Ready-made ambient sounds. Choosing one sets the oscillators and its default volume (VOLUME changes it afterward).
-const SOUND_PRESETS = {
-  VENTILATION: { volume: 0.18, oscillators: [
-    { label: 'Ventilation hum', type: 'sine', freq: 110, volume: 0.06, lfo_rate: 0, lfo_depth: 0, filter_type: 'none', filter_freq: 0 },
-    { label: 'Engine drone', type: 'sawtooth', freq: 90, volume: 0.045, lfo_rate: 0.12, lfo_depth: 0.015, filter_type: 'lowpass', filter_freq: 180 },
-    { label: 'Noise bed', type: 'noise', freq: 0, volume: 0.04, lfo_rate: 0, lfo_depth: 0, filter_type: 'lowpass', filter_freq: 500 }] },
-  CHORD: { volume: 0.12, oscillators: [
-    { label: 'Tone A', type: 'sine', freq: 80, volume: 0.025, lfo_rate: 0.02, lfo_depth: 0.012, filter_type: 'none', filter_freq: 0 },
-    { label: 'Tone B', type: 'sine', freq: 121, volume: 0.025, lfo_rate: 0.035, lfo_depth: 0.012, filter_type: 'none', filter_freq: 0 },
-    { label: 'Tone C', type: 'sine', freq: 160, volume: 0.025, lfo_rate: 0.05, lfo_depth: 0.012, filter_type: 'none', filter_freq: 0 },
-    { label: 'Tone D', type: 'sine', freq: 203, volume: 0.025, lfo_rate: 0.06, lfo_depth: 0.012, filter_type: 'none', filter_freq: 0 }] },
-  'SUB-BASS': { volume: 0.05, oscillators: [
-    { label: 'Sub-bass', type: 'sine', freq: 38, volume: 0.5, lfo_rate: 0, lfo_depth: 0, filter_type: 'none', filter_freq: 0 }] },
-  SILENT: { volume: 0, oscillators: null },
-};
+// Ready-made ambient sounds, listed in the layer window to listen to and choose. Choosing one sets the tones and its default volume
+// (the volume slider changes it afterward). Each tone: type (sine, sawtooth, square, triangle or noise), freq, volume, lfo_rate and
+// lfo_depth (a slow wobble), filter_type (none, lowpass, highpass, bandpass) and filter_freq.
+const tone = (label, type, freq, volume, lfo_rate = 0, lfo_depth = 0, filter_type = 'none', filter_freq = 0) => ({ label, type, freq, volume, lfo_rate, lfo_depth, filter_type, filter_freq });
+const SOUNDS = [
+  { name: 'VENTILATION', desc: 'air handlers and a faint engine drone (the layer 1 sound)', volume: 0.18, oscillators: [
+    tone('Ventilation hum', 'sine', 110, 0.06), tone('Engine drone', 'sawtooth', 90, 0.045, 0.12, 0.015, 'lowpass', 180), tone('Noise bed', 'noise', 0, 0.04, 0, 0, 'lowpass', 500)] },
+  { name: 'CHORD', desc: 'four slow sine tones drifting against each other (layer 2)', volume: 0.12, oscillators: [
+    tone('Tone A', 'sine', 80, 0.025, 0.02, 0.012), tone('Tone B', 'sine', 121, 0.025, 0.035, 0.012), tone('Tone C', 'sine', 160, 0.025, 0.05, 0.012), tone('Tone D', 'sine', 203, 0.025, 0.06, 0.012)] },
+  { name: 'SUB-BASS', desc: 'one very low tone you feel more than hear (layer 3)', volume: 0.05, oscillators: [tone('Sub-bass', 'sine', 38, 0.5)] },
+  { name: 'REACTOR HUM', desc: 'a low buzz with a warm hum above it', volume: 0.14, oscillators: [
+    tone('Reactor buzz', 'sawtooth', 55, 0.05, 0.08, 0.012, 'lowpass', 140), tone('Hum', 'sine', 110, 0.035), tone('Rumble', 'noise', 0, 0.03, 0, 0, 'lowpass', 220)] },
+  { name: 'COLD AIR', desc: 'filtered wind through empty corridors', volume: 0.12, oscillators: [
+    tone('Wind', 'noise', 0, 0.06, 0.07, 0.02, 'lowpass', 1100), tone('Thin tone', 'sine', 330, 0.008, 0.05, 0.005), tone('Hiss', 'noise', 0, 0.02, 0.11, 0.01, 'highpass', 2500)] },
+  { name: 'SIGNAL', desc: 'two close tones beating slowly, with a whisper of static', volume: 0.1, oscillators: [
+    tone('Carrier A', 'sine', 196, 0.03), tone('Carrier B', 'sine', 197.3, 0.03), tone('Static', 'noise', 0, 0.012, 0, 0, 'bandpass', 1800)] },
+  { name: 'DEEP PULSE', desc: 'a slow heartbeat in the floor', volume: 0.07, oscillators: [
+    tone('Pulse', 'sine', 42, 0.6, 0.4, 0.35), tone('Overtone', 'sine', 84, 0.08, 0.4, 0.05)] },
+  { name: 'SILENT', desc: 'no ambient sound', volume: 0, oscillators: null },
+];
 const soundName = (amb) => {
   if (!amb) return 'BUILT-IN';
   if (!amb.target_volume) return 'SILENT';
-  const hit = Object.keys(SOUND_PRESETS).find((n) => SOUND_PRESETS[n].oscillators && JSON.stringify(SOUND_PRESETS[n].oscillators) === JSON.stringify(amb.oscillators));
-  return hit || 'CUSTOM (' + (amb.oscillators || []).length + ' tones)';
+  const hit = SOUNDS.find((s) => s.oscillators && JSON.stringify(s.oscillators) === JSON.stringify(amb.oscillators));
+  return hit ? hit.name : 'CUSTOM (' + (amb.oscillators || []).length + ' tones)';
 };
+function setSound(ctx, id, s) {
+  const a = layerOf(ctx.os.data, id).ambient = layerOf(ctx.os.data, id).ambient || {};
+  if (s.oscillators) a.oscillators = JSON.parse(JSON.stringify(s.oscillators));
+  a.target_volume = s.volume;
+}
+// Ready-made color sets for a layer: primary, warn, denied and the background glow. CYAN is the original blue and AMBER and RED are
+// layers 2 and 3 as they were, so any layer can be set back. The numbered ones are the L1 archive candidates, in the order of the
+// comparison sheet (2, 3, 4, 5 and 8 were the favorites).
+const THEMES = [
+  { name: 'CYAN', primary: '#4fc3f7', warn: '#E8732A', denied: '#ff003c', background: '#005799' },
+  { name: 'STEEL', primary: '#7fb0cc', warn: '#E8732A', denied: '#ff003c', background: '#3a566b' },
+  { name: 'CYAN ON STEEL', primary: '#4fc3f7', warn: '#E8732A', denied: '#ff003c', background: '#3d5566' },
+  { name: 'PEWTER', primary: '#a9bcc9', warn: '#E8732A', denied: '#ff003c', background: '#4a5963' },
+  { name: 'COBALT', primary: '#4a90ff', warn: '#E8732A', denied: '#ff003c', background: '#34495e' },
+  { name: 'STEEL BLUE', primary: '#6ea8d8', warn: '#E8732A', denied: '#ff003c', background: '#2e4558' },
+  { name: 'PERIWINKLE', primary: '#9aa8ff', warn: '#E8732A', denied: '#ff003c', background: '#3a3f73' },
+  { name: 'SILVER', primary: '#c9d3da', warn: '#E8732A', denied: '#ff003c', background: '#4d5359' },
+  { name: 'GREY JADE', primary: '#8fbfae', warn: '#E8732A', denied: '#ff003c', background: '#33524a' },
+  { name: 'AMBER', primary: '#bf7c0a', warn: '#c8a020', denied: '#c84040', background: '#805900' },
+  { name: 'RED', primary: '#e05050', warn: '#ff8800', denied: '#ff0000', background: '#850000' },
+];
 const introId = (id) => 'L' + id[1] + 'A_INTRO';
 const introLines = (ctx, id) => ((ctx.os.data.screens || {})[introId(id)] || { body: [] }).body.filter((b) => b.type === 'text' && b.text && b.cls !== 'blank' && !/^> ─+$/.test(b.text));
+// The lines a player sees, without the blank line before, the rule after and the blank line after, which are added on save.
+function introEditLines(ctx, id) {
+  const cur = ((ctx.os.data.screens || {})[introId(id)] || { body: [] }).body.filter((b) => b.type === 'text').map((b) => Object.assign({}, b));
+  if (cur.length && cur[0].cls === 'blank') cur.shift();
+  if (cur.length && cur[cur.length - 1].cls === 'blank') cur.pop();
+  if (cur.length && /^> ─+$/.test(cur[cur.length - 1].text)) cur.pop();
+  return cur;
+}
+const RULE = () => ({ type: 'text', text: '> ' + '─'.repeat(33), cls: 'low' });
+const introWrap = (ls) => [BLANK(), ...ls, RULE(), BLANK()];
+function saveIntro(ctx, id, lines) {
+  const screens = ctx.os.data.screens = ctx.os.data.screens || {};
+  screens[introId(id)] = Object.assign(screens[introId(id)] || { layer: id, node_type: 'intro', is_root: false, title: '', breadcrumb: introId(id), footer: '' }, { body: introWrap(lines) });
+}
 const layerOf = (data, id) => { data.layers = data.layers || {}; return (data.layers[id] = data.layers[id] || {}); };
 
-function layerSummary(ctx, id) {
-  const L = layerOf(ctx.os.data, id), c = L.colors || {}, a = L.ambient;
-  const row = (k, v) => ({ text: '  ' + k.padEnd(12) + v, cls: 'dim' });
-  return [{ text: id.toUpperCase() + ' SETTINGS', cls: 'full' }, { text: ctx.sep, cls: 'low' },
-    row('TITLE', L.header_title || '(none)'),
-    ...Object.keys(COLOR_KEYS).map((k) => row(k, c[COLOR_KEYS[k]] || '(built-in)')),
-    ...Object.keys(OPACITY_KEYS).map((k) => row(k, c[OPACITY_KEYS[k]] != null ? String(c[OPACITY_KEYS[k]]) : '(built-in)')),
-    row('INTRO', introLines(ctx, id).length + ' line(s)'),
-    row('VOLUME', a && a.target_volume != null ? String(a.target_volume) : '(built-in)'),
-    row('SOUND', soundName(a)), { text: ctx.sep, cls: 'low' }];
-}
-
 const parseHex = (v) => { const m = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(v.trim()); if (!m) return null; let h = m[1].toLowerCase(); if (h.length === 3) h = h.replace(/./g, '$&$&'); return '#' + h; };
-const parseUnit = (v) => { let n = parseFloat(v); if (!isFinite(n)) return null; if (n > 1 && n <= 100) n /= 100; return n >= 0 && n <= 1 ? Math.round(n * 1000) / 1000 : null; };
-
-async function setLayerProp(ctx, id, prop) {
-  if (!layerKeys(id).includes(prop)) { ctx.denied(); await ctx.say('> ' + id.toUpperCase() + ' HAS NO ' + prop + '. IT HAS: ' + layerKeys(id).join(', '), 'denied'); return canceled(ctx); }
-  const L = layerOf(ctx.os.data, id);
-  const done = (msg, audio) => { ctx.os.commit(); if (audio && ctx.os.audioChanged) ctx.os.audioChanged(id); ctx.note('> ' + id.toUpperCase() + ' ' + msg); return 'redraw'; };
-  if (prop === 'TITLE') {
-    const v = await ask(ctx, '> HEADER TITLE (ENTER = KEEP ' + (L.header_title || 'NONE') + '):', L.header_title || 'TITLE'); if (v === null) return canceled(ctx);
-    if (v) L.header_title = v;
-    return done('TITLE IS NOW ' + L.header_title);
-  }
-  if (COLOR_KEYS[prop]) {
-    const key = COLOR_KEYS[prop]; L.colors = L.colors || {};
-    for (;;) {
-      const v = await ask(ctx, '> ' + prop + ' COLOR AS HEX (ENTER = KEEP ' + (L.colors[key] || 'BUILT-IN') + '):', '#4fc3f7', { mask: 'free' }); if (v === null) return canceled(ctx);
-      if (v === '') return done(prop + ' COLOR UNCHANGED');
-      const hex = parseHex(v);
-      if (hex) { L.colors[key] = hex; return done(prop + ' COLOR IS NOW ' + hex); }
-      ctx.denied(); await ctx.say('> THAT IS NOT A HEX COLOR. USE #RGB OR #RRGGBB, FOR EXAMPLE #4FC3F7.', 'denied');
-    }
-  }
-  if (OPACITY_KEYS[prop]) {
-    const key = OPACITY_KEYS[prop]; L.colors = L.colors || {};
-    for (;;) {
-      const v = await ask(ctx, '> ' + prop + ' STRENGTH, 0 TO 1 (ENTER = KEEP ' + (L.colors[key] != null ? L.colors[key] : 'BUILT-IN') + '):', '0.70'); if (v === null) return canceled(ctx);
-      if (v === '') return done(prop + ' STRENGTH UNCHANGED');
-      const n = parseUnit(v);
-      if (n !== null) { L.colors[key] = n; return done(prop + ' STRENGTH IS NOW ' + n); }
-      ctx.denied(); await ctx.say('> USE A NUMBER FROM 0 TO 1, FOR EXAMPLE 0.7.', 'denied');
-    }
-  }
-  if (prop === 'INTRO') {
-    // The lines players see, without the blank line before, the rule after and the blank line after, which are added on save.
-    const full = ((ctx.os.data.screens || {})[introId(id)] || { body: [] }).body.filter((b) => b.type === 'text');
-    const cur = full.map((b) => Object.assign({}, b));
-    if (cur.length && cur[0].cls === 'blank') cur.shift();
-    if (cur.length && cur[cur.length - 1].cls === 'blank') cur.pop();
-    if (cur.length && /^> ─+$/.test(cur[cur.length - 1].text)) cur.pop();
-    const rule = { type: 'text', text: '> ' + '─'.repeat(33), cls: 'low' };
-    const wrap = (ls) => [BLANK(), ...ls, rule, BLANK()];
-    await ctx.say('> THE TEXT SHOWN WHILE THE TERMINAL MOVES INTO ' + id.toUpperCase() + '. THE RULE LINE AFTER IT IS ADDED FOR YOU.', 'low');
-    const body = await readBody(ctx, { kind: 'flavor', lines: cur, wrap }); if (body === null) return canceled(ctx);
-    const screens = ctx.os.data.screens = ctx.os.data.screens || {};
-    screens[introId(id)] = Object.assign(screens[introId(id)] || { layer: id, node_type: 'intro', is_root: false, title: '', breadcrumb: introId(id), footer: '' },
-      { body: wrap(body) });
-    return done('INTRO TEXT UPDATED (' + body.length + ' LINES)');
-  }
-  if (prop === 'VOLUME') {
-    L.ambient = L.ambient || { target_volume: 0.12, oscillators: [] };
-    for (;;) {
-      const v = await ask(ctx, '> AMBIENT VOLUME, 0 TO 1 (ENTER = KEEP ' + L.ambient.target_volume + '):', '0.18'); if (v === null) return canceled(ctx);
-      if (v === '') return done('VOLUME UNCHANGED');
-      const n = parseUnit(v);
-      if (n !== null) { L.ambient.target_volume = n; return done('VOLUME IS NOW ' + n, true); }
-      ctx.denied(); await ctx.say('> USE A NUMBER FROM 0 TO 1, FOR EXAMPLE 0.18.', 'denied');
-    }
-  }
-  if (prop === 'SOUND') {
-    await ctx.say('> SOUNDS: ' + Object.keys(SOUND_PRESETS).join(', ') + '. NOW: ' + soundName(L.ambient), 'low');
-    for (;;) {
-      const v = await ask(ctx, '> WHICH SOUND?', Object.keys(SOUND_PRESETS)[0] + ' / ...'); if (!v) return canceled(ctx);
-      const pre = SOUND_PRESETS[v.trim().toUpperCase()];
-      if (pre) {
-        const a = L.ambient = L.ambient || {};
-        if (pre.oscillators) a.oscillators = JSON.parse(JSON.stringify(pre.oscillators));
-        a.target_volume = pre.volume;
-        return done('SOUND IS NOW ' + v.trim().toUpperCase(), true);
-      }
-      ctx.denied(); await ctx.say('> NO SOUND NAMED "' + v + '". CHOOSE FROM: ' + Object.keys(SOUND_PRESETS).join(', '), 'denied');
-    }
-  }
-  return canceled(ctx);
-}
 
 // What the right-click menu shows for a tier root: the layer's settings, one row each. Click a row to change it.
 function layerRows(id, ctx) {
@@ -662,6 +523,11 @@ function layerRows(id, ctx) {
   rows.push({ k: 'SOUND', v: soundName(a), ...set('SOUND') });
   return rows;
 }
+
+// The editing windows live in author-dialog.js, loaded the first time one is opened. H is what they borrow from here.
+const H = { bracket, isGlobalType, aliasProblem, layerOf, introId, introLines: introEditLines, introWrap, saveIntro, parseHex, soundName, setSound, SOUNDS, THEMES };
+let dialogsP = null;
+function dialogs() { if (!dialogsP) dialogsP = import('./author-dialog.js?v=' + Date.now()).then((m) => m.default(H)); return dialogsP; }
 
 const SET_RE = /^\[SET\s+([A-Z ]+?)\s*\]$/;
 const LAYER_RE = /^\[LAYER\s+([A-Z ]+?)\s*\]$/;

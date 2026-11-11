@@ -7,7 +7,16 @@
   },
   "layers": {
     "l1c": {
-      "header_title": "TERMINAL CONSOLE"
+      "header_title": "TERMINAL CONSOLE",
+      "colors": {
+        "primary": "#4fc3f7",
+        "warn": "#E8732A",
+        "denied": "#ff003c",
+        "background": "#005799",
+        "dim_opacity": 0.7,
+        "lo_opacity": 0.4,
+        "border_opacity": 0.12
+      }
     },
     "l1a": {
       "header_title": "ECHOES-ARCHIVE",

@@ -79,13 +79,20 @@ async function session(ctxOrBrowser, patch = {}) {
   await s.send('[BACK]'); await s.run('[SHOW]', ['DAY ONE']);
   await s.send('[LS]'); o = await s.out(); check('[SHOW] lists it again', o.some(l => l.includes('[DAY ONE]') && !l.includes('~hidden')) );
 
-  await s.run('[ALIAS]', ['DAY ONE', '[HELP]', { key: 'Escape' }]); o = await s.out();
-  check('an alias that shadows a built-in is refused', o.some(l => l.includes('THAT IS A BUILT-IN COMMAND')));
-  await s.run('[ALIAS]', ['DAY ONE', '[FIRST DAY]']); o = await s.out();
-  check('...a valid one is accepted, and the result shows under the redrawn page', o.some(l => l.includes('ALIAS IS NOW [FIRST DAY]')) && o.includes('[DAY ONE REVISED]') === false);
+  const dlg = () => s.page.locator('.ed-dlg').first();
+  const fld = (l) => dlg().locator('.ed-row:has(.ed-lbl:text-is("' + l + '")) input.ed-in').first();
+  const apply = async () => { await dlg().locator('button.ed-btn:text-is("APPLY")').click(); await s.page.waitForTimeout(400); await s.settle(); };
+  const closeDlg = async () => { await dlg().locator('.ed-bar .x').click(); await s.page.waitForTimeout(150); };
+  await s.run('[ALIAS]', ['DAY ONE']); await s.page.waitForSelector('.ed-dlg');
+  await fld('ALIAS').fill('[HELP]'); await apply();
+  check('an alias that shadows a built-in is refused', /BUILT-IN COMMAND/.test(await dlg().locator('.ed-foot .msg').textContent()));
+  await fld('ALIAS').fill('[FIRST DAY]'); await apply();
+  check('...a valid one is accepted, and the window says so', /APPLIED/.test(await dlg().locator('.ed-foot .msg').textContent()) && await s.page.evaluate(() => Object.values(osItems).some((i) => i.name === 'DAY ONE' && i.alias === '[FIRST DAY]')));
+  await closeDlg();
   await s.send('[FIRST DAY]'); st = await s.st(); check('the new alias opens the item', /DAY_ONE/.test(st.state));
   await s.send('[BACK]');
-  await s.run('[EDIT]', ['FIRST DAY', 'DAY ONE REVISED', '', '', 'REV TITLE', 'N']);
+  await s.run('[EDIT]', ['FIRST DAY']); await s.page.waitForSelector('.ed-dlg');
+  await fld('NAME').fill('DAY ONE REVISED'); await fld('TITLE').fill('REV TITLE'); await apply(); await closeDlg();
   await s.send('[FIRST DAY]'); o = await s.out(); check('[EDIT] changes the title, keeps the rest', o.includes('REV TITLE') && o.includes('Hello World'));
   await s.send('[BACK]');
 

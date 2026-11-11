@@ -221,6 +221,22 @@ body.in-archive #t-breadcrumb{opacity:0!important;}
 .pg-input::placeholder{color:var(--theme-lo);}
 .t-line .col{color:var(--theme-lo);white-space:pre;}
 .t-line.inverted .col{color:#000!important;}
+/* AUTHOR DIALOG: a floating, movable window for editing an item or a layer. It wears the colors of the layer it edits.
+   The controls inside it are styled by terminal-data/author-dialog.js. */
+.ed-dlg{position:fixed;z-index:55;width:min(94vw,580px);max-height:min(90vh,780px);display:flex;flex-direction:column;background:rgba(2,6,10,0.97);
+  border:1px solid var(--theme-full);box-shadow:0 0 0 1px var(--theme-bc),0 0 40px var(--theme-glow-a),0 16px 48px rgba(0,0,0,0.7);
+  color:var(--theme-full);font-family:'Share Tech Mono',monospace;font-size:12.5px;letter-spacing:0.03em;}
+.ed-bar{display:flex;align-items:center;gap:10px;padding:6px 8px 6px 12px;background:var(--theme-full);color:#02070c;letter-spacing:0.14em;font-size:12px;
+  cursor:move;user-select:none;-webkit-user-select:none;flex-shrink:0;touch-action:none;}
+.ed-bar .ttl{font-weight:bold;white-space:nowrap;}
+.ed-bar .sub{opacity:0.62;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.ed-bar .x{margin-left:auto;padding:0 8px;cursor:var(--cur-act,pointer);}
+.ed-bar .x:hover{background:#02070c;color:var(--theme-full);}
+.ed-body{flex:1;min-height:0;overflow:auto;padding:12px 14px;display:flex;flex-direction:column;gap:12px;scrollbar-width:thin;scrollbar-color:var(--theme-lo) transparent;}
+.ed-foot{display:flex;gap:8px;align-items:center;padding:8px 14px;border-top:1px solid var(--theme-border);flex-shrink:0;flex-wrap:wrap;}
+.ed-foot .msg{flex:1;min-width:120px;color:var(--theme-lo);font-size:11px;letter-spacing:0.06em;}
+.ed-foot .msg.bad{color:var(--theme-denied);}
+.ed-foot .msg.ok{color:var(--theme-full);}
 @media(max-width:768px){#t-addr{padding:7px 14px;font-size:11px;}}
 /* Cursor */
 .t-cursor::after{content:'_';animation:blink 0.9s step-end infinite;color:var(--theme-full);}
@@ -261,7 +277,7 @@ body.in-archive #t-breadcrumb{opacity:0!important;}
 }
 </style>
 </head>
-<body class="layer-1a">
+<body class="layer-1c">
 <canvas id="bg-canvas"></canvas>
 <div id="vignette"></div>
 <div id="override-fade"></div>
@@ -392,6 +408,10 @@ function buildAmbFromConfig(ctx, lvKey){
     if(lvKey==='l2a') return _buildL2Amb(ctx);
     return _buildL3Amb(ctx);
   }
+  return buildAmbFromCfg(ctx, lvCfg);
+}
+// Builds the sound from an ambient block ({target_volume, oscillators[]}). Also used to preview a sound before choosing it.
+function buildAmbFromCfg(ctx, lvCfg){
   var master=ctx.createGain();master.gain.value=0;master.connect(ctx.destination);var stops=[];
   lvCfg.oscillators.forEach(function(osc){
     var gainNode=ctx.createGain();gainNode.gain.value=osc.volume||0.04;
@@ -418,6 +438,32 @@ function crossfadeAmbient(level){
     ambNodes=fresh;
     if(prev){prev.master.gain.setTargetAtTime(0,ctx.currentTime,0.8);setTimeout(function(){try{prev.stop();prev.master.disconnect();}catch(e){}},3500);}
   }catch(e){}
+}
+
+// Previewing a sound in the author dialog: the layer's own sound ducks while the preview plays, then comes back.
+var previewNodes=null, previewTimer=null, ambDucked=false;
+function ambientTarget(level){
+  var lvCfg=ambientCfg(level===1?'l1a':level===2?'l2a':'l3a');
+  return lvCfg&&lvCfg.target_volume!=null?lvCfg.target_volume:(level===1?0.18:level===2?0.12:0.05);
+}
+function previewAmbient(cfg, volume){
+  stopAmbientPreview(true);
+  try{
+    var ctx=getCtx();
+    if(ambNodes&&!ambDucked){ambNodes.master.gain.setTargetAtTime(0,ctx.currentTime,0.2);ambDucked=true;}
+    if(cfg&&cfg.oscillators&&cfg.oscillators.length){
+      var fresh=buildAmbFromCfg(ctx,cfg);
+      fresh.master.gain.setTargetAtTime(volume!=null?volume:(cfg.target_volume||0.12),ctx.currentTime,0.25);
+      previewNodes=fresh;
+    }
+    previewTimer=setTimeout(function(){stopAmbientPreview();},12000);   // a preview never plays on forever
+  }catch(e){}
+}
+function stopAmbientPreview(keepDuck){
+  clearTimeout(previewTimer);previewTimer=null;
+  var ctx;try{ctx=getCtx();}catch(e){return;}
+  if(previewNodes){var n=previewNodes;previewNodes=null;n.master.gain.setTargetAtTime(0,ctx.currentTime,0.2);setTimeout(function(){try{n.stop();n.master.disconnect();}catch(e){}},1200);}
+  if(ambDucked&&!keepDuck){ambDucked=false;if(ambNodes)ambNodes.master.gain.setTargetAtTime(ambientTarget(currentLevel),ctx.currentTime,0.4);}
 }
 
 // ── UTILITIES ─────────────────────────────────────────────────────────────────
@@ -1000,7 +1046,7 @@ function applyEngineConfig(c){
 function refreshHeaderTitle(){ if(termState !== 'L1_NORMAL' && !overrideActive) titleEl.textContent = getLayerTitle('l'+currentLevel+'a',''); }
 // The colors for each layer (l1a is the page, l2a and l3a override it by body class) from layers.<id>.colors in echo-os.json.
 // Called after either data file loads and after every author edit, so a change shows at once.
-var LAYER_STYLE_KEYS = ['l1a','l2a','l3a'];
+var LAYER_STYLE_KEYS = ['l1c','l1a','l2a','l3a'];   // the chat paints :root; each archive layer paints its own body class
 function refreshLayerStyles(){
   var theme = {};
   LAYER_STYLE_KEYS.forEach(function(k){
@@ -1008,9 +1054,21 @@ function refreshLayerStyles(){
     var t = (L && L.colors && L.colors.primary) ? L.colors : (CFG_THEME_LEGACY && CFG_THEME_LEGACY[k]);
     if(t && t.primary) theme[k] = t;
   });
+  if(!theme.l1c && theme.l1a) theme.l1c = theme.l1a;   // data without chat colors: the chat looks like the archive, as before
   applyThemeColors(theme);
 }
 
+// '#4fc3f7' to '79,195,247'
+function hexRgb(hex){hex=(hex||'#000').replace('#','');if(hex.length===3)hex=hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];return parseInt(hex.slice(0,2),16)+','+parseInt(hex.slice(2,4),16)+','+parseInt(hex.slice(4,6),16);}
+// The theme variables of one layer as an inline style, so a floating window can wear the colors of the layer it edits.
+function layerThemeVars(layerId){
+  var L=osData&&osData.layers&&osData.layers[layerId], t=L&&L.colors;
+  if(!t||!t.primary) return '';
+  var rgb=hexRgb(t.primary);
+  return '--theme-full:'+t.primary+';--theme-dim:rgba('+rgb+','+(t.dim_opacity||0.7)+');--theme-lo:rgba('+rgb+','+(t.lo_opacity||0.4)+');'+
+    '--theme-border:rgba('+rgb+','+Math.max(t.border_opacity||0.12,0.22)+');--theme-bc:rgba('+rgb+',0.36);--theme-glow-a:rgba('+rgb+',0.20);'+
+    (t.warn?'--theme-warn:'+t.warn+';':'')+(t.denied?'--theme-denied:'+t.denied+';':'')+(t.background?'--theme-bgsolid:'+t.background+';':'');
+}
 function applyThemeColors(theme){
   function hexToRgb(hex){hex=(hex||'#000').replace('#','');if(hex.length===3)hex=hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];return parseInt(hex.slice(0,2),16)+','+parseInt(hex.slice(2,4),16)+','+parseInt(hex.slice(4,6),16);}
   var layerMap={l1a:'layer-1a',l2a:'layer-2a',l3a:'layer-3a'};
@@ -1021,7 +1079,7 @@ function applyThemeColors(theme){
     var t=theme[lv];if(!t)return;var p=t.primary;if(!p)return;
     var rgb=hexToRgb(p);
     // l1a is :root; the others get their own body.layer-<suffix> block.
-    var selector=lv==='l1a'?':root':'body.layer-'+lv.slice(1);
+    var selector=lv==='l1c'?':root':'body.layer-'+lv.slice(1);
     var dimOp=t.dim_opacity||0.70;var loOp=t.lo_opacity||0.40;var bdrOp=t.border_opacity||0.12;
     css+=selector+'{';
     if(p)css+='--theme-full:'+p+';';
@@ -1031,6 +1089,8 @@ function applyThemeColors(theme){
     if(t.denied)css+='--theme-denied:'+t.denied+';';
     if(t.background)css+='--theme-bgsolid:'+t.background+';';
     if(p)css+='--theme-border:rgba('+rgb+','+bdrOp+');';
+    // The chat and the L1 archive have no stylesheet block of their own, so the rest of their palette comes from the primary color too.
+    if(p&&(lv==='l1c'||lv==='l1a'))css+='--theme-bc:rgba('+rgb+',0.36);--theme-irow:rgba('+rgb+',0.08);';
     css+='}';
   });
   if(css){var s=document.createElement('style');s.id='theme-overrides';s.textContent=css;document.head.appendChild(s);}
@@ -1088,7 +1148,9 @@ function setBreadcrumb(text){
   if(!text){breadcrumbEl.textContent='';breadcrumbEl.classList.remove('visible');}else{breadcrumbEl.textContent=text;breadcrumbEl.classList.add('visible');}
 }
 function setHeaderTitle(text){titleEl.style.opacity='0';setTimeout(function(){titleEl.textContent=text;titleEl.style.opacity='1';},280);}
-function applyLayerClass(level){document.body.classList.remove('layer-1a','layer-2a','layer-3a');document.body.classList.add('layer-'+level+'a');currentLevel=level;}
+function applyLayerClass(level){document.body.classList.remove('layer-1c','layer-1a','layer-2a','layer-3a');document.body.classList.add('layer-'+level+'a');currentLevel=level;}
+// The chat (level 1, not yet in the archive) has its own palette, so the archive's layer 1 can differ from it.
+function applyChatClass(){document.body.classList.remove('layer-1c','layer-1a','layer-2a','layer-3a');document.body.classList.add('layer-1c');currentLevel=1;}
 
 // ── DISCOVERED ────────────────────────────────────────────────────────────────
 function markDiscovered(code){var sd=getStardate();discovered[code]={sd:sd,ts:Date.now()};lastRecoveredCode=code;lastRecoveredSd=sd;try{localStorage.setItem('echo_disc',JSON.stringify(discovered));}catch(e){}}
@@ -1507,7 +1569,7 @@ async function handleExit(){
   if(currentLevel===3){applyLayerClass(2);setHeaderTitle(getLayerTitle('l2a',''));crossfadeAmbient(2);await sleep(40);isResponding=false;var r2=layerRootId('l2a');if(r2)await renderArchivePage(r2);}
   else if(currentLevel===2){applyLayerClass(1);setHeaderTitle(archData&&archData.layers&&archData.layers.l1a?archData.layers.l1a.header_title||'':'');crossfadeAmbient(1);await sleep(40);isResponding=false;var r1=layerRootId('l1a');if(r1)await renderArchivePage(r1);}
   else{
-    setHeaderTitle('');setBreadcrumb('');
+    setHeaderTitle('');setBreadcrumb('');applyChatClass();
     if(l1ChatBackup!==null){restoreOutput(l1ChatBackup);l1ChatBackup=null;}
     output.classList.remove('dim-out');output.scrollTop=output.scrollHeight;
     currentMenuOpts=[];menuSelIdx=-1;termState='L1_NORMAL';
@@ -1725,6 +1787,7 @@ async function runGateway(it){
   if(termState === 'L1_NORMAL' && l1ChatBackup === null) l1ChatBackup = snapOutput();
   isResponding = true;
   if(lvl !== currentLevel){ if(lvl === 2) await transitionToL2(); else if(lvl === 3) await transitionToL3(); }
+  else if(termState === 'L1_NORMAL'){ applyLayerClass(1); }
   isResponding = false;
   await renderArchivePage(it.goto);
 }
@@ -1760,6 +1823,86 @@ async function loadAuthor(){
   try{ var m = await import('./terminal-data/author.js?v='+Date.now()); authorMod = m.default; } catch(e){ authorMod = null; }
   return authorMod;
 }
+// ── AUTHOR DIALOG FRAME ───────────────────────────────────────────────────────
+// A floating window (not modal: the page behind stays usable) that the author tools fill with controls. It is movable by its
+// title bar, wears the theme of the layer it edits (setTheme), and one per key stays open. terminal-data/author-dialog.js builds
+// what goes inside it.
+var authorDialogs = {}, dlgZ = 0, dlgCascade = 0, pendingDlgFocus = null;
+// A command that opens a window ends by drawing the prompt, which takes the focus back to the terminal's input. So a window asks
+// for its focus to be set after the command has finished (or, when no command is running, a moment from now).
+function runDialogFocus(){ var f = pendingDlgFocus; pendingDlgFocus = null; if(f) setTimeout(function(){ try{ f(); }catch(e){} }, 30); }
+function openAuthorDialog(opts){
+  opts = opts || {};
+  if(opts.key && authorDialogs[opts.key]){ authorDialogs[opts.key].raise(); return authorDialogs[opts.key]; }
+  var el = document.createElement('div'); el.className = 'ed-dlg'; el.setAttribute('role', 'dialog');
+  function sp(cls, text){ var e = document.createElement('span'); e.className = cls; if(text != null) e.textContent = text; return e; }
+  var bar = document.createElement('div'); bar.className = 'ed-bar';
+  var ttl = sp('ttl', String(opts.title || 'EDIT').toUpperCase()), sub = sp('sub', opts.sub || ''), x = sp('x', '[X]'); x.title = 'Close (Esc)';
+  [ttl, sub, x].forEach(function(e){ bar.appendChild(e); });
+  var body = document.createElement('div'); body.className = 'ed-body';
+  var foot = document.createElement('div'); foot.className = 'ed-foot';
+  el.appendChild(bar); el.appendChild(body); el.appendChild(foot);
+  document.body.appendChild(el);
+  var n = dlgCascade++ % 6;
+  el.style.left = Math.max(6, Math.min(48 + n * 26, window.innerWidth - el.offsetWidth - 6)) + 'px';
+  el.style.top = Math.max(6, Math.min(64 + n * 26, window.innerHeight - 120)) + 'px';
+  // The window is never taller than the room below its top edge, so its buttons stay on the screen wherever it sits.
+  function fit(){ el.style.maxHeight = Math.max(240, Math.min(780, window.innerHeight - (parseFloat(el.style.top) || 0) - 8)) + 'px'; }
+  fit(); window.addEventListener('resize', fit);
+  var d = {
+    el: el, body: body, foot: foot, key: opts.key || null, closed: false,
+    setTitle: function(t){ ttl.textContent = String(t).toUpperCase(); },
+    setSub: function(t){ sub.textContent = t || ''; },
+    style: function(css){ var st = document.createElement('style'); st.textContent = css; el.appendChild(st); },
+    // Wear the colors of a layer (l1c, l1a, l2a or l3a), as set in echo-os.json right now.
+    setTheme: function(layerId){
+      var v = layerThemeVars(layerId); if(!v) return;
+      v.split(';').forEach(function(p){ var i = p.indexOf(':'); if(i > 0) el.style.setProperty(p.slice(0, i), p.slice(i + 1)); });
+    },
+    raise: function(){ el.style.zIndex = String(55 + (++dlgZ)); },
+    focusLater: function(fn){ pendingDlgFocus = fn; setTimeout(function(){ if(pendingDlgFocus === fn && !isResponding) runDialogFocus(); }, 120); },
+    close: function(){
+      if(d.closed) return; d.closed = true;
+      if(d.key && authorDialogs[d.key] === d) delete authorDialogs[d.key];
+      window.removeEventListener('resize', fit); el.remove(); if(opts.onClose) opts.onClose();
+    }
+  };
+  d.raise(); if(opts.theme) d.setTheme(opts.theme);
+  if(opts.key) authorDialogs[opts.key] = d;
+  x.addEventListener('click', function(){ d.close(); });
+  el.addEventListener('pointerdown', function(){ d.raise(); }, true);
+  el.addEventListener('keydown', function(e){
+    if(e.key === 'Escape'){ e.stopPropagation(); if(opts.onEscape && opts.onEscape() === false) return; d.close(); }
+    else e.stopPropagation();   // typing in the dialog never reaches the terminal's own key handling
+  });
+  // Dragging by the title bar (mouse or touch), kept inside the window.
+  var drag = null;
+  bar.addEventListener('pointerdown', function(e){
+    if(e.target === x) return;
+    var r = el.getBoundingClientRect(); drag = {dx: e.clientX - r.left, dy: e.clientY - r.top};
+    try{ bar.setPointerCapture(e.pointerId); }catch(err){}
+    e.preventDefault();
+  });
+  bar.addEventListener('pointermove', function(e){
+    if(!drag) return;
+    el.style.left = Math.max(0, Math.min(e.clientX - drag.dx, window.innerWidth - 80)) + 'px';
+    el.style.top = Math.max(0, Math.min(e.clientY - drag.dy, window.innerHeight - 36)) + 'px';
+    fit();
+  });
+  var endDrag = function(){ drag = null; };
+  bar.addEventListener('pointerup', endDrag); bar.addEventListener('pointercancel', endDrag);
+  return d;
+}
+function closeAuthorDialogs(){ Object.keys(authorDialogs).forEach(function(k){ authorDialogs[k].close(); }); stopAmbientPreview(); }
+// After an edit the page behind the dialog is drawn again. Waits for the terminal to be idle, and gives focus back to what had it.
+async function redrawAuthorPage(){
+  for(var i = 0; i < 40 && !uiReady(); i++) await sleep(100);
+  if(!uiReady() || !archData || !archData.nodes[termState]) return;
+  var a = document.activeElement;
+  await gotoPage(termState);
+  try{ if(a && a.isConnected && a !== document.body) a.focus(); }catch(e){}
+}
+
 function osSnapshot(){ return JSON.stringify(osData, function(k, v){ return k === '_parent' ? undefined : v; }, 2)+'\n'; }
 function makeAuthorCtx(){
   var c = makeProgramCtx();
@@ -1770,6 +1913,8 @@ function makeAuthorCtx(){
   // of text a player will read (a transition, a page) goes through the real renderer, typed or whole as that text would be.
   c.say = async function(text, cls){ var el = addLine(cls || 'dim', true); await put(el, text, 'list'); };
   c.preview = function(body, kind){ return renderIntroBody(body, kind === 'page' ? 'page' : 'flavor'); };
+  c.dialog = openAuthorDialog;
+  c.typeMs = typeMs;
   c.os = {
     get data(){ return osData; },
     get items(){ return osItems; },
@@ -1784,7 +1929,11 @@ function makeAuthorCtx(){
     },
     draft: function(){ try{ return localStorage.getItem('echo_os_draft'); }catch(e){ return null; } },
     clearDraft: function(){ try{ localStorage.removeItem('echo_os_draft'); }catch(e){} },
-    loadProgram: loadProgram
+    loadProgram: loadProgram,
+    redraw: redrawAuthorPage,
+    submit: uiSubmit,                    // run a command as if it had been clicked
+    refreshStyles: refreshLayerStyles,
+    previewSound: previewAmbient, stopSound: stopAmbientPreview
   };
   return c;
 }
@@ -1809,7 +1958,7 @@ async function handleAuthorInput(val){
   if(!authorMode) return false;
   if(val === '[AUTHOR LOCK]'){
     var u2 = addLine('user'); u2.textContent = '> '+val; isResponding = true;
-    authorMode = false; setAuthorPrompt();
+    authorMode = false; setAuthorPrompt(); closeAuthorDialogs();
     await showAuthorMessages([['> AUTHOR MODE LOCKED', 'dim']]); return true;
   }
   var mod = authorMod;
@@ -1825,9 +1974,9 @@ async function handleAuthorInput(val){
   if(res === 'redraw'){
     // The page we were on may be the thing that was deleted: fall back to its folder.
     var back = archData.nodes[prev] ? prev : (prevParent && archData.nodes[prevParent] ? prevParent : layerRootId(currentLevel));
-    if(back){ isResponding = false; await renderArchivePage(back, actx.notes); return true; }
+    if(back){ isResponding = false; await renderArchivePage(back, actx.notes); runDialogFocus(); return true; }
   }
-  await promptInPlace(); return true;
+  await promptInPlace(); runDialogFocus(); return true;
 }
 // Mode switches redraw an archive page so hidden items appear / disappear; elsewhere the messages just print.
 async function showAuthorMessages(msgs){
@@ -1923,6 +2072,7 @@ async function authorJump(id){
     if(termState === 'L1_NORMAL' && l1ChatBackup === null) l1ChatBackup = snapOutput();
     if(it.tier !== currentLevel || termState === 'L1_NORMAL'){
       if(it.tier !== currentLevel){ applyLayerClass(it.tier); crossfadeAmbient(it.tier); }
+      else if(termState === 'L1_NORMAL'){ applyLayerClass(1); }
       setHeaderTitle(getLayerTitle('l' + it.tier + 'a', ''));
     }
     await renderArchivePage(pageId, own ? [{text:'> ' + (it.alias || it.name) + ' IS A ' + it.type.toUpperCase() + (it.stub ? ' PLACEHOLDER' : '') + ' IN THIS FOLDER', cls:'dim'}] : []);
@@ -2128,7 +2278,7 @@ async function triggerVirusSequence(entry){
   await sleep(700);
   document.getElementById('page').style.opacity='0';await sleep(700);
   try{if(ambNodes){ambNodes.stop();ambNodes.master.disconnect();ambNodes=null;}}catch(e){}
-  applyLayerClass(1);setBreadcrumb('');setHeaderTitle('');
+  applyChatClass();setBreadcrumb('');setHeaderTitle('');
   output.innerHTML='';termInput.value='';termInput.disabled=false;
   setView(false);closeProgWindow();
   termState='L1_NORMAL';currentMenuOpts=[];menuSelIdx=-1;isResponding=false;typing=false;l1ChatBackup=null;
@@ -2480,7 +2630,7 @@ var overrideFadeEl=document.getElementById('override-fade');
 async function fadeToBlack(){overrideFadeEl.classList.add('show');await sleep(400);}
 async function fadeFromBlack(){overrideFadeEl.classList.remove('show');await sleep(400);}
 async function enterSystemOverride(){
-  overrideActive=true;isResponding=true;
+  overrideActive=true;isResponding=true;closeAuthorDialogs();
   overrideSnapshot={
     html:snapOutput(), termState:termState, currentLevel:currentLevel,
     breadcrumb:breadcrumbEl.textContent, title:titleEl.textContent,
@@ -2658,12 +2808,12 @@ async function exitSystemOverride(){
   await fadeToBlack();
   document.body.classList.remove('override-mode');
   if(!snap){
-    termState='L1_NORMAL';output.innerHTML='';setBreadcrumb('');setHeaderTitle('');
+    termState='L1_NORMAL';applyChatClass();output.innerHTML='';setBreadcrumb('');setHeaderTitle('');
     await fadeFromBlack();
     var pl=addLine('low');await put(pl,'> AWAITING INPUT','prompt');setActiveCursor(pl);
     isResponding=false;termInput.focus();return;
   }
-  applyLayerClass(snap.currentLevel);
+  if(snap.termState==='L1_NORMAL') applyChatClass(); else applyLayerClass(snap.currentLevel);
   restoreOutput(snap.html);
   termState=snap.termState;
   setBreadcrumb(snap.breadcrumb);

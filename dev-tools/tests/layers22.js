@@ -28,48 +28,48 @@ const L = require('./lib.js');
   await p.hover('#ctx .cr.ed:has-text("PRIMARY")'); await p.waitForTimeout(80);
   check('hovering a layer row shows its command in the field', (await p.inputValue('#t-field')) === '[LAYER PRIMARY]', await p.inputValue('#t-field'));
 
-  // ---- colors, live ----
-  await p.click('#ctx .cr.ed:has-text("PRIMARY")'); await prompt();
-  let o = await out();
-  check('clicking PRIMARY asks for the color straight away', o.some((l) => l.includes('> PRIMARY COLOR AS HEX (ENTER = KEEP ' + d0.layers.l1a.colors.primary + ')')) && !o.some((l) => /WHICH (LAYER|SETTING)/.test(l)), o.slice(-4));
-  await answer('red');
-  for (let i = 0; i < 40; i++) { o = await out(); if (o.some((l) => l.includes('NOT A HEX COLOR')) && await p.evaluate(() => !!window.progWait)) break; await p.waitForTimeout(100); }
-  check('a bad color is refused and asked again', o.some((l) => l.includes('NOT A HEX COLOR')) && await p.evaluate(() => !!window.progWait));
-  await answer('#F0a'); await calm();
-  check('a three digit color is accepted and normalized, and shows at once', (await css('--theme-full')) === '#ff00aa' && (await data()).layers.l1a.colors.primary === '#ff00aa', await css('--theme-full'));
-  await send('[LAYER DIM]'); await answer('55%'); await calm();
-  check('a strength accepts a percentage', (await data()).layers.l1a.colors.dim_opacity === 0.55);
+  // ---- colors, live: one window for the layer, opened by clicking a row ----
+  await p.click('#ctx .cr.ed:has-text("PRIMARY")'); await p.waitForSelector('.ed-dlg'); await p.waitForTimeout(300);
+  const dlgF = (l) => p.locator('.ed-dlg .ed-row:has(.ed-lbl:text-is("' + l + '"))');
+  const bodyCss = () => css('--theme-full', true);
+  check('clicking PRIMARY opens the layer window on L1A, on the primary color box straight away (no "which layer" or "which setting")', (await p.$eval('.ed-dlg .ed-bar .sub', (e) => e.textContent)) === 'L1A' && await p.evaluate(() => { const a = document.activeElement; return !!a; }), await p.$eval('.ed-dlg .ed-bar .sub', (e) => e.textContent));
+  await dlgF('PRIMARY').locator('input[type=text]').fill('red'); await p.waitForTimeout(100);
+  check('a bad color is flagged and not applied', (await dlgF('PRIMARY').locator('input[type=text]').evaluate((e) => e.classList.contains('bad'))) && (await data()).layers.l1a.colors.primary === d0.layers.l1a.colors.primary);
+  await dlgF('PRIMARY').locator('input[type=text]').fill('#F0a'); await p.waitForTimeout(150);
+  check('a three digit color is accepted and normalized, and shows at once on the archive', (await bodyCss()) === '#ff00aa' && (await data()).layers.l1a.colors.primary === '#ff00aa', await bodyCss());
+  check('...and the chat keeps its own colors', (await css('--theme-full')) === d0.layers.l1c.colors.primary);
+  await dlgF('DIM').locator('input[type=range]').evaluate((e) => { e.value = '0.55'; e.dispatchEvent(new Event('input', { bubbles: true })); e.dispatchEvent(new Event('change', { bubbles: true })); });
+  check('a strength is a slider', (await data()).layers.l1a.colors.dim_opacity === 0.55);
 
   // ---- title ----
-  await send('[LAYER TITLE]'); await answer('TEST ARCHIVE'); await calm();
+  await dlgF('TITLE').locator('input').fill('TEST ARCHIVE'); await p.waitForTimeout(500);
   check('the header title changes on the page that is showing', (await p.evaluate(() => document.getElementById('t-title').textContent)) === 'TEST ARCHIVE' && (await data()).layers.l1a.header_title === 'TEST ARCHIVE');
 
-  // ---- sound ----
-  await send('[LAYER SOUND]'); await answer('rumble');
-  for (let i = 0; i < 40; i++) { o = await out(); if (o.some((l) => l.includes('NO SOUND NAMED'))) break; await p.waitForTimeout(100); }
-  check('an unknown sound is refused', o.some((l) => l.includes('NO SOUND NAMED')));
-  await answer('sub-bass'); await calm();
+  // ---- sound: a list to listen to and choose from ----
+  await p.click('.ed-dlg .ed-snd .nm[data-sound="SUB-BASS"]'); await p.waitForTimeout(150);
   let a = (await data()).layers.l1a.ambient;
-  check('a preset sets the tones and its volume', a.oscillators.length === 1 && a.oscillators[0].freq === 38 && a.target_volume === 0.05, a);
-  await send('[LAYER VOLUME]'); await answer('0.5'); await calm();
+  check('choosing a sound from the list sets the tones and its volume', a.oscillators.length === 1 && a.oscillators[0].freq === 38 && a.target_volume === 0.05, a);
+  await dlgF('VOLUME').locator('input[type=range]').evaluate((e) => { e.value = '0.5'; e.dispatchEvent(new Event('input', { bubbles: true })); e.dispatchEvent(new Event('change', { bubbles: true })); });
   check('volume is set and the engine reads it', (await data()).layers.l1a.ambient.target_volume === 0.5 && (await p.evaluate(() => ambientCfg('l1a').target_volume)) === 0.5);
-  await send('[LAYER SOUND]'); await answer('silent'); await calm();
+  await p.click('.ed-dlg .ed-snd .nm[data-sound="SILENT"]'); await p.waitForTimeout(100);
   check('silent sets the volume to zero', (await data()).layers.l1a.ambient.target_volume === 0);
 
-  // ---- intro text ----
-  await send('[LAYER INTRO]'); await prompt(); o = await out();
-  check('INTRO shows the current text first', o.some((l) => l.includes('ECHOES-ARCHIVE ACCESS GRANTED')), o.slice(-6));
-  await answer('[CLEAR]'); await answer('Y'); await answer('FLAVOR ONE'); await answer('/dim flavor two'); await answer('[DONE]'); await calm();
+  // ---- transition text ----
+  check('the transition text shows the current lines first', (await p.$$eval('.ed-dlg .ed-ln input.ed-in', (e) => e.map((x) => x.value))).includes('> ECHOES-ARCHIVE ACCESS GRANTED.'));
+  await p.click('.ed-dlg button:text-is("PASTE...")'); await p.fill('.ed-dlg textarea.ed-in', 'FLAVOR ONE\n/dim flavor two'); await p.click('.ed-dlg button:text-is("REPLACE THE LINES WITH THIS")');
+  await p.click('.ed-dlg button:text-is("SAVE THE TRANSITION TEXT")'); await p.waitForTimeout(200);
   const sc = (await data()).screens.L1A_INTRO.body;
   check('the intro text is replaced, with the blank lines and rule kept around it', sc.length === 5 && sc[0].cls === 'blank' && sc[1].text === 'FLAVOR ONE' && sc[2].text === 'flavor two' && sc[2].cls === 'dim' && /^> ─+$/.test(sc[3].text) && sc[4].cls === 'blank', sc.map((b) => b.text));
+  await p.click('.ed-dlg .ed-bar .x');
 
   // ---- another layer, by typing ----
   await send('[INITIATE ECHO PROTOCOL]');
   check('now in layer 2', (await p.evaluate(() => currentLevel)) === 2);
-  await send('[LAYER]'); await prompt(); o = await out();
-  check('[LAYER] lists the layer you are standing in', o.some((l) => l.includes('L2A SETTINGS')) && o.some((l) => l.includes('SOUND') && l.includes('CHORD')), o.slice(-16));
-  await answer('primary'); await answer('#00ff88'); await calm();
+  await send('[LAYER]'); await p.waitForSelector('.ed-dlg'); await p.waitForTimeout(300);
+  check('[LAYER] opens the window on the layer you are standing in, showing its sound', (await p.$eval('.ed-dlg .ed-bar .sub', (e) => e.textContent)) === 'L2A' && (await p.$eval('.ed-dlg .ed-snd .it.sel .nm b', (e) => e.textContent)) === 'CHORD');
+  await dlgF('PRIMARY').locator('input[type=text]').fill('#00ff88'); await p.waitForTimeout(150);
   check('layer 2 repaints with its own color, layer 1 keeps its', (await css('--theme-full', true)) === '#00ff88' && (await data()).layers.l1a.colors.primary === '#ff00aa');
+  await p.click('.ed-dlg .ed-bar .x');
   await p.fill('#t-field', '[LAYER PRIMARY]'); await p.waitForTimeout(80);
   check('the input lights for a layer command typed in full', await p.evaluate(() => document.getElementById('t-field').classList.contains('inverted')));
   await p.fill('#t-field', '');
