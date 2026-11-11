@@ -5,6 +5,9 @@ const LC = require('../log-codes.js');
 (async () => {
   const b = await chromium.launch(launchOptions);
   const ctx = await b.newContext({ viewport: { width: 1500, height: 1000 } });
+  // The editor asks GitHub for its own commit id and Google for a font. Answer both here so the suite never depends on the network.
+  await ctx.route(/api\.github\.com/, (r) => r.fulfill({ status: 200, contentType: 'application/json', body: '[]' }));
+  await ctx.route(/fonts\.(googleapis|gstatic)\.com/, (r) => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
   const p = await ctx.newPage();
   const errs = []; p.on('pageerror', (e) => errs.push(String(e))); p.on('console', (m) => { if (m.type() === 'error') errs.push('console: ' + m.text()); });
   p.on('dialog', (d) => d.accept());

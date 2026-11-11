@@ -84,7 +84,7 @@ this section says so.
 
 ## Suggested edits to the two existing logs
 
-Nothing in this table is applied. The text of both stays as it is until you decide.
+Both edits in the table are applied to the 2143.119 log in `lore.json`, using the lore's own figure: the second supply ship arrived at 2109.201, the office that answered the Charon closed while it was still in transit, and that is nearly thirty-four years before 2143.119. The 2143.136 log is unchanged.
 
 **CAPTAIN'S LOG A-01 (2143.119.1719)**
 
@@ -151,6 +151,97 @@ POD BAY LOG. Move him with the editor's EDIT button if you settle on a different
 They pair with the archive documents. Reyes wrote the triage board (the document only says `DR. [CORRUPTED]`). Whitlock is the
 security side of the Day 31 breach. The night of 2143.150 now has a sequence: Cross tells the Captain (2301), the protocol is filed
 (2318), Okonkwo is at the aft hub (2352).
+
+## Updates for the lore repo (`ECHOES_Novel.md`, `PROGRESS.md`)
+
+The lore repo was not edited. The novel prints the two Captain's logs, and after the re-key and the supply ship edit its copies are
+stale. Replace the two blocks in `ECHOES_Novel.md` (lines 1291 to 1345) with the following. The footnote marks stay.
+
+````
+**Log A-014 | Stardate 2143.119.1719**
+
+```
+ARCHIVE QUERY: 6IYRR-MMDG9-MD13K-M1X0M
+————————————————————————————————————
+[Log A-014 | Stardate 2143.119.1719]
+CAPTAIN'S LOG
+
+Day one of the new research phase. The team is settled.
+Morale is good, as good as it gets out here, which is
+good enough.
+
+Whatever Dr. Cross and his people are working on in the
+research wing, the rest of the crew has stopped asking.
+That's how it usually goes. You get curious and then
+you get bored of being curious and then you get used to
+the closed doors.
+
+Nearly thirty-four years since the last ship docked.
+Nobody on Mars has answered in all that time, and the
+reports still go out on schedule.
+We have everything we need.
+
+We have everything we need.
+
+    —— Capt. E. Harrow[^18]
+[END OF LOG]
+————————————————————————————————————
+```
+
+---
+
+**Log A-014 | Stardate 2143.136.2132**
+
+```
+ARCHIVE QUERY: 6TD6R-E9HO6-N2MFR-W0G04
+————————————————————————————————————
+[Log A-014 | Stardate 2143.136.2132]
+CAPTAIN'S LOG
+
+Dr. Osei[^19] submitted a supplemental sensor report today.
+She wouldn't say what it was about. Said it was Cross's
+department. I asked Cross.
+
+Cross said it was fine.
+
+I've known Harlan Cross for eleven years. I know what
+his "fine" means. It means he's deciding how much
+to tell you.
+
+I told him to keep me informed.
+
+He said he would.
+
+    —— Capt. E. Harrow
+[END OF LOG]
+————————————————————————————————————
+```
+````
+
+Other lines to change in the lore repo:
+
+| File and place | Now | Change to |
+|---|---|---|
+| `PROGRESS.md` (the 2026-09-14 entry, lines 146 to 155) | Lists the codes `1GOXN-...` and `1Q3CN-...` for A-01 and A-15 | Add a 2026-11-11 entry: both logs are now `A-014` (the Captain's crew ID) with the codes above, and the 2143.119 log changed its supply ship line and its em dash |
+| `ECHOES_Novel.md` line 1286 | `*Recovered — Clearance L1*` | `*Recovered — Clearance L2*`, because FETCH LOG reads lore logs at L2 (see the question below) |
+| `ECHOES_Novel.md` footnote `[^18]` | "his final recovered entry still reads, twice, 'We have everything we need.'" | The 2143.136 log is later and does not say it. Either "his first recovered entry" or "an early entry" |
+| `ECHOES_Novel.md` line 1350 | `*Further logs — access requires clearance upgrade.*` | Still true, the six new logs are those further logs. Nothing to change |
+
+The `ARCHIVE QUERY:` lines and the dashed rules copy the terminal's old display. FETCH LOG.EXE now shows an `ENTRY CODE` field and a
+`> ENTRY RECOVERED` status line instead. They still read well as an excerpt, so I left the format alone.
+
+### Other logs in the novel
+
+Nothing else in the novel is an entry code log. The only logs players can fetch are the two Captain's logs. What else is in it:
+
+- **Five `VESSEL INTERNAL LOG` blocks** (2175.150.0255, .0445, .0600, .0715 and .0900), written in the terminal's own voice and marked
+  `CLEARANCE: L3`. These would suit author `X` (ship systems) in the registry, with log type SYSTEM RECORD. They are not in the data
+  because of one engine rule: FETCH LOG reads `dev_logs.json` at L3, so an L3 entry from the terminal has no file to live in. Adding
+  them takes either a decision to let L3 also read `lore.json`, or putting them in `dev_logs.json`.
+- **In-world screens** (the start screen, the Sector 7 pod bay display, the Cargo Bay C inventory screen). They are screens, not logs.
+  The terminal's document tree already holds the pod bay and cargo material as documents.
+- **The novel's own flags.** The `FLAG-FIX` comments in the novel still say the transmission cut and the cell pull move from .159 and
+  .158 to .151 and .150. The game logs already use .150 and .151.
 
 ## Left unwritten on purpose
 
