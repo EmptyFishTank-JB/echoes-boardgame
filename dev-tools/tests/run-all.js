@@ -29,6 +29,7 @@ const SUITES = [
   ['pace16', 'what types and what lands whole, speeds, sounds'],
   ['layers22', 'per-layer settings: colors, title, intro, sound'],
   ['editor23', 'engine editor: no theme or per-layer sound sections'],
+  ['logs24', 'log data lint (lore.json, dev_logs.json) and fetching the 2143 logs'],
 ];
 
 function serve() {

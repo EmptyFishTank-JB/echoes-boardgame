@@ -74,3 +74,89 @@ These are in the documents and not in the lore. Cut or confirm each one.
 
 No em dashes in document text (titles keep the existing `—` in item names), numbers spelled out in narrative
 text and numerals for stardates and readouts, no "not X but Y" constructions, no warmth from the machine voice.
+
+---
+
+# Lore logs (`terminal-data/lore.json`)
+
+Written 2026-11-11. The lore documents are treated as guidance, not as settled: where they disagree with each other
+this section says so.
+
+## Suggested edits to the two existing logs
+
+Nothing here is applied. Both stay as they are until you decide.
+
+**CAPTAIN'S LOG A-01 (2143.119.1719)**
+
+| Line | Problem | Suggestion |
+|---|---|---|
+| "Fourteen months to the next supply ship." | There were only two supply ships, the second docked in 2109 (2109.201), and Mars has not answered since the reply office closed during its crossing. In 2143 no ship is coming and the crew knows nobody answers. | "Nearly thirty-four years since the last ship docked. Nobody on Mars has answered in all that time, and the reports still go out on schedule." It keeps the dread: "We have everything we need", said twice, now reads as a man counting what he has because nothing is coming. |
+| "Morale is good — as good as it gets out here" | An em dash in an in-world document. | "Morale is good, as good as it gets out here, which is good enough." |
+
+Everything else in A-01 holds. "The new research phase", the closed doors and the fourteen all match the Timeline, and the
+day-one date matches the phase start.
+
+**CAPTAIN'S LOG A-15 (2143.136.2132)**
+
+Accurate. Osei's supplemental report, "Cross's department", "I've known Harlan Cross for eleven years" and "keep me informed"
+all fit. One optional change: the number. If log numbers follow the phase day count, 2143.136 is Day 18 and the log would be
+**A-18**. That also lines up with the archive documents (Osei filed the report at 2143.136.1930, two hours before this entry).
+The log code has the entry number baked in, so renumbering means a new code from the editor. Leave it at A-15 if the number is
+a plain sequence.
+
+Question for the signature: every log ends `    —— Name`, two em dashes. The prose rules say none outside interrupted
+dialogue. The new logs keep the `——` attribution to match A-01, A-15 and the dev logs, and avoid em dashes in the text.
+Drop the attribution dashes in all of them if you want the rule applied strictly.
+
+## The new logs
+
+Six logs, all `full`, all inside the incident window and on the day count (Day *n* is 2143.(118 + *n*)). I read "the 13" as
+the research team of fourteen without Cross, and the logs use two of them plus four other crew. Names are invented.
+
+| Code (temporary) | Log | Stardate (day) | Who | What it carries |
+|---|---|---|---|---|
+| `TEMP0-R0008-00000-00126` | RESEARCH LOG R-08 | 2143.126.0614 (Day 8) | Dr. R. Ibarra, Research Team | The third program he has worked in the wing. The closed doors are routine. Cross runs the floor. Osei thinks the baseline is too steady. |
+| `TEMP0-R0027-00000-00145` | RESEARCH LOG R-27 | 2143.145.2250 (Day 27) | Dr. N. Haddad, Research Team | The fourteen sleep in the wing "for continuity". The readings "do not drift, they arrive and they stay". The lights dim on a schedule none of them set. |
+| `TEMP0-S0031-00000-00149` | SECURITY LOG S-31 | 2143.149.0712 (Day 31) | Officer D. Whitlock, Security | Four went to the corridor outside the wing on a door alarm ECH/OES classed routine, two walked back. The cameras recorded the whole time and the corridor is empty on every frame. The ring is sealed. |
+| `TEMP0-E0032-00000-00150` | ENGINEERING LOG E-32 | 2143.150.2352 (Day 32) | M. Okonkwo, Engineering | Cross and six people at the aft hub with a written order. The cells are emptied by hand, a bank at a time, onto carts. He told her where they are going and asked her to put it out of her head. The reactor bus keeps the air, the lights that matter, the pods and the spin. |
+| `TEMP0-M0034-00000-00152` | MEDICAL LOG M-34 | 2143.152.0618 (Day 34) | Dr. A. Reyes, Medical Bay | The author of the triage record. Eleven forms with the same one word for the cause, "corridor". Blood for two days and a battery that outlasts it. Patients asking about the hubs. |
+| `TEMP0-P0044-00000-00162` | POD BAY LOG P-44 | 2143.162.2205 (Day 44) | J. Park, Pod Bay Technician | Sector Seven bay: five pods, all away by 2140, the last released by the author. Six seats each, empty seats counted on the way out. The beacons are dark and three frightened people gave three reasons. |
+
+They pair with the archive documents. Reyes wrote the triage board (the document only says `DR. [CORRUPTED]`). Whitlock is the
+security side of the Day 31 breach. The night of 2143.150 now has a sequence: Cross tells the Captain (2301), the protocol is filed
+(2318), Okonkwo is at the aft hub (2352).
+
+**Codes.** The codes above are placeholders (`TEMP0-...`, the series, number and day inside them). The terminal accepts them,
+but the real codes come from your log editor, which uses your salt. For each, enter year 2143 and:
+
+| Log | Month | Day | Hour | Minute | Entry ID |
+|---|---|---|---|---|---|
+| R-08 | 5 | 6 | 6 | 14 | 8 |
+| R-27 | 5 | 25 | 22 | 50 | 27 |
+| S-31 | 5 | 29 | 7 | 12 | 31 |
+| E-32 | 5 | 30 | 23 | 52 | 32 |
+| M-34 | 6 | 1 | 6 | 18 | 34 |
+| P-44 | 6 | 11 | 22 | 5 | 44 |
+
+Replace each key in `lore.json` with the generated code. Entry ID is the log number, as for A-01 and A-15 (check that
+against how you set A-15).
+
+## Left unwritten on purpose
+
+- The person in Cargo Bay C on 2143.181. The novel marks the occupant and the status as unknown, and "this terminal knows".
+- The owner of the kit bag whose name tab has faded past reading.
+- Garrett Keys. He was frozen in 2143 and the lore limits what he can know, so his entries are best written with you.
+- Anything that says what the thing in the wing is.
+
+## Inconsistencies in the lore documents
+
+1. **When the transmissions were cut.** The Timeline, CLAUDE.md and the Technical Reference say 2143.151. The novel's pod bay display
+   says `TRANSMISSION DISABLED: STARDATE 2143.159` and John says so in the dialogue. The archive documents use .151. The new logs
+   avoid giving a date.
+2. **Pod bays.** The Technical Reference places Pod Bays 1 and 2 in the forward hub and 3 and 4 in the aft hub. The Timeline says
+   "Pod Bay 7". The novel says Sector 7, aft starboard, with the surviving four in Bay 3, Sector 2, mid-port. P-44 uses
+   "Sector Seven bay".
+3. **Supply ships.** Log A-01 says "fourteen months to the next supply ship". See the table above.
+4. **Distance from port.** You already flagged the "five years from the nearest port" line in the crew quarters scene.
+5. **The research team's size.** "Fourteen specialists, led by Dr. Harlan Cross" can mean fourteen plus Cross or fourteen including him.
+   You wrote "13", which reads as the second. The logs do not say.

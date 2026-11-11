@@ -10,5 +10,41 @@
     "type": "full",
     "clearance": 1,
     "text": "[Log A-15 | Stardate 2143.136.2132]\nCAPTAIN'S LOG\n\nDr. Osei submitted a supplemental sensor report today.\nShe wouldn't say what it was about. Said it was Cross's\ndepartment. I asked Cross.\n\nCross said it was fine.\n\nI've known Harlan Cross for eleven years. I know what\nhis \"fine\" means. It means he's deciding how much\nto tell you.\n\nI told him to keep me informed.\n\nHe said he would.\n\n    —— Capt. E. Harrow\n[END OF LOG]"
+  },
+  "TEMP0-R0008-00000-00126": {
+    "label": "RESEARCH LOG R-08 | Stardate 2143.126.0614",
+    "type": "full",
+    "clearance": 1,
+    "text": "[Log R-08 | Stardate 2143.126.0614]\nRESEARCH LOG\n\nDay eight. The run schedule is holding.\n\nThis is the third program I have worked in this wing.\nThe doors close the same way every time. Nobody outside\nasks, and nobody inside is allowed to say much, so after\na few weeks the quiet starts to feel like a feature.\n\nCross runs the floor the way he always has. He wants the\nnotes tidy, the feeds clean, and the fourteen of us to know\nwhere the line is. I have never needed to ask where it is.\n\nOsei thinks the baseline is too steady. I told her steady\nis what a baseline is for.\n\n    —— Dr. R. Ibarra\n[END OF LOG]"
+  },
+  "TEMP0-R0027-00000-00145": {
+    "label": "RESEARCH LOG R-27 | Stardate 2143.145.2250",
+    "type": "full",
+    "clearance": 1,
+    "text": "[Log R-27 | Stardate 2143.145.2250]\nRESEARCH LOG\n\nDay twenty-seven. Cross has asked that the fourteen of us\nsleep in the wing until the current runs are closed. He\ncalls it continuity. Nobody argued, which tells you how\ntired everyone is.\n\nThe readings have stopped behaving like the earlier\nprograms. They do not drift. They arrive, and they stay.\n\nI asked Osei what she thought. She said she had already\nwritten it down, and then she asked me not to ask again.\n\nI am going to try to sleep. The lights in the wing have\nstarted to dim on a schedule none of us set.\n\n    —— Dr. N. Haddad\n[END OF LOG]"
+  },
+  "TEMP0-S0031-00000-00149": {
+    "label": "SECURITY LOG S-31 | Stardate 2143.149.0712",
+    "type": "full",
+    "clearance": 2,
+    "text": "[Log S-31 | Stardate 2143.149.0712]\nSECURITY LOG\n\nDay thirty-one, end of the first watch.\n\nI took four to the corridor outside the research wing at\n0340, on a door alarm that ECH/OES classed routine. Two of\nus walked back. I have written what I saw on the incident\nform, and the form will say what the system says it will say.\n\nI am putting the rest here because the form will not hold\nit. The cameras recorded the whole time. The corridor is\nempty on every frame.\n\nI have sealed the ring behind us. I have told nobody else\nto go in.\n\n    —— Officer D. Whitlock, Security\n[END OF LOG]"
+  },
+  "TEMP0-E0032-00000-00150": {
+    "label": "ENGINEERING LOG E-32 | Stardate 2143.150.2352",
+    "type": "full",
+    "clearance": 2,
+    "text": "[Log E-32 | Stardate 2143.150.2352]\nENGINEERING LOG\n\nDay thirty-two, night watch, rear power supply.\n\nChief Engineer Cross came to the aft hub with six people\nand a written order. The authorization is real. I checked\nit twice.\n\nWe are emptying the primary cell housings by hand, a bank\nat a time, onto carts. The cells are heavy and they do not\nlike to be carried. Cross told me where they are going and\nasked me to put it out of my head. I am doing my best.\n\nWhen the last bank leaves, everything that runs on the\ncells goes dark. The reactor bus keeps the air, the lights\nthat matter, the pods and the spin. Nothing else.\n\nHe has not sat down once.\n\n    —— M. Okonkwo, Engineering\n[END OF LOG]"
+  },
+  "TEMP0-M0034-00000-00152": {
+    "label": "MEDICAL LOG M-34 | Stardate 2143.152.0618",
+    "type": "full",
+    "clearance": 2,
+    "text": "[Log M-34 | Stardate 2143.152.0618]\nMEDICAL LOG\n\nDay thirty-four. I have finished the triage board and I\ncannot make myself look at it again.\n\nEleven intake forms have no cause of injury on them. When I\nasked each patient where it happened they gave me the same\nword. Corridor. No deck, no section, as if the ship had\nonly one. I wrote the word on every form because it was\nthe only thing they agreed on.\n\nBlood products last two days at this rate. The battery on\nthe bay unit will outlast the blood.\n\nThree of the ambers have asked whether they should try for\nthe hubs. I told them I cannot advise that.\n\n    —— Dr. A. Reyes, Medical Bay\n[END OF LOG]"
+  },
+  "TEMP0-P0044-00000-00162": {
+    "label": "POD BAY LOG P-44 | Stardate 2143.162.2205",
+    "type": "full",
+    "clearance": 1,
+    "text": "[Log P-44 | Stardate 2143.162.2205]\nPOD BAY LOG\n\nDay forty-four, Sector Seven bay.\n\nFive cradles, five pods, all away by 2140. I released the\nlast one myself. Nobody told me to stay and nobody told me\nto go, so I am writing this and then I am going to sit down.\n\nEach pod seats six. I did not count the people. I counted\nthe empty seats on the way out and stopped at eleven.\n\nThe beacons are dark. I asked three people why and got three\ndifferent reasons. All three were frightened, so I believe\nall three.\n\nIf anyone reads this, the cradles are intact. Whoever left\ndid it clean.\n\n    —— J. Park, Pod Bay Technician\n[END OF LOG]"
   }
 }
