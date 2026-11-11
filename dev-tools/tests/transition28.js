@@ -38,7 +38,8 @@ const L = require('./lib.js');
   ev = await sequence('L1A to L2', '[INITIATE ECHO PROTOCOL]', '> GATEWAY COMMAND ACCEPTED . . .', '> INITIATING ECHO PROTOCOL...', '> ECHO PROTOCOL ACTIVE.', 2, true);
   check('L1A to L2: ends on the L2 root with the L2 theme', (await p.evaluate(() => termState + '|' + currentLevel + '|' + document.body.className)).startsWith('L2A_ROOT|2|') && (await p.evaluate(() => document.body.classList.contains('layer-2a'))));
   // L2 to L3
-  ev = await sequence('L2 to L3', '[INITIATE CHRONO-ZERO PROTOCOL]', '> GATEWAY COMMAND ACCEPTED . . .', '> ECH/OES SHIP SYSTEM TERMINAL 426 //', RULE, 3, true);
+  check('the L3 gateway is found with or without the hyphen (a player may type a space)', (await p.evaluate(() => [findHiddenAlias('[INITIATE CHRONO-ZERO PROTOCOL]'), findHiddenAlias('[INITIATE CHRONO ZERO PROTOCOL]'), findHiddenAlias('[initiate chrono zero protocol]')])).every((x) => x === 'GW_INITIATE_CHRONO_ZERO_PROTOCOL'));
+  ev = await sequence('L2 to L3', '[INITIATE CHRONO ZERO PROTOCOL]', '> GATEWAY COMMAND ACCEPTED . . .', '> ECH/OES SHIP SYSTEM TERMINAL 426 //', RULE, 3, true);
   check('L2 to L3: ends on the L3 root with the L3 theme and header', (await p.evaluate(() => termState + '|' + currentLevel)) === 'L3A_ROOT|3' && (await p.$eval('#t-title', (e) => e.textContent)).includes('DEEP ARCHIVE'));
   check('moving back up still clears and switches, with no transition text', await (async () => { await take(); await send('[EXIT]'); const e = await take(); return !e.some((x) => x[0] === 'put' && x[2] === 'flavor') && e.some((x) => x[0] === 'theme' && x[1] === 2); })());
   const strs = await p.evaluate(() => [CFG_STRINGS.layer_mount, CFG_STRINGS.layer_entry_l2, CFG_STRINGS.layer_entry_l3]);

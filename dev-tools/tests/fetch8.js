@@ -127,6 +127,30 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
     check('page errors', s.errs.length === 0, JSON.stringify(s.errs));
     await p.close(); }
 
+  // ===== F. a log with damaged ID information: corruption glyphs, drawn in each layer's own corruption color =====
+  { const CLUE = '6PILH-UYMCX-YY3XY-WDR17', G = '[▒░▓╳¤¦¿]';
+    const s = await open(); const { p } = s;
+    const bad = () => p.$$eval('.le-view .bad', es => ({ n: es.length, color: es.length ? getComputedStyle(es[0]).color : '', text: es.map(e => e.textContent).join('') }));
+    await s.jump(2); await s.openProg(); await s.code(CLUE);
+    const t2 = await s.view();
+    check('the clue log opens at L2 with its designation damaged (a glyph for the letter, 094 kept)', new RegExp('^\\[Log ' + G + '-094 \\| Stardate 2143\\.147\\.0312\\]').test(t2) && (await s.msg()) === '> ENTRY RECOVERED', t2.slice(0, 50));
+    check('...and it carries the clue: the echo protocol pattern, with Chrono and Zero in the middle', /echo protocol/.test(t2) && /same word at the\s*\nfront/.test(t2) && /Chrono\. Zero\./.test(t2) && !/INITIATE CHRONO/i.test(t2), t2.slice(0, 80));
+    const c2 = await bad();
+    check('the damaged characters (the ID letter and the sign-off) are only symbols, never letters or digits', c2.n >= 2 && /^[▒░▓╳¤¦¿]+$/.test(c2.text), JSON.stringify(c2));
+    check('...and are drawn in the L2 corruption color', c2.color === 'rgb(200, 64, 64)', c2.color);
+    check('the sign-off keeps its readable letters', /—— Dr\. T\. L[▒░▓╳¤¦¿]+d[▒░▓╳¤¦¿]+/.test(t2), t2.split('\n').filter(l => /——/.test(l)).join('|'));
+    await p.click('.le-actions >> text=RECOVERED LOGS'); await p.waitForTimeout(150);
+    const rr = await p.$$eval('.le-row', rs => rs.map(r => Array.from(r.children).map(x => x.textContent)));
+    check('the recovered list shows the damaged header, health INTACT and the type HABITAT LOG', rr.length === 1 && new RegExp('^\\[Log ' + G + '-094 ').test(rr[0][0]) && rr[0][2] === 'INTACT' && rr[0][3] === 'HABITAT LOG', JSON.stringify(rr));
+    check('...with its glyphs drawn in the corruption color there too', await p.$$eval('.le-row .bad', es => es.length >= 1 && getComputedStyle(es[0]).color === 'rgb(200, 64, 64)'));
+    await p.keyboard.press('Escape'); await p.waitForTimeout(250); await s.ready();
+    await s.jump(3); await s.openProg(); await s.code(CLUE);
+    const c3 = await bad();
+    check('at L3 the same glyphs use the L3 corruption color, not the red of that layer', c3.n >= 2 && c3.color === 'rgb(111, 227, 255)' && c3.color !== await p.evaluate(() => getComputedStyle(document.body).getPropertyValue('--theme-denied')), c3.color);
+    check('every layer has a corruption color of its own', await p.evaluate(() => ['l1c', 'l1a', 'l2a', 'l3a'].every(k => /^#[0-9a-f]{6}$/i.test((osData.layers[k].colors || {}).glitch || ''))));
+    check('page errors', s.errs.length === 0, JSON.stringify(s.errs));
+    await p.close(); }
+
   // ===== D. phone width =====
   { const s = await open({}, { width: 390, height: 800 }); const { p } = s;
     await s.jump(2); await s.openProg(); await s.code(LORE1); await p.click('.le-actions >> text=RECOVERED LOGS'); await p.waitForTimeout(150);

@@ -23,6 +23,7 @@ const CSS = `
   padding:12px 4px;margin:6px 0 12px;white-space:pre;line-height:1.7;scrollbar-width:thin;scrollbar-color:var(--theme-lo) transparent;}
 .le-view .dim{color:var(--theme-dim);} .le-view .low{color:var(--theme-lo);}
 .le-view .warn{color:var(--theme-warn);} .le-view .denied{color:var(--theme-denied);}
+.le-view .bad,.le-row .bad{color:var(--theme-glitch,var(--theme-denied));}
 .le-actions{display:flex;align-items:center;gap:12px;flex-shrink:0;}
 .le-actions .n{margin-left:auto;color:var(--theme-lo);font-size:12px;letter-spacing:0.12em;}
 .le-head,.le-row{display:grid;grid-template-columns:36ch 27ch 15ch 1fr;white-space:nowrap;letter-spacing:0;}
@@ -36,6 +37,7 @@ const CSS = `
 .le-row[data-h="PARTIAL"] span:nth-child(3),.le-row[data-h="DEGRADED"] span:nth-child(3){color:var(--theme-warn);}
 .le-row[data-h="CORRUPTED"] span:nth-child(3){color:var(--theme-denied);}
 .le-row:hover[data-h] span:nth-child(3){color:#02070c;}
+.le-row:hover .bad,.le-row:focus-visible .bad{color:#02070c;}
 @media(max-width:768px){
   .le-view{white-space:pre-wrap;}
   .le-head{display:none;}
@@ -45,6 +47,15 @@ const CSS = `
 `;
 
 const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+// Damaged characters in a log's ID, date or sign-off are corruption glyphs, symbols that are never a letter or a digit (the log editor
+// writes them). They are drawn in the layer's corruption color (--theme-glitch). The old solid block is still read the same way.
+const GLITCH_RE = /[▒░▓╳¤¦¿█]+/g;
+const withGlitch = (node, text) => {
+  let last = 0, m; GLITCH_RE.lastIndex = 0;
+  while ((m = GLITCH_RE.exec(text))) { if (m.index > last) node.append(text.slice(last, m.index)); node.append(el('span', 'bad', m[0])); last = m.index + m[0].length; }
+  if (last < text.length) node.append(text.slice(last));
+  return node;
+};
 
 // The condition of one entry. Older data saved the condition as the entry type (partial, degraded, corrupted); it still reads.
 function healthOf(ctx, entry) {
@@ -88,7 +99,7 @@ export default {
     win.body.append(top, msg, view, actions);
 
     const say = (text, cls) => { msg.className = 'le-msg' + (cls ? ' ' + cls : ''); msg.textContent = text; };
-    const setView = (lines) => { view.replaceChildren(...lines.map((l) => el('div', l.cls || '', l.text === '' ? ' ' : l.text))); view.scrollTop = 0; };
+    const setView = (lines) => { view.replaceChildren(...lines.map((l) => withGlitch(el('div', l.cls || ''), l.text === '' ? ' ' : l.text))); view.scrollTop = 0; };
     const refreshCount = () => { count.textContent = ctx.recovered().length + ' RECOVERED'; };
     let pendingVirus = null;
 
@@ -164,7 +175,7 @@ export default {
         const info = describe(ctx, r.code);
         const row = el('button', 'le-row' + (info ? '' : ' gone'));
         if (info) row.dataset.h = info.health;
-        [info ? info.header : '[UNKNOWN ENTRY]', r.code, info ? info.health : 'LOST', info ? info.type : '--'].forEach((t) => row.appendChild(el('span', '', t)));
+        [info ? info.header : '[UNKNOWN ENTRY]', r.code, info ? info.health : 'LOST', info ? info.type : '--'].forEach((t) => row.appendChild(withGlitch(el('span', ''), t)));
         let stash = null;   // hovering a row shows its code in the field, like hovering a command in the terminal
         row.addEventListener('mouseenter', () => { stash = input.value; input.value = r.code; });
         row.addEventListener('mouseleave', () => { if (stash !== null) input.value = stash; stash = null; });

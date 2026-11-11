@@ -14,6 +14,7 @@
   --theme-lo:rgba(79,195,247,0.40);
   --theme-warn:#E8732A;
   --theme-denied:#ff003c;
+  --theme-glitch:#ff003c;
   --theme-user:rgba(238,240,245,0.50);
   --theme-bg:rgba(8,10,14,0.85);
   --theme-border:rgba(79,195,247,0.12);
@@ -25,14 +26,14 @@
 }
 body.layer-2a{
   --theme-full:#bf7c0a;--theme-dim:rgba(191,124,10,0.70);--theme-lo:rgba(191,124,10,0.45);
-  --theme-warn:#c8a020;--theme-denied:#c84040;--theme-user:rgba(191,124,10,0.55);
+  --theme-warn:#c8a020;--theme-denied:#c84040;--theme-glitch:#c84040;--theme-user:rgba(191,124,10,0.55);
   --theme-bg:rgba(2,2,6,0.97);--theme-border:rgba(191,124,10,0.18);
   --theme-irow:rgba(191,124,10,0.10);--theme-bc:rgba(191,124,10,0.36);
   --theme-bgsolid:#0a0700;--theme-glow-a:rgba(80,55,15,0.32);--theme-glow-b:rgba(50,30,8,0.18);
 }
 body.layer-3a{
   --theme-full:#e05050;--theme-dim:rgba(224,80,80,0.70);--theme-lo:rgba(224,80,80,0.40);
-  --theme-warn:#ff8800;--theme-denied:#ff0000;--theme-user:rgba(224,80,80,0.50);
+  --theme-warn:#ff8800;--theme-denied:#ff0000;--theme-glitch:#6fe3ff;--theme-user:rgba(224,80,80,0.50);
   --theme-bg:rgba(0,0,0,1.0);--theme-border:rgba(180,30,30,0.18);
   --theme-irow:rgba(180,30,30,0.10);--theme-bc:rgba(224,80,80,0.36);
   --theme-bgsolid:#050000;--theme-glow-a:rgba(80,15,15,0.32);--theme-glow-b:rgba(50,8,8,0.18);
@@ -1067,7 +1068,7 @@ function layerThemeVars(layerId){
   var rgb=hexRgb(t.primary);
   return '--theme-full:'+t.primary+';--theme-dim:rgba('+rgb+','+(t.dim_opacity||0.7)+');--theme-lo:rgba('+rgb+','+(t.lo_opacity||0.4)+');'+
     '--theme-border:rgba('+rgb+','+Math.max(t.border_opacity||0.12,0.22)+');--theme-bc:rgba('+rgb+',0.36);--theme-glow-a:rgba('+rgb+',0.20);'+
-    (t.warn?'--theme-warn:'+t.warn+';':'')+(t.denied?'--theme-denied:'+t.denied+';':'')+(t.background?'--theme-bgsolid:'+t.background+';':'');
+    (t.warn?'--theme-warn:'+t.warn+';':'')+(t.denied?'--theme-denied:'+t.denied+';':'')+((t.glitch||t.denied)?'--theme-glitch:'+(t.glitch||t.denied)+';':'')+(t.background?'--theme-bgsolid:'+t.background+';':'');
 }
 function applyThemeColors(theme){
   function hexToRgb(hex){hex=(hex||'#000').replace('#','');if(hex.length===3)hex=hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];return parseInt(hex.slice(0,2),16)+','+parseInt(hex.slice(2,4),16)+','+parseInt(hex.slice(4,6),16);}
@@ -1087,6 +1088,7 @@ function applyThemeColors(theme){
     if(p)css+='--theme-lo:rgba('+rgb+','+loOp+');';
     if(t.warn)css+='--theme-warn:'+t.warn+';';
     if(t.denied)css+='--theme-denied:'+t.denied+';';
+    if(t.glitch||t.denied)css+='--theme-glitch:'+(t.glitch||t.denied)+';';
     if(t.background)css+='--theme-bgsolid:'+t.background+';';
     if(p)css+='--theme-border:rgba('+rgb+','+bdrOp+');';
     // The chat and the L1 archive have no stylesheet block of their own, so the rest of their palette comes from the primary color too.
@@ -1234,10 +1236,12 @@ function withAuthorList(body, list){
 // (planned, empty items) are left out entirely.
 var osItems = {};      // id -> tree item, every item
 var osHidden = {};     // UPPERCASE alias -> id, hidden items and gateways
+var osHiddenLoose = {}; // the same aliases with hyphens and spacing ignored, so [INITIATE CHRONO ZERO PROTOCOL] finds [INITIATE CHRONO-ZERO PROTOCOL]
+function aliasKey(a){ return String(a).trim().toUpperCase().replace(/[-\s]+/g,' '); }
 var osPrograms = {};   // UPPERCASE alias -> [program items]
 function buildArchFromOS(os){
   var nodes = {};
-  osItems = {}; osHidden = {}; osPrograms = {};
+  osItems = {}; osHidden = {}; osHiddenLoose = {}; osPrograms = {};
   var screens = os.screens || {};
   Object.keys(screens).forEach(function(id){ nodes[id] = screens[id]; });
   (os.commands || []).forEach(function(c, i){
@@ -1249,7 +1253,7 @@ function buildArchFromOS(os){
     if(it.stub) return;
     // Programs and gateways are invoked by alias, never drawn as pages or listed as menu entries.
     if(it.type === 'program'){ (osPrograms[it.alias.trim().toUpperCase()] = osPrograms[it.alias.trim().toUpperCase()] || []).push(it); return; }
-    if(it.type === 'gateway'){ osHidden[it.alias.trim().toUpperCase()] = it.id; return; }
+    if(it.type === 'gateway'){ osHidden[it.alias.trim().toUpperCase()] = it.id; osHiddenLoose[aliasKey(it.alias)] = it.id; return; }
     var isTierRoot = parentId === null;
     var cmds = [];
     (it.children || []).forEach(function(c){
@@ -1271,7 +1275,7 @@ function buildArchFromOS(os){
       }),
       body:(it.body || []).concat(cmds)
     };
-    if(it.hidden && it.alias) osHidden[it.alias.trim().toUpperCase()] = it.id;
+    if(it.hidden && it.alias){ osHidden[it.alias.trim().toUpperCase()] = it.id; osHiddenLoose[aliasKey(it.alias)] = it.id; }
     (it.children || []).forEach(function(c){ walk(c, it.id, crumb+' > '+(c.title || c.name)); });
   }
   ((os.tree && os.tree.children) || []).forEach(function(r){
@@ -2549,7 +2553,7 @@ async function renderPullInline(nodeId){
 // everywhere; [LS] [BACK] [ROOT] [EXIT] work inside the archive; [OPEN <name>] opens a
 // listed or hidden item by name. Hidden items are reachable by alias, never listed.
 function findHiddenAlias(val){
-  var id = osHidden[val]; var it = id && osItems[id];
+  var id = osHidden[val] || osHiddenLoose[aliasKey(val)]; var it = id && osItems[id];
   if(!it || it.stub || it.tier > currentLevel) return null;
   return id;
 }

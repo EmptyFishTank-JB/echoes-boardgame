@@ -6,6 +6,24 @@
     "author": "A-014",
     "text": "[Log A-014 | Stardate 2143.119.1719]\nCAPTAIN'S LOG\n\nDay one of the new research phase. The team is settled.\nMorale is good, as good as it gets out here, which is\ngood enough.\n\nWhatever Dr. Cross and his people are working on in the\nresearch wing, the rest of the crew has stopped asking.\nThat's how it usually goes. You get curious and then\nyou get bored of being curious and then you get used to\nthe closed doors.\n\nNearly thirty-four years since the last ship docked.\nNobody on Mars has answered in all that time, and the\nreports still go out on schedule.\nWe have everything we need.\n\nWe have everything we need.\n\n    —— Capt. E. Harrow\n[END OF LOG]"
   },
+  "6PILH-UYMCX-YY3XY-WDR17": {
+    "label": "HABITAT LOG H-094 | Stardate 2143.147.0312",
+    "type": "full",
+    "clearance": 2,
+    "author": "H-094",
+    "override": {
+      "dept": 1,
+      "num": 0,
+      "time": 0,
+      "sign": 1,
+      "real": {
+        "id": "H-094",
+        "stardate": "2143.147.0312",
+        "sign": "    —— Dr. T. Lindqvist"
+      }
+    },
+    "text": "[Log ╳-094 | Stardate 2143.147.0312]\nHABITAT LOG\n\nDay twenty-nine, third watch, wing air handler.\n\nInes, I am filing this in the archive because nobody reads\nthe archive, and under a letter that no longer means\nanything. Keep the number. The number is still mine.\n\nI stopped counting the runs after the twentieth. They do not\nend the way a run should end. The readings come in, they\nhold, and Cross calls it a good night. I have watched the\nrest of the fourteen nod at the same wall for a week, and I\nhave nodded with them.\n\nI would sleep if the air would let me. The wing is cleaner\nthan I set it. Every setpoint I enter comes back kinder than\nI entered it. I did not ask the air to be kind.\n\nYou asked how the records survive when the shared network\ngoes down. They do not live on the network. They live where\nthe system put them, one door past the echo protocol. You\nopen it the way you opened that one: the same word at the\nfront, the same word at the back. In the middle is where we\nput the clock to rest. Chrono. Zero. Say it as an order, not\na question.\n\nIf it lets you in, do not stay. Read what you came for. It\nanswers politely, and I no longer trust politeness that\narrives on a schedule.\n\n    —— Dr. T. L▒░d¦░▒¦▓\n[END OF LOG]"
+  },
   "6RR68-2HTES-9EC73-G1K23": {
     "label": "POD BAY LOG O-066 | Stardate 2143.162.2205",
     "type": "full",

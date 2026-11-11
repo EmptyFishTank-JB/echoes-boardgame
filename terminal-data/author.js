@@ -436,10 +436,10 @@ function infoRows(it, items) {
 }
 
 // ---- layers ---------------------------------------------------------------------------------------------------
-// layers.<id> in echo-os.json: header_title, colors {primary, warn, denied, background, dim_opacity, lo_opacity,
+// layers.<id> in echo-os.json: header_title, colors {primary, warn, denied, glitch (damaged characters in a log), background, dim_opacity, lo_opacity,
 // border_opacity} and ambient {target_volume, oscillators[]}. The chat (l1c) shares the colors and sound of l1a.
 const LAYER_IDS = ['l1c', 'l1a', 'l2a', 'l3a'];   // the chat, then the three archive layers
-const COLOR_KEYS = { PRIMARY: 'primary', WARN: 'warn', DENIED: 'denied', BACKGROUND: 'background' };
+const COLOR_KEYS = { PRIMARY: 'primary', WARN: 'warn', DENIED: 'denied', GLITCH: 'glitch', BACKGROUND: 'background' };
 const OPACITY_KEYS = { DIM: 'dim_opacity', LO: 'lo_opacity', BORDER: 'border_opacity' };
 const layerKeys = () => ['TITLE', ...Object.keys(COLOR_KEYS), ...Object.keys(OPACITY_KEYS), 'INTRO', 'VOLUME', 'SOUND'];
 
@@ -488,7 +488,7 @@ const THEMES = [
   { name: 'SILVER', primary: '#c9d3da', warn: '#E8732A', denied: '#ff003c', background: '#4d5359' },
   { name: 'GREY JADE', primary: '#8fbfae', warn: '#E8732A', denied: '#ff003c', background: '#33524a' },
   { name: 'AMBER', primary: '#bf7c0a', warn: '#c8a020', denied: '#c84040', background: '#805900' },
-  { name: 'RED', primary: '#e05050', warn: '#ff8800', denied: '#ff0000', background: '#850000' },
+  { name: 'RED', primary: '#e05050', warn: '#ff8800', denied: '#ff0000', glitch: '#6fe3ff', background: '#850000' },
 ];
 const introId = (id) => 'L' + id[1] + 'A_INTRO';
 const introLines = (ctx, id) => ((ctx.os.data.screens || {})[introId(id)] || { body: [] }).body.filter((b) => b.type === 'text' && b.text && b.cls !== 'blank' && !/^> ─+$/.test(b.text));

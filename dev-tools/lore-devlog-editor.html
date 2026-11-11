@@ -159,6 +159,7 @@ select option{background:#001220;color:var(--blue);}
 .hdprev-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
 .hdprev-top .fl{margin-bottom:0;}
 .hdprev-btns{display:flex;gap:5px;flex-shrink:0;}
+.gl{color:var(--red);}
 #hp-line1{font-size:12px;color:var(--blue);letter-spacing:0.05em;line-height:1.7;}
 #hp-line2{font-size:12px;color:var(--dim);letter-spacing:0.05em;line-height:1.7;}
 .inj{background:transparent;border:1px solid rgba(79,195,247,0.15);
@@ -427,7 +428,8 @@ button:disabled{opacity:0.28;cursor:not-allowed;}
         <label class="chk"><input type="checkbox" id="ovr" onchange="onOverride()"> ID OVERRIDE &#8212; filed without a valid ID (falsified, stripped or damaged)</label>
         <div id="ovr-opts" style="display:none;gap:8px;flex-direction:column">
           <div class="fr" style="gap:8px;flex-direction:column">
-            <div style="flex:1"><div class="sub-fl">LOG ID</div><select id="ovr-id" onchange="onOverride()"></select></div>
+            <div style="flex:1"><div class="sub-fl">LOG ID: DESIGNATION (THE LETTER)</div><select id="ovr-dept" onchange="onOverride()"></select></div>
+            <div style="flex:1"><div class="sub-fl">LOG ID: NUMBER</div><select id="ovr-num" onchange="onOverride()"></select></div>
             <div style="flex:1"><div class="sub-fl">STARDATE</div><select id="ovr-time" onchange="onOverride()"></select></div>
             <div style="flex:1"><div class="sub-fl">SIGN-OFF LINE</div><select id="ovr-sign" onchange="onOverride()"></select></div>
           </div>
@@ -874,7 +876,10 @@ function getLid(){
 // ── OVERRIDE: what a log shows when it was filed without a valid ID ───────────────────────
 // The real ID, moment and sign-off stay in the entry (and the code); only the text a player reads is damaged.
 // The damage is seeded by the ID and the moment, so the same log always shows the same gaps.
-var HIDE = '█';
+// Damaged characters show as corruption glyphs, not blanks: symbols that are never a letter or a digit. FETCH LOG.EXE draws them in the
+// layer's own corruption color (terminal-data/programs/lore-entry.js has the same set, and still reads the old solid block █).
+var GLITCH = '▒░▓╳¤¦¿';
+var GLITCH_RE = /[▒░▓╳¤¦¿█]/g;
 function ovrOn(){ return ge('ovr').checked; }
 function ovrLv(id){ return ovrOn() ? (parseInt(gv(id),10) || 0) : 0; }
 function mkRnd(str){
@@ -886,20 +891,27 @@ function mkRnd(str){
   };
 }
 function seedStr(){ return getLid() + '|' + getSDFromFields(); }
+// One corruption glyph per damaged position, chosen from the seed so the same log always shows the same ones.
+function gch(tag, i){ return GLITCH.charAt(Math.floor(mkRnd(seedStr() + tag + i)() * GLITCH.length)); }
+function glHtml(t){ return esc(t).replace(GLITCH_RE, function(m){ return '<span class="gl">' + m + '</span>'; }); }
+// The designation (the letter) and the number are damaged on their own: either one, or both.
 function shownId(){
-  var lv = ovrLv('ovr-id'), l = gv('lidl').toUpperCase() || '?', n = p3(parseInt(gv('lidn'),10) || 0);
-  if (!lv) return l + '-' + n;
-  if (lv === 1) { var i = Math.floor(mkRnd(seedStr() + 'id')() * 3); return l + '-' + n.slice(0,i) + HIDE + n.slice(i+1); }
-  if (lv === 2) return l + '-' + HIDE + HIDE + HIDE;
-  return HIDE + '-' + HIDE + HIDE + HIDE;
+  var dv = ovrLv('ovr-dept'), nv = ovrLv('ovr-num'), l = gv('lidl').toUpperCase() || '?', n = p3(parseInt(gv('lidn'),10) || 0);
+  if (dv) l = gch('d', 0);
+  if (nv === 1) { var i = Math.floor(mkRnd(seedStr() + 'id')() * 3); n = n.slice(0,i) + gch('n', i) + n.slice(i+1); }
+  else if (nv === 2) n = gch('n', 0) + gch('n', 1) + gch('n', 2);
+  return l + '-' + n;
 }
+// With the designation hidden and the number gone there is no ID left, and the code carries none either.
+function idGone(){ return ovrLv('ovr-dept') === 1 && ovrLv('ovr-num') === 2; }
 function shownSD(){
   var sd = getSDFromFields(), lv = ovrLv('ovr-time');
   if (!lv) return sd;
-  var y = sd.slice(0,4), d = sd.slice(5,8), t = sd.slice(9,13), H = HIDE;
-  if (lv === 1) return y + '.' + d + '.' + t.slice(0,2) + H + H;
-  if (lv === 2) return y + '.' + H + H + H + '.' + H + H + H + H;
-  return H + H + H + H + '.' + H + H + H + '.' + H + H + H + H;
+  var y = sd.slice(0,4), d = sd.slice(5,8), t = sd.slice(9,13), k = 0;
+  var H = function(n){ var r = ''; for (var i = 0; i < n; i++) r += gch('t', k++); return r; };
+  if (lv === 1) return y + '.' + d + '.' + t.slice(0,2) + H(2);
+  if (lv === 2) return y + '.' + H(3) + '.' + H(4);
+  return H(4) + '.' + H(3) + '.' + H(4);
 }
 var SIGN_RE = /^(\s*)(——|--|—)\s*(\S.*)$/;
 function findSignIdx(lines){ for (var i = lines.length - 1; i >= 0; i--) if (SIGN_RE.test(lines[i])) return i; return -1; }
@@ -908,10 +920,10 @@ function obfSign(line, lv){
   if (!m || !lv) return line;
   var lead = m[1], dash = m[2], name = m[3], out;
   if (lv === 1) {
-    var rnd = mkRnd(seedStr() + 'sg');
-    out = name.replace(/[A-Za-z]+(?![A-Za-z.])/g, function(w){ var r = w.charAt(0); for (var i = 1; i < w.length; i++) r += rnd() < 0.65 ? HIDE : w.charAt(i); return r; });
+    var rnd = mkRnd(seedStr() + 'sg'), k = 0;
+    out = name.replace(/[A-Za-z]+(?![A-Za-z.])/g, function(w){ var r = w.charAt(0); for (var i = 1; i < w.length; i++) r += rnd() < 0.65 ? gch('s', k++) : w.charAt(i); return r; });
   } else if (lv === 2) out = '[UNVERIFIED]';
-  else out = name.replace(/\S/g, HIDE);
+  else { var j = 0; out = name.replace(/\S/g, function(){ return gch('b', j++); }); }
   return lead + dash + ' ' + out;
 }
 function signedBody(body){
@@ -931,7 +943,8 @@ function onOverride(){
 }
 function fillOvrSelects(){
   var sets = {
-    'ovr-id':   ['as filed', 'one digit damaged', 'digits missing', 'no ID at all (the code carries none either)'],
+    'ovr-dept': ['as filed', 'hidden'],
+    'ovr-num':  ['as filed', 'one digit damaged', 'digits missing'],
     'ovr-time': ['as filed', 'minutes missing', 'day and time missing', 'all missing'],
     'ovr-sign': ['as typed', 'partly damaged', '[UNVERIFIED]', 'blacked out']
   };
@@ -1289,7 +1302,7 @@ function resetEditorForm(){
   ['codef','labf','logtxt','lidn','lidl','logtype','sdin'].forEach(function(id){document.getElementById(id).value='';});
   activeCode = null; loadedEntry = null; logtypeAuto = true; labelAuto = true;
   ge('authsel').value = ''; setIdLocked(false); closeCharForm();
-  ge('ovr').checked = false; ['ovr-id', 'ovr-time', 'ovr-sign'].forEach(function(i){ ge(i).value = '0'; }); ge('ovr-opts').style.display = 'none'; ge('ovr-note').textContent = '';
+  ge('ovr').checked = false; ['ovr-dept', 'ovr-num', 'ovr-time', 'ovr-sign'].forEach(function(i){ ge(i).value = '0'; }); ge('ovr-opts').style.display = 'none'; ge('ovr-note').textContent = '';
   ge('rekey').checked = false;
   setCond('INTACT', true); setKind('full', true); accLvl = 2;
   document.getElementById('trkday').checked = (mode==='dev');
@@ -1341,9 +1354,10 @@ function updAccess(){
 }
 
 // ── CODE ──────────────────────────────────────────────────────────────────────
-// A code carries the log ID (department letter and number) and the moment. The ID override "no ID at all" leaves the ID out.
+// A code carries the log ID (department letter and number) and the moment. When the override takes the whole ID (designation hidden
+// and number missing) the code leaves the ID out too.
 function codeIdentity(){
-  if (ovrOn() && ovrLv('ovr-id') === 3) return { section: null, number: 0, none: true };
+  if (idGone()) return { section: null, number: 0, none: true };
   return { section: gv('lidl').toUpperCase() || null, number: parseInt(gv('lidn'), 10) || 0 };
 }
 function doGenerate(){
@@ -1587,7 +1601,7 @@ function clearDecode(){
 // ── ONE REFRESH FOR EVERYTHING THAT DEPENDS ON THE FIELDS ─────────────────────────────────────────────
 function refresh(){
   var h = headerLines();
-  ge('hp-line1').textContent = h[0]; ge('hp-line2').textContent = h[1];
+  ge('hp-line1').innerHTML = glHtml(h[0]); ge('hp-line2').innerHTML = glHtml(h[1]);
   syncLabel(); updAccess(); updPrev(); updSnip(); updReady(); updCodeSays(); autoSave();
 }
 function updHeader(){ refresh(); }
@@ -1638,7 +1652,7 @@ function updPrev(){
     if (text) text.split('\n').forEach(function(ln){ ls.push({ t: ln, c: 'nc' }); });
   }
   ls.push({ t: SEP, c: 'ps' });
-  pv.innerHTML = ls.map(function(l){ var a = (l.c && l.c !== 'nc') ? ' class="' + l.c + '"' : ''; return '<div' + a + '>' + esc(l.t || ' ') + '</div>'; }).join('');
+  pv.innerHTML = ls.map(function(l){ var a = (l.c && l.c !== 'nc') ? ' class="' + l.c + '"' : ''; return '<div' + a + '>' + (l.t ? glHtml(l.t) : ' ') + '</div>'; }).join('');
 }
 
 // ── THE ENTRY, AS SAVED ───────────────────────────────────────────────────────
@@ -1654,8 +1668,8 @@ function buildEntry(){
   if (cond !== 'INTACT') o.health = cond;
   o.clearance = accessLevel();
   if (gv('authsel')) o.author = gv('authsel');
-  if (ovrOn() && (ovrLv('ovr-id') || ovrLv('ovr-time') || ovrLv('ovr-sign'))) {
-    var ov = { id: ovrLv('ovr-id'), time: ovrLv('ovr-time'), sign: ovrLv('ovr-sign'), real: { id: getLid(), stardate: getSDFromFields() } };
+  if (ovrOn() && (ovrLv('ovr-dept') || ovrLv('ovr-num') || ovrLv('ovr-time') || ovrLv('ovr-sign'))) {
+    var ov = { dept: ovrLv('ovr-dept'), num: ovrLv('ovr-num'), time: ovrLv('ovr-time'), sign: ovrLv('ovr-sign'), real: { id: getLid(), stardate: getSDFromFields() } };
     var lines = gv('logtxt').split('\n'), si = findSignIdx(lines);
     if (ov.sign && si >= 0) ov.real.sign = lines[si];
     o.override = ov;
@@ -1862,6 +1876,14 @@ function renderEnts(){
 }
 function highlightRow(code){document.querySelectorAll('.erow').forEach(function(r){r.classList.toggle('active',r.dataset.code===code);});}
 // Load a saved entry into the form. Everything is set first and the preview is drawn last, so the first click shows the right header.
+// An override saved before the ID was split into designation and number carries one level in id (1 one digit, 2 digits missing,
+// 3 no ID at all). It still loads: 3 reads as the designation hidden and the number missing.
+function ovrParts(ov){
+  if(!ov) return {dept:0,num:0};
+  if(ov.dept!==undefined||ov.num!==undefined) return {dept:ov.dept?1:0,num:Math.min(2,ov.num||0)};
+  var id=ov.id||0;
+  return id===3?{dept:1,num:2}:{dept:0,num:id};
+}
 function lodEnt(code,e){
   activeCode=code; loadedEntry=JSON.parse(JSON.stringify(e));
   var ov=e.override||null, real=ov&&ov.real?ov.real:{};
@@ -1873,7 +1895,8 @@ function lodEnt(code,e){
   // Condition, kind, override
   setCond(entCond(e),true); setKind(entKind(e),true); accLvl=(mode==='lore'&&e.clearance>=3)?3:2;
   ge('ovr').checked=!!ov;
-  ge('ovr-id').value=String(ov?ov.id||0:0); ge('ovr-time').value=String(ov?ov.time||0:0); ge('ovr-sign').value=String(ov?ov.sign||0:0);
+  var ovp=ovrParts(ov);
+  ge('ovr-dept').value=String(ovp.dept); ge('ovr-num').value=String(ovp.num); ge('ovr-time').value=String(ov?ov.time||0:0); ge('ovr-sign').value=String(ov?ov.sign||0:0);
   ge('ovr-opts').style.display=ov?'flex':'none'; ge('ovr-note').textContent='';
   // Log ID: the override's real ID, else the author, else the ID in the label or the header line
   var firstLine=(e.text||'').split('\n')[0]||'';
@@ -1929,7 +1952,7 @@ function autoSave(){
       logtype:document.getElementById('logtype').value,logtypeAuto:logtypeAuto,
       trkday:document.getElementById('trkday').checked,
       daystart:document.getElementById('daystart').value,
-      ovr:ovrOn(),ovrId:gv('ovr-id'),ovrTime:gv('ovr-time'),ovrSign:gv('ovr-sign'),
+      ovr:ovrOn(),ovrDept:gv('ovr-dept'),ovrNum:gv('ovr-num'),ovrTime:gv('ovr-time'),ovrSign:gv('ovr-sign'),
       dty:document.getElementById('dt-year').value,
       dtmo:document.getElementById('dt-month').value,
       dtd:document.getElementById('dt-day').value,
@@ -1964,7 +1987,7 @@ function restore(){
     // The ID boxes now, the registry person once the crew file has loaded
     if(s.lidl)ge('lidl').value=s.lidl; if(s.lidn)ge('lidn').value=s.lidn;
     pendingAuthor=s.auth||(s.lidl&&s.lidn?s.lidl+'-'+s.lidn:null);
-    if(s.ovr){ge('ovr').checked=true;ge('ovr-id').value=s.ovrId||'0';ge('ovr-time').value=s.ovrTime||'0';ge('ovr-sign').value=s.ovrSign||'0';ge('ovr-opts').style.display='flex';}
+    if(s.ovr){ge('ovr').checked=true;var sp=ovrParts({id:parseInt(s.ovrId,10)||0,dept:s.ovrDept===undefined?undefined:parseInt(s.ovrDept,10)||0,num:s.ovrNum===undefined?undefined:parseInt(s.ovrNum,10)||0});ge('ovr-dept').value=String(sp.dept);ge('ovr-num').value=String(sp.num);ge('ovr-time').value=s.ovrTime||'0';ge('ovr-sign').value=s.ovrSign||'0';ge('ovr-opts').style.display='flex';}
     syncSdBox(); updDoyLine(); updCct();
     labelAuto=s.labAuto!==undefined?!!s.labAuto:!s.lbl;
     if(s.code)valC(s.code.replace(/-/g,''));

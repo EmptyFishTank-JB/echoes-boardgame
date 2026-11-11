@@ -127,10 +127,15 @@ a person files carries the same ID and the stardate tells them apart. Each depar
   The editor sets it: a dev log is always 3, a lore log is 2 or 3 by the L2 / L3 buttons.
 - **Condition.** Each log has a `health` of PARTIAL, DEGRADED or CORRUPTED, or none for INTACT. FETCH LOG shows it on the status
   line and in the RECOVERED LOGS list. Older entries that used `type: partial` still read the same way.
-- **Override.** For a log filed with no valid ID (falsified, stripped or damaged), the editor can damage the ID, the stardate and
-  the sign-off line at levels 0 to 3, seeded so the same log always shows the same gaps. The entry keeps `override.real` (the
-  real ID, moment and sign-off) so the editor can restore it, and the code carries the real ID unless the ID level is 3
-  ("no ID at all"), where the code carries none either.
+- **Override.** For a log filed with no valid ID (falsified, stripped or damaged), the editor can damage the designation (the
+  letter), the number, the stardate and the sign-off line, each on its own. The designation is as filed or hidden. The number is as
+  filed, one digit damaged or all three gone. Either can go alone, or both. Damaged characters are corruption glyphs
+  (`▒ ░ ▓ ╳ ¤ ¦ ¿`), not blanks: symbols that are never a letter or a digit. They are chosen from a seed, so the same log always
+  shows the same ones, and FETCH LOG.EXE draws them in the layer's corruption color (`glitch` in `layers.<id>.colors`, shown as
+  CORRUPT in the layer window: the layer's red where red reads, a pale cyan on L3 where red would vanish into the theme). The entry
+  keeps `override.real` (the real ID, moment and sign-off) so the editor can restore it, and `override` records `dept` (0 or 1),
+  `num` (0 to 2), `time` and `sign`. The code carries the real ID unless the designation is hidden and the number is gone,
+  where it carries none either (an override saved before the split with `id: 3` still reads that way).
 
 ## The new logs
 
@@ -153,6 +158,51 @@ POD BAY LOG. Move him with the editor's EDIT button if you settle on a different
 They pair with the archive documents. Reyes wrote the triage board (the document only says `DR. [CORRUPTED]`). Whitlock is the
 security side of the Day 31 breach. The night of 2143.150 now has a sequence: Cross tells the Captain (2301), the protocol is filed
 (2318), Okonkwo is at the aft hub (2352).
+
+## Documents and logs
+
+Both are text the player reads, and they are built differently.
+
+| | Terminal document | Log |
+|---|---|---|
+| Where it lives | A page in the tree in `echo-os.json` | An entry in `lore.json` or `dev_logs.json` |
+| How the player reaches it | By browsing, or by typing its name or alias | By typing its 20 character code into FETCH LOG.EXE (L2 and L3). It can never be browsed to |
+| What it carries | A title, a footer, styled lines, `[CORRUPTED]` gaps for the partial recoveries | A Log ID (department letter and crew number), a stardate, an author, a condition (INTACT, PARTIAL, DEGRADED, CORRUPTED) and a clearance (L2 or L3) |
+| Who writes it | Author mode in the terminal (`[NEW DOC]`, `[EDIT]`) | The log editor (`dev-tools/lore-devlog-editor.html`) |
+| Good for | The world as the ship shows it: reports, protocols, notes that sit in a folder waiting to be opened | A person speaking in their own voice, found because someone gave the player the code (a card, a component, the novel) |
+
+A log can be damaged on purpose (see the override above), a document cannot. A clue that has to be found by exploring belongs in a
+document. A clue that is a reward, or a voice, belongs in a log, which is why the CHRONO-ZERO clue is one.
+
+## The clue log (H-094, Day 29)
+
+`6PILH-UYMCX-YY3XY-WDR17`, a `HABITAT LOG` dated 2143.147.0312 (Day 29, third watch), `full`, INTACT, clearance 2 (L2 and L3 can
+open it). It is the first log with damaged ID information.
+
+- **Who.** Dr. Tobias Lindqvist, `H-094`, one of the fourteen. A life support specialist brought in to keep the closed
+  atmosphere of the wing, still on a Habitat ID because reassignment is slow (the same reason Cross is still `E-031`). Habitat was
+  the department with no one in it yet.
+- **To whom.** Ines Calloway, `P-029`, Provisioning Officer for the wing's deliveries. She signs the wing's carts in and out at the
+  lock, which is why the writer trusts her. She is not placed in Cargo Bay C, whose occupant on 2143.181 stays unwritten.
+- **The damage.** The designation is hidden (`╳-094`) and the sign-off is partly damaged (`Dr. T. L▒░d¦░▒¦▓`). The number and the
+  stardate are as filed. In the story: the letter is what reassignment changes, the number stays with the person, and the log says
+  as much ("under a letter that no longer means anything. Keep the number. The number is still mine."). The real ID and sign-off
+  are kept in `override.real` for the editor. A fully blank ID is saved for the creature's own logs through Terminal 426, which have
+  no crew ID at all.
+- **The tone.** Tired of the runs that "do not end the way a run should end", of Cross calling it a good night, of the rest of the
+  fourteen nodding "at the same wall", and of air that is "cleaner than I set it" and "kinder" than he enters. It is filed in the
+  archive because nobody reads the archive.
+- **The clue.** The records "live where the system put them, one door past the echo protocol", opened the way the first door was
+  opened: "the same word at the front, the same word at the back. In the middle is where we put the clock to rest. Chrono. Zero."
+  That is `[INITIATE CHRONO-ZERO PROTOCOL]`, and a player who types a space for the hyphen gets in too. It never prints the command.
+- **Where the player finds the code.** Nowhere in the terminal: a log is reached by its code. It needs a place in the game (a card,
+  a component) or a pointer in a document, which I did not write.
+
+Details that are new, for your call: that life support specialists were among the fourteen; that something in the wing's air
+handling answers kinder than it is told on Day 29 (the readings that "arrive and stay" are in Haddad's Day 27 log, so this is
+the same thing from the air side); that the wing's records live behind the L2 door and the fourteen call the start of the phase the
+clock at rest; that the archive is the one place Cross's people do not read; the two names and numbers (`H-094`, `P-029`, both
+provisional).
 
 ## Updates for the lore repo (`ECHOES_Novel.md`, `PROGRESS.md`)
 
@@ -247,7 +297,7 @@ Nothing else in the novel is an entry code log. The only logs players can fetch 
 
 ## Left unwritten on purpose
 
-- The person in Cargo Bay C on 2143.181. The novel marks the occupant and the status as unknown, and "this terminal knows".
+- The person in Cargo Bay C on 2143.181 (Ines Calloway, `P-029`, is deliberately not placed there). The novel marks the occupant and the status as unknown, and "this terminal knows".
 - The owner of the kit bag whose name tab has faded past reading.
 - Garrett Keys. He was frozen in 2143 and the lore limits what he can know, so his entries are best written with you.
 - Anything that says what the thing in the wing is.

@@ -97,7 +97,7 @@ These never appear in a listing. The player learns them from the story.
 |---|---|---|
 | `[ECHOES.ARCHIVE]` | The chat | Enters the layer 1 archive with the transition sequence (below): the mount line, a cleared screen, the L1 transition text, then the theme switch and the ECHOES.ARCHIVE root. It is not on the landing screen, not in `[HELP]` and not in the player `[TREE]`: it is printed on a few of the game's Echo cards, and players bring it to the terminal and type it. Its item in `echo-os.json` (the `l1c` root's command) has `"hidden": true`. Typed only: nothing on the chat screen can be clicked to enter. The author `[TREE]` lists it. |
 | `[INITIATE ECHO PROTOCOL]` | Anywhere: the chat or any archive page | Gateway to the L2 root. Plays the transition sequence with the L2 transition text (`L2A_INTRO`), then draws `L2A_ROOT`. |
-| `[INITIATE CHRONO-ZERO PROTOCOL]` | Any page at L2 or L3 (an unknown command at L1 and in the chat, because the gateway is a level 2 item) | Gateway to the L3 root. Plays the transition sequence with the L3 transition text (`L3A_INTRO`), then draws `L3A_ROOT`. |
+| `[INITIATE CHRONO-ZERO PROTOCOL]` | Any page at L2 or L3 (an unknown command at L1 and in the chat, because the gateway is a level 2 item) | Gateway to the L3 root. Plays the transition sequence with the L3 transition text (`L3A_INTRO`), then draws `L3A_ROOT`. Hidden commands ignore hyphens, spacing and capitals, so `[INITIATE CHRONO ZERO PROTOCOL]` works too. The clue to it is the Day 29 log `6PILH-UYMCX-YY3XY-WDR17` (see the content notes). |
 | `[FETCH LOG ENTRY: //]` | Any L2 or L3 page (answers "unavailable" in the chat and at L1) | Program `lore-entry`, shown as **FETCH LOG.EXE** in its own window (see section 3a). |
 
 A hidden item opens only if its level is at or below the level you are in. A program opens only where its
@@ -153,6 +153,8 @@ Each recovered row reads `[Log header]  //  CODE  //  HEALTH  //  TYPE`:
 | Log header | First line of the entry's text, for example `[Log A-15 \| Stardate 2143.136.2132]` (falls back to the entry's `label`). |
 | Health | The entry's own `health` field: `PARTIAL`, `DEGRADED` or `CORRUPTED` (the log editor writes it, and the same word shows on the status line when the log opens). With no field, text containing `[CORRUPTED]` reads `PARTIAL`, older entries that used `type: partial`, `degraded` or `corrupted` read the same, a classified entry viewed at L1 reads `RESTRICTED`, and anything else is `INTACT`. A code whose entry no longer exists shows `LOST`. |
 | Type | The wording before the log number in the entry's `label` (`CAPTAIN'S LOG`, `MEDICAL LOG`, `INTERCEPT`, ...). |
+
+A log whose ID, date or sign-off was damaged on purpose (the override in the log editor) holds corruption glyphs (`▒ ░ ▓ ╳ ¤ ¦ ¿`, never a letter or a digit) in its text. FETCH LOG.EXE draws them in the layer's `--theme-glitch` color, in the log and in the recovered list.
 
 A typed code is looked up in `lore.json`, and at L3 in `dev_logs.json` first. An entry with `"clearance": 3` (every dev log, and any
 lore log meant for L3 only, such as the ones the creature writes through Terminal 426) opens only at L3. At L2 its code answers
@@ -244,13 +246,13 @@ setting is edited in the layer window with a live result.
 | Setting | What it changes | Control |
 |---|---|---|
 | Title | The header text while you are in the layer. | Text box |
-| Colors | `PRIMARY`, `WARN`, `DENIED` and `BACKGROUND` (the glow around the screen). The dim, low and border tints are made from `PRIMARY`. | A color picker and a hex box each, and a row of theme chips that set all four at once |
+| Colors | `PRIMARY`, `WARN`, `DENIED`, `GLITCH` (shown as CORRUPT: the damaged characters in a log's ID, date and sign-off) and `BACKGROUND` (the glow around the screen). The dim, low and border tints are made from `PRIMARY`. `GLITCH` is its own color so a layer whose `DENIED` is red can show corruption in another one (L3 uses a pale cyan). | A color picker and a hex box each, and a row of theme chips that set all the colors at once |
 | Strength | How strong the `DIM`, `LO` and `BORDER` tints are. | Sliders |
 | Transition text | The text shown while the terminal moves into the layer (the `L<n>A_INTRO` screen). The blank lines and the rule line around it are added for you. | A line editor with a style per line, and a typed preview |
 | Sound | The ambient sound of the layer. | A list you can listen to, and a volume slider |
 
 **Theme chips.** `CYAN` (the original blue), `STEEL`, `CYAN ON STEEL`, `PEWTER`, `COBALT`, `STEEL BLUE`, `PERIWINKLE`, `SILVER`, `GREY JADE`,
-`AMBER` and `RED` (layers 2 and 3 as they were). One click sets the four colors, so any layer can be tried in any palette and set back.
+`AMBER` and `RED` (layers 2 and 3 as they were). One click sets all the colors, so any layer can be tried in any palette and set back. `GREY JADE` is the default for L1A.
 
 **Sounds.** `VENTILATION`, `CHORD`, `SUB-BASS`, `REACTOR HUM`, `COLD AIR`, `SIGNAL`, `DEEP PULSE` and `SILENT`. The play button
 previews a sound (the layer's own sound ducks meanwhile and a preview stops by itself after 12 seconds), a click on the name
@@ -383,4 +385,4 @@ A program is `terminal-data/programs/<id>.js` with `export default { id, title, 
 
 `run` returns `'stay'` when it is done (a windowed program leaves the page untouched) or `'reset'` after
 `ctx.virus`. Shared look: use the classes `pg-btn` and `pg-input`, and the theme variables `--theme-full`,
-`--theme-dim`, `--theme-lo`, `--theme-warn`, `--theme-denied`, `--theme-bc`.
+`--theme-dim`, `--theme-lo`, `--theme-warn`, `--theme-denied`, `--theme-glitch`, `--theme-bc`.

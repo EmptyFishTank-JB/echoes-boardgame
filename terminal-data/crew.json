@@ -77,6 +77,13 @@
       "role": "Technician, rear power supply",
       "provisional": true
     },
+    "H-094": {
+      "name": "Dr. Tobias Lindqvist",
+      "signature": "Dr. T. Lindqvist",
+      "role": "Life support specialist, Research Team",
+      "provisional": true,
+      "notes": "One of the fourteen. Brought in to keep the closed atmosphere of the wing, and still on a Habitat ID because reassignment is slow. Files the Day 29 log with the designation hidden."
+    },
     "M-052": {
       "name": "Dr. Anselm Reyes",
       "signature": "Dr. A. Reyes, Medical Bay",
@@ -88,6 +95,13 @@
       "signature": "J. Park, Pod Bay Technician",
       "role": "Pod Bay Technician, Sector 7",
       "provisional": true
+    },
+    "P-029": {
+      "name": "Ines Calloway",
+      "signature": "I. Calloway, Provisioning",
+      "role": "Provisioning Officer, research wing deliveries",
+      "provisional": true,
+      "notes": "Signs the research wing's deliveries in and out at the lock. The person the Day 29 log from H-094 is written to. Deliberately not placed in Cargo Bay C, whose occupant on 2143.181 is left unwritten."
     },
     "R-118": {
       "name": "Dr. Aisha Osei",

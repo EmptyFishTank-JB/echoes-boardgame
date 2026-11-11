@@ -331,10 +331,10 @@ export default function makeDialogs(H) {
       H.THEMES.forEach((t) => {
         const b = mk('button', 'ed-chip'); b.type = 'button'; b.title = t.primary + ' on ' + t.background;
         const i1 = mk('i'); i1.style.background = t.primary; const i2 = mk('i'); i2.style.background = t.background; b.append(i1, i2, document.createTextNode(t.name));
-        b.addEventListener('click', () => { ['primary', 'warn', 'denied', 'background'].forEach((k) => { c[k] = t[k]; live['c_' + k].set(t[k]); }); styles(); commit(); note('THEME: ' + t.name, 'ok'); });
+        b.addEventListener('click', () => { ['primary', 'warn', 'denied', 'glitch', 'background'].forEach((k) => { const v = k === 'glitch' ? (t.glitch || t.denied) : t[k]; c[k] = v; live['c_' + k].set(v); }); styles(); commit(); note('THEME: ' + t.name, 'ok'); });
         chips.appendChild(b);
       });
-      const colorRow = (key, label) => {
+      const colorRow = (key, label, hint) => {
         const wrap = mk('div', 'ed-col'); const sw = mk('input', 'ed-sw'); sw.type = 'color'; const hx = text(c[key] || '', { placeholder: '#RRGGBB' });
         const set = (v) => { const h = H.parseHex(v); if (h) { sw.value = h; hx.value = h; hx.classList.remove('bad'); return h; } return null; };
         sw.addEventListener('input', () => { const h = set(sw.value); if (h) { c[key] = h; styles(); } });
@@ -343,9 +343,9 @@ export default function makeDialogs(H) {
         hx.addEventListener('change', () => commit());
         live['hex_' + key] = hx; wrap.append(sw, hx); live['c_' + key] = { set: (v) => { sw.value = H.parseHex(v) || '#000000'; hx.value = v; hx.classList.remove('bad'); } };
         if (c[key]) live['c_' + key].set(c[key]); else sw.value = '#000000';
-        return row(label, wrap);
+        return row(label, wrap, hint);
       };
-      holder.appendChild(sec('COLORS', row('THEMES', chips, 'one click sets all four colors'), colorRow('primary', 'PRIMARY'), colorRow('warn', 'WARN'), colorRow('denied', 'DENIED'), colorRow('background', 'BACKGROUND')));
+      holder.appendChild(sec('COLORS', row('THEMES', chips, 'one click sets all the colors'), colorRow('primary', 'PRIMARY'), colorRow('warn', 'WARN'), colorRow('denied', 'DENIED'), colorRow('glitch', 'CORRUPT', 'damaged characters in a log: its ID, date and sign-off'), colorRow('background', 'BACKGROUND')));
       const strength = (key, label, dflt, hint) => { const sl = slider(0, 1, 0.01, c[key] != null ? c[key] : dflt, (v) => { c[key] = v; styles(); }, () => commit()); return row(label, sl, hint); };
       holder.appendChild(sec('STRENGTH', strength('dim_opacity', 'DIM', 0.7, 'secondary text'), strength('lo_opacity', 'LO', 0.4, 'faint text and rules'), strength('border_opacity', 'BORDER', 0.12, 'frames and lines')));
 
@@ -377,7 +377,7 @@ export default function makeDialogs(H) {
         holder.appendChild(sec('SOUND AND TRANSITION TEXT', mk('div', 'ed-hint', 'The chat shares the sound of L1A, and its transition is L1A\'s. Edit those on the L1A tab.')));
       }
       note('');
-      if (focus) { const f = { TITLE: live.title, INTRO: live.intro && { focus: live.intro.focus }, PRIMARY: live.hex_primary, WARN: live.hex_warn, DENIED: live.hex_denied, BACKGROUND: live.hex_background }[String(focus).toUpperCase()]; if (f && f.focus) dlg.focusLater(() => f.focus()); const sec2 = { INTRO: 'TRANSITION TEXT', SOUND: 'SOUND', PRIMARY: 'COLORS', WARN: 'COLORS', DENIED: 'COLORS', BACKGROUND: 'COLORS', DIM: 'STRENGTH', LO: 'STRENGTH', BORDER: 'STRENGTH', VOLUME: 'SOUND' }[String(focus).toUpperCase()]; if (sec2) { const t = [...holder.querySelectorAll('.st')].find((e) => e.textContent === sec2); if (t) t.scrollIntoView({ block: 'start' }); } }
+      if (focus) { const f = { TITLE: live.title, INTRO: live.intro && { focus: live.intro.focus }, PRIMARY: live.hex_primary, WARN: live.hex_warn, DENIED: live.hex_denied, GLITCH: live.hex_glitch, BACKGROUND: live.hex_background }[String(focus).toUpperCase()]; if (f && f.focus) dlg.focusLater(() => f.focus()); const sec2 = { INTRO: 'TRANSITION TEXT', SOUND: 'SOUND', PRIMARY: 'COLORS', WARN: 'COLORS', DENIED: 'COLORS', GLITCH: 'COLORS', BACKGROUND: 'COLORS', DIM: 'STRENGTH', LO: 'STRENGTH', BORDER: 'STRENGTH', VOLUME: 'SOUND' }[String(focus).toUpperCase()]; if (sec2) { const t = [...holder.querySelectorAll('.st')].find((e) => e.textContent === sec2); if (t) t.scrollIntoView({ block: 'start' }); } }
     }
     Object.keys(names).forEach((id) => { const b = btn(names[id], () => show(id)); b.dataset.id = id; tabs.appendChild(b); });
     dlg.el.__show = show;

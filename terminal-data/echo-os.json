@@ -12,6 +12,7 @@
         "primary": "#4fc3f7",
         "warn": "#E8732A",
         "denied": "#ff003c",
+        "glitch": "#ff003c",
         "background": "#005799",
         "dim_opacity": 0.7,
         "lo_opacity": 0.4,
@@ -21,10 +22,11 @@
     "l1a": {
       "header_title": "ECHOES-ARCHIVE",
       "colors": {
-        "primary": "#4fc3f7",
+        "primary": "#8fbfae",
         "warn": "#E8732A",
         "denied": "#ff003c",
-        "background": "#005799",
+        "glitch": "#ff003c",
+        "background": "#33524a",
         "dim_opacity": 0.7,
         "lo_opacity": 0.4,
         "border_opacity": 0.12
@@ -71,6 +73,7 @@
         "primary": "#bf7c0a",
         "warn": "#c8a020",
         "denied": "#c84040",
+        "glitch": "#c84040",
         "background": "#805900",
         "dim_opacity": 0.7,
         "lo_opacity": 0.45,
@@ -128,6 +131,7 @@
         "primary": "#e05050",
         "warn": "#ff8800",
         "denied": "#ff0000",
+        "glitch": "#6fe3ff",
         "background": "#850000",
         "dim_opacity": 0.7,
         "lo_opacity": 0.4,
