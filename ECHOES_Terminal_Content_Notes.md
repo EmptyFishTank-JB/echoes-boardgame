@@ -166,13 +166,17 @@ Both are text the player reads, and they are built differently.
 | | Terminal document | Log |
 |---|---|---|
 | Where it lives | A page in the tree in `echo-os.json` | An entry in `lore.json` or `dev_logs.json` |
-| How the player reaches it | By browsing, or by typing its name or alias | By typing its 20 character code into FETCH LOG.EXE (L2 and L3). It can never be browsed to |
+| How the player reaches it | By browsing, or by typing its name or alias | By typing its 20 character code into FETCH LOG.EXE (L2 and L3). It can also be given a place in the tree: a `log` item (the `▪ log` in the legend, made with `[NEW LOG]`) is a page that prints one entry's text, and is browsed to like a document |
 | What it carries | A title, a footer, styled lines, `[CORRUPTED]` gaps for the partial recoveries | A Log ID (department letter and crew number), a stardate, an author, a condition (INTACT, PARTIAL, DEGRADED, CORRUPTED) and a clearance (L2 or L3) |
 | Who writes it | Author mode in the terminal (`[NEW DOC]`, `[EDIT]`) | The log editor (`dev-tools/lore-devlog-editor.html`) |
 | Good for | The world as the ship shows it: reports, protocols, notes that sit in a folder waiting to be opened | A person speaking in their own voice, found because someone gave the player the code (a card, a component, the novel) |
 
 A log can be damaged on purpose (see the override above), a document cannot. A clue that has to be found by exploring belongs in a
-document. A clue that is a reward, or a voice, belongs in a log, which is why the CHRONO-ZERO clue is one.
+document or a `log` item. A clue that is a reward, or a voice, belongs in a log, which is why the CHRONO-ZERO clue is one.
+
+A `log` item is only a shortcut: the text stays in `lore.json` and the item points at it (`log_ref`: source and code). It does not
+open FETCH LOG.EXE, shows no condition line, does not add the code to RECOVERED LOGS and does not check the entry's clearance (the
+item's own level decides who sees it). No `log` item exists in `echo-os.json` yet.
 
 ## The clue log (H-094, Day 29)
 
@@ -195,8 +199,9 @@ open it). It is the first log with damaged ID information.
 - **The clue.** The records "live where the system put them, one door past the echo protocol", opened the way the first door was
   opened: "the same word at the front, the same word at the back. In the middle is where we put the clock to rest. Chrono. Zero."
   That is `[INITIATE CHRONO-ZERO PROTOCOL]`, and a player who types a space for the hyphen gets in too. It never prints the command.
-- **Where the player finds the code.** Nowhere in the terminal: a log is reached by its code. It needs a place in the game (a card,
-  a component) or a pointer in a document, which I did not write.
+- **Where the player finds it.** As it stands, only by typing its code into FETCH LOG.EXE: no tree item points at it. Either the game
+  gives the code (a card, a component), or a `log` item in L2 makes it browsable. On a `log` item the damaged characters are drawn in
+  the plain layer color, because only FETCH LOG.EXE paints them in the corruption color so far.
 
 Details that are new, for your call: that life support specialists were among the fourteen; that something in the wing's air
 handling answers kinder than it is told on Day 29 (the readings that "arrive and stay" are in Haddad's Day 27 log, so this is

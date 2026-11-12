@@ -199,7 +199,7 @@ in `echo-os.json` removes every author command: `[AUTHOR UNLOCK]` then behaves l
 | `[AUTHOR HELP]` | Lists the author commands. |
 | `[MKDIR]` | New folder in the folder you are standing in. |
 | `[NEW DOC]` | New page with its own text, typed a line at a time (see "Typing a text" below). Lines can start with `/dim`, `/low`, `/warn` or `/denied` to set a style. `[DONE]` finishes, `Esc` aborts. Capitalization and indentation are kept. |
-| `[NEW LOG]` | New page that shows a `lore.json` (`LORE`) or `dev_logs.json` (`DEV`) entry by code. |
+| `[NEW LOG]` | New page (a `log` item, the `▪ log` in the legend) that shows a `lore.json` (`LORE`) or `dev_logs.json` (`DEV`) entry by code. This is the way to put a log in the tree, so it can be browsed to as well as fetched by its code. |
 | `[NEW PROGRAM]` | Registers a program from `terminal-data/programs/<id>.js` as a hidden item. Asks for its scope. |
 | `[NEW GATEWAY]` | Hidden command that jumps to any folder, at any level. A different level plays the transition. |
 | `[EDIT]` | Opens the item's editing window (section 5b): name, alias, title, hidden, footer, text and whatever else fits its type. On a stub it turns it into a real doc once it has text. |
