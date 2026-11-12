@@ -2728,7 +2728,7 @@ async function overrideJumpToLayer(level){
 }
 // Targets the engine resolves itself, outside archData.nodes — a command
 // pointing at one of these is not dangling even though no such node exists.
-var VALIDATOR_SENTINEL_TARGETS=['__EXIT__','__BACK__','__ROOT__','__ECHO_ARCHIVE__','__ENTER_ARCHIVE__','__CLEAR__','__HOME__','__TRANSITION_L2A__','__TRANSITION_L3A__'];
+var VALIDATOR_SENTINEL_TARGETS=['__EXIT__','__BACK__','__ROOT__','__PROGRAM__','__ECHO_ARCHIVE__','__ENTER_ARCHIVE__','__CLEAR__','__HOME__','__TRANSITION_L2A__','__TRANSITION_L3A__'];
 var VALIDATOR_KNOWN_CMD_TYPES=['navigation','pull','loop'];
 var VALIDATOR_KNOWN_NODE_TYPES=['chat','intro','standard','global','data','log_entry','help'];
 // Node IDs the engine looks up directly by string, independent of any

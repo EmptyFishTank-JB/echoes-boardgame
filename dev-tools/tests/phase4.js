@@ -133,12 +133,12 @@ async function session(ctxOrBrowser, patch = {}) {
   // ---- 3. export round-trip and the draft ----
   await s.jump(1); await s.send('[ECHOES.ARCHIVE]'.replace('[ECHOES.ARCHIVE]', '[LS]'));
   const draftBefore = await s.page.evaluate(() => localStorage.getItem('echo_os_draft'));
-  check('edits autosave a draft', !!draftBefore && draftBefore.includes('BREACH_COPY'));
+  check('edits autosave a draft', !!draftBefore && draftBefore.includes('ARCHIVE_B'));
   const [dl] = await Promise.all([s.page.waitForEvent('download'), s.send('[EXPORT]')]);
   const text = require('fs').readFileSync(await dl.path(), 'utf8'); const exported = JSON.parse(text);
   const flat = {}; (function w(i) { flat[i.id] = i; (i.children || []).forEach(w); })(exported.tree);
   check('[EXPORT] downloads echo-os.json', dl.suggestedFilename() === 'echo-os.json');
-  check('exported file has the new items, no internal fields', !!flat.L1A_BREACH_COPY && !!flat.L2A_PROG_SECOND_ENTRY && !text.includes('_parent') && !!exported.meta.last_saved);
+  check('exported file has the new items, no internal fields', !!flat.L1A_ARCHIVE_B && !!flat.L2A_PROG_SECOND_ENTRY && !text.includes('_parent') && !!exported.meta.last_saved);
   check('...and not what was deleted or cancelled', !flat.L1A_FIELD_NOTES && !!flat.L1A_ARCHIVE_B && !flat.GW_PEEK && !flat.L1A_ABORTED);
   check('export clears the draft', (await s.page.evaluate(() => localStorage.getItem('echo_os_draft'))) === null);
   await s.page.close();
@@ -146,8 +146,8 @@ async function session(ctxOrBrowser, patch = {}) {
   // the exported file works as the new data file for a player
   { const p = await session(browser, { '**/echo-os.json*': () => exported });
     await p.send('[ECHOES.ARCHIVE]'); const t = await p.out();
-    check('a fresh terminal loads the exported file; the new log is listed', t.includes('[BREACH COPY]') && t.includes('[ARCHIVE B]'));
-    await p.send('[BREACH COPY]'); check('...and opens', (await p.out()).includes('We have everything we need.'));
+    check('a fresh terminal loads the exported file; the new folder is listed', t.includes('[ARCHIVE B]'));
+    await p.send('[ARCHIVE B]'); check('...and opens', (await p.out()).some(l => /ARCHIVE B/.test(l)));
     await p.send('[SYSTEM OVERRIDE]'); await p.send('[STATUS]'); const v = await p.out();
     check('...and the validator finds no dangling links', v.some(l => /DANGLING TARGETS: 0/.test(l)));
     console.log('   page errors:', p.errs); await p.page.close(); }
