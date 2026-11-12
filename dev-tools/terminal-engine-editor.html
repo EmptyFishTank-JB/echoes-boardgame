@@ -541,7 +541,8 @@ var STRING_KEYS = [
   {key:'layer_mount',                 label:'Archive mount line, shown when entering ECHOES.ARCHIVE'},
   {key:'layer_entry_l2',              label:'Level 2 entry line, shown before the screen clears for the L2 transition'},
   {key:'layer_entry_l3',              label:'Level 3 entry line, shown before the screen clears for the L3 transition'},
-  {key:'layer_unmount',               label:'Archive unmount line, shown when leaving to the chat'}
+  {key:'layer_unmount',               label:'Archive unmount line, shown when leaving to the chat'},
+  {key:'item_received',               label:'Start of the line printed when an item appears because a program set a flag (followed by its [ALIAS])'}
 ];
 var DEFAULT_STRINGS = {
   error_nav_offline:          '> ERROR \u2014 NAVIGATION DATA UNAVAILABLE',
@@ -564,7 +565,8 @@ var DEFAULT_STRINGS = {
   layer_mount:                '> MOUNTING ECHOES:\\ . . .',
   layer_entry_l2:             '> GATEWAY COMMAND ACCEPTED . . .',
   layer_entry_l3:             '> GATEWAY COMMAND ACCEPTED . . .',
-  layer_unmount:              '> ECHOES:\\ UNMOUNTED'
+  layer_unmount:              '> ECHOES:\\ UNMOUNTED',
+  item_received:              '> RECEIVED: '
 };
 function mkStringsEditor(){
   if(!cfg.terminal_strings) cfg.terminal_strings={};

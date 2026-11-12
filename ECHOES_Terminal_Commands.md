@@ -12,7 +12,7 @@ command that is missing from it. Run it before committing terminal changes. The 
 |---|---|
 | Built-ins, `[SYSTEM OVERRIDE]` menu, author lock/unlock | `terminal.html` (`tryBuiltin`, `handleOverrideInput`, `handleAuthorInput`) |
 | Author editing commands | `terminal-data/author.js` (`COMMANDS`, `HELP`) |
-| Folders, docs, logs, hidden items, gateways, programs, `[HELP]` text | `terminal-data/echo-os.json` |
+| Folders, docs, hidden items, gateways, programs, `[HELP]` text | `terminal-data/echo-os.json` |
 | Programs | `terminal-data/programs/<id>.js` |
 
 ---
@@ -199,13 +199,13 @@ in `echo-os.json` removes every author command: `[AUTHOR UNLOCK]` then behaves l
 | `[AUTHOR HELP]` | Lists the author commands. |
 | `[MKDIR]` | New folder in the folder you are standing in. |
 | `[NEW DOC]` | New page with its own text, typed a line at a time (see "Typing a text" below). Lines can start with `/dim`, `/low`, `/warn` or `/denied` to set a style. `[DONE]` finishes, `Esc` aborts. Capitalization and indentation are kept. |
-| `[NEW LOG]` | New page (a `log` item, the `▪ log` in the legend) that shows a `lore.json` (`LORE`) or `dev_logs.json` (`DEV`) entry by code. This is the way to put a log in the tree, so it can be browsed to as well as fetched by its code. |
 | `[NEW PROGRAM]` | Registers a program from `terminal-data/programs/<id>.js` as a hidden item. Asks for its scope. |
 | `[NEW GATEWAY]` | Hidden command that jumps to any folder, at any level. A different level plays the transition. |
-| `[EDIT]` | Opens the item's editing window (section 5b): name, alias, title, hidden, footer, text and whatever else fits its type. On a stub it turns it into a real doc once it has text. |
+| `[EDIT]` | Opens the item's editing window (section 5b): name, alias, title, hidden, requires, footer, text and whatever else fits its type. On a stub it turns it into a real doc once it has text. |
 | `[LAYER]`, `[LAYER <SETTING>]` | Opens the layer window (sections 5a and 5b) on the layer you are standing in, or the one a right-click named, with a tab for each of the chat and the three archive layers. `[LAYER PRIMARY]` opens it scrolled to that setting. |
-| `[SET]`, `[SET <PROPERTY>]` | Opens the item's window on one property: `[SET NAME]` puts the cursor in the name box. Properties: `NAME`, `ALIAS`, `TITLE`, `HIDDEN`, `FOOTER`, `TEXT` (docs and stubs), `LOG` (log items), `DESTINATION` (gateways), `PROGRAM` and `SCOPE` (programs). Gateways and programs have only the ones that apply to them: they never draw a page, so no title, hidden toggle or footer. Asks which item unless a click or the right-click menu named it. |
-| `[HIDE]`, `[SHOW]` | Unlists an item (it still opens by its alias) or lists it again. Programs and gateways are always hidden. |
+| `[SET]`, `[SET <PROPERTY>]` | Opens the item's window on one property: `[SET NAME]` puts the cursor in the name box. Properties: `NAME`, `ALIAS`, `TITLE`, `HIDDEN`, `FOOTER`, `REQUIRES`, `TEXT` (docs and stubs), `DESTINATION` (gateways), `PROGRAM` and `SCOPE` (programs). Gateways and programs have only the ones that apply to them: they never draw a page, so no title or footer, and a gateway has no hidden toggle. Asks which item unless a click or the right-click menu named it. |
+| `[HIDE]`, `[SHOW]` | Unlists an item (it still opens by its alias) or lists it again. A program is hidden unless you `[SHOW]` it: then it is listed in its folder with the program glyph and runs when clicked. Gateways are always hidden. |
+| `[FLAGS]`, `[FLAG]`, `[RESET STATE]` | `[FLAGS]` lists the game flags that are on and the items they gate. `[FLAG]` turns one on or off by name (author mode ignores `requires`, so use `[AUTHOR LOCK]` to see what a player sees). `[RESET STATE]` clears every flag, recovered code and unlock for a fresh game. |
 | `[ALIAS]` | Opens the item's window on its alias, which is checked as you type. |
 | `[MV]` | Moves an item and everything under it to another folder. `..` means the parent folder. |
 | `[RM]` | Deletes an item and everything under it. Refuses if a gateway points into it. |
@@ -229,7 +229,7 @@ be unique within their folder. Programs may share an alias across levels.
 | Input | Effect |
 |---|---|
 | `(o)` / `(-)` beside an item | Open or closed eye. Click it to list or unlist the item. |
-| Right-click an item | A menu that starts with what the item is, one row per property: `ID`, `TYPE`, `NAME`, `ALIAS`, `TITLE` (not for gateways and programs), `HIDDEN`, `FOOTER`, `CONTAINS` (folders), `TEXT` (docs), `LOG ENTRY` (logs), `DESTINATION` (gateways, shown as name and id, for example `L3 ROOT (L3A_ROOT)`), `PROGRAM` and `SCOPE` (programs). `ID`, `TYPE` and `CONTAINS` are read-only. Click any other row to change that property: it asks only the one question (`[SET NAME]`, `[ALIAS]`, `[SHOW]`/`[HIDE]` and so on). Below the rows: open, edit everything, move, delete. Skips the "which item?" prompt. |
+| Right-click an item | A menu that starts with what the item is, one row per property: `ID`, `TYPE`, `NAME`, `ALIAS`, `TITLE` (not for gateways and programs), `HIDDEN`, `REQUIRES`, `FOOTER`, `CONTAINS` (folders), `TEXT` (docs), `DESTINATION` (gateways, shown as name and id, for example `L3 ROOT (L3A_ROOT)`), `PROGRAM` and `SCOPE` (programs). `ID`, `TYPE` and `CONTAINS` are read-only. Click any other row to change that property: it asks only the one question (`[SET NAME]`, `[ALIAS]`, `[SHOW]`/`[HIDE]` and so on). Below the rows: open, edit everything, move, delete. Skips the "which item?" prompt. |
 | Right-click empty space | Menu: the create commands, tree, export, help, lock. At a level root it also offers `LAYER SETTINGS...`. |
 | Right-click the address bar | The same rows as an item's menu, for the page you are on. At a level root it adds the layer's settings (section 5a). |
 | Click a line in `[TREE]` | Jumps straight to that item, across levels. Programs, gateways and stubs land on their folder. |
@@ -365,7 +365,7 @@ two rows of the `art` item in `echo-os.json`: a heading and a spacer). The heade
 The `self_destruct` block in `personality.json` is data only. The terminal does not run it.
 
 Browser storage used: `echo_os_draft` (author draft), `echo_disc` (recovered codes), `echo_misc` (unlocked
-programs), `echo_l3_visited`.
+programs), `echo_state` (game flags), `echo_l3_visited`.
 
 ---
 
@@ -380,9 +380,42 @@ A program is `terminal-data/programs/<id>.js` with `export default { id, title, 
 | `ctx.sound.click / backspace / enter / denied / line / tone` | The terminal's sound effects. |
 | `ctx.recovered()` | Codes entered so far: `[{code, sd, ts}]`, oldest first. |
 | `ctx.discovered(code)` | Records a recovered code. |
+| `ctx.state.get(name)`, `.has(name)`, `.set(name, value)`, `.all()` | The game flags (section 9). `set` with no value turns a flag on, `false` turns it off, and it returns whether anything changed. |
+| `ctx.stardate()` | The current stardate as the terminal shows it. |
 | `ctx.level`, `ctx.lore`, `ctx.devLogs`, `ctx.strings` | Current level, the two log files, system messages. |
 | `ctx.virus(entry)` | Runs the virus sequence. Close the window first, then return `'reset'`. |
 
 `run` returns `'stay'` when it is done (a windowed program leaves the page untouched) or `'reset'` after
 `ctx.virus`. Shared look: use the classes `pg-btn` and `pg-input`, and the theme variables `--theme-full`,
 `--theme-dim`, `--theme-lo`, `--theme-warn`, `--theme-denied`, `--theme-glitch`, `--theme-bc`.
+
+---
+
+## 9. Game state, gated items and INBOX.EXE
+
+**Flags.** The terminal keeps named flags in the browser (`echo_state`). A program sets one with `ctx.state.set('wing_door_open')`.
+A flag is on, off, or (for the programs' own use) holds a value such as a stardate. Reading a message sets `read:<id>` and sending a
+draft sets `sent:<id>` (the value is the stardate it was sent).
+
+**Gated items.** Any item (doc, folder, program, gateway) can carry `"requires": ["flag", "!other"]`. While one of those is not
+satisfied (a leading `!` means the flag must be off) the item does not exist for the player: it is not listed, its alias is refused,
+and it has no page. Setting a flag rebuilds the tree. Every gated item that appears is announced when the program that set the flag
+closes, as `> RECEIVED: [ALIAS]` (or its own `notice` text, with the start of the line in the `item_received` string). Author mode
+ignores `requires` so the author sees everything. Set it in the item window (`REQUIRES`, comma separated) or `[SET REQUIRES]`.
+
+**Programs in a folder.** A program is hidden by default and runs by its alias. Set it to listed (`"hidden": false`, or `[SHOW]`) and it
+appears in its folder with the program glyph, `EXE` in the type column, and runs when clicked or typed. Each program chooses.
+
+**INBOX.EXE** (`terminal-data/programs/inbox.js`, data in `terminal-data/mail.json`) is listed in the L3 root. It is the mail of the
+account on Terminal 426: INBOX, SENT and COMPOSE tabs, the account on top, the list on the left and the open message on the right.
+
+| In `mail.json` | What it does |
+|---|---|
+| `account` `{id, status, label}` | Who the account is. It is left unknown on purpose: `╳-███  UNVERIFIED`, drawn in the corruption color. Change it when it is decided. |
+| `messages[]` `{id, box, from, to, date, subject, text}` | `box` is `in` or `out`. Inbox is newest first. Unread messages carry a `*` and count on the tab and in the window bar. |
+| `requires` | The flags that must be on for the message or draft to exist (same rules as gated items). |
+| `sets` | Flags set the first time the message is opened. This is how reading mail unlocks things. |
+| `attach` | A list of log codes from `lore.json` (and `dev_logs.json` at L3). RECOVER adds the code to FETCH LOG's recovered list and shows the log. A level 3 entry is locked at L2. |
+| `drafts[]` `{id, to, subject, text, reply_to?}` | Shown under COMPOSE (and as REPLY on the message named by `reply_to`). SEND sets `sent:<id>` and files it under SENT. A message that requires `sent:<id>` then arrives. |
+
+The messages in `mail.json` are a provisional starting set (see the content notes): rewrite them freely, the program reads whatever is there.

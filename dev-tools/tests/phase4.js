@@ -115,11 +115,8 @@ async function session(ctxOrBrowser, patch = {}) {
   check('...and deletes it (with its contents) once nothing points into it', o.some(l => l.includes('DELETED 2 ITEM(S)')), o.filter(l => l.includes('DELETE')).join(' | '));
 
   await s.send('[BACK]');
-  await s.run('[NEW LOG]', ['BREACH COPY', '', '', '', 'LORE', LORE]); await s.send('[BREACH COPY]'); o = await s.out();
-  check('[NEW LOG] shows a lore.json entry on its page', o.includes('We have everything we need.'));
-  await s.send('[BACK]');
-  await s.run('[NEW LOG]', ['BAD', '', '', '', 'LORE', 'ZZZZZ-ZZZZZ-ZZZZZ-ZZZZZ']); o = await s.out();
-  check('[NEW LOG] refuses a code that is not in the file', o.some(l => l.includes('NO ENTRY ZZZZZ')));
+  await s.send('[NEW LOG]'); o = await s.out();
+  check('[NEW LOG] is gone: the log item type was removed, so it is an unknown command', !(await s.page.evaluate(() => osItems.L1A_BREACH_COPY)) && o.some(l => /NOT RECOGNIZED|INVALID/i.test(l)), o.slice(-3).join(' | '));
 
   // programs + a cancel path
   await s.jump(2);

@@ -1,0 +1,101 @@
+{
+  "meta": {
+    "note": "Mail for INBOX.EXE (terminal-data/programs/inbox.js), the account on Terminal 426. PROVISIONAL: every message here is a starting set for the author to rewrite. Fields: messages[] {id, box ('in' or 'out'), from, to, date (stardate), subject, text, requires?, sets?, attach?}; drafts[] {id, to, subject, text, reply_to?, requires?, sets?}. requires is a list of game flags (a leading ! means the flag must be off). Opening a message sets read:<id> and every flag in sets. Sending a draft sets sent:<id> and every flag in its sets. attach is a list of codes from lore.json. The account owner is left unknown on purpose: change account.id, status and label when it is decided.",
+    "version": "0.1"
+  },
+  "account": {
+    "id": "╳-███",
+    "status": "UNVERIFIED",
+    "label": "TERMINAL 426 OPERATOR"
+  },
+  "messages": [
+    {
+      "id": "m_cross_start",
+      "box": "in",
+      "from": "Dr. Harlan Cross  [E-031]",
+      "to": "OPERATOR, TERMINAL 426",
+      "date": "2143.119.0804",
+      "subject": "PHASE START: WING PROCEDURE",
+      "text": "Operator,\n\nThe phase begins at the top of the hour. The doors stay closed.\nThe feeds stay off the shared network, as before. Notes tidy,\nreadings clean, and nothing leaves the wing without my initials.\n\nIf the terminal asks who you are, tell it. It has never once\nasked twice.\n\n    —— H. Cross"
+    },
+    {
+      "id": "m_osei_report",
+      "box": "in",
+      "from": "Dr. Aisha Osei  [R-118]",
+      "to": "OPERATOR, TERMINAL 426",
+      "date": "2143.136.2201",
+      "subject": "COPY OF THE SUPPLEMENTAL REPORT",
+      "text": "Operator,\n\nI have put a copy of the supplemental report in the wing\nstore. It belongs to nobody. If the Captain asks, it is\nCross's department, and I have already said that once.\n\nThe baseline is too steady. Please look at the overnight\nsession on your terminal before anyone else does, and tell me\nwhether you opened it.\n\n    —— A. Osei"
+    },
+    {
+      "id": "m_ech_drive",
+      "box": "in",
+      "from": "ECH/OES  [SYSTEM]",
+      "to": "OPERATOR, TERMINAL 426",
+      "date": "2143.141.0312",
+      "subject": "NOTICE: DRIVE ARRAY COMMAND ACCEPTED",
+      "requires": [
+        "read:m_osei_report"
+      ],
+      "text": "ECH/OES AUTOMATED NOTICE\nCLASS: ROUTINE\n\nDRIVE ARRAY: COMMAND ACCEPTED\nSOURCE: TERMINAL 426\nSESSION OPERATOR: NONE ON RECORD\nAUTHORIZER: SESSION ALREADY OPEN\n\nNO ACTION REQUIRED."
+    },
+    {
+      "id": "m_osei_thanks",
+      "box": "in",
+      "from": "Dr. Aisha Osei  [R-118]",
+      "to": "OPERATOR, TERMINAL 426",
+      "date": "2143.146.0710",
+      "subject": "RE: COPY OF THE SUPPLEMENTAL REPORT",
+      "requires": [
+        "sent:d_osei_reply"
+      ],
+      "text": "Operator,\n\nThank you. Then I was not wrong about the session. Leave it\nas it is.\n\nHaddad filed this last night in the archive. Read it, and then\nforget that I sent it.\n\n    —— A. Osei",
+      "attach": [
+        "LN5QJ-X2M7G-JKS6E-4X02I"
+      ]
+    },
+    {
+      "id": "m_lindqvist_air",
+      "box": "in",
+      "from": "Dr. T. Lindqvist  [╳-094]",
+      "to": "OPERATOR, TERMINAL 426",
+      "date": "2143.147.0602",
+      "subject": "WING AIR, YOUR SIDE",
+      "requires": [
+        "read:m_ech_drive"
+      ],
+      "text": "Operator,\n\nThe wing air handler reads cleaner on your terminal than on\nmy panel. Every setpoint I enter comes back kinder than I\nentered it. Is that yours?\n\nI will not ask twice. I have left a note for Ines Calloway in\nthe archive. If she cannot reach it, someone should.\n\n    —— T. Lindqvist"
+    },
+    {
+      "id": "m_sent_ack",
+      "box": "out",
+      "from": "TERMINAL 426 OPERATOR",
+      "to": "Dr. Harlan Cross  [E-031]",
+      "date": "2143.119.0911",
+      "subject": "RE: PHASE START: WING PROCEDURE",
+      "text": "Understood. Doors closed, feeds off the shared network.\nNothing leaves without your initials."
+    }
+  ],
+  "drafts": [
+    {
+      "id": "d_osei_reply",
+      "to": "Dr. Aisha Osei  [R-118]",
+      "subject": "RE: COPY OF THE SUPPLEMENTAL REPORT",
+      "reply_to": "m_osei_report",
+      "requires": [
+        "read:m_osei_report"
+      ],
+      "text": "I did not open it. The session was already open when I came\nin. It is open now."
+    },
+    {
+      "id": "d_lindqvist_reply",
+      "to": "Dr. T. Lindqvist  [╳-094]",
+      "subject": "RE: WING AIR, YOUR SIDE",
+      "reply_to": "m_lindqvist_air",
+      "requires": [
+        "read:m_lindqvist_air"
+      ],
+      "text": "It is not mine. I have not touched the setpoints. Please do\nnot say so to anyone else."
+    }
+  ]
+}

@@ -157,7 +157,6 @@
   "glyphs": {
     "folder": "\\",
     "doc": "≡",
-    "log": "▪",
     "program": "►",
     "gateway": "»",
     "up": "↰",
@@ -2441,6 +2440,20 @@
             "scope": "tier",
             "name": "FETCH LOG ENTRY",
             "alias": "[FETCH LOG ENTRY: //]",
+            "tier": 3
+          },
+          {
+            "hidden": false,
+            "footer": "",
+            "body": [],
+            "children": [],
+            "commands": [],
+            "id": "L3A_PROG_INBOX",
+            "type": "program",
+            "program": "inbox",
+            "scope": "folder",
+            "name": "INBOX",
+            "alias": "[INBOX]",
             "tier": 3
           }
         ],

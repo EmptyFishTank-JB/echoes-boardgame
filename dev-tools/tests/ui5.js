@@ -95,7 +95,7 @@ const L = require('./lib.js');
   const box = await p.evaluate(() => { const r = document.getElementById('t-output').getBoundingClientRect(); return { x: r.x, y: r.y, w: r.width, h: r.height }; });
   await p.mouse.click(box.x + box.w - 60, box.y + 40, { button: 'right' });
   menu = await p.evaluate(() => { const m = document.getElementById('ctx'); return m ? Array.from(m.querySelectorAll('.ci')).map(x => x.textContent) : null; });
-  check('right-click on empty space opens the create menu', menu && ['[MKDIR]', '[NEW DOC]', '[NEW LOG]', '[NEW PROGRAM]', '[NEW GATEWAY]', '[EXPORT]', '[TREE]'].every(c => menu.some(x => x.includes(c))), JSON.stringify(menu));
+  check('right-click on empty space opens the create menu', menu && ['[MKDIR]', '[NEW DOC]', '[NEW PROGRAM]', '[NEW GATEWAY]', '[EXPORT]', '[TREE]'].every(c => menu.some(x => x.includes(c))), JSON.stringify(menu));
   await p.click('#ctx .ci:has-text("[MKDIR]")'); await prompt();
   all = await out();
   check('NEW FOLDER from the menu starts the [MKDIR] prompts', all.some(l => l.includes('> FOLDER NAME:')), JSON.stringify(all.slice(-4)));

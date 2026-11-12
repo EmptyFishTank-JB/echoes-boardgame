@@ -184,7 +184,7 @@ export default function makeDialogs(H) {
 
     const srcText = () => (it.body || []).filter((b) => b.type === 'text').map((b) => ({ text: b.cls === 'blank' ? '' : b.text, cls: b.cls || 'full' }));
     const initial = () => ({ name: it.name, alias: it.alias || '', title: it.title || it.name, hidden: !!it.hidden, footer: it.footer || '',
-      source: (it.log_ref && it.log_ref.source) || 'lore', code: (it.log_ref && it.log_ref.code) || '', goto: it.goto || '', program: it.program || '', scope: it.scope || 'tier' });
+      requires: (it.requires || []).join(', '), goto: it.goto || '', program: it.program || '', scope: it.scope || 'tier' });
     let d = initial(), fields = {}, msg = mk('div', 'msg');
     const note = (t, cls) => { msg.textContent = t || ''; msg.className = 'msg' + (cls ? ' ' + cls : ''); };
     const isDirty = () => JSON.stringify(d) !== JSON.stringify(initial()) || (fields.lines && JSON.stringify(fields.lines.get()) !== JSON.stringify(srcText().map((l) => (l.cls === 'blank' ? { type: 'text', text: '', cls: 'blank' } : { type: 'text', text: l.text, cls: l.cls }))));
@@ -192,7 +192,7 @@ export default function makeDialogs(H) {
 
     // header facts
     const facts = mk('div', 'ed-hint');
-    facts.textContent = it.type + (it.stub ? ' (stub placeholder)' : '') + '  ·  L' + it.tier + (it.type === 'folder' ? '  ·  ' + (it.children || []).length + ' item(s)' : '') + (global ? '  ·  always hidden, opens by its alias' : '');
+    facts.textContent = it.type + (it.stub ? ' (stub placeholder)' : '') + '  ·  L' + it.tier + (it.type === 'folder' ? '  ·  ' + (it.children || []).length + ' item(s)' : '') + (global ? '  ·  ' + (it.type === 'program' && it.hidden === false ? 'listed in its folder like an app' : 'opens by its alias') : '');
     facts.style.gridColumn = 'auto';
 
     // name, alias, title, hidden, footer
@@ -216,6 +216,14 @@ export default function makeDialogs(H) {
       fields.footer = text(d.footer, { placeholder: '(none)', onInput: (v) => { d.footer = v; touch(); } });
       rows.push(row('FOOTER', fields.footer, 'a line under the page'));
     }
+    if (it.type === 'program') {
+      fields.hidden = toggle(d.hidden, 'HIDDEN: OPENS BY ALIAS ONLY', 'LISTED IN ITS FOLDER LIKE AN APP', (v) => { d.hidden = v; touch(); });
+      rows.push(row('HIDDEN', fields.hidden, 'a listed program shows with the program glyph and runs when clicked'));
+    }
+    if (!it.stub) {
+      fields.requires = text(d.requires, { placeholder: '(none: always there)', onInput: (v) => { d.requires = v; touch(); } });
+      rows.push(row('REQUIRES', fields.requires, 'flags that must be on, comma separated (! before a name means off). Until then the item does not exist for the player.'));
+    }
     const body = [sec('', facts, ...rows)];
 
     // type specific
@@ -223,22 +231,6 @@ export default function makeDialogs(H) {
       fields.lines = lineEditor(ctx, { lines: srcText(), kind: 'page', onChange: touch });
       const info = mk('div', 'ed-hint', it.stub ? 'This is a stub placeholder. Writing text and applying turns it into a real doc.' : 'The text players read. A style is set per line.');
       body.push(sec('TEXT', info, fields.lines.el));
-    }
-    if (it.type === 'log') {
-      const found = mk('div', 'ed-hint');
-      const lookup = () => {
-        const data = d.source === 'dev' ? ctx.devLogs : ctx.lore; const c = d.code, e = data && (data[c] || data[c.replace(/-/g, '')]);
-        fields.code.classList.toggle('bad', !!c && !e);
-        found.classList.toggle('bad', !!c && !e);
-        found.textContent = !c ? 'enter the entry code' : e ? 'found: ' + (e.label || '(no label)') + '  ·  clearance ' + (e.clearance || '?') + (e.health ? '  ·  ' + e.health : '') : 'no entry ' + c + ' in ' + (d.source === 'dev' ? 'dev_logs' : 'lore') + '.json';
-        return !!e;
-      };
-      fields.source = segmented([['lore', 'LORE'], ['dev', 'DEV']], d.source, (v) => { d.source = v; lookup(); touch(); });
-      fields.code = text(d.code, { placeholder: 'XXXXX-XXXXX-XXXXX-XXXXX', onInput: (v) => {
-        const raw = v.replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 20); let out = ''; for (let i = 0; i < raw.length; i++) { if (i && i % 5 === 0) out += '-'; out += raw[i]; }
-        fields.code.value = out; d.code = out; lookup(); touch(); } });
-      body.push(sec('LOG ENTRY', row('SOURCE', fields.source, 'lore.json or dev_logs.json'), row('CODE', fields.code), found)); lookup();
-      fields.lookup = lookup;
     }
     if (it.type === 'gateway') {
       const dests = Object.values(ctx.os.items).filter((o) => o.type === 'folder' && !o.stub).sort((a, b) => a.tier - b.tier || a.id.localeCompare(b.id));
@@ -264,17 +256,17 @@ export default function makeDialogs(H) {
       const alias = H.bracket(d.alias || name);
       const prob = H.aliasProblem(ctx, alias, { parentId: it._parent, global: d.hidden || global, exceptId: it.id, program: it.type === 'program' });
       if (prob) { note('ALIAS: ' + prob, 'bad'); fields.alias.focus(); return; }
-      if (it.type === 'log') { if (!fields.lookup()) { note('THAT LOG ENTRY DOES NOT EXIST', 'bad'); fields.code.focus(); return; } }
       if (it.type === 'program') {
         if (!/^[a-z0-9-]+$/.test(d.program) || !(await ctx.os.loadProgram(d.program))) { note('NO PROGRAM FILE terminal-data/programs/' + (d.program || '?') + '.js (OR IT FAILS TO LOAD)', 'bad'); fields.program.focus(); return; }
       }
       it.name = name; it.alias = alias;
       if (!global) { it.title = d.title.trim().toUpperCase() || name; it.footer = d.footer; if (!it.stub) it.hidden = d.hidden; }
+      if (it.type === 'program') it.hidden = d.hidden;
+      if (!it.stub) { const rq = d.requires.split(',').map((x) => x.trim()).filter(Boolean); if (rq.length) it.requires = rq; else delete it.requires; }
       if (fields.lines) {
         const ls = fields.lines.get(); it.body = ls;
         if (it.stub && ls.some((l) => l.text)) { it.stub = false; it.type = 'doc'; }
       }
-      if (it.type === 'log') it.log_ref = { source: d.source, code: d.code };
       if (it.type === 'gateway') it.goto = d.goto;
       if (it.type === 'program') { it.program = d.program; it.scope = d.scope; }
       ctx.os.commit(); d = initial(); fields.name.value = d.name; fields.alias.value = d.alias; if (fields.title) fields.title.value = d.title;
@@ -282,13 +274,13 @@ export default function makeDialogs(H) {
       await ctx.os.redraw();
     }
     const apply = btn('APPLY', doApply);
-    dlg.foot.append(apply, btn('REVERT', () => { d = initial(); if (fields.name) fields.name.value = d.name; fields.alias.value = d.alias; if (fields.title) fields.title.value = d.title; if (fields.hidden) fields.hidden.set(d.hidden);
+    dlg.foot.append(apply, btn('REVERT', () => { d = initial(); if (fields.name) fields.name.value = d.name; fields.alias.value = d.alias; if (fields.title) fields.title.value = d.title; if (fields.hidden) fields.hidden.set(d.hidden); if (fields.requires) fields.requires.value = d.requires;
       if (fields.footer) fields.footer.value = d.footer; if (fields.lines) fields.lines.set(srcText()); checkAlias(); note('REVERTED'); }), btn('CLOSE', () => dlg.close()), msg);
     Object.values(fields).forEach((f) => { if (f && f.addEventListener) f.addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.tagName === 'INPUT') { e.preventDefault(); doApply(); } }); });
     dlg.el.__apply = doApply; dlg.el.__fields = fields; dlg.el.__data = () => d;
     checkAlias();
     function focusField(fk) {
-      const map = { NAME: fields.name, ALIAS: fields.alias, TITLE: fields.title, HIDDEN: fields.hidden, FOOTER: fields.footer, TEXT: fields.lines && { focus: fields.lines.focus }, LOG: fields.code, DESTINATION: fields.goto, PROGRAM: fields.program, SCOPE: fields.scope };
+      const map = { NAME: fields.name, ALIAS: fields.alias, TITLE: fields.title, HIDDEN: fields.hidden, FOOTER: fields.footer, TEXT: fields.lines && { focus: fields.lines.focus }, REQUIRES: fields.requires, DESTINATION: fields.goto, PROGRAM: fields.program, SCOPE: fields.scope };
       const f = map[(fk || '').toUpperCase()] || fields.name; try { (f.focus || (() => {})).call(f); if (f.scrollIntoView) f.scrollIntoView({ block: 'nearest' }); } catch (e) { /* nothing to focus */ }
     }
     dlg.el.__focus = focusField;

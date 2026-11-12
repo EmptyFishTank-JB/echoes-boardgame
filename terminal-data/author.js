@@ -3,8 +3,8 @@
 // Every command works on the folder the author is standing in (ctx.cwd). Edits change the
 // in-memory tree and a localStorage draft; [EXPORT] downloads the file to commit.
 
-const COMMANDS = ['[AUTHOR HELP]', '[MKDIR]', '[NEW DOC]', '[NEW LOG]', '[NEW PROGRAM]', '[NEW GATEWAY]', '[EDIT]',
-  '[SET]', '[LAYER]', '[HIDE]', '[SHOW]', '[ALIAS]', '[MV]', '[RM]', '[EXPORT]', '[RESTORE DRAFT]', '[DISCARD DRAFT]'];
+const COMMANDS = ['[AUTHOR HELP]', '[MKDIR]', '[NEW DOC]', '[NEW PROGRAM]', '[NEW GATEWAY]', '[EDIT]',
+  '[SET]', '[LAYER]', '[HIDE]', '[SHOW]', '[ALIAS]', '[MV]', '[RM]', '[FLAGS]', '[FLAG]', '[RESET STATE]', '[EXPORT]', '[RESTORE DRAFT]', '[DISCARD DRAFT]'];
 // Typed commands an alias must never shadow.
 const RESERVED = new Set(['[HELP]', '[TREE]', '[LS]', '[BACK]', '[ROOT]', '[EXIT]', '[CLEAR]', '[SYSTEM OVERRIDE]',
   '[AUTHOR UNLOCK]', '[AUTHOR LOCK]', '[STATUS]', '[SCAN]', ...COMMANDS]);
@@ -12,13 +12,14 @@ const RESERVED = new Set(['[HELP]', '[TREE]', '[LS]', '[BACK]', '[ROOT]', '[EXIT
 const HELP = [
   ['[MKDIR]', 'new folder in this folder'],
   ['[NEW DOC]', 'new page with its own text'],
-  ['[NEW LOG]', 'new page showing a lore.json / dev_logs.json entry'],
   ['[NEW PROGRAM]', 'register a program from terminal-data/programs'],
   ['[NEW GATEWAY]', 'hidden command that jumps to another folder or level'],
-  ['[EDIT]', 'change an item: name, alias, title, hidden, text'],
+  ['[EDIT]', 'change an item: name, alias, title, hidden, requires, text'],
   ['[SET] [SET NAME]', 'change one property of an item (right-click an item to see them all)'],
   ['[LAYER] [LAYER PRIMARY]', 'colors, title, intro text and sound of a layer (right-click a level root)'],
-  ['[HIDE] [SHOW]', 'unlist an item (still opens by alias) / list it again'],
+  ['[HIDE] [SHOW]', 'unlist an item (still opens by alias) / list it again (a program is listed like an app)'],
+  ['[FLAGS] [FLAG]', 'show the game flags and the items they gate / turn one flag on or off to test it'],
+  ['[RESET STATE]', 'clear every flag, recovered code and unlock (a fresh game)'],
   ['[ALIAS]', 'change an item\'s [COMMAND]'],
   ['[MV]', 'move an item to another folder'],
   ['[RM]', 'delete an item and everything under it'],
@@ -242,20 +243,6 @@ const handlers = {
     return add(ctx, f, make({ id: uid(ctx, 'L' + f.tier + 'A_', n.name), type: 'doc', name: n.name, alias: n.alias, tier: f.tier, hidden: n.hidden, title, body }), 'DOC');
   },
 
-  async '[NEW LOG]'(ctx) {
-    const f = await cwdFolder(ctx); if (!f) return 'stay';
-    const n = await nameHiddenAlias(ctx, f, 'LOG'); if (!n) return canceled(ctx);
-    const title = await askTitle(ctx, n.name); if (title === null) return canceled(ctx);
-    const src = await ask(ctx, '> SOURCE (LORE = lore.json, DEV = dev_logs.json):', 'LORE / DEV');
-    if (src === null || !/^(LORE|DEV)$/.test(src)) { await ctx.say('> SOURCE MUST BE LORE OR DEV', 'denied'); return canceled(ctx); }
-    const code = await ask(ctx, '> ENTRY CODE:', 'XXXXX-XXXXX-XXXXX-XXXXX', { mask: 'code' });
-    if (!code) return canceled(ctx);
-    const data = src === 'DEV' ? ctx.devLogs : ctx.lore;
-    if (!data || !(data[code] || data[code.replace(/-/g, '')])) { ctx.denied(); await ctx.say('> NO ENTRY ' + code + ' IN ' + (src === 'DEV' ? 'dev_logs' : 'lore') + '.json', 'denied'); return canceled(ctx); }
-    const item = make({ id: uid(ctx, 'L' + f.tier + 'A_', n.name), type: 'log', name: n.name, alias: n.alias, tier: f.tier, hidden: n.hidden, title, log_ref: { source: src.toLowerCase(), code } });
-    return add(ctx, f, item, 'LOG');
-  },
-
   async '[NEW PROGRAM]'(ctx) {
     const f = await cwdFolder(ctx); if (!f) return 'stay';
     const pid = await ask(ctx, '> PROGRAM ID (FILE NAME IN terminal-data/programs, WITHOUT .js):', 'lore-entry', { mask: 'free' });
@@ -304,6 +291,31 @@ const handlers = {
     return 'stay';
   },
 
+  async '[FLAGS]'(ctx) {
+    const f = ctx.state.all(), keys = Object.keys(f).sort();
+    await ctx.say(keys.length ? '> FLAGS ON: ' + keys.length : '> NO FLAGS ARE ON', 'full');
+    for (const k of keys) await ctx.say('  ' + k + ' = ' + JSON.stringify(f[k]), 'dim');
+    const gated = all(ctx).filter((o) => o.requires && o.requires.length);
+    if (gated.length) { await ctx.say('> GATED ITEMS:', 'full'); for (const o of gated) await ctx.say('  ' + (o.alias || '[' + o.name + ']') + '  REQUIRES ' + o.requires.join(', '), 'dim'); }
+    return 'stay';
+  },
+  async '[FLAG]'(ctx) {
+    const name = await ask(ctx, '> FLAG NAME (CASE MATTERS, E.G. wing_door_open):', 'name', { mask: 'free' });
+    if (!name || !name.trim()) return canceled(ctx);
+    const v = await ask(ctx, '> ON OR OFF (ENTER = ON):', 'ON / OFF');
+    if (v === null) return canceled(ctx);
+    const on = !/^(OFF|N|NO|0|FALSE)$/.test(v.trim());
+    const changed = ctx.state.set(name.trim(), on);
+    ctx.note('> ' + name.trim() + (changed ? (on ? ' IS NOW ON' : ' IS NOW OFF') : (on ? ' WAS ALREADY ON' : ' WAS ALREADY OFF')), changed ? 'full' : 'low');
+    return 'redraw';
+  },
+  async '[RESET STATE]'(ctx) {
+    const ok = await yn(ctx, '> CLEAR EVERY FLAG, RECOVERED CODE AND UNLOCK? (Y/N, ENTER = N):', false);
+    if (!ok) return canceled(ctx);
+    ctx.os.resetState();
+    ctx.note('> STATE CLEARED. THE TERMINAL IS BACK TO A FRESH GAME.', 'full');
+    return 'redraw';
+  },
   async '[HIDE]'(ctx) { return setHidden(ctx, true); },
   async '[SHOW]'(ctx) { return setHidden(ctx, false); },
 
@@ -373,7 +385,13 @@ const handlers = {
 async function setHidden(ctx, hidden) {
   const it = await target(ctx, (hidden ? 'HIDE' : 'SHOW') + ' WHICH ITEM'); if (!it) return canceled(ctx);
   if (it.stub) { await ctx.say('> THIS IS A STUB PLACEHOLDER. [EDIT] IT TO MAKE IT A REAL DOC FIRST.', 'warn'); return 'stay'; }
-  if (isGlobalType(it)) { await ctx.say('> PROGRAMS AND GATEWAYS ARE ALWAYS HIDDEN', 'warn'); return 'stay'; }
+  if (it.type === 'gateway') { await ctx.say('> GATEWAYS ARE ALWAYS HIDDEN', 'warn'); return 'stay'; }
+  if (it.type === 'program') {
+    if ((it.hidden !== false) === hidden) { await ctx.say('> ALREADY ' + (hidden ? 'HIDDEN' : 'LISTED'), 'low'); return 'stay'; }
+    it.hidden = hidden; ctx.os.commit();
+    ctx.note('> ' + (it.alias || it.name) + (hidden ? ' IS NOW HIDDEN (RUNS BY ITS ALIAS ONLY)' : ' IS NOW LISTED IN ITS FOLDER'));
+    return 'redraw';
+  }
   if (it.hidden === hidden) { await ctx.say('> ALREADY ' + (hidden ? 'HIDDEN' : 'LISTED'), 'low'); return 'stay'; }
   const prob = aliasProblem(ctx, (it.alias || bracket(it.name)).toUpperCase(), { parentId: it._parent, global: hidden, exceptId: it.id });
   if (hidden && prob) { ctx.denied(); await ctx.say('> CANNOT HIDE: ' + prob + ' (HIDDEN ALIASES MUST BE UNIQUE EVERYWHERE)', 'denied'); return 'stay'; }
@@ -400,10 +418,10 @@ async function askDestination(ctx, current, moving, hint) {
 function fieldKeys(it) {
   const k = ['NAME', 'ALIAS'];
   if (!isGlobalType(it)) k.push('TITLE');
-  if (!isGlobalType(it) && !it.stub) k.push('HIDDEN');
+  if ((!isGlobalType(it) && !it.stub) || it.type === 'program') k.push('HIDDEN');
+  if (!it.stub) k.push('REQUIRES');
   if (!isGlobalType(it)) k.push('FOOTER');
   if (it.type === 'doc' || it.stub) k.push('TEXT');
-  if (it.type === 'log') k.push('LOG');
   if (it.type === 'gateway') k.push('DESTINATION');
   if (it.type === 'program') k.push('PROGRAM', 'SCOPE');
   return k;
@@ -421,12 +439,13 @@ function infoRows(it, items) {
     { k: 'ALIAS', v: it.alias || '(none)', cmd: '[ALIAS]', preset: { target: it.id } },
   ];
   if (!isGlobalType(it)) rows.push({ k: 'TITLE', v: it.title || it.name, ...set('TITLE') });
-  if (isGlobalType(it)) rows.push({ k: 'HIDDEN', v: 'always (reached by its alias)' });
+  if (it.type === 'gateway') rows.push({ k: 'HIDDEN', v: 'always (reached by its alias)' });
+  else if (it.type === 'program') rows.push({ k: 'HIDDEN', v: it.hidden === false ? 'no (listed in its folder)' : 'yes (runs by its alias only)', cmd: it.hidden === false ? '[HIDE]' : '[SHOW]', preset: { target: it.id } });
   else if (!it.stub) rows.push({ k: 'HIDDEN', v: it.hidden ? 'yes (opens by alias only)' : 'no', cmd: it.hidden ? '[SHOW]' : '[HIDE]', preset: { target: it.id } });
+  if (!it.stub) rows.push({ k: 'REQUIRES', v: (it.requires || []).length ? it.requires.join(', ') : '(none: always there)', ...set('REQUIRES') });
   if (!isGlobalType(it)) rows.push({ k: 'FOOTER', v: it.footer || '(none)', ...set('FOOTER') });
   if (it.type === 'folder') rows.push({ k: 'CONTAINS', v: (it.children || []).length + ' item(s)' });
   if (it.type === 'doc' || it.stub) rows.push({ k: 'TEXT', v: it.stub ? '(empty: write it to make a real doc)' : lines.length + ' line(s)' + (first ? ': ' + first : ''), ...set('TEXT') });
-  if (it.type === 'log') rows.push({ k: 'LOG ENTRY', v: it.log_ref ? it.log_ref.source.toUpperCase() + ' ' + it.log_ref.code : '(none)', ...set('LOG') });
   if (it.type === 'gateway') rows.push({ k: 'DESTINATION', v: destLabel(items, it.goto), ...set('DESTINATION') });
   if (it.type === 'program') {
     rows.push({ k: 'PROGRAM', v: it.program, ...set('PROGRAM') });

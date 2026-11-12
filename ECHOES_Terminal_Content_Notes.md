@@ -166,17 +166,14 @@ Both are text the player reads, and they are built differently.
 | | Terminal document | Log |
 |---|---|---|
 | Where it lives | A page in the tree in `echo-os.json` | An entry in `lore.json` or `dev_logs.json` |
-| How the player reaches it | By browsing, or by typing its name or alias | By typing its 20 character code into FETCH LOG.EXE (L2 and L3). It can also be given a place in the tree: a `log` item (the `▪ log` in the legend, made with `[NEW LOG]`) is a page that prints one entry's text, and is browsed to like a document |
+| How the player reaches it | By browsing, or by typing its name or alias | By typing its 20 character code into FETCH LOG.EXE (L2 and L3). There is no tree page for a log (the `log` item type was removed): a log is reached by its code, or handed over by a program such as the inbox, whose messages can carry a code as an attachment |
 | What it carries | A title, a footer, styled lines, `[CORRUPTED]` gaps for the partial recoveries | A Log ID (department letter and crew number), a stardate, an author, a condition (INTACT, PARTIAL, DEGRADED, CORRUPTED) and a clearance (L2 or L3) |
 | Who writes it | Author mode in the terminal (`[NEW DOC]`, `[EDIT]`) | The log editor (`dev-tools/lore-devlog-editor.html`) |
 | Good for | The world as the ship shows it: reports, protocols, notes that sit in a folder waiting to be opened | A person speaking in their own voice, found because someone gave the player the code (a card, a component, the novel) |
 
 A log can be damaged on purpose (see the override above), a document cannot. A clue that has to be found by exploring belongs in a
-document or a `log` item. A clue that is a reward, or a voice, belongs in a log, which is why the CHRONO-ZERO clue is one.
-
-A `log` item is only a shortcut: the text stays in `lore.json` and the item points at it (`log_ref`: source and code). It does not
-open FETCH LOG.EXE, shows no condition line, does not add the code to RECOVERED LOGS and does not check the entry's clearance (the
-item's own level decides who sees it). No `log` item exists in `echo-os.json` yet.
+document. A clue that is a reward, or a voice, belongs in a log, which is why the CHRONO-ZERO clue is one. Programs (the inbox, later a
+control panel) are how a player is handed a log or a document: see the game state section of the commands reference.
 
 ## The clue log (H-094, Day 29)
 
@@ -199,15 +196,39 @@ open it). It is the first log with damaged ID information.
 - **The clue.** The records "live where the system put them, one door past the echo protocol", opened the way the first door was
   opened: "the same word at the front, the same word at the back. In the middle is where we put the clock to rest. Chrono. Zero."
   That is `[INITIATE CHRONO-ZERO PROTOCOL]`, and a player who types a space for the hyphen gets in too. It never prints the command.
-- **Where the player finds it.** As it stands, only by typing its code into FETCH LOG.EXE: no tree item points at it. Either the game
-  gives the code (a card, a component), or a `log` item in L2 makes it browsable. On a `log` item the damaged characters are drawn in
-  the plain layer color, because only FETCH LOG.EXE paints them in the corruption color so far.
+- **Where the player finds it.** As it stands, only by typing its code into FETCH LOG.EXE. The game can give the code (a card, a
+  component), or a program can hand it over, for example a message with the code as an attachment.
 
 Details that are new, for your call: that life support specialists were among the fourteen; that something in the wing's air
 handling answers kinder than it is told on Day 29 (the readings that "arrive and stay" are in Haddad's Day 27 log, so this is
 the same thing from the air side); that the wing's records live behind the L2 door and the fourteen call the start of the phase the
 clock at rest; that the archive is the one place Cross's people do not read; the two names and numbers (`H-094`, `P-029`, both
 provisional).
+
+## The inbox on Terminal 426 (provisional)
+
+`INBOX.EXE` is listed in the L3 root. The account is **unknown on purpose**: the header shows `╳-███  UNVERIFIED` and the mail never
+names the person, so the player works out who sat at the terminal. Whoever it is stays one field in `mail.json` (`account`). In the
+lore, Terminal 426 is the research wing annex console that becomes the entity's precursor, and the terminal documents already
+mention a workstation in the wing that keeps a session open overnight with no operator (Dr. Osei's notes). The starter mail leans on
+that and does not decide who the operator is.
+
+Six messages and two drafts, all dated inside the incident window, all provisional:
+
+| Message | Date (day) | Needs | What it carries |
+|---|---|---|---|
+| Cross, `PHASE START: WING PROCEDURE` | 2143.119.0804 (1) | | Doors closed, feeds off the shared network, nothing leaves without his initials. "If the terminal asks who you are, tell it." |
+| Osei, `COPY OF THE SUPPLEMENTAL REPORT` | 2143.136.2201 (18) | | A copy "in the wing store" that "belongs to nobody". Asks the operator whether they opened the overnight session. |
+| ECH/OES notice, `DRIVE ARRAY COMMAND ACCEPTED` | 2143.141.0312 (23) | read Osei | Class ROUTINE. Source Terminal 426, "session operator: none on record", "authorizer: session already open". This is the day the terminal takes the drives. |
+| Osei, `RE: COPY OF THE SUPPLEMENTAL REPORT` | 2143.146.0710 (28) | send the reply | "Then I was not wrong about the session. Leave it as it is." Attaches Haddad's Day 27 log. |
+| Lindqvist (`╳-094`), `WING AIR, YOUR SIDE` | 2143.147.0602 (29) | read the ECH/OES notice | The air "reads cleaner on your terminal". Mentions the note he left for Calloway in the archive. |
+| Sent: to Cross, `RE: PHASE START` | 2143.119.0911 (1) | | The operator's one filed reply, unsigned. |
+| Draft to Osei, `RE: COPY OF THE SUPPLEMENTAL REPORT` | | read Osei | "I did not open it. The session was already open when I came in. It is open now." |
+| Draft to Lindqvist, `RE: WING AIR, YOUR SIDE` | | read Lindqvist | "It is not mine. I have not touched the setpoints." |
+
+Details that are new, for your call: that ECH/OES logged the drive command as a routine notice with no operator on record; that Osei
+asked the operator to look at the overnight session; that Cross wrote to the operator before the phase; and that the operator
+answered Osei. None is in the lore repo.
 
 ## Updates for the lore repo (`ECHOES_Novel.md`, `PROGRESS.md`)
 

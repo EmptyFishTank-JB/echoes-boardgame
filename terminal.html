@@ -862,6 +862,7 @@ var CFG_STRINGS = {
   error_fetch_format:          '> INVALID FORMAT \u2014 Expected: XXXXX-XXXXX-XXXXX-XXXXX',
   error_fetch_unavailable:     '> FETCH UNAVAILABLE FROM THIS NODE',
   error_program_unavailable:   '> PROGRAM UNAVAILABLE',
+  item_received:               '> RECEIVED: ',
   error_pull_not_found:        '> ERROR \u2014 PULL TARGET NOT FOUND',
   error_target_not_found:      '> ERROR \u2014 TARGET NODE NOT FOUND',
   error_fetch_cancelled:       '> FETCH CANCELED',
@@ -1159,6 +1160,47 @@ function markDiscovered(code){var sd=getStardate();discovered[code]={sd:sd,ts:Da
 function unlockMisc(key){if(!miscUnlocks[key]){miscUnlocks[key]={sd:getStardate(),ts:Date.now()};try{localStorage.setItem('echo_misc',JSON.stringify(miscUnlocks));}catch(e){}}}
 function discoveredCount(){return Object.keys(discovered).length;}
 
+// ── GAME STATE ────────────────────────────────────────────────────────────────
+// Named flags that programs set (echo_state in the browser). An item with "requires": ["flag", "!other"] only exists while every flag
+// is on (a leading ! means off): it is not listed, its alias does not work and it has no page. Setting a flag rebuilds the tree, and
+// each gated item that appears is announced (RECEIVED) when the program that set the flag closes. Author mode sees everything.
+var gameState = {flags:{}};
+try{ var _gs = JSON.parse(localStorage.getItem('echo_state')||'null'); if(_gs && _gs.flags) gameState = _gs; }catch(e){}
+function saveGameState(){ try{ localStorage.setItem('echo_state', JSON.stringify(gameState)); }catch(e){} }
+function flagOn(n){ return !!gameState.flags[n]; }
+function flagsMet(list){
+  if(!list || !list.length || authorMode) return true;
+  return list.every(function(f){ f = String(f).trim(); return f.charAt(0) === '!' ? !flagOn(f.slice(1)) : flagOn(f); });
+}
+function gatedOut(it){ return !!(it && it.requires && it.requires.length) && !flagsMet(it.requires); }
+var pendingNotices = [];
+function setFlag(name, value){
+  name = String(name).trim(); if(!name) return false;
+  if(value === undefined) value = true;
+  var off = value === false || value === null, before = gameState.flags[name];
+  if(off ? before === undefined : before === value) return false;
+  var was = {};
+  Object.keys(osItems).forEach(function(id){ var it = osItems[id]; if(it.requires && it.requires.length) was[id] = !gatedOut(it); });
+  if(off) delete gameState.flags[name]; else gameState.flags[name] = value;
+  saveGameState();
+  if(osData) archData = buildArchFromOS(osData);
+  Object.keys(was).forEach(function(id){ var it = osItems[id]; if(it && !was[id] && !gatedOut(it)) pendingNotices.push(it); });
+  return true;
+}
+function resetGameState(){
+  gameState = {flags:{}}; discovered = {}; miscUnlocks = {}; pendingNotices = [];
+  try{ localStorage.removeItem('echo_state'); localStorage.removeItem('echo_disc'); localStorage.removeItem('echo_misc'); }catch(e){}
+  if(osData) archData = buildArchFromOS(osData);
+}
+async function flushNotices(){
+  while(pendingNotices.length){
+    var it = pendingNotices.shift();
+    var el = addLine('full', true); playEggTone(); await put(el, it.notice || (CFG_STRINGS.item_received + (it.alias || '[' + it.name + ']')), 'status');
+  }
+}
+// A folder lists a child unless it is hidden or a stub. A gateway is never listed. A program is listed only when set to be (hidden: false).
+function isListed(c){ if(c.stub || c.type === 'gateway') return false; if(c.type === 'program') return c.hidden === false; return !c.hidden; }
+
 // ── INVERT HIGHLIGHT ──────────────────────────────────────────────────────────
 function clearInverts(){termInput.classList.remove('inverted');output.querySelectorAll('.t-line.inverted').forEach(function(el){el.classList.remove('inverted');});}
 function updateInvertHighlight(){
@@ -1199,18 +1241,9 @@ function isKnownCommand(val){
   return false;
 }
 
-// A 'log' item shows an entry from lore.json / dev_logs.json instead of its own text.
 function pageBody(node){
   if(!node) return [];
-  var body;
-  if(!node.log_ref) body = node.body || [];
-  else {
-    var d = node.log_ref.source === 'dev' ? devLogs : loreData;
-    var c = node.log_ref.code, e = d && (d[c] || d[c.replace(/-/g, '')]);
-    var text = e ? (e.text || '').split('\n').map(function(t){ return {type:'text', text:t, cls:'full'}; })
-                 : [{type:'text', text:'> ENTRY NOT FOUND: '+c, cls:'denied'}];
-    body = text.concat((node.body || []).filter(function(b){ return b.type === 'command'; }));
-  }
+  var body = node.body || [];
   return (authorMode && node.author_list && node.author_list.length) ? withAuthorList(body, node.author_list) : body;
 }
 // Author view: the tree's entries (hidden, stubs, programs, gateways included) replace the player's list.
@@ -1251,14 +1284,15 @@ function buildArchFromOS(os){
     osItems[it.id] = it;
     it._parent = parentId;
     if(it.stub) return;
+    if(gatedOut(it)) return;   // not there yet: no entry, no alias, no page
     // Programs and gateways are invoked by alias, never drawn as pages or listed as menu entries.
     if(it.type === 'program'){ (osPrograms[it.alias.trim().toUpperCase()] = osPrograms[it.alias.trim().toUpperCase()] || []).push(it); return; }
     if(it.type === 'gateway'){ osHidden[it.alias.trim().toUpperCase()] = it.id; osHiddenLoose[aliasKey(it.alias)] = it.id; return; }
     var isTierRoot = parentId === null;
     var cmds = [];
     (it.children || []).forEach(function(c){
-      if(c.hidden || c.stub || c.type === 'program' || c.type === 'gateway') return;
-      cmds.push({type:'command', cmd_type:'navigation', label:c.alias || ('['+c.name+']'), target:c.id, kind:c.type, osId:c.id});
+      if(!isListed(c) || gatedOut(c)) return;
+      cmds.push({type:'command', cmd_type:'navigation', label:c.alias || ('['+c.name+']'), target:(c.type === 'program' ? '__PROGRAM__' : c.id), kind:c.type, osId:c.id});
     });
     (it.commands || []).forEach(function(c){ cmds.push({type:'command', cmd_type:'navigation', label:c.label, target:c.goto}); });
     cmds.push(isTierRoot ? {type:'command', cmd_type:'navigation', label:'[EXIT]', target:'__EXIT__', kind:'up'}
@@ -1267,10 +1301,9 @@ function buildArchFromOS(os){
     nodes[it.id] = {
       layer:'l'+it.tier+'a', node_type:'standard', is_root:isTierRoot,
       title:title, breadcrumb:crumb, footer:it.footer || '', hidden:!!it.hidden, parent:parentId,
-      log_ref:it.log_ref || null,
       // Every child, hidden or not: author mode lists them all (dimmed when unlisted).
       author_list:(it.children || []).map(function(c){
-        var sp = c.type === 'program' || c.type === 'gateway';
+        var sp = c.type === 'gateway' || (c.type === 'program' && c.hidden !== false);
         return {label:c.alias || ('['+c.name+']'), target:c.id, kind:c.type, osId:c.id, dim:!!(c.hidden || c.stub || sp), stub:!!c.stub, special:sp};
       }),
       body:(it.body || []).concat(cmds)
@@ -1614,6 +1647,7 @@ async function handleArchiveInput(val){
       else if(target==='__ROOT__'){await handleRoot();}
       else if(target==='__TRANSITION_L2A__'){if(l1ChatBackup===null)l1ChatBackup=snapOutput();await transitionToL2();isResponding=false;var r2=layerRootId('l2a');if(r2)await renderArchivePage(r2);}
       else if(target==='__TRANSITION_L3A__'){await transitionToL3();isResponding=false;var r3=layerRootId('l3a');if(r3)await renderArchivePage(r3);}
+      else if(target==='__PROGRAM__'){if(!(await tryAliasCommand(val.toUpperCase()))){isResponding=false;await showInvalidSelection();}}
       else if(archData.nodes[target]){isResponding=false;await renderArchivePage(target);}
       else{isResponding=false;await showInvalidSelection();}
       return;
@@ -1695,6 +1729,12 @@ function makeProgramCtx(item, prog){
     ask: ctxAsk,
     pause: function(){ return ctxAsk({}); },
     discovered: function(code){ markDiscovered(code); playEggTone(); },
+    // Game state: named flags that persist in the browser. Setting one can make gated items appear (announced when the program closes).
+    stardate: function(){ return getStardate(); },
+    state: {
+      get: function(n){ return gameState.flags[n]; }, has: flagOn, set: setFlag,
+      all: function(){ return JSON.parse(JSON.stringify(gameState.flags)); }
+    },
     denied: playDenied,
     virus: triggerVirusSequence
   };
@@ -1764,8 +1804,10 @@ async function runProgram(item){
   // A windowed program leaves the page behind it untouched: note that it closed and give the prompt back.
   if(ctx._windowed && !failed){
     var cl = addLine('low', true); await put(cl, '> ' + (ctx._windowName || item.name || item.program).toUpperCase() + ' CLOSED','status');
+    await flushNotices();
     await promptInPlace(); return;
   }
+  await flushNotices();
   if(res === 'stay' || prev === 'L1_NORMAL'){
     if(prev === 'L1_NORMAL'){ setBreadcrumb(''); setHeaderTitle(''); }
     await promptInPlace(); return;
@@ -1937,7 +1979,8 @@ function makeAuthorCtx(){
     redraw: redrawAuthorPage,
     submit: uiSubmit,                    // run a command as if it had been clicked
     refreshStyles: refreshLayerStyles,
-    previewSound: previewAmbient, stopSound: stopAmbientPreview
+    previewSound: previewAmbient, stopSound: stopAmbientPreview,
+    resetState: resetGameState
   };
   return c;
 }
@@ -1953,7 +1996,7 @@ async function handleAuthorInput(val){
     if(authorMode){ await authorSay('> AUTHOR MODE IS ALREADY ACTIVE'); await promptInPlace(); return true; }
     var m = await loadAuthor();
     if(!m){ playDenied(); await authorSay('> AUTHOR MODULE UNAVAILABLE', 'denied'); await promptInPlace(); return true; }
-    authorMode = true; setAuthorPrompt(); playEggTone();
+    authorMode = true; if(osData) archData = buildArchFromOS(osData); setAuthorPrompt(); playEggTone();
     var msgs = [['> AUTHOR MODE ACTIVE', 'full'], ['> CHANGES LIVE IN THIS SESSION ONLY. [EXPORT] DOWNLOADS THE FILE.', 'dim'],
                 ['> [AUTHOR HELP] LISTS THE COMMANDS. RIGHT-CLICK FOR MENUS.', 'dim']];
     if(makeAuthorCtx().os.draft()) msgs.push(['> AN UNSAVED DRAFT WAS FOUND. [RESTORE DRAFT] OR [DISCARD DRAFT].', 'warn']);
@@ -1962,7 +2005,7 @@ async function handleAuthorInput(val){
   if(!authorMode) return false;
   if(val === '[AUTHOR LOCK]'){
     var u2 = addLine('user'); u2.textContent = '> '+val; isResponding = true;
-    authorMode = false; setAuthorPrompt(); closeAuthorDialogs();
+    authorMode = false; if(osData) archData = buildArchFromOS(osData); setAuthorPrompt(); closeAuthorDialogs();
     await showAuthorMessages([['> AUTHOR MODE LOCKED', 'dim']]); return true;
   }
   var mod = authorMod;
@@ -2015,22 +2058,17 @@ function rowCols(b, kind){
   var it = b.osId ? osItems[b.osId] : null, type = '', size = '';
   if(kind === 'up'){ type = 'UP'; }
   else if(it && it.stub){ type = 'DOC'; size = '--'; }
-  else if(it && it.type === 'folder'){ type = 'DIR'; size = plural((it.children || []).filter(function(c){ return authorMode || (!c.hidden && !c.stub && c.type !== 'program' && c.type !== 'gateway'); }).length, 'ITEM', 'ITEMS'); }
+  else if(it && it.type === 'folder'){ type = 'DIR'; size = plural((it.children || []).filter(function(c){ return authorMode || (isListed(c) && !gatedOut(c)); }).length, 'ITEM', 'ITEMS'); }
   else if(it && it.type === 'doc'){ type = 'DOC'; size = plural(textLines(it.body), 'LINE', 'LINES'); }
-  else if(it && it.type === 'log'){
-    type = 'LOG';
-    var d = it.log_ref && (it.log_ref.source === 'dev' ? devLogs : loreData), e = d && (d[it.log_ref.code] || d[it.log_ref.code.replace(/-/g, '')]);
-    size = e ? plural((e.text || '').split('\n').filter(function(t){ return t.trim(); }).length, 'LINE', 'LINES') : '--';
-  }
   else if(it && it.type === 'program'){ type = 'EXE'; size = it.scope === 'folder' ? 'LOCAL' : 'L' + it.tier; }
   else if(it && it.type === 'gateway'){ type = 'GATE'; var gt = osItems[it.goto]; size = '-> L' + (gt ? gt.tier : '?'); }
-  else { var t2 = kindOfTarget(b.target); type = t2 === 'folder' ? 'DIR' : t2 === 'doc' ? 'DOC' : t2 === 'log' ? 'LOG' : ''; }
+  else { var t2 = kindOfTarget(b.target); type = t2 === 'folder' ? 'DIR' : t2 === 'doc' ? 'DOC' : ''; }
   return type.padEnd(6) + size.padEnd(12);
 }
 function pageStatus(it, rows){
   var bits = [];
   if(it.type === 'folder') bits.push(plural(rows, 'ITEM', 'ITEMS'));
-  else if(it.type === 'log' || it.type === 'doc') bits.push(it.type.toUpperCase());
+  else if(it.type === 'doc') bits.push('DOC');
   bits.push('L' + it.tier);
   if(authorMode) bits.push('AUTHOR');
   return bits.join('   ');
@@ -2087,7 +2125,7 @@ async function authorJump(id){
 // ── ITEM LINES, HOVER, CLICK, POINTER, AUTHOR MENU ────────────────────────────
 // Listed items are drawn as  [eye] glyph [COMMAND]. Hovering an item shows its command in the
 // input field and highlights it; clicking runs it exactly as if it had been typed.
-var GLYPH_DEFAULT = {folder:'\\', doc:'≡', log:'▪', program:'►', gateway:'»', up:'↰', eyeOn:'(o)', eyeOff:'(-)'};
+var GLYPH_DEFAULT = {folder:'\\', doc:'≡', program:'►', gateway:'»', up:'↰', eyeOn:'(o)', eyeOff:'(-)'};
 function glyphSet(){
   var g = (osData && osData.glyphs) || {}, o = {};
   Object.keys(GLYPH_DEFAULT).forEach(function(k){ o[k] = g[k] != null ? g[k] : GLYPH_DEFAULT[k]; });
@@ -2256,7 +2294,7 @@ document.getElementById('terminal-box').addEventListener('contextmenu', function
               {label:'AUTHOR HELP', cmd:'[AUTHOR HELP]'}, {label:'LEAVE AUTHOR MODE', cmd:'[AUTHOR LOCK]'}];
   if(cur.type === 'folder'){
     ctxOpen(e.clientX, e.clientY, 'IN ' + (cur.title || cur.name),
-      [{label:'NEW FOLDER', cmd:'[MKDIR]'}, {label:'NEW DOC', cmd:'[NEW DOC]'}, {label:'NEW LOG', cmd:'[NEW LOG]'},
+      [{label:'NEW FOLDER', cmd:'[MKDIR]'}, {label:'NEW DOC', cmd:'[NEW DOC]'},
        {label:'NEW PROGRAM', cmd:'[NEW PROGRAM]'}, {label:'NEW GATEWAY', cmd:'[NEW GATEWAY]'}]
       .concat(cur._parent === null ? ['-', {label:'LAYER SETTINGS... (right-click the address bar)', cmd:'[LAYER]', preset:{layer:'l'+cur.tier+'a'}}] : [])
       .concat(tail));
@@ -2575,10 +2613,10 @@ function treeLines(full){
   function lab(it){ return (!full && it._parent === null) ? it.name : (it.alias || ('['+it.name+']')); }
   function tag(it){
     if(!full) return '';
-    return (it.stub ? '  ?stub' : it.hidden ? '  ~hidden' : '') + (it.type === 'program' ? '  program:'+it.program+(it.scope === 'folder' ? ' (this folder only)' : '') : it.type === 'gateway' ? '  gateway: '+(osItems[it.goto] ? osItems[it.goto].name+' ('+it.goto+')' : it.goto+' (NOT FOUND)') : '') + '  L'+it.tier;
+    return (it.stub ? '  ?stub' : it.hidden ? '  ~hidden' : '') + (it.requires && it.requires.length ? '  requires:' + it.requires.join(',') : '') + (it.type === 'program' ? '  program:'+it.program+(it.scope === 'folder' ? ' (this folder only)' : '') : it.type === 'gateway' ? '  gateway: '+(osItems[it.goto] ? osItems[it.goto].name+' ('+it.goto+')' : it.goto+' (NOT FOUND)') : '') + '  L'+it.tier;
   }
   function walk(list, prefix, isRoot){
-    var vis = list.filter(function(c){ return c.tier <= maxTier && (full || (!c.hidden && !c.stub)); });
+    var vis = list.filter(function(c){ return c.tier <= maxTier && (full || (!c.hidden && !c.stub && !gatedOut(c))); });
     vis.forEach(function(c, i){
       var last = i === vis.length-1;
       var ln={text:'  '+prefix+(last?'└─ ':'├─ ')+glyphOf(c.type)+' '+lab(c)+(isRoot?'  '+(c.title||c.name):'')+tag(c)+(full&&authorMode&&c.id===termState?'  \u25C4 HERE':''), cls:c.hidden||c.stub?'low':'dim'};
@@ -2589,7 +2627,7 @@ function treeLines(full){
   }
   walk((osData && osData.tree && osData.tree.children) || [], '', true);
   var g = glyphSet();
-  out.push({text:'  '+g.folder+' folder   '+g.doc+' doc   '+g.log+' log   '+g.program+' program   '+g.gateway+' gateway   '+g.up+' back', cls:'low'});
+  out.push({text:'  '+g.folder+' folder   '+g.doc+' doc   '+g.program+' program   '+g.gateway+' gateway   '+g.up+' back', cls:'low'});
   return out;
 }
 async function printTree(full){
