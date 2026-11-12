@@ -362,6 +362,19 @@ function _deniedBurst(ctx,t,vol){
   var len2=Math.floor(ctx.sampleRate*0.008);var buf2=ctx.createBuffer(1,len2,ctx.sampleRate);var d2=buf2.getChannelData(0);for(var j=0;j<len2;j++)d2[j]=(Math.random()*2-1)*(1-j/len2);var bs2=ctx.createBufferSource();bs2.buffer=buf2;var hi=ctx.createBiquadFilter();hi.type='bandpass';hi.frequency.value=3500;hi.Q.value=1.2;var gn2=ctx.createGain();gn2.gain.setValueAtTime(vol*0.6,t);gn2.gain.exponentialRampToValueAtTime(0.001,t+0.008);bs2.connect(hi);hi.connect(gn2);gn2.connect(ctx.destination);bs2.start(t);bs2.stop(t+0.008);
 }
 function playDenied(){try{var ctx=getCtx();[0,0.08,0.18].forEach(function(delay,i){_deniedBurst(ctx,ctx.currentTime+delay,VOL*[0.9,0.35,0.12][i]);});}catch(e){}}
+// A short soft pip when arrowing through a menu or the command history: higher going up, lower going down, and a dull tick at the end
+// of the history where the arrow cannot go further (edge). It uses the master volume. Held-down keys are thinned out.
+var lastPipAt = 0;
+function playNavPip(dir, edge){
+  var now = performance.now(); if(now - lastPipAt < 28) return; lastPipAt = now;
+  try{
+    var ctx = getCtx(), t = ctx.currentTime, osc = ctx.createOscillator(), gn = ctx.createGain(), dur = edge ? 0.05 : 0.04;
+    osc.type = edge ? 'triangle' : 'sine';
+    osc.frequency.value = edge ? 260 : (dir < 0 ? 1480 : 1120);
+    gn.gain.setValueAtTime(VOL * (edge ? 0.35 : 0.4), t); gn.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    osc.connect(gn); gn.connect(ctx.destination); osc.start(t); osc.stop(t + dur);
+  }catch(e){}
+}
 function playLineStatic(){
   try{var ctx=getCtx(),dur=0.035;var buf=ctx.createBuffer(1,Math.floor(ctx.sampleRate*dur),ctx.sampleRate);var d=buf.getChannelData(0);for(var i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*(1-i/d.length);var src=ctx.createBufferSource();src.buffer=buf;var flt=ctx.createBiquadFilter();flt.type='highpass';flt.frequency.value=2000;var gn=ctx.createGain();gn.gain.setValueAtTime(VOL*0.75,ctx.currentTime);gn.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+dur);src.connect(flt);flt.connect(gn);gn.connect(ctx.destination);src.start();src.stop(ctx.currentTime+dur);}catch(e){}
 }
@@ -1720,7 +1733,7 @@ function makeProgramCtx(item, prog){
     // fill win.body and await win.closed. Esc and the [X] close it.
     window: function(opts){ c._windowed = true; var w = openProgWindow(opts, item, prog); c._windowName = w.exe || w.title; return w; },
     recovered: function(){ return Object.keys(discovered).map(function(k){ return {code:k, sd:discovered[k].sd, ts:discovered[k].ts}; }).sort(function(a, b){ return a.ts - b.ts; }); },
-    sound: {click:playClick, backspace:playBackspace, enter:playEnter, denied:playDenied, line:playLineStatic, tone:playEggTone},
+    sound: {click:playClick, backspace:playBackspace, enter:playEnter, denied:playDenied, line:playLineStatic, tone:playEggTone, pip:playNavPip},
     say: async function(text, cls){ var el = addLine(cls || 'dim', true); await put(el, text,'status'); },
     lines: function(lines){ return printInstant(lines); },
     echo: function(text){ var u = addLine('user'); u.textContent = '> '+text; },
@@ -2913,12 +2926,12 @@ termInput.addEventListener('keydown',async function(e){
     return;
   }
 
-  if(e.key==='ArrowDown'&&isMenu){e.preventDefault();menuSelIdx=(menuSelIdx+1)%currentMenuOpts.length;termInput.value=currentMenuOpts[menuSelIdx];updateInvertHighlight();return;}
-  if(e.key==='Tab'&&isMenu){e.preventDefault();menuSelIdx=(menuSelIdx+1)%currentMenuOpts.length;termInput.value=currentMenuOpts[menuSelIdx];updateInvertHighlight();return;}
-  if(e.key==='ArrowUp'&&isMenu){e.preventDefault();menuSelIdx=((menuSelIdx-1)+currentMenuOpts.length)%currentMenuOpts.length;termInput.value=currentMenuOpts[menuSelIdx];updateInvertHighlight();return;}
+  if(e.key==='ArrowDown'&&isMenu){e.preventDefault();menuSelIdx=(menuSelIdx+1)%currentMenuOpts.length;termInput.value=currentMenuOpts[menuSelIdx];updateInvertHighlight();playNavPip(1);return;}
+  if(e.key==='Tab'&&isMenu){e.preventDefault();menuSelIdx=(menuSelIdx+1)%currentMenuOpts.length;termInput.value=currentMenuOpts[menuSelIdx];updateInvertHighlight();playNavPip(1);return;}
+  if(e.key==='ArrowUp'&&isMenu){e.preventDefault();menuSelIdx=((menuSelIdx-1)+currentMenuOpts.length)%currentMenuOpts.length;termInput.value=currentMenuOpts[menuSelIdx];updateInvertHighlight();playNavPip(-1);return;}
 
-  if(e.key==='ArrowUp'&&termState==='L1_NORMAL'&&!inputBusy()&&commandHistory.length){e.preventDefault();commandHistIdx=Math.max(0,commandHistIdx-1);termInput.value=commandHistory[commandHistIdx]||'';return;}
-  if(e.key==='ArrowDown'&&termState==='L1_NORMAL'&&!inputBusy()){e.preventDefault();if(commandHistIdx<commandHistory.length-1){commandHistIdx++;termInput.value=commandHistory[commandHistIdx];}else{commandHistIdx=commandHistory.length;termInput.value='';}return;}
+  if(e.key==='ArrowUp'&&termState==='L1_NORMAL'&&!inputBusy()&&commandHistory.length){e.preventDefault();var atOldest=commandHistIdx<=0;commandHistIdx=Math.max(0,commandHistIdx-1);termInput.value=commandHistory[commandHistIdx]||'';playNavPip(-1,atOldest);return;}
+  if(e.key==='ArrowDown'&&termState==='L1_NORMAL'&&!inputBusy()){e.preventDefault();var atBlank=commandHistIdx>=commandHistory.length;if(commandHistIdx<commandHistory.length-1){commandHistIdx++;termInput.value=commandHistory[commandHistIdx];}else{commandHistIdx=commandHistory.length;termInput.value='';}playNavPip(1,atBlank);return;}
 
   if(e.key==='ArrowRight'&&termInput.value.trim()&&!inputBusy()){e.preventDefault();var v2=termInput.value.trim().toUpperCase();termInput.value='';if(termState==='L1_NORMAL'){commandHistory.push(v2);commandHistIdx=commandHistory.length;}playEnter();routeInput(v2);return;}
   if(e.key==='ArrowLeft'&&termInput.value===''&&!inputBusy()){e.preventDefault();if(termState!=='L1_NORMAL'){await withLock(async function(){isResponding=true;await handleBack();});}return;}

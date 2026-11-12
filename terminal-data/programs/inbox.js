@@ -194,7 +194,9 @@ export default {
     list.addEventListener('keydown', (e) => {
       if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
       const rows = Array.from(list.querySelectorAll('.mb-row')); const i = rows.indexOf(document.activeElement);
-      if (i < 0) return; e.preventDefault(); snd.click(' '); (rows[i + (e.key === 'ArrowDown' ? 1 : -1)] || rows[i]).focus();
+      if (i < 0) return; e.preventDefault();
+      const next = rows[i + (e.key === 'ArrowDown' ? 1 : -1)];
+      snd.pip(e.key === 'ArrowDown' ? 1 : -1, !next); (next || rows[i]).focus();
     });
 
     // ---- start ----

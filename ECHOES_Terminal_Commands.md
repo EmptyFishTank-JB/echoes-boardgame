@@ -117,8 +117,8 @@ else it answers "fetch unavailable".
 | Input | Effect |
 |---|---|
 | `Enter` | Submit what is typed. |
-| `Tab`, `Down`, `Up` on an archive page | Step through the listed items, filling the input field. |
-| `Up`, `Down` in the chat | Command history. |
+| `Tab`, `Down`, `Up` on an archive page | Step through the listed items, filling the input field. Each step sounds a short pip: a lower one going down, a higher one going up. |
+| `Up`, `Down` in the chat | Command history, with the same pips. At the oldest command (`Up`) and at the empty end (`Down`) the arrow cannot go further and a dull low tick sounds instead. Nothing sounds while the terminal is busy. The pips follow the master volume and a held key is thinned out. |
 | `Right` with text typed | Submit it. |
 | `Left` with an empty field | Same as `[BACK]` (on a program prompt, cancels). |
 | `Esc` | Same as `[EXIT]` on an archive page. In a program prompt it cancels. |
@@ -378,6 +378,7 @@ A program is `terminal-data/programs/<id>.js` with `export default { id, title, 
 |---|---|
 | `ctx.window({ width, height, title, exe })` | Tints the screen and opens the window. Returns `win` with `win.body` (fill it with DOM), `win.style(css)`, `win.focus(el)`, `win.setTitle()`, `win.close()` and `win.closed` (a promise that resolves on close). Size with any CSS length, for example `min(96vw, 880px)`. |
 | `ctx.sound.click / backspace / enter / denied / line / tone` | The terminal's sound effects. |
+| `ctx.sound.pip(dir, edge)` | The navigation pip: `dir` is `-1` (up, higher) or `1` (down, lower), `edge` is `true` for the dull tick at the end of a list. Use it when arrowing through a list in a window, as INBOX.EXE does. |
 | `ctx.recovered()` | Codes entered so far: `[{code, sd, ts}]`, oldest first. |
 | `ctx.discovered(code)` | Records a recovered code. |
 | `ctx.state.get(name)`, `.has(name)`, `.set(name, value)`, `.all()` | The game flags (section 9). `set` with no value turns a flag on, `false` turns it off, and it returns whether anything changed. |
